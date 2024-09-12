@@ -21,10 +21,15 @@ Compared to using the internal LanguageTool in LibreOffice, the extension offers
   * Change parameters for some special rules
   * Define profiles for checking different document types
 * The extension offers the possibility of statistical analyses, such as frequently used words, filler words, etc. (So far only for individual languages).
-* Support for (local) AI (in progress) The nightly snapshots contain the current LanguageTool snapshots (see here). The releases contain the current LanguageTool releases (see here).
+* Support for (local) AI:
+  * Supplement to the grammar check
+  * Generation, improvement, rewriting, expansion and translation of paragraphs
+  * Creating illustrations for a paragraph
+  * supporting OpenAI like API (Local applications such as https://localai.io are particularly supported)
 
-You can find more information (requirements, licence, downloads, etc.) here: https://fk-es.de/index.php
+The nightly snapshots contain the current LanguageTool snapshots, see here: https://writingtool.org/writingtool/snapshots/
+The releases contain the current LanguageTool releases, see here: https://writingtool.org/writingtool/releases/
 
-Current snapshots are here: https://fk-es.de/writingtool/snapshots/
+You can find more information (requirements, licence, downloads, etc.) here: https://writingtool.org
 
 
