@@ -183,7 +183,7 @@ public class WtDocumentsHandler {
     }
     configDir = WtOfficeTools.getLOConfigDir(xContext);
     oldConfigFile = WtOfficeTools.getOldConfigFile();
-    WtMessageHandler.init(xContext);
+    WtMessageHandler.init(xContext, false);
     documents = new ArrayList<>();
     disabledRulesUI = new HashMap<>();
     extraRemoteRules = new ArrayList<>();

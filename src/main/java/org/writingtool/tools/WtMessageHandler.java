@@ -50,17 +50,17 @@ public class WtMessageHandler {
   
   private static boolean testMode;
   
-  WtMessageHandler(XComponentContext xContext) {
-    initLogFile(xContext);
+  WtMessageHandler(XComponentContext xContext, boolean isSpellchecker) {
+    initLogFile(xContext, isSpellchecker);
   }
 
   /**
    * Initialize log-file
    */
-  private static void initLogFile(XComponentContext xContext) {
+  private static void initLogFile(XComponentContext xContext, boolean isSpellchecker) {
     if (!isInit) {
       isInit = true;
-      try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(xContext));
+      try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(xContext, isSpellchecker));
           OutputStreamWriter writer = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
           BufferedWriter br = new BufferedWriter(writer)
           ) {
@@ -86,15 +86,19 @@ public class WtMessageHandler {
   /**
    * Initialize MessageHandler
    */
-  public static void init(XComponentContext xContext) {
-    initLogFile(xContext);
+  public static void init(XComponentContext xContext, boolean isSpellchecker) {
+    initLogFile(xContext, isSpellchecker);
   }
 
   /**
    * Show an error in a dialog
    */
-  public static void showError(Throwable e) {
-    printException(e);
+  public static void showError(Throwable e, boolean fromSpellCheck) {
+    if (fromSpellCheck) {
+      printSpellException(e);
+    } else {
+      printException(e);
+    }
     if (testMode) {
       throw new RuntimeException(e);
     }
@@ -112,10 +116,24 @@ public class WtMessageHandler {
   }
 
   /**
-   * Write to log-file
+   * Show a grammar error in a dialog
    */
-  public static void printToLogFile(String str) {
-    try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(), true);
+  public static void showError(Throwable e) {
+    showError(e, false);
+  }
+  
+  /**
+   * Show a spell error in a dialog
+   */
+  public static void showSpellError(Throwable e) {
+    showError(e, true);
+  }
+
+  /**
+   * Write to spell log-file
+   */
+  public static void printToLogFile(String str, boolean fromSpellCheck) {
+    try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(fromSpellCheck), true);
         OutputStreamWriter writer = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
         BufferedWriter br = new BufferedWriter(writer)
         ) {
@@ -125,11 +143,32 @@ public class WtMessageHandler {
     }
   }
 
+  /**
+   * Write to spell log-file
+   */
+  public static void printToSpellLogFile(String str) {
+    printToLogFile(str, true);
+  }
+
   /** 
-   * Prints Exception to log-file  
+   * Prints Exception to spell log-file  
+   */
+  public static void printSpellException(Throwable t) {
+   printToLogFile(Tools.getFullStackTrace(t), true);
+  }
+
+  /**
+   * Write to grammar log-file
+   */
+  public static void printToLogFile(String str) {
+    printToLogFile(str, false);
+  }
+
+  /** 
+   * Prints Exception to grammar log-file  
    */
   public static void printException(Throwable t) {
-   printToLogFile(Tools.getFullStackTrace(t));
+   printToLogFile(Tools.getFullStackTrace(t), false);
   }
 
   /**

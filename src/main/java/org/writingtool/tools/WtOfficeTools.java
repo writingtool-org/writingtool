@@ -175,6 +175,7 @@ public class WtOfficeTools {
   public  static final String OOO_CONFIG_FILE = "Languagetool-ooo.cfg";
   private static final String OLD_CONFIG_FILE = ".languagetool-ooo.cfg";
   private static final String LOG_FILE = "LanguageTool.log";
+  private static final String LOG_FILE_SP = "LanguageToolSpell.log";
   public  static final String STATISTICAL_ANALYZES_CONFIG_FILE = "LT_Statistical_Analyzes.cfg";
 
   private static final String VENDOR_ID = "languagetool.org";
@@ -582,11 +583,14 @@ public class WtOfficeTools {
   /**
    * Returns log file 
    */
-  public static String getLogFilePath() {
-    return getLogFilePath(null);
+  public static String getLogFilePath(boolean isSpellchecker) {
+    return getLogFilePath(null, isSpellchecker);
   }
 
-  public static String getLogFilePath(XComponentContext xContext) {
+  public static String getLogFilePath(XComponentContext xContext, boolean isSpellchecker) {
+    if (isSpellchecker) {
+      return new File(getLOConfigDir(xContext), LOG_FILE_SP).getAbsolutePath();
+    }
     return new File(getLOConfigDir(xContext), LOG_FILE).getAbsolutePath();
   }
   

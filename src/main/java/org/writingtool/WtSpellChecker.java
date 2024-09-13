@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.languagetool.AnalyzedSentence;
+import org.languagetool.AnalyzedToken;
 import org.languagetool.AnalyzedTokenReadings;
+import org.languagetool.JLanguageTool;
 // import org.languagetool.JLanguageTool;
 // import org.languagetool.JLanguageTool.ParagraphHandling;
 import org.languagetool.Language;
@@ -89,7 +91,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     if (xContext == null) {
       try {
         xContext = xContxt;
-//        WtMessageHandler.init(xContext);
+        WtMessageHandler.init(xContext, true);
         OfficeProductInfo officeInfo = WtOfficeTools.getOfficeProductInfo(xContext);
         if (officeInfo == null || officeInfo.osArch.equals("x86")
             || !isEnoughHeap() || !runLTSpellChecker(xContext)) {
@@ -118,7 +120,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           }
         }
       } catch (Throwable e) {
-        WtMessageHandler.showError(e);
+        WtMessageHandler.showSpellError(e);
       }
     }
   }
@@ -196,22 +198,29 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
    */
   @Override
   public boolean isValid(String word, Locale locale, PropertyValue[] Properties) throws IllegalArgumentException {
+    if (DEBUG_MODE) {
+      WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: test word: " + (word == null ? "null" : word)
+          + ", DEBUG_MODE: " + DEBUG_MODE);
+    }
     try {
       if (noLtSpeller || locale == null || !hasLocale(locale)) {
+        if (DEBUG_MODE) {
+          WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: noLtSpeller || locale == null || !hasLocale(locale): return false");
+        }
         return false;
       }
       if (word == null || word.trim().isEmpty()) {
         if (DEBUG_MODE) {
-          WtMessageHandler.printToLogFile("LtSpellChecker: isValid: word id empty: " + (word == null ? "null" : word));
+          WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: word id empty: " + (word == null ? "null" : word));
         }
         return true;
       }
       if (DEBUG_MODE) {
-        WtMessageHandler.printToLogFile("LtSpellChecker: isValid: test word/string: '" + (word == null ? "null" : word) + "'");
+        WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: test word/string: '" + (word == null ? "null" : word) + "'");
       }
       if (word.matches(PROB_CHARS)) {
         if (DEBUG_MODE) {
-          WtMessageHandler.printToLogFile("LtSpellChecker: isValid: Problematic word found: " + (word == null ? "null" : word));
+          WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: Problematic word found: " + (word == null ? "null" : word));
         }
         return false;
       }
@@ -220,11 +229,11 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
         if (last2.endsWith(".") || words[0].equals(last1)) {
           word = words[0] + " " + last2;
           if (DEBUG_MODE) {
-            WtMessageHandler.printToLogFile("LtSpellChecker: isValid: repeated word changed to: " + (word == null ? "null" : word));
+            WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: repeated word changed to: " + (word == null ? "null" : word));
           }
         } else {
           if (DEBUG_MODE) {
-            WtMessageHandler.printToLogFile("LtSpellChecker: isValid: repeated word found: " + (word == null ? "null" : word));
+            WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: repeated word found: " + (word == null ? "null" : word));
           }
           return false;
         }
@@ -235,15 +244,18 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       List<String> wrongWords = lastWrongWords.get(localeStr);
       if (wrongWords != null && wrongWords.contains(word)) {
         if (DEBUG_MODE) {
-          WtMessageHandler.printToLogFile("LtSpellChecker: isValid: invalid word found in list: " + (word == null ? "null" : word));
+          WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: invalid word found in list: " + (word == null ? "null" : word));
         }
         return false;
       }
       initSpellChecker(locale);
+      if (DEBUG_MODE) {
+        WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: spellingCheckRule is " + (spellingCheckRule == null ? "null" : "NOT null"));
+      }
       if (spellingCheckRule != null) {
         if (words.length == 1 && !spellingCheckRule.isMisspelled(word)) {
           if (DEBUG_MODE) {
-            WtMessageHandler.printToLogFile("LtSpellChecker: isValid: valid word found: " + (word == null ? "null" : word));
+            WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: valid word found: " + (word == null ? "null" : word));
           }
           return true;
         }
@@ -253,7 +265,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
 
         if (matches == null || matches.length == 0) {
           if (DEBUG_MODE) {
-            WtMessageHandler.printToLogFile("LtSpellChecker: isValid: valid word found (matches == 0): " + (word == null ? "null" : word));
+            WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: valid word found (matches == 0): " + (word == null ? "null" : word));
           }
           return true;
         }
@@ -270,14 +282,14 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           }
         }
         if (DEBUG_MODE) {
-          WtMessageHandler.printToLogFile("LtSpellChecker: isValid: invalid word found: " + (word == null ? "null" : word));
+          WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: invalid word found: " + (word == null ? "null" : word));
         }
         return false;
       }
     } catch (Throwable e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showSpellError(e);
     }
-    WtMessageHandler.printToLogFile("LtSpellChecker: isValid: Problem with spelling rule: word: " + (word == null ? "null" : word));
+    WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: Problem with spelling rule: word: " + (word == null ? "null" : word));
     return false;
   }
 
@@ -325,7 +337,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
         }
       }
     } catch (Throwable e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showSpellError(e);
     }
   }
   
@@ -339,10 +351,14 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     List<AnalyzedTokenReadings> aTokens = lang.getTagger().tag(tokens);
 
     if (DEBUG_MODE) {
-      WtMessageHandler.printToLogFile("LtSpellChecker: getAnalyzedSentence: sentence: " + sentence + ", num tokens: " + tokens.size());
+      WtMessageHandler.printToSpellLogFile("LtSpellChecker: getAnalyzedSentence: sentence: " + sentence + ", num tokens: " + tokens.size());
     }
-    AnalyzedTokenReadings[] tokenArray = new AnalyzedTokenReadings[tokens.size()];
+    AnalyzedTokenReadings[] tokenArray = new AnalyzedTokenReadings[tokens.size() + 1];
+    AnalyzedToken[] startTokenArray = new AnalyzedToken[1];
     int toArrayCount = 0;
+    AnalyzedToken sentenceStartToken = new AnalyzedToken("", JLanguageTool.SENTENCE_START_TAGNAME, null);
+    startTokenArray[0] = sentenceStartToken;
+    tokenArray[toArrayCount++] = new AnalyzedTokenReadings(startTokenArray, 0);
     int startPos = 0;
     for (AnalyzedTokenReadings posTag : aTokens) {
       posTag.setStartPos(startPos);
@@ -360,7 +376,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       }
     }
     if (DEBUG_MODE) {
-      WtMessageHandler.printToLogFile("LtSpellChecker: getAnalyzedSentence: tokenArray length: " + tokenArray.length);
+      WtMessageHandler.printToSpellLogFile("LtSpellChecker: getAnalyzedSentence: tokenArray length: " + tokenArray.length);
     }
     return new AnalyzedSentence(tokenArray);
   }
@@ -413,7 +429,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
         }
         if (word.matches(PROB_CHARS)) {
           if (DEBUG_MODE) {
-            WtMessageHandler.printToLogFile("LtSpellChecker: LTSpellAlternatives: Problematic word found: " + (word == null ? "null" : word));
+            WtMessageHandler.printToSpellLogFile("LtSpellChecker: LTSpellAlternatives: Problematic word found: " + (word == null ? "null" : word));
           }
           alternatives = new String[0];
           return;
@@ -425,7 +441,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           alternatives = hSpellRule.getSuggestions(word).toArray(new String[0]);
         }
       } catch (Throwable t) {
-        WtMessageHandler.showError(t);
+        WtMessageHandler.showSpellError(t);
       }
       if (alternatives == null) {
         alternatives = new String[0];
@@ -488,7 +504,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       DEBUG_MODE = WtOfficeTools.DEBUG_MODE_SP;
       return confg.useLtSpellChecker();
     } catch (IOException e) {
-      WtMessageHandler.printToLogFile("Can't read configuration: LT spell checker not used!");
+      WtMessageHandler.printToSpellLogFile("Can't read configuration: LT spell checker not used!");
     }
     return false;
   }
@@ -497,7 +513,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     int maxHeapSpace = (int) (WtOfficeTools.getMaxHeapSpace()/1048576);
     boolean ret = maxHeapSpace >= WtOfficeTools.SPELL_CHECK_MIN_HEAP;
     if (!ret) {
-      WtMessageHandler.printToLogFile("Heap Space (" + maxHeapSpace + ") is too small: LT spell checker not used!\n"
+      WtMessageHandler.printToSpellLogFile("Heap Space (" + maxHeapSpace + ") is too small: LT spell checker not used!\n"
           + "Set heap space greater than " +  WtOfficeTools.SPELL_CHECK_MIN_HEAP);
     }
     return ret;
