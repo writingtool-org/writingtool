@@ -1052,6 +1052,43 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
     
+    cons.gridy++;
+    portPanel.add(new JLabel(messages.getString("guiColorSelectionLabel")), cons);
+    
+    JRadioButton[] radioButtons = new JRadioButton[3];
+    ButtonGroup colorSelectionGroup = new ButtonGroup();
+    radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPallette")));
+    radioButtons[0].addActionListener(e -> {
+      config.setColorSelection(0);
+    });
+    radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPallette")));
+    radioButtons[1].addActionListener(e -> {
+      config.setColorSelection(1);
+    });
+    radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPallette")));
+    radioButtons[2].addActionListener(e -> {
+      config.setColorSelection(2);
+    });
+
+    for (int i = 0; i < 3; i++) {
+      if (config.getColorSelection() == i) {
+        radioButtons[i].setSelected(true);
+      } else {
+        radioButtons[i].setSelected(false);
+      }
+      colorSelectionGroup.add(radioButtons[i]);
+    }
+    
+    cons.insets = new Insets(0, SHIFT2, 0, 0);
+    for (int i = 0; i < 3; i++) {
+      cons.gridy++;
+      portPanel.add(radioButtons[i], cons);
+    }
+
+    cons.insets = new Insets(0, SHIFT1, 0, 0);
+    cons.gridy++;
+    portPanel.add(new JLabel(" "), cons);
+    
     addOfficeTextruleElements(cons, portPanel);
     
     cons.insets = new Insets(0, SHIFT1, 0, 0);

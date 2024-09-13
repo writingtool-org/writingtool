@@ -64,6 +64,7 @@ public class WtConfiguration {
   static final int DEFAULT_NUM_CHECK_PARAS = -1;  //  default number of parameters to be checked by TextLevelRules in LO/OO 
   static final int FONT_STYLE_INVALID = -1;
   static final int FONT_SIZE_INVALID = -1;
+  static final int DEFAULT_COLOR_SELECTION = 0;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
@@ -93,8 +94,11 @@ public class WtConfiguration {
   static final String DEFAULT_AI_IMG_URL = "http://localhost:8080/v1/images/generations/";
   static final String DEFAULT_AI_IMG_APIKEY = "1234567";
 
-  static final Color STYLE_COLOR = new Color(0, 100, 0);
-  static final Color HINT_COLOR = new Color(150, 150, 0);
+  static final Color STYLE_COLOR_WT = new Color(0, 100, 0);
+  static final Color HINT_COLOR_WT = new Color(150, 150, 0);
+  static final Color GRAMMAR_COLOR_LT = new Color(255, 100, 0);
+  static final Color STYLE_COLOR_BLUE = new Color(70, 80, 255);
+  static final Color HINT_COLOR_BLUE = new Color(150, 160, 255);
 
   private static final String CONFIG_FILE = ".languagetool.cfg";
 
@@ -125,6 +129,7 @@ public class WtConfiguration {
   private static final String FONT_STYLE_KEY = "font.style";
   private static final String FONT_SIZE_KEY = "font.size";
   private static final String LF_NAME_KEY = "lookAndFeelName";
+  private static final String COLOR_SELECTION_KEY = "colorSelection";
   private static final String ERROR_COLORS_KEY = "errorColors";
   private static final String UNDERLINE_COLORS_KEY = "underlineColors";
   private static final String UNDERLINE_RULE_COLORS_KEY = "underlineRuleColors";
@@ -215,6 +220,7 @@ public class WtConfiguration {
   private int fontSize = FONT_SIZE_INVALID;
   private int serverPort = DEFAULT_SERVER_PORT;
   private int numParasToCheck = DEFAULT_NUM_CHECK_PARAS;
+  private int colorSelection = DEFAULT_COLOR_SELECTION;
   private boolean doResetCheck = DEFAULT_DO_RESET;
   private boolean isMultiThreadLO = DEFAULT_MULTI_THREAD;
   private boolean noBackgroundCheck = DEFAULT_NO_BACKGROUND_CHECK;
@@ -320,6 +326,7 @@ public class WtConfiguration {
     fontSize = FONT_SIZE_INVALID;
     serverPort = DEFAULT_SERVER_PORT;
     numParasToCheck = DEFAULT_NUM_CHECK_PARAS;
+    colorSelection = DEFAULT_COLOR_SELECTION;
     doResetCheck = DEFAULT_DO_RESET;
     isMultiThreadLO = DEFAULT_MULTI_THREAD;
     noBackgroundCheck = DEFAULT_NO_BACKGROUND_CHECK;
@@ -388,6 +395,7 @@ public class WtConfiguration {
     this.fontSize = configuration.fontSize;
     this.serverPort = configuration.serverPort;
     this.numParasToCheck = configuration.numParasToCheck;
+    this.colorSelection = configuration.colorSelection;
     this.doResetCheck = configuration.doResetCheck;
     this.useTextLevelQueue = configuration.useTextLevelQueue;
     this.noBackgroundCheck = configuration.noBackgroundCheck;
@@ -860,6 +868,22 @@ public class WtConfiguration {
   }
 
   /**
+   * get the color model selected
+   * @since WT 1.0
+   */
+  public int getColorSelection() {
+    return colorSelection;
+  }
+
+  /**
+   * set the color model to use
+   * @since WT 1.0
+   */
+  public void setColorSelection(int colorSelection) {
+    this.colorSelection = colorSelection;
+  }
+
+  /**
    * will all paragraphs check after every change of text?
    * @since 4.2
    */
@@ -1109,8 +1133,8 @@ public class WtConfiguration {
       }
       if (rule.getLocQualityIssueType().toString().equalsIgnoreCase("STYLE")
               || rule.getLocQualityIssueType().toString().equalsIgnoreCase("REGISTER")
-              || rule.getCategory().getId().toString().equals("STYLE")
-              || rule.getCategory().getId().toString().equals("TYPOGRAPHY")) {
+//              || rule.getCategory().getId().toString().equals("TYPOGRAPHY")
+              || rule.getCategory().getId().toString().equals("STYLE")) {
         styleLikeCategories.add(rule.getCategory().getName());
       }
     }
@@ -1187,13 +1211,24 @@ public class WtConfiguration {
     if (underlineColors.containsKey(category)) {
       return underlineColors.get(category);
     }
-    if (!categoryIsDefault) {
-      return HINT_COLOR;
+    if (colorSelection == 2) {
+      if (!categoryIsDefault) {
+        return HINT_COLOR_BLUE;
+      }
+      if (styleLikeCategories.contains(category)) {
+        return Color.blue;
+      } else {
+        return GRAMMAR_COLOR_LT;
+      }
+    } else {
+      if (!categoryIsDefault) {
+        return colorSelection == 1 ? HINT_COLOR_BLUE : HINT_COLOR_WT;
+      }
+      if (styleLikeCategories.contains(category)) {
+        return colorSelection == 1 ? STYLE_COLOR_BLUE : STYLE_COLOR_WT;
+      }
+      return Color.blue;
     }
-    if (styleLikeCategories.contains(category)) {
-      return STYLE_COLOR;
-    }
-    return Color.blue;
   }
 
   /**
@@ -1496,6 +1531,11 @@ public class WtConfiguration {
       if (paraCheckString != null) {
         numParasToCheck = Integer.parseInt(paraCheckString);
       }
+    }
+
+    String colorSelectionString = (String) props.get(prefix + COLOR_SELECTION_KEY);
+    if (colorSelectionString != null) {
+      colorSelection = Integer.parseInt(colorSelectionString);
     }
 
     String resetCheckString = (String) props.get(prefix + RESET_CHECK_KEY);
@@ -1845,6 +1885,7 @@ public class WtConfiguration {
     allProfileKeys.add(SERVER_PORT_KEY);
     allProfileKeys.add(NO_DEFAULT_CHECK_KEY);
     allProfileKeys.add(PARA_CHECK_KEY);
+    allProfileKeys.add(COLOR_SELECTION_KEY);
     allProfileKeys.add(RESET_CHECK_KEY);
     allProfileKeys.add(USE_QUEUE_KEY);
     allProfileKeys.add(NO_BACKGROUND_CHECK_KEY);
@@ -1957,6 +1998,9 @@ public class WtConfiguration {
     if (numParasToCheck != DEFAULT_NUM_CHECK_PARAS) {
       props.setProperty(prefix + NO_DEFAULT_CHECK_KEY, Boolean.toString(true));
       props.setProperty(prefix + PARA_CHECK_KEY, Integer.toString(numParasToCheck));
+    }
+    if (colorSelection != DEFAULT_COLOR_SELECTION) {
+      props.setProperty(prefix + COLOR_SELECTION_KEY, Integer.toString(colorSelection));
     }
     if (doResetCheck != DEFAULT_DO_RESET) {
       props.setProperty(prefix + RESET_CHECK_KEY, Boolean.toString(doResetCheck));
