@@ -118,12 +118,15 @@ public class WtAboutDialog {
       techPane.setEditable(false);
       techPane.setOpaque(false);
       techPane.setText(String.format("<html>"
-          + "<p>LanguageTool %s (%s, %s)<br>"
+          + "<p>WritingTool %s (%s)<br>"
+          + "based on LanguageTool %s (%s, %s)<br>"
           + "OS: %s %s (%s)<br>"
           + "%s %s%s (%s), %s<br>"
           + "Java version: %s (%s)<br>"
           + "Java max/total/free memory: %sMB, %sMB, %sMB</p>"
           + "</html>", 
+           WtOfficeTools.WT_VERSION,
+           WtOfficeTools.WT_BUILD_DATE,
            WtOfficeTools.ltVersion(),
            WtOfficeTools.ltBuildDate(),
            WtOfficeTools.ltShortGitId(),
@@ -172,11 +175,14 @@ public class WtAboutDialog {
       
       JButton copyToClipboard = new JButton(messages.getString("loCopyToClipBoardDesc"));
       copyToClipboard.addActionListener(e -> {
-        String str = String.format("\nLanguageTool %s (%s, %s)\n"
+        String str = String.format("\nWritingTool %s (%s)\n"
+            + "based on LanguageTool %s (%s, %s)\n"
             + "OS: %s %s (%s)\n"
             + "%s %s%s (%s), %s\n"
             + "Java version: %s (%s)\n"
             + "Java max/total/free memory: %sMB, %sMB, %sMB\n",
+             WtOfficeTools.WT_VERSION,
+             WtOfficeTools.WT_BUILD_DATE,
              WtOfficeTools.ltVersion(),
              WtOfficeTools.ltBuildDate(),
              WtOfficeTools.ltShortGitId(),

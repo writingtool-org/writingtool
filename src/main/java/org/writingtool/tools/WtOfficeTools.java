@@ -116,7 +116,7 @@ public class WtOfficeTools {
   public static final String AI_GRAMMAR_HINT_RULE_ID = "LO_AI_DETECTION_RULE_HINT";
   public static final String AI_GRAMMAR_OTHER_RULE_ID = "LO_AI_DETECTION_RULE_OTHER";
 
-  public static final String WT_SERVER = "https://fk-es.de";
+  public static final String WT_SERVER = "https://writingtool.org";
   public static final String WT_SERVER_URL = WT_SERVER + "/index.php";
   public static final String EXTENSION_MAINTAINER = "Fred Kruse";
   public static final String WT_SERVICE_NAME = "org.writingtool.WritingTool";
