@@ -953,6 +953,7 @@ public class WtOfficeTools {
     ResourceBundle bundle = null;
     try {
       bundle = ResourceBundle.getBundle(getWtUrlResource(locale), locale);
+      return WT_SERVER_URL + "/" + bundle.getString(key);
     } catch (MissingResourceException ex) {
     }
     locale = java.util.Locale.ENGLISH;
