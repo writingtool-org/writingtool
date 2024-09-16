@@ -51,6 +51,11 @@ import com.sun.star.uno.UnoRuntime;
  */
 public class WtFlatParagraphTools {
   
+  /**
+   * NOTE: The flatparagraph iterator doesn't work for OpenOffice (OO).
+   *       So no support of cache is possible for OO
+   */
+  
   private static boolean debugMode; //  should be false except for testing
   
   private static int isBusy = 0;

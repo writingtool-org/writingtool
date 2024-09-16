@@ -460,9 +460,12 @@ public class WtConfigurationDialog implements ActionListener {
     }
     tabpane.add(label, new JScrollPane(getOfficeTechnicalElements()));
     
-    //    AI options tab (only office)
-    label = messages.getString("guiAiSupportSettings");
-    tabpane.add(label, new JScrollPane(getOfficeAiElements()));
+    //    AI options tab
+    //    onlySingleParagraphMode doesn't support cache so AI can't be used
+    if (!config.onlySingleParagraphMode()) {
+      label = messages.getString("guiAiSupportSettings");
+      tabpane.add(label, new JScrollPane(getOfficeAiElements()));
+    }
 
     Container contentPane = dialog.getContentPane();
     contentPane.setLayout(new GridBagLayout());
@@ -596,7 +599,9 @@ public class WtConfigurationDialog implements ActionListener {
     for (int i = 0; i < 3; i++) {
       numParaGroup.add(radioButtons[i]);
     }
-    
+
+     // NOTE: The flatparagraph iterator doesn't work for OpenOffice (OO).
+     //       So no support of cache is possible for OO
     if (numParaCheck == 0 || config.onlySingleParagraphMode()) {
       radioButtons[1].setSelected(true);
       numParaField.setEnabled(false);
@@ -982,7 +987,12 @@ public class WtConfigurationDialog implements ActionListener {
     portPanel.add(new JLabel(" "), cons);
     
     JCheckBox useLtSpellCheckerBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUseLtSpellChecker")));
-    useLtSpellCheckerBox.setSelected(config.useLtSpellChecker());
+    if (config.onlySingleParagraphMode()) {
+      useLtSpellCheckerBox.setEnabled(false);
+      useLtSpellCheckerBox.setSelected(false);
+    } else {
+      useLtSpellCheckerBox.setSelected(config.useLtSpellChecker());
+    }
     useLtSpellCheckerBox.addItemListener(e -> {
       config.setUseLtSpellChecker(useLtSpellCheckerBox.isSelected());
     });
@@ -1052,40 +1062,45 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
     
-    cons.gridy++;
-    portPanel.add(new JLabel(messages.getString("guiColorSelectionLabel")), cons);
-    
-    JRadioButton[] radioButtons = new JRadioButton[3];
-    ButtonGroup colorSelectionGroup = new ButtonGroup();
-    radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPallette")));
-    radioButtons[0].addActionListener(e -> {
-      config.setColorSelection(0);
-    });
-    radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPallette")));
-    radioButtons[1].addActionListener(e -> {
-      config.setColorSelection(1);
-    });
-    radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPallette")));
-    radioButtons[2].addActionListener(e -> {
-      config.setColorSelection(2);
-    });
-
-    for (int i = 0; i < 3; i++) {
-      if (config.getColorSelection() == i) {
-        radioButtons[i].setSelected(true);
-      } else {
-        radioButtons[i].setSelected(false);
-      }
-      colorSelectionGroup.add(radioButtons[i]);
-    }
-    
-    cons.insets = new Insets(0, SHIFT2, 0, 0);
-    for (int i = 0; i < 3; i++) {
+    if (!config.onlySingleParagraphMode()) {
+      //  NOTE: onlySingleParagraphMode is used for OO and old LO installation
+      //        different colors are not supported by such applications
       cons.gridy++;
-      portPanel.add(radioButtons[i], cons);
+      portPanel.add(new JLabel(messages.getString("guiColorSelectionLabel")), cons);
+      
+      JRadioButton[] radioButtons = new JRadioButton[3];
+      ButtonGroup colorSelectionGroup = new ButtonGroup();
+      radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPallette")));
+      radioButtons[0].addActionListener(e -> {
+        config.setColorSelection(0);
+      });
+      radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPallette")));
+      radioButtons[1].addActionListener(e -> {
+        config.setColorSelection(1);
+      });
+      radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPallette")));
+      radioButtons[2].addActionListener(e -> {
+        config.setColorSelection(2);
+      });
+  
+      for (int i = 0; i < 3; i++) {
+        if (config.getColorSelection() == i) {
+          radioButtons[i].setSelected(true);
+        } else {
+          radioButtons[i].setSelected(false);
+        }
+        colorSelectionGroup.add(radioButtons[i]);
+      }
+      
+      cons.insets = new Insets(0, SHIFT2, 0, 0);
+      for (int i = 0; i < 3; i++) {
+        cons.gridy++;
+        portPanel.add(radioButtons[i], cons);
+      }
+  
+      cons.insets = new Insets(0, SHIFT1, 0, 0);
     }
-
-    cons.insets = new Insets(0, SHIFT1, 0, 0);
+    
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
     
@@ -1954,6 +1969,7 @@ public class WtConfigurationDialog implements ActionListener {
     JLabel underlineLabel = new JLabel(" \u2588\u2588\u2588 ");  // \u2587 is smaller
 
     JComboBox<String> underlineType = new JComboBox<>(getUnderlineTypes());
+    underlineType.setEnabled(!config.onlySingleParagraphMode());
     underlineType.setSelectedIndex(getUnderlineType(category, (rule == null ? null : rule.getId())));
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -1966,6 +1982,7 @@ public class WtConfigurationDialog implements ActionListener {
     colorPanel.add(underlineLabel);
 
     JButton changeButton = new JButton(messages.getString("guiUColorChange"));
+    changeButton.setEnabled(!config.onlySingleParagraphMode());
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
       dialog.setAlwaysOnTop(false);
@@ -2000,6 +2017,7 @@ public class WtConfigurationDialog implements ActionListener {
     colorPanel.add(changeButton);
   
     JButton defaultButton = new JButton(messages.getString("guiUColorDefault"));
+    defaultButton.setEnabled(!config.onlySingleParagraphMode());
     defaultButton.addActionListener(e -> {
       String ruleId = (rule == null ? null : rule.getId());
       if (rule == null) {

@@ -1205,6 +1205,9 @@ public class WtConfiguration {
    * Get the color to underline a rule match by the Name of its category
    */
   public Color getUnderlineColor(String category, String ruleId, boolean categoryIsDefault) {
+    if (isOpenOffice) {
+      return Color.blue;
+    }
     if (ruleId != null && underlineRuleColors.containsKey(ruleId)) {
       return underlineRuleColors.get(ruleId);
     }

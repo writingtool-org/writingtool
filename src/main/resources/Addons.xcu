@@ -381,7 +381,7 @@
         </node>
         <node oor:name="OfficeNotebookBar">
             <node oor:name="org.writingtool.WritingTool.notebar" oor:op="replace">
-                <node oor:name="T1" oor:op="replace">
+                <node oor:name="N1" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?nextError</value>
                     </prop>
@@ -400,7 +400,7 @@
 			<value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
                     </prop>
                 </node>
-                <node oor:name="T2" oor:op="replace">
+                <node oor:name="N2" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?checkDialog</value>
                     </prop>
@@ -439,7 +439,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet</value>
                     </prop>
                 </node>
-                <node oor:name="T3" oor:op="replace">
+                <node oor:name="N3" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?checkAgainDialog</value>
                     </prop>
@@ -476,7 +476,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet igen</value>
                     </prop>
                 </node>
-                <node oor:name="T4" oor:op="replace">
+                <node oor:name="N4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?refreshCheck</value>
                     </prop>
@@ -493,7 +493,7 @@
                     <value xml:lang="sv">Uppdatera språkgranskningspunkterna</value>
                     </prop>
                 </node>
-                <node oor:name="T5" oor:op="replace">
+                <node oor:name="N5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?configure</value>
                     </prop>
@@ -532,7 +532,7 @@
                     <value xml:lang="sv">Inställningar ...</value>
                     </prop>
                 </node>
-                <node oor:name="T6" oor:op="replace">
+                <node oor:name="N6" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?about</value>
                     </prop>
