@@ -60,6 +60,7 @@ import java.util.List;
  */
 public class WtConfigurationDialog implements ActionListener {
 
+  private static final String COLOR_LABEL = " \u2588\u2588\u2588 ";  // \u2587 is smaller
   private static final String NO_SELECTED_LANGUAGE = "---";
   private static final String ACTION_COMMAND_OK = "OK";
   private static final String ACTION_COMMAND_CANCEL = "CANCEL";
@@ -1816,8 +1817,8 @@ public class WtConfigurationDialog implements ActionListener {
 
   /**  Panel to choose underline Colors
    *   @since 4.2
-   */
-  JPanel getUnderlineColorPanel(List<Rule> rules) {
+   *//*
+  private JPanel getUnderlineColorPanel(List<Rule> rules) {
     JPanel panel = new JPanel();
 
     panel.setLayout(new GridBagLayout());
@@ -1899,16 +1900,6 @@ public class WtConfigurationDialog implements ActionListener {
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
         colorDialog.setVisible(true);
-/*
-        Color newColor = JColorChooser.showDialog(null, messages.getString("guiUColorDialogHeader"), oldColor);
-        if(newColor != null && newColor != oldColor) {
-          uLabel.setForeground(newColor);
-          config.setUnderlineColor(cLabel, newColor);
-        }
-        if(insideOffice) {
-          dialog.setAlwaysOnTop(true);
-        }
-*/
       });
       cons.gridx++;
       panel.add(changeButton.get(nCat), cons);
@@ -1928,7 +1919,7 @@ public class WtConfigurationDialog implements ActionListener {
     
     return panel;
   }
-
+*/
   /**  Panel to choose underline Colors
    *   and rule options (if exists)
    *   @since 5.3
@@ -1966,7 +1957,7 @@ public class WtConfigurationDialog implements ActionListener {
     JLabel underlineStyle = new JLabel(messages.getString("guiUColorStyleLabel") + " ");
     colorPanel.add(underlineStyle);
 
-    JLabel underlineLabel = new JLabel(" \u2588\u2588\u2588 ");  // \u2587 is smaller
+    JLabel underlineLabel = new JLabel(COLOR_LABEL);
 
     JComboBox<String> underlineType = new JComboBox<>(getUnderlineTypes());
     underlineType.setEnabled(!config.onlySingleParagraphMode());
@@ -2246,7 +2237,7 @@ public class WtConfigurationDialog implements ActionListener {
     JLabel underlineStyle = new JLabel(messages.getString("guiUColorStyleLabel") + " ");
     colorPanel.add(underlineStyle);
 
-    JLabel underlineLabel = new JLabel(" \u2588\u2588\u2588 ");  // \u2587 is smaller
+    JLabel underlineLabel = new JLabel(COLOR_LABEL);
 
     JComboBox<String> underlineType = new JComboBox<>(getUnderlineTypes());
     underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
