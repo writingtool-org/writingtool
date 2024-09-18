@@ -119,11 +119,14 @@ public class WtAiDialog extends Thread implements ActionListener {
   private JProgressBar checkProgress;
   private final Image ltImage;
   
+  private final JTabbedPane instructionPanel;
   private final JLabel instructionLabel;
+  private final JLabel directInstructionLabel;
   private final JLabel imgInstructionLabel;
   private final JComboBox<String> instruction;
   private final JLabel paragraphLabel;
   private final JTextPane paragraph;
+  private final JTextPane directInstruction;
   private final JLabel resultLabel;
   private final JTextPane result;
   private final JLabel temperatureLabel;
@@ -203,11 +206,15 @@ public class WtAiDialog extends Thread implements ActionListener {
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
+    instructionPanel = new JTabbedPane();
     instructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
+    directInstructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
     instruction = new JComboBox<String>();
     paragraphLabel = new JLabel(messages.getString("loAiDialogParagraphLabel") + ":");
     paragraph = new JTextPane();
     paragraph.setBorder(BorderFactory.createLineBorder(Color.gray));
+    directInstruction = new JTextPane();
+    directInstruction.setBorder(BorderFactory.createLineBorder(Color.gray));
     resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
     result = new JTextPane();
     result.setBorder(BorderFactory.createLineBorder(Color.gray));
@@ -290,11 +297,26 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (inf.canceled()) {
         return;
       }
+      
+      instructionPanel.addChangeListener(new ChangeListener( ) {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          if (instructionPanel.getSelectedIndex() == 0) {
+            copyResult.setEnabled(true);
+          } else {
+            copyResult.setEnabled(false);
+          }
+        }
+      });
 
       paragraphLabel.setFont(dialogFont);
       paragraph.setFont(dialogFont);
+      directInstructionLabel.setFont(dialogFont);
+      directInstruction.setFont(dialogFont);
       JScrollPane paragraphPane = new JScrollPane(paragraph);
       paragraphPane.setMinimumSize(new Dimension(0, 30));
+      JScrollPane directInstructionPane = new JScrollPane(directInstruction);
+      directInstructionPane.setMinimumSize(new Dimension(0, 30));
 
       resultLabel.setFont(dialogFont);
       result.setFont(dialogFont);
@@ -580,6 +602,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons21.weightx = 1.0f;
       cons21.weighty = 0.0f;
       cons21.gridy++;
+      rightPanel1.add(execute, cons21);
+      cons21.gridy++;
       rightPanel1.add(copyResult, cons21);
       cons21.gridy++;
       rightPanel1.add(reset, cons21);
@@ -607,6 +631,51 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons22.gridy++;
       rightPanel2.add(overrideParagraph, cons22);
       
+      //  Define 1. left panel
+      JPanel leftPanel12 = new JPanel();
+      leftPanel12.setLayout(new GridBagLayout());
+      GridBagConstraints cons12 = new GridBagConstraints();
+      cons12.gridx = 0;
+      cons12.gridy = 0;
+      cons12.anchor = GridBagConstraints.NORTHWEST;
+      cons12.fill = GridBagConstraints.BOTH;
+      cons12.weightx = 1.0f;
+      cons12.weighty = 0.0f;
+      cons12.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons12.gridy++;
+      leftPanel12.add(instructionLabel, cons12);
+      cons12.insets = new Insets(4, 0, 4, 0);
+      cons12.gridy++;
+      leftPanel12.add(instruction, cons12);
+      cons12.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons12.gridy++;
+      leftPanel12.add(paragraphLabel, cons12);
+      cons12.insets = new Insets(4, 0, 4, 0);
+      cons12.gridy++;
+      cons12.weighty = 2.0f;
+      leftPanel12.add(paragraphPane, cons12);
+
+      //  Define 2. left panel
+      JPanel leftPanel13 = new JPanel();
+      leftPanel13.setLayout(new GridBagLayout());
+      GridBagConstraints cons13 = new GridBagConstraints();
+      cons13.gridx = 0;
+      cons13.gridy = 0;
+      cons13.anchor = GridBagConstraints.NORTHWEST;
+      cons13.fill = GridBagConstraints.BOTH;
+      cons13.weightx = 1.0f;
+      cons13.weighty = 0.0f;
+      cons13.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons13.gridy++;
+      leftPanel13.add(directInstructionLabel, cons13);
+      cons13.insets = new Insets(4, 0, 4, 0);
+      cons13.gridy++;
+      cons13.weighty = 2.0f;
+      leftPanel13.add(directInstruction, cons13);
+
+      instructionPanel.add(messages.getString("loAiDialogTabParagraph"), leftPanel12);
+      instructionPanel.add(messages.getString("loAiDialogTabInstruction"), leftPanel13);
+      
       //  Define main text panel
       mainTextPanel.setLayout(new GridBagLayout());
       GridBagConstraints cons1 = new GridBagConstraints();
@@ -616,7 +685,9 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.anchor = GridBagConstraints.NORTHWEST;
       cons1.fill = GridBagConstraints.BOTH;
       cons1.weightx = 1.0f;
-      cons1.weighty = 0.0f;
+      cons1.weighty = 2.0f;
+      mainTextPanel.add(instructionPanel, cons1);
+/*      
       mainTextPanel.add(instructionLabel, cons1);
       cons1.insets = new Insets(4, 4, 4, 4);
       cons1.gridy++;
@@ -634,6 +705,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.gridy++;
       cons1.weighty = 2.0f;
       mainTextPanel.add(paragraphPane, cons1);
+*/
       cons1.gridx++;
       cons1.weightx = 0.0f;
       cons1.weighty = 0.0f;
