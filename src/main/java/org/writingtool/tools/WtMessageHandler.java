@@ -47,6 +47,7 @@ public class WtMessageHandler {
   
   private static boolean isOpen = false;
   private static boolean isInit = false;
+  private static boolean isInitSp = false;
   
   private static boolean testMode;
   
@@ -58,8 +59,12 @@ public class WtMessageHandler {
    * Initialize log-file
    */
   private static void initLogFile(XComponentContext xContext, boolean isSpellchecker) {
-    if (!isInit) {
-      isInit = true;
+    if ((!isSpellchecker && !isInit) || (isSpellchecker && !isInitSp)) {
+      if (isSpellchecker) {
+        isInitSp = true;
+      } else {
+        isInit = true;
+      }
       try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(xContext, isSpellchecker));
           OutputStreamWriter writer = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
           BufferedWriter br = new BufferedWriter(writer)
