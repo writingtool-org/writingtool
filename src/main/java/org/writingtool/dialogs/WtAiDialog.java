@@ -174,6 +174,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private String resultText;
   private String imgInstText;
   private String instText;
+  private String dInstText;
   private Locale locale;
   private boolean atWork = false;
   private boolean focusLost = false;
@@ -301,23 +302,42 @@ public class WtAiDialog extends Thread implements ActionListener {
       instructionPanel.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
-          if (instructionPanel.getSelectedIndex() == 0) {
-            copyResult.setEnabled(true);
-          } else {
-            copyResult.setEnabled(false);
-          }
+          setButtonState(true);
         }
       });
 
       paragraphLabel.setFont(dialogFont);
       paragraph.setFont(dialogFont);
-      directInstructionLabel.setFont(dialogFont);
-      directInstruction.setFont(dialogFont);
       JScrollPane paragraphPane = new JScrollPane(paragraph);
       paragraphPane.setMinimumSize(new Dimension(0, 30));
+
+      directInstructionLabel.setFont(dialogFont);
+      directInstruction.setFont(dialogFont);
+      directInstruction.addKeyListener(new KeyListener() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            createText();
+          }
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {
+          String txt = directInstruction.getText();
+          if (dInstText == null && !txt.isEmpty()) {
+            dInstText = txt;
+            setButtonState(true);
+          } else if (dInstText != null && txt.isEmpty()) {
+            dInstText = null;
+            setButtonState(true);
+          }
+        }
+      });
       JScrollPane directInstructionPane = new JScrollPane(directInstruction);
       directInstructionPane.setMinimumSize(new Dimension(0, 30));
-
+      
       resultLabel.setFont(dialogFont);
       result.setFont(dialogFont);
       
@@ -604,11 +624,13 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons21.gridy++;
       rightPanel1.add(execute, cons21);
       cons21.gridy++;
-      rightPanel1.add(copyResult, cons21);
+      rightPanel1.add(createImage, cons21);
       cons21.gridy++;
       rightPanel1.add(reset, cons21);
       cons21.gridy++;
       rightPanel1.add(clear, cons21);
+      cons21.gridy++;
+      rightPanel1.add(copyResult, cons21);
 
       //  Define 2. right panel
       JPanel rightPanel2 = new JPanel();
@@ -624,8 +646,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons22.gridy++;
       cons22.gridy++;
       rightPanel2.add(undo, cons22);
-      cons22.gridy++;
-      rightPanel2.add(createImage, cons22);
+//      cons22.gridy++;
+//      rightPanel2.add(createImage, cons22);
       cons22.gridy++;
       rightPanel2.add(addToParagraph, cons22);
       cons22.gridy++;
@@ -1000,28 +1022,33 @@ public class WtAiDialog extends Thread implements ActionListener {
    */
   private void setButtonState(boolean enabled) {
     boolean isImpress = documentType == DocumentType.IMPRESS;
+    boolean isdirectInst = instructionPanel.getSelectedIndex() == 1;
+    boolean noParaText = !isdirectInst && (paraText == null || paraText.isEmpty());
+    boolean noInstText = !isdirectInst && (instText == null || instText.isEmpty());
+    boolean noResultText = resultText == null || resultText.isEmpty();
+    String directInst = directInstruction.getText();
+    boolean noDirectInst = isdirectInst && (directInst == null || directInst.isEmpty());
     instruction.setEnabled(enabled);
     paragraph.setEnabled(enabled);
     result.setEnabled(enabled);
-//    String instructionText = (String) instruction.getSelectedItem();
-    execute.setEnabled(instText == null || instText.isEmpty() ? false : enabled);
-//    execute.setEnabled(enabled);
-    copyResult.setEnabled(resultText == null  || resultText.isEmpty() ? false : enabled);
+    execute.setEnabled(noInstText && noDirectInst ? false : enabled);
+    copyResult.setEnabled(isdirectInst || noResultText ? false : enabled);
     reset.setEnabled(isImpress ? false : enabled);
-    clear.setEnabled(paraText == null || paraText.isEmpty() ? false : enabled);
+    clear.setEnabled(isdirectInst || noParaText ? false : enabled);
     undo.setEnabled(saveText == null ? false : enabled);
-    createImage.setEnabled(paraText == null  || paraText.isEmpty() || !config.useAiImgSupport() ? false : enabled);
-    overrideParagraph.setEnabled(resultText == null || resultText.isEmpty() || isImpress ? false : enabled);
-    addToParagraph.setEnabled(resultText == null  || resultText.isEmpty() ? false : enabled);
+    createImage.setEnabled((noParaText && noDirectInst) || !config.useAiImgSupport() ? false : enabled);
+    overrideParagraph.setEnabled(noResultText || isImpress ? false : enabled);
+    addToParagraph.setEnabled(noResultText ? false : enabled);
     help.setEnabled(enabled);
     close.setEnabled(true);
 
     String instructionText = imgInstruction.getText();
+    boolean noImgInst = instructionText == null || instructionText.isEmpty();
     imgInstruction.setEnabled(enabled);
     exclude.setEnabled(enabled);
     imageFrame.setEnabled(enabled);
-    changeImage.setEnabled(instructionText == null || instructionText.isEmpty() ? false : enabled);
-    newImage.setEnabled(instructionText == null || instructionText.isEmpty() ? false : enabled);
+    changeImage.setEnabled(noImgInst ? false : enabled);
+    newImage.setEnabled(noImgInst ? false : enabled);
     removeImage.setEnabled(image == null ? false : enabled);
     saveImage.setEnabled(image == null ? false : enabled);
     insertImage.setEnabled(image == null ? false : enabled);
@@ -1045,26 +1072,36 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiDialog: execute: start AI request");
       }
-//      instText = (String) instruction.getSelectedItem();
-      instText = instText.trim();
-      if (instText == null || instText.isEmpty()) {
-        return;
+      String text;
+      String instructionText;
+      if (instructionPanel.getSelectedIndex() == 0) {
+        instText = instText.trim();
+        if (instText == null || instText.isEmpty()) {
+          return;
+        }
+        instructionText = instText;
+        if (instructionList.contains(instText)) {
+          instructionList.remove(instText);
+        }
+        instructionList.add(0, instText);
+        if (instructionList.size() > MAX_INSTRUCTIONS) {
+          instructionList.remove(instructionList.size() - 1);
+        }
+        setInstructionItemsFromList();
+        writeInstructions(instructionList);
+        text = paragraph.getText();
+      } else {
+        instructionText = "";
+        text = directInstruction.getText().trim();
+        if (text == null || text.isEmpty()) {
+          return;
+        }
       }
-      if (instructionList.contains(instText)) {
-        instructionList.remove(instText);
-      }
-      instructionList.add(0, instText);
-      if (instructionList.size() > MAX_INSTRUCTIONS) {
-        instructionList.remove(instructionList.size() - 1);
-      }
-      setInstructionItemsFromList();
-      writeInstructions(instructionList);
-      String text = paragraph.getText();
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instText + ", text: " + text);
       }
-      String output = aiRemote.runInstruction(instText, text, temperature, 0, locale, false);
+      String output = aiRemote.runInstruction(instructionText, text, temperature, 0, locale, false);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
@@ -1181,9 +1218,13 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
 
   private void resetText() throws Throwable {
-    saveText = paraText;
-    saveResult = resultText;
-    setText();
+    if (instructionPanel.getSelectedIndex() == 0) {
+      saveText = paraText;
+      saveResult = resultText;
+      setText();
+    } else {
+      directInstruction.setText("");
+    }
     setButtonState(true);
   }
 
@@ -1217,7 +1258,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private void createImageFromText() throws Throwable {
     String text = result.getText();
     if (text == null || text.trim().isEmpty()) {
-      text = paragraph.getText();
+      text = instructionPanel.getSelectedIndex() == 0 ? paragraph.getText() : directInstruction.getText();
     }
     if (!locale.Language.equals("en")) {
       setAtWorkState(true);
