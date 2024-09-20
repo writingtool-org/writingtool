@@ -273,10 +273,10 @@ public class WtAiErrorDetection {
             (match.getFromPos() >= rMatch.getFromPos() && match.getFromPos() < rMatch.getToPos()) ||
             (match.getToPos() >= rMatch.getFromPos() && match.getToPos() <= rMatch.getToPos())
             ) {
-//          if (debugMode) {  //  enabled for development
+          if (debugMode) {
             WtMessageHandler.printToLogFile("WtErrorDetection: filterRuleMatches: incorrect match: suggestion: " +
               match.getSuggestedReplacements().get(0) + ", reason: " + rMatch.getMessage());
-//            }
+            }
           return false;
         }
       }
