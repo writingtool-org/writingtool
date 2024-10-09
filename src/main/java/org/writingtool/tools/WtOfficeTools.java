@@ -107,7 +107,7 @@ public class WtOfficeTools {
   }
     
   public static final String WT_NAME = "WritingTool";
-  public static final String WT_VERSION = "1.0";
+  public static final String WT_VERSION = "1.1-SNAPSHOT";
   public static final String WT_BUILD_DATE = getClassBuildTime();
 
   public static final String AI_GRAMMAR_CATEGORY = "AI_GRAMMAR_CATEGORY";
