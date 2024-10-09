@@ -11,8 +11,8 @@ Compared to using the internal LanguageTool in LibreOffice, the extension offers
 * The application runs on the local computer. Therefore, no remote server is required (the use of a remote server including the LanguageTool premium service is still supported).
 * All rules that work at the full-text level are also supported across paragraph boundaries (e.g. opening and closing quotation marks are recognized even if they are more than one paragraph apart).
 * In addition to that of LibreOffice, the LanguageTool spell checker is used.
-* A proprietary caching mechanism is used, which significantly speeds up repeated work on long texts (checking unchanged texts does not have to be repeated, which is time-consuming. After loading a text that has already been checked once, all errors found are displayed almost immediately).
-* A proprietary WritingTool check dialog is used, which is very performant (it has been optimized for WritingTool's internal caching mechanisms).
+* A custom caching mechanism is used, which significantly speeds up repeated work on long texts. It avoids rechecking unchanged sections, saving time. When a text that has already been checked is loaded, all previously found errors are displayed almost immediately.
+* A custom WritingTool check dialog is used, designed to be highly performant. It has been optimized for WritingTool's internal caching system to ensure fast and efficient operation.
 * Grammar checking of Impress and Calc documents is supported (Manual checking only through the LT check dialog. Automatic checking is not supported by LibreOffice.)
 * Using a configuration dialog, users can change the following settings, for example:
   * Easily activate/deactivate optional rules
