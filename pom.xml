@@ -52,7 +52,7 @@
         <dependency>
             <groupId>org.languagetool</groupId>
             <artifactId>languagetool-http-client</artifactId>
-            <version>${lt-revision}</version>
+            <version>RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.openoffice</groupId>
@@ -170,8 +170,13 @@
     </build>
 
     <properties>
+		<!-- snapshot revision
         <revision>1.0-SNAPSHOT</revision>
         <lt-revision>6.5-SNAPSHOT</lt-revision>
+         -->
+		<!-- release revision -->
+        <revision>1.0</revision>
+        <lt-revision>6.5</lt-revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>

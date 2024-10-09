@@ -1,5 +1,5 @@
 WritingTool (a LibreOffice Extension based on LanguageTool)
 
-Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+Copyright (C) 2024 Fred Kruse (https://writingtool.org)
 
-See https://fk-es.de for more information
+See https://writingtool.org for more information
