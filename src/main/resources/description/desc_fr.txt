@@ -1,0 +1,2 @@
+WritingTool, votre assistant d'écriture.
+Basé sur LanguageTool (correcteur de grammaire, style et orthographe pour plus de 25 langues).

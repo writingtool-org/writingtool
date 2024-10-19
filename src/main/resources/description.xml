@@ -9,8 +9,8 @@
 		<src xlink:href="https://languagetool.org/languagetool.update.xml"/>
 	</update-information>
 	<publisher>
-		<name lang="de" xlink:href="https://fk-es.de/de">WritingTool</name>
-		<name lang="en" xlink:href="https://fk-es.de/en">WritingTool</name>
+		<name lang="de" xlink:href="https://writingtool.org/de">WritingTool</name>
+		<name lang="en" xlink:href="https://writingtool.org/en">WritingTool</name>
 	</publisher>
 	<release-notes>
 		<src lang="zh-CN" xlink:href=""/>
@@ -76,6 +76,7 @@
 		<src lang="zh-TW" xlink:href="description/desc_zh-TW.txt"/>
 		<src lang="sr" xlink:href="description/desc_sr.txt"/>
 		<src lang="uk" xlink:href="description/desc_uk.txt"/>
+		<src lang="pt-BR" xlink:href="description/desc_pt-BR.txt"/>
 		<src lang="is" xlink:href="description/desc_is.txt"/>
 		<src lang="sk" xlink:href="description/desc_sk.txt"/>
 		<src lang="da" xlink:href="description/desc_da.txt"/>
