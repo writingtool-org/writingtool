@@ -1,6 +1,6 @@
 # WritingTool (a LibreOffice Extension based on LanguageTool) 
 
-
+***NOTE: WritingTool requires Java 17 or higher now***
 
 WritingTool is a LibreOffice extension for LibreOffice that adds a writing assistant to text editing. It is designed for creating and editing extensive texts (e.g. for literature, science or business).
 
