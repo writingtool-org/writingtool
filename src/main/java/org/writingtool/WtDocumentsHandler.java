@@ -1354,9 +1354,10 @@ public class WtDocumentsHandler {
    * Call method Ai Support run command to change paragraph
    */
   public void runAiChangeOnParagraph(int commandId) {
+    AiCommand command = commandId == 2 ? AiCommand.ImproveStyle : AiCommand.GeneralAi;
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.GeneralAi);
+        WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
         aiChange.start();
         return;
       }

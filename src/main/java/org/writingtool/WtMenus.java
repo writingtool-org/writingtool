@@ -988,6 +988,14 @@ public class WtMenus {
         xContextMenu.insertByIndex(j, xNewMenuEntry);
         j++;
       }
+      if (config.useAiSupport()) {
+        xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiStyleCommand"));
+        xNewMenuEntry.setPropertyValue("CommandURL", LT_AI_BETTER_STYLE);
+        xContextMenu.insertByIndex(j, xNewMenuEntry);
+        j++;
+      }
       xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));

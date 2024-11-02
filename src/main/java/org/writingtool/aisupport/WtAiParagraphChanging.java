@@ -29,6 +29,7 @@ import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAiDialog;
+import org.writingtool.dialogs.WtAiResultDialog;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
@@ -51,11 +52,11 @@ import com.sun.star.uno.UnoRuntime;
  * @author Fred Kruse
  */
 public class WtAiParagraphChanging extends Thread {
-/*
-  public final static String TRANSLATE_COMMAND = "Translate the text into ";
-  public final static String CORRECT_COMMAND = "Write the corrected text";
+
+//  public final static String TRANSLATE_COMMAND = "Translate the text into ";
+//  public final static String CORRECT_COMMAND = "Write the corrected text";
   public final static String STYLE_COMMAND = "Improve the style of the text";
-  public final static String EXPAND_COMMAND = "Expand the text by as many words as possible";
+//  public final static String EXPAND_COMMAND = "Expand the text by as many words as possible";
 /*  
   private final static String CORRECT_COMMAND = "Schreibe den folgenden korrigierten Text";
   private final static String STYLE_COMMAND = "Schreibe den folgenden Text um";
@@ -149,9 +150,15 @@ public class WtAiParagraphChanging extends Thread {
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
-      if (output != null) {
-        insertText(output, xComponent, true);
+      WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages);
+      if (output == null) {
+        output = "";
       }
+      resultDialog.setResult(output);
+      resultDialog.start();
+//      if (output != null) {
+//        insertText(output, xComponent, true);
+//      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
