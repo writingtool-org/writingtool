@@ -45,6 +45,7 @@ import javax.swing.ToolTipManager;
 
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtSingleDocument;
+import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -57,9 +58,8 @@ import org.writingtool.tools.WtOfficeTools.DocumentType;
  */
 public class WtAiResultDialog extends Thread implements ActionListener {
   
-  private final static int dialogWidth = 500;
-  private final static int dialogHeight = 300;
-//  private final static int imageHeight = 256;
+  private final static int dialogWidth = 700;
+  private final static int dialogHeight = 150;
 
   private boolean debugMode = false;
   private boolean debugModeTm = false;
@@ -79,6 +79,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   private WtSingleDocument currentDocument;
   private WtDocumentsHandler documents;
   private DocumentType documentType;
+  private TextParagraph yPara;
   
   private int dialogX = -1;
   private int dialogY = -1;
@@ -212,6 +213,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       mainPanel.add(resultPane, cons1);
       cons1.gridx++;
       cons1.fill = GridBagConstraints.NONE;
+      cons1.anchor = GridBagConstraints.SOUTHEAST;
       cons1.weightx = 1.0f;
       cons1.weighty = 1.0f;
       mainPanel.add(rightPanel1, cons1);
@@ -335,12 +337,13 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   
   private void writeToParagraph(boolean override) throws Throwable {
     if (documentType == DocumentType.WRITER) {
-      WtAiParagraphChanging.insertText(result.getText(), currentDocument.getXComponent(), override);
+      WtAiParagraphChanging.insertText(result.getText(), currentDocument.getXComponent(), yPara, override);
     }
   }
 
-  public void setResult(String text) {
+  public void setResult(String text, TextParagraph yPara) {
     result.setText(text);
+    this.yPara = yPara;
   }
 
   /**

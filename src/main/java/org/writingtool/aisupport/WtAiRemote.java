@@ -50,20 +50,15 @@ public class WtAiRemote {
   private final static int REMOTE_TRIALS = 5;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
-  public final static String TRANSLATE_INSTRUCTION = "loAiTranslateInstruction";
-  public final static String CORRECT_INSTRUCTION = "loAiCorrectInstruction";
-  public final static String STYLE_INSTRUCTION = "loAiStyleInstruction";
-  public final static String EXPAND_INSTRUCTION = "loAiExpandInstruction";
+  public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text";
+  public final static String STYLE_INSTRUCTION = "Output the stylistically improved text";
+  public final static String REFORMULATE_INSTRUCTION = "Output the reformulated text";
+  public final static String EXPAND_INSTRUCTION = "Output the expanded text";
   
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ExpandText, GeneralAi };
   
   private static boolean isRunning = false;
 
-/*
-  public final static String CORRECT_INSTRUCTION = "Correct following text";
-  public final static String STYLE_INSTRUCTION = "Rephrase following text";
-  public final static String EXPAND_INSTRUCTION = "Expand following text";
-*/
   private enum AiType { EDITS, COMPLETIONS, CHAT }
   
   boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
@@ -512,8 +507,9 @@ public class WtAiRemote {
     if (locale == null || locale.Language == null || locale.Language.isEmpty()) {
       locale = new Locale("en", "US", "");
     }
-    ResourceBundle messages = WtOfficeTools.getMessageBundle(WtDocumentsHandler.getLanguage(new Locale("en", "", "")));
-    String instruction = messages.getString(mess) + " (language: " + locale.Language + ")"; 
+//    ResourceBundle messages = WtOfficeTools.getMessageBundle(WtDocumentsHandler.getLanguage(new Locale("en", "", "")));
+//    String instruction = messages.getString(mess) + " (language: " + locale.Language + ")"; 
+    String instruction = mess + " (language: " + locale.Language + ")"; 
     return instruction;
   }
   

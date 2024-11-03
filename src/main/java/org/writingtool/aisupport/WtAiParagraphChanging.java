@@ -53,19 +53,6 @@ import com.sun.star.uno.UnoRuntime;
  */
 public class WtAiParagraphChanging extends Thread {
 
-//  public final static String TRANSLATE_COMMAND = "Translate the text into ";
-//  public final static String CORRECT_COMMAND = "Write the corrected text";
-  public final static String STYLE_COMMAND = "Improve the style of the text";
-//  public final static String EXPAND_COMMAND = "Expand the text by as many words as possible";
-/*  
-  private final static String CORRECT_COMMAND = "Schreibe den folgenden korrigierten Text";
-  private final static String STYLE_COMMAND = "Schreibe den folgenden Text um";
-  private final static String EXPAND_COMMAND = "Erweitere den folgenden deutschen Text um so viele Wörter wie möglich";
-/*
-  private final static String CORRECT_COMMAND = "Korrigiere";
-  private final static String STYLE_COMMAND = "Formuliere um";
-  private final static String EXPAND_COMMAND = "Erweitere den Text";
-*/
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
@@ -154,11 +141,8 @@ public class WtAiParagraphChanging extends Thread {
       if (output == null) {
         output = "";
       }
-      resultDialog.setResult(output);
+      resultDialog.setResult(output, tPara);
       resultDialog.start();
-//      if (output != null) {
-//        insertText(output, xComponent, true);
-//      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
@@ -248,6 +232,12 @@ public class WtAiParagraphChanging extends Thread {
   /** 
    * Inserts a Text to cursor position
    */
+  public static void insertText(String text, XComponent xComponent, TextParagraph yPara, boolean override) {
+    WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
+    vCursor.setTextViewCursor(0, yPara);
+    insertText(text, xComponent, override);
+  }
+  
   public static void insertText(String text, XComponent xComponent, boolean override) {
     if (text != null && xComponent != null) {
       try {
