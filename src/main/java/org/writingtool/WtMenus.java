@@ -97,6 +97,7 @@ public class WtMenus {
   public static final String LT_AI_MARK_ERRORS = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiAddErrorMarks";
   public static final String LT_AI_CORRECT_ERRORS = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiCorrectErrors";
   public static final String LT_AI_BETTER_STYLE = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiBetterStyle";
+  public static final String LT_AI_REFORMULATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiReformulateText";
   public static final String LT_AI_EXPAND_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiAdvanceText";
   public static final String LT_AI_GENERAL_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiGeneralCommand";
   
@@ -185,7 +186,7 @@ public class WtMenus {
     private XPopupMenu toolsMenu = null;
     private XPopupMenu xProfileMenu = null;
     private XPopupMenu xActivateRuleMenu = null;
-//    private XPopupMenu xAiSupportMenu = null;
+    private XPopupMenu xAiSupportMenu = null;
     private List<String> definedProfiles = null;
     private String currentProfile = null;
     
@@ -301,6 +302,7 @@ public class WtMenus {
       short nPos = (short)(switchOffPos + 3);
       short aiPos = ltMenu.getItemPos((short)(nId + 1));
       short aiAutoPos = ltMenu.getItemPos(nId);
+/*      
       if (config.useAiSupport() && !config.aiAutoCorrect() && aiAutoPos < 1) {
         ltMenu.insertItem(nId, MESSAGES.getString("loMenuAiAddErrorMarks"), (short) 0, nPos);
         ltMenu.setCommand(nId, LT_AI_MARK_ERRORS);
@@ -309,12 +311,15 @@ public class WtMenus {
       } else if ((!config.useAiSupport() || config.aiAutoCorrect()) && aiAutoPos > 0) {
         ltMenu.removeItem(aiAutoPos, (short)1);
       }
+*/      
       if ((config.useAiSupport() || config.useAiImgSupport()) && aiPos < 1) {
-//        setAIMenu((short)(switchOffPos + 3), SUBMENU_ID_AI, (short)(SUBMENU_ID_AI + 1));
+        setAIMenu((short)(switchOffPos + 3), SUBMENU_ID_AI, (short)(SUBMENU_ID_AI + 1));
+/*
         nId++;
         ltMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
         ltMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
         ltMenu.enableItem(nId , true);
+*/
       } else if ((!config.useAiSupport() && !config.useAiImgSupport()) && aiPos > 0) {
         ltMenu.removeItem(aiPos, (short)1);
       }
@@ -432,14 +437,14 @@ public class WtMenus {
 
     /**
      * Set AI Submenu
-     *//*
+     */
     private void setAIMenu(short pos, short id, short submenuStartId) throws Throwable {
-      if (config.useAiSupport()) {
+      if (config.useAiSupport() || config.useAiImgSupport()) {
         if (ltMenu.getItemPos(id) < 1) {
           ltMenu.insertItem(id, MESSAGES.getString("loMenuAiSupport"), MenuItemStyle.AUTOCHECK, pos);
-          xAiSupportMenu = OfficeTools.getPopupMenu(xContext);
+          xAiSupportMenu = WtOfficeTools.getPopupMenu(xContext);
           if (xAiSupportMenu == null) {
-            MessageHandler.printToLogFile("LanguageToolMenus: setAIMenu: AI support menu == null");
+            WtMessageHandler.printToLogFile("LanguageToolMenus: setAIMenu: AI support menu == null");
             return;
           }
           xAiSupportMenu.addMenuListener(this);
@@ -448,28 +453,30 @@ public class WtMenus {
         xAiSupportMenu.removeItem((short) 0, xAiSupportMenu.getItemCount());
         short nId = submenuStartId;
         short nPos = 0;
-        if (!config.aiAutoCorrect()) {
-          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiAddErrorMarks"), (short) 0, nPos);
-          xAiSupportMenu.setCommand(nId, LT_AI_MARK_ERRORS);
+        if (config.useAiSupport()) {
+          if (!config.aiAutoCorrect()) {
+            xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiAddErrorMarks"), (short) 0, nPos);
+            xAiSupportMenu.setCommand(nId, LT_AI_MARK_ERRORS);
+            xAiSupportMenu.enableItem(nId , true);
+            nPos++;
+          }
+          nId++;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiStyleCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_BETTER_STYLE);
           xAiSupportMenu.enableItem(nId , true);
+          nId++;
+          nPos++;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiReformulateCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_REFORMULATE_TEXT);
+          xAiSupportMenu.enableItem(nId , true);
+          nId++;
+          nPos++;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiExpandCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_EXPAND_TEXT);
+          xAiSupportMenu.enableItem(nId , true);
+          nId++;
           nPos++;
         }
-        nId++;
-        xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiCorrectErrors"), (short) 0, nPos);
-        xAiSupportMenu.setCommand(nId, LT_AI_CORRECT_ERRORS);
-        xAiSupportMenu.enableItem(nId , true);
-        nId++;
-        nPos++;
-        xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiBetterStyle"), (short) 0, nPos);
-        xAiSupportMenu.setCommand(nId, LT_AI_BETTER_STYLE);
-        xAiSupportMenu.enableItem(nId , true);
-        nId++;
-        nPos++;
-        xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiExpandText"), (short) 0, nPos);
-        xAiSupportMenu.setCommand(nId, LT_AI_EXPAND_TEXT);
-        xAiSupportMenu.enableItem(nId , true);
-        nId++;
-        nPos++;
         xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
         xAiSupportMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
         xAiSupportMenu.enableItem(nId , true);
@@ -480,7 +487,7 @@ public class WtMenus {
         xAiSupportMenu = null;
       }
     }
-*/
+
     @Override
     public void disposing(EventObject event) {
     }
@@ -525,8 +532,18 @@ public class WtMenus {
             WtMessageHandler.printToLogFile("LanguageToolMenus: itemSelected: AI support: " + (event.MenuId - SUBMENU_ID_AI));
 //          }
           if (event.MenuId == SUBMENU_ID_AI + 1) {
-            WtAiErrorDetection aiError = new WtAiErrorDetection(document, config, document.getMultiDocumentsHandler().getLanguageTool());
+            WtAiErrorDetection aiError = new WtAiErrorDetection(document, config, 
+                document.getMultiDocumentsHandler().getLanguageTool());
             aiError.addAiRuleMatchesForParagraph();
+          } else if (event.MenuId == SUBMENU_ID_AI + 2) {
+            WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ImproveStyle);
+            aiChange.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 3) {
+            WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ReformulateText);
+            aiChange.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 4) {
+            WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ExpandText);
+            aiChange.start();
           } else {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.GeneralAi);
             aiChange.start();
@@ -978,6 +995,7 @@ public class WtMenus {
       if (!config.useAiSupport() && !config.useAiImgSupport()) {
         return;
       }
+/*      
       XPropertySet xNewMenuEntry;
       int j = nId;
       if (config.useAiSupport() && !config.aiAutoCorrect()) {
@@ -1001,13 +1019,12 @@ public class WtMenus {
       xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));
       xNewMenuEntry.setPropertyValue("CommandURL", LT_AI_GENERAL_COMMAND);
       xContextMenu.insertByIndex(j, xNewMenuEntry);
-
-/*
+*/
       XIndexContainer xSubMenuContainer = (XIndexContainer)UnoRuntime.queryInterface(XIndexContainer.class,
         xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerContainer"));
       XPropertySet xNewSubMenuEntry;
       int j = 0;
-      if (!config.aiAutoCorrect()) {
+      if (config.useAiSupport() && !config.aiAutoCorrect()) {
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
         xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiAddErrorMarks"));
@@ -1015,24 +1032,26 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
-      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+      if (config.useAiSupport()) {
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiCorrectErrors"));
-      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_CORRECT_ERRORS);
-      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
-      j++;
-      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
-        xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiBetterStyle"));
-      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_BETTER_STYLE);
-      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
-      j++;
-      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
-        xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiExpandText"));
-      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_EXPAND_TEXT);
-      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
-      j++;
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiStyleCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_BETTER_STYLE);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiReformulateCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_REFORMULATE_TEXT);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+          xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiExpandCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_EXPAND_TEXT);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+      }
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));
@@ -1045,7 +1064,7 @@ public class WtMenus {
       xNewMenuEntry.setPropertyValue("CommandURL", LT_AI_GENERAL_COMMAND);
       xNewMenuEntry.setPropertyValue("SubContainer", (Object)xSubMenuContainer);
       xContextMenu.insertByIndex(nId, xNewMenuEntry);
-*/
+
    }
       
    private XPropertySet createActivateRuleProfileItems(Map<String, String> deactivatedRulesMap, 

@@ -111,29 +111,27 @@ public class WtAiParagraphChanging extends Thread {
       boolean onlyPara = false;
       if (commandId == AiCommand.CorrectGrammar) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.CORRECT_INSTRUCTION, locale);
-//        instruction = AiRemote.CORRECT_INSTRUCTION;
         onlyPara = true;
       } else if (commandId == AiCommand.ImproveStyle) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
-//        instruction = AiRemote.STYLE_INSTRUCTION;
+        onlyPara = true;
+      } else if (commandId == AiCommand.ReformulateText) {
+        instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
         onlyPara = true;
       } else if (commandId == AiCommand.ExpandText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
-//        instruction = AiRemote.EXPAND_INSTRUCTION;
       } else {
         instruction = JOptionPane.showInputDialog(null, messages.getString("loMenuAiGeneralCommandMessage"), 
           messages.getString("loMenuAiGeneralCommandTitle"), JOptionPane.QUESTION_MESSAGE);
       }
-//      if (command != null && !command.trim().isEmpty()) {
-//        text = command + ": " + text;
-//      }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " + text);
       }
-      String output = aiRemote.runInstruction(instruction, text, 0, 1, locale, onlyPara);
+      float temp = (commandId == AiCommand.CorrectGrammar || commandId == AiCommand.ImproveStyle) ? 0.0f : 0.7f;
+      String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }

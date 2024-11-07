@@ -55,7 +55,7 @@ public class WtAiRemote {
   public final static String REFORMULATE_INSTRUCTION = "Output the reformulated text";
   public final static String EXPAND_INSTRUCTION = "Output the expanded text";
   
-  public static enum AiCommand { CorrectGrammar, ImproveStyle, ExpandText, GeneralAi };
+  public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, GeneralAi };
   
   private static boolean isRunning = false;
 

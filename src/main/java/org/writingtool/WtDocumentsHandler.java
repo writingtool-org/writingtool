@@ -1354,7 +1354,23 @@ public class WtDocumentsHandler {
    * Call method Ai Support run command to change paragraph
    */
   public void runAiChangeOnParagraph(int commandId) {
-    AiCommand command = commandId == 2 ? AiCommand.ImproveStyle : AiCommand.GeneralAi;
+    AiCommand command;
+    switch (commandId) {
+    case 1:
+      command = AiCommand.CorrectGrammar;
+      break;
+    case 2:
+      command = AiCommand.ImproveStyle;
+      break;
+    case 3:
+      command = AiCommand.ReformulateText;
+      break;
+    case 4:
+      command = AiCommand.ExpandText;
+      break;
+    default:
+      command = AiCommand.GeneralAi;
+    }
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
@@ -1872,13 +1888,15 @@ public class WtDocumentsHandler {
         new WtAnalyzedParagraphsCache(this); 
       } else if ("aiAddErrorMarks".equals(sEvent)) {
         aiAddErrorMarks();
+      } else if ("aiGeneralCommand".equals(sEvent)) {
+        runAiChangeOnParagraph(0);
       } else if ("aiCorrectErrors".equals(sEvent)) {
         runAiChangeOnParagraph(1);
       } else if ("aiBetterStyle".equals(sEvent)) {
         runAiChangeOnParagraph(2);
-      } else if ("aiAdvanceText".equals(sEvent)) {
+      } else if ("aiReformulateText".equals(sEvent)) {
         runAiChangeOnParagraph(3);
-      } else if ("aiGeneralCommand".equals(sEvent)) {
+      } else if ("aiAdvanceText".equals(sEvent)) {
         runAiChangeOnParagraph(4);
       } else if ("remoteHint".equals(sEvent)) {
         if (getConfiguration().useOtherServer()) {
