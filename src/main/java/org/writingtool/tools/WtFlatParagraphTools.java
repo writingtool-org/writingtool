@@ -985,6 +985,46 @@ public class WtFlatParagraphTools {
   }
   
   /**
+   * Change text and locale of flat paragraph nPara 
+   * delete characters between nStart and nStart + nLen, insert newText at nStart
+   */
+  public void changeTextAndLocaleOfParagraph (int nPara, int nStart, int nLen, String newText, Locale locale) {
+    WtOfficeTools.waitForLO();
+    isBusy++;
+    try {
+      XFlatParagraph xFlatPara = getLastFlatParagraph();
+      if (xFlatPara == null) {
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextAndLocaleOfParagraph: FlatParagraph == null");
+        }
+        return;
+      }
+      XFlatParagraph tmpFlatPara = xFlatPara;
+      while (tmpFlatPara != null) {
+        xFlatPara = tmpFlatPara;
+        tmpFlatPara = xFlatParaIter.getParaBefore(tmpFlatPara);
+      }
+      int num = 0;
+      while (xFlatPara != null && num < nPara) {
+        xFlatPara = xFlatParaIter.getParaAfter(xFlatPara);
+        num++;
+      }
+      if (xFlatPara == null) {
+        WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextAndLocaleOfParagraph: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
+        return;
+      }
+      xFlatPara.changeText(nStart, nLen, newText, new PropertyValue[0]);
+      PropertyValue[] propertyValues = { new PropertyValue("CharLocale", -1, locale, PropertyState.DIRECT_VALUE) };
+      xFlatPara.changeAttributes(nStart, nLen, propertyValues);
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      return;             // Return -1 as method failed
+    } finally {
+      isBusy--;
+    }
+  }
+  
+  /**
    *  Returns the status of cursor tools
    *  true: If a cursor tool in one or more threads is active
    */

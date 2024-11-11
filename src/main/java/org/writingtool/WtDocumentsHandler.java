@@ -52,6 +52,7 @@ import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtSingleDocument.RuleDesc;
 import org.writingtool.aisupport.WtAiCheckQueue;
 import org.writingtool.aisupport.WtAiErrorDetection;
+import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
@@ -1380,6 +1381,16 @@ public class WtDocumentsHandler {
     }
   }
   
+  public void runAiTranslateText() {
+    for (WtSingleDocument document : documents) {
+      if (menuDocId.equals(document.getDocID())) {
+        WtAiTranslateDocument aiNewDoc = new WtAiTranslateDocument(xContext, document);
+        aiNewDoc.start();
+        return;
+      }
+    }
+  }
+  
   /**
    * Call method resetIgnorePermanent for concerned document 
    */
@@ -1898,6 +1909,8 @@ public class WtDocumentsHandler {
         runAiChangeOnParagraph(3);
       } else if ("aiAdvanceText".equals(sEvent)) {
         runAiChangeOnParagraph(4);
+      } else if ("aiTranslateText".equals(sEvent)) {
+        runAiTranslateText();
       } else if ("remoteHint".equals(sEvent)) {
         if (getConfiguration().useOtherServer()) {
           WtMessageHandler.showMessage(MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), 

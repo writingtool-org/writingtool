@@ -209,7 +209,7 @@ public class WtOfficeTools {
    * Returns null if it fails
    */
   @Nullable
-  static XDesktop getDesktop(XComponentContext xContext) {
+  public static XDesktop getDesktop(XComponentContext xContext) {
     try {
       if (xContext == null) {
         return null;
