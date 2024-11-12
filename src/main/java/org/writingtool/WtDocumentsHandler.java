@@ -2546,6 +2546,7 @@ public class WtDocumentsHandler {
     public void setValueForProgressBar(int val) {
       if (progressBar != null) {
         progressBar.setValue(val);
+        progressBar.setIndeterminate(false);
       }
     }
     

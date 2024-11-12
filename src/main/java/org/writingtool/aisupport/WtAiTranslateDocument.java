@@ -59,7 +59,8 @@ public class WtAiTranslateDocument extends Thread {
   private WaitDialogThread waitDialog = null;
 //  private XComponentContext xContext;
   private WtSingleDocument document;
-//  private XComponent xToComponent;
+  WtDocumentCursorTools docCursor;
+  //  private XComponent xToComponent;
   private Locale locale;
   private String fromUrl;
   
@@ -120,9 +121,13 @@ public class WtAiTranslateDocument extends Thread {
     document.getFlatParagraphTools().changeTextAndLocaleOfParagraph(nFPara, 0, oldLength, str, locale);
   }
 */
-  private void replaceParagraph(TextParagraph textPara, String str, Locale locale, 
-      WtDocumentCursorTools docCursor) throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+  private void replaceParagraph(TextParagraph textPara, String str, Locale locale) 
+       throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
     XParagraphCursor pCursor = docCursor.getParagraphCursor(textPara);
+    if (pCursor == null) {
+      docCursor = new WtDocumentCursorTools(document.getXComponent());
+      pCursor = docCursor.getParagraphCursor(textPara);
+    }
     pCursor.gotoStartOfParagraph(false);
     pCursor.gotoEndOfParagraph(true);
     pCursor.setString(str);
@@ -151,16 +156,22 @@ public class WtAiTranslateDocument extends Thread {
     try {
       WtDocumentCache fromCache = document.getDocumentCache();
       waitDialog = new WaitDialogThread(WtAiParagraphChanging.WAIT_TITLE, WtAiParagraphChanging.WAIT_MESSAGE);
-      waitDialog.initializeProgressBar(0, fromCache.size());
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), document.getMultiDocumentsHandler().getConfiguration());
-      WtDocumentCursorTools docCursor = document.getDocumentCursorTools();
+      docCursor = document.getDocumentCursorTools();
+      String instruction = TRANSLATE_INSTRUCTION + locale.Language + TRANSLATE_INSTRUCTION_POST;
+      waitDialog.initializeProgressBar(0, fromCache.size());
       for(int i = 0; i < fromCache.size(); i++) {
+        if (waitDialog.canceled()) {
+          break;
+        }
         String str = fromCache.getFlatParagraph(i);
-        String instruction = TRANSLATE_INSTRUCTION + locale.Language + TRANSLATE_INSTRUCTION_POST;
+        if(str.trim().isEmpty()) {
+          continue;
+        }
         String out = aiRemote.runInstruction(instruction, str, 0, 1, locale, true);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
-        replaceParagraph(textPara, out, locale, docCursor);
+        replaceParagraph(textPara, out, locale);
         waitDialog.setValueForProgressBar(i);
       }
     } catch (Throwable t) {
