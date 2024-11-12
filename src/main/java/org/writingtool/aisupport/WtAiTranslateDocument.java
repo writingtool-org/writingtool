@@ -53,7 +53,7 @@ public class WtAiTranslateDocument extends Thread {
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
-  private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in ";
+  private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in the language ";
   private String TRANSLATE_INSTRUCTION_POST = " (without comments)";
   
   private WaitDialogThread waitDialog = null;
@@ -172,7 +172,7 @@ public class WtAiTranslateDocument extends Thread {
         String out = aiRemote.runInstruction(instruction, str, 0, 1, locale, true);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
         replaceParagraph(textPara, out, locale);
-        waitDialog.setValueForProgressBar(i);
+        waitDialog.setValueForProgressBar(i, true);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);

@@ -121,7 +121,7 @@ public class WtStatAnCache {
 //      }
 //      analyzedParagraphs.add(sentences);
       if (waitdialog != null) {
-        waitdialog.setValueForProgressBar(90 * i / textSize);;
+        waitdialog.setValueForProgressBar(90 * i / textSize, false);;
       }
     }
     setHeadings();

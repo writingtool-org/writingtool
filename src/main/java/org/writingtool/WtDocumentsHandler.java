@@ -2416,6 +2416,7 @@ public class WtDocumentsHandler {
   public static class WaitDialogThread extends Thread {
     private final String dialogName;
     private final String text;
+    private int max;
     private JDialog dialog = null;
     private boolean isCanceled = false;
     private JProgressBar progressBar;
@@ -2423,6 +2424,7 @@ public class WtDocumentsHandler {
     public WaitDialogThread(String dialogName, String text) {
       this.dialogName = dialogName;
       this.text = text;
+      progressBar = new JProgressBar();
     }
 
     @Override
@@ -2433,7 +2435,6 @@ public class WtDocumentsHandler {
         cancelBottom.addActionListener(e -> {
           close_intern();
         });
-        progressBar = new JProgressBar();
         progressBar.setIndeterminate(true);
         dialog = new JDialog();
         Container contentPane = dialog.getContentPane();
@@ -2536,6 +2537,7 @@ public class WtDocumentsHandler {
     
     public void initializeProgressBar(int min, int max) {
       if (progressBar != null) {
+        this.max = max;
         progressBar.setMinimum(min);
         progressBar.setMaximum(max);
         progressBar.setStringPainted(true);
@@ -2543,10 +2545,15 @@ public class WtDocumentsHandler {
       }
     }
     
-    public void setValueForProgressBar(int val) {
+    public void setValueForProgressBar(int val, boolean setText) {
       if (progressBar != null) {
         progressBar.setValue(val);
         progressBar.setIndeterminate(false);
+        if (setText) {
+          int p = (int) (((val * 100) / max) + 0.5);
+          progressBar.setString(p + " %  ( " + val + " / " + max + " )");
+          progressBar.setStringPainted(true);
+        }
       }
     }
     
