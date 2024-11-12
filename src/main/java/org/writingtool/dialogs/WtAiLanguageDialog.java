@@ -19,6 +19,7 @@
 package org.writingtool.dialogs;
 
 import java.awt.Container;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
@@ -137,7 +138,8 @@ public class WtAiLanguageDialog implements ActionListener {
 
       language.setFont(dialogFont);
       language.setSelectedItem(startLang);
-      locale = this.getLocaleFromLanguageName(startLang);
+      locale = getLocaleFromLanguageName(startLang);
+      selectedLang = startLang;
 //      language.setToolTipText(formatToolTipText(languageHelp));
       language.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -215,8 +217,9 @@ public class WtAiLanguageDialog implements ActionListener {
       cons1.gridx = 0;
       cons1.gridy = 0;
       cons1.anchor = GridBagConstraints.NORTHWEST;
-      cons1.fill = GridBagConstraints.BOTH;
-      cons1.weightx = 0.0f;
+      cons1.fill = GridBagConstraints.HORIZONTAL;
+      language.setMaximumSize(new Dimension(700, 5));
+      cons1.weightx = 10.0f;
       cons1.weighty = 0.0f;
       mainPanel.add(language, cons1);
       cons1.gridx++;
@@ -275,9 +278,6 @@ public class WtAiLanguageDialog implements ActionListener {
           && currentDocument.getDocumentType() != DocumentType.IMPRESS)) {
       return null;
     }
-    if (debugMode) {
-      WtMessageHandler.printToLogFile("CheckDialog: show: Goto next Error");
-    }
     if (dialogX < 0 || dialogY < 0) {
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       Dimension frameSize = dialog.getSize();
@@ -285,6 +285,7 @@ public class WtAiLanguageDialog implements ActionListener {
       dialogY = screenSize.height / 2 - frameSize.height / 2;
     }
     dialog.setLocation(dialogX, dialogY);
+    dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
     dialog.setAutoRequestFocus(true);
     dialog.setVisible(true);
     return locale;

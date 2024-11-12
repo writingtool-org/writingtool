@@ -57,8 +57,8 @@ public class WtAiParagraphChanging extends Thread {
 
   private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
-  private final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
-  private final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
+  public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
+  public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
 
   private final WtSingleDocument document;
   private final WtConfiguration config;

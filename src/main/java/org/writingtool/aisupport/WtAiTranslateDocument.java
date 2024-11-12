@@ -24,6 +24,7 @@ import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.dialogs.WtAiLanguageDialog;
 import org.writingtool.WtDocumentCache.TextParagraph;
+import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -55,6 +56,7 @@ public class WtAiTranslateDocument extends Thread {
   private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in ";
   private String TRANSLATE_INSTRUCTION_POST = " (without comments)";
   
+  private WaitDialogThread waitDialog = null;
 //  private XComponentContext xContext;
   private WtSingleDocument document;
 //  private XComponent xToComponent;
@@ -79,8 +81,11 @@ public class WtAiTranslateDocument extends Thread {
 //      xToComponent = openNewFile();
       locale = getLocale();
       if (locale != null) {
+        WtMessageHandler.printToLogFile("Locale: " + WtOfficeTools.localeToString(locale));
         saveFile(locale);
         writeText(locale);
+      } else {
+        WtMessageHandler.printToLogFile("Locale: null");
       }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
@@ -144,8 +149,11 @@ public class WtAiTranslateDocument extends Thread {
   
   private void writeText(Locale locale) {
     try {
-      WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), document.getMultiDocumentsHandler().getConfiguration());
       WtDocumentCache fromCache = document.getDocumentCache();
+      waitDialog = new WaitDialogThread(WtAiParagraphChanging.WAIT_TITLE, WtAiParagraphChanging.WAIT_MESSAGE);
+      waitDialog.initializeProgressBar(0, fromCache.size());
+      waitDialog.start();
+      WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), document.getMultiDocumentsHandler().getConfiguration());
       WtDocumentCursorTools docCursor = document.getDocumentCursorTools();
       for(int i = 0; i < fromCache.size(); i++) {
         String str = fromCache.getFlatParagraph(i);
@@ -153,10 +161,15 @@ public class WtAiTranslateDocument extends Thread {
         String out = aiRemote.runInstruction(instruction, str, 0, 1, locale, true);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
         replaceParagraph(textPara, out, locale, docCursor);
+        waitDialog.setValueForProgressBar(i);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
+    if (waitDialog != null) {
+      waitDialog.close();
+    }
+
   }
 
 }
