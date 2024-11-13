@@ -22,7 +22,8 @@ import java.util.ResourceBundle;
 
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
-import org.writingtool.dialogs.WtAiLanguageDialog;
+import org.writingtool.dialogs.WtAiTranslationDialog;
+import org.writingtool.dialogs.WtAiTranslationDialog.TranslationOptions;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
@@ -41,7 +42,6 @@ import com.sun.star.lang.Locale;
 import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.uno.UnoRuntime;
-import com.sun.star.uno.XComponentContext;
 
 /**
  * Class for a new document filled by AI
@@ -51,22 +51,25 @@ import com.sun.star.uno.XComponentContext;
 
 public class WtAiTranslateDocument extends Thread {
   
-  private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
+//  private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in the language ";
   private String TRANSLATE_INSTRUCTION_POST = " (without comments)";
   
+  private final ResourceBundle messages;
   private WaitDialogThread waitDialog = null;
 //  private XComponentContext xContext;
   private WtSingleDocument document;
   WtDocumentCursorTools docCursor;
   //  private XComponent xToComponent;
   private Locale locale;
+  private float temperature;
   private String fromUrl;
   
-  public WtAiTranslateDocument(XComponentContext xContext, WtSingleDocument document) {
+  public WtAiTranslateDocument(WtSingleDocument document, ResourceBundle messages) {
 //-    this.xContext = xContext;
     this.document = document;
+    this.messages = messages;
     XModel xModel = UnoRuntime.queryInterface(XModel.class, document.getXComponent());
     if (xModel == null) {
       WtMessageHandler.printToLogFile("CacheIO: getDocumentPath: XModel not found!");
@@ -80,11 +83,13 @@ public class WtAiTranslateDocument extends Thread {
   public void run() {
     try {
 //      xToComponent = openNewFile();
-      locale = getLocale();
-      if (locale != null) {
+      TranslationOptions transOpt = getTranslationOptions();
+      if (transOpt != null) {
+        locale = transOpt.locale;
+        temperature = transOpt.temperature;
         WtMessageHandler.printToLogFile("Locale: " + WtOfficeTools.localeToString(locale));
-        saveFile(locale);
-        writeText(locale);
+        saveFile();
+        writeText();
       } else {
         WtMessageHandler.printToLogFile("Locale: null");
       }
@@ -92,9 +97,8 @@ public class WtAiTranslateDocument extends Thread {
       WtMessageHandler.showError(e);
     }
   }
-  
-  private Locale getLocale() {
-    WtAiLanguageDialog langDialog = new WtAiLanguageDialog(document, messages);
+  private TranslationOptions getTranslationOptions() {
+    WtAiTranslationDialog langDialog = new WtAiTranslationDialog(document, messages);
     return langDialog.run();
   }
 /*  
@@ -143,7 +147,7 @@ public class WtAiTranslateDocument extends Thread {
     return name + "_" + lang + ext;
   }
   
-  private void saveFile(Locale locale) throws IOException {
+  private void saveFile() throws IOException {
     XStorable xStore = UnoRuntime.queryInterface (com.sun.star.frame.XStorable.class, document.getXComponent());
     PropertyValue[] sProps = new PropertyValue[1];
     sProps[0] = new PropertyValue();
@@ -152,7 +156,7 @@ public class WtAiTranslateDocument extends Thread {
     xStore.storeAsURL (outUrl(fromUrl, locale.Language), sProps);
   }
   
-  private void writeText(Locale locale) {
+  private void writeText() {
     try {
       WtDocumentCache fromCache = document.getDocumentCache();
       waitDialog = new WaitDialogThread(WtAiParagraphChanging.WAIT_TITLE, WtAiParagraphChanging.WAIT_MESSAGE);
@@ -169,7 +173,7 @@ public class WtAiTranslateDocument extends Thread {
         if(str.trim().isEmpty()) {
           continue;
         }
-        String out = aiRemote.runInstruction(instruction, str, 0, 1, locale, true);
+        String out = aiRemote.runInstruction(instruction, str, temperature, 1, locale, true);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
         replaceParagraph(textPara, out, locale);
         waitDialog.setValueForProgressBar(i, true);

@@ -42,7 +42,10 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.ToolTipManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.languagetool.Language;
 import org.languagetool.Languages;
@@ -60,10 +63,12 @@ import com.sun.star.lang.Locale;
  * @since WT 1.1
  * @author Fred Kruse
  */
-public class WtAiLanguageDialog implements ActionListener {
+public class WtAiTranslationDialog implements ActionListener {
   
   private final static int dialogWidth = 700;
-  private final static int dialogHeight = 150;
+  private final static int dialogHeight = 200;
+  
+  private final static float DEFAULT_TEMPERATURE = 0.0f;
 
   private boolean debugMode = false;
   private boolean debugModeTm = false;
@@ -71,12 +76,15 @@ public class WtAiLanguageDialog implements ActionListener {
   private final ResourceBundle messages;
   private final JDialog dialog;
   private final Container contentPane;
-  private final JButton cancel;
   private final Image ltImage;
   
   private final JLabel languageLabel;
   private final JComboBox<String> language;
+  private final JLabel temperatureLabel;
+  private final JSlider temperatureSlider;
+
   private final JButton translate; 
+  private final JButton cancel;
   
   private final JPanel mainPanel;
 
@@ -85,13 +93,14 @@ public class WtAiLanguageDialog implements ActionListener {
   private String startLang;
   private String selectedLang;
   private Locale locale = null;
+  private float temperature = DEFAULT_TEMPERATURE;
   private int dialogX = -1;
   private int dialogY = -1;
 
   /**
    * the constructor of the class creates all elements of the dialog
    */
-  public WtAiLanguageDialog(WtSingleDocument document, ResourceBundle messages) {
+  public WtAiTranslationDialog(WtSingleDocument document, ResourceBundle messages) {
     documents = document.getMultiDocumentsHandler();
     this.messages = messages;
     long startTime = 0;
@@ -109,6 +118,8 @@ public class WtAiLanguageDialog implements ActionListener {
     contentPane = dialog.getContentPane();
     languageLabel = new JLabel(messages.getString("loAiDialogLanguageLabel") + ":");
     language = new JComboBox<String>(getPossibleLanguages());
+    temperatureLabel = new JLabel(messages.getString("loAiDialogTranslateFreedom") + ":");
+    temperatureSlider = new JSlider(0, 100, (int)(DEFAULT_TEMPERATURE*100));
     translate = new JButton (messages.getString("loAiDialogTranslateButton")); 
     cancel = new JButton (messages.getString("guiCancelButton"));
     mainPanel = new JPanel();
@@ -123,8 +134,9 @@ public class WtAiLanguageDialog implements ActionListener {
       if (dialog == null) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
       }
-      String dialogName = messages.getString("loAiResultDialogTitle");
+      String dialogName = messages.getString("loAiTranslationDialogTitle");
       dialog.setName(dialogName);
+//      dialog.setTitle(dialogName);
       dialog.setTitle(dialogName + " (" + WtOfficeTools.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
@@ -146,6 +158,21 @@ public class WtAiLanguageDialog implements ActionListener {
           selectedLang = (String) language.getSelectedItem();
         }
       });
+      
+      temperatureLabel.setFont(dialogFont);
+      temperatureSlider.setMajorTickSpacing(10);
+      temperatureSlider.setMinorTickSpacing(5);
+      temperatureSlider.setPaintTicks(true);
+      temperatureSlider.setSnapToTicks(true);
+      temperatureSlider.addChangeListener(new ChangeListener( ) {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          int value = temperatureSlider.getValue();
+          temperature = (float) (value / 100.);
+        }
+      });
+
+
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
@@ -194,6 +221,33 @@ public class WtAiLanguageDialog implements ActionListener {
       
       //  Define Text panels
 
+      //  Define 1. left panel
+      JPanel leftPanel1 = new JPanel();
+      leftPanel1.setLayout(new GridBagLayout());
+      GridBagConstraints cons11 = new GridBagConstraints();
+      cons11.insets = new Insets(2, 0, 2, 0);
+      cons11.gridx = 0;
+      cons11.gridy = 0;
+      cons11.anchor = GridBagConstraints.NORTHWEST;
+      cons11.fill = GridBagConstraints.NONE;
+      cons11.weightx = 0.0f;
+      cons11.weighty = 0.0f;
+      leftPanel1.add(languageLabel, cons11);
+      cons11.gridy++;
+      cons11.fill = GridBagConstraints.HORIZONTAL;
+      cons11.weightx = 10.0f;
+      leftPanel1.add(language, cons11);
+      cons11.gridy++;
+      cons11.fill = GridBagConstraints.NONE;
+      cons11.weightx = 0.0f;
+      cons11.insets = new Insets(18, 0, 2, 0);
+      leftPanel1.add(temperatureLabel, cons11);
+      cons11.gridy++;
+      cons11.insets = new Insets(2, 0, 2, 0);
+      cons11.fill = GridBagConstraints.HORIZONTAL;
+      cons11.weightx = 10.0f;
+      leftPanel1.add(temperatureSlider, cons11);
+
       //  Define 1. right panel
       JPanel rightPanel1 = new JPanel();
       rightPanel1.setLayout(new GridBagLayout());
@@ -202,7 +256,7 @@ public class WtAiLanguageDialog implements ActionListener {
       cons21.gridx = 0;
       cons21.gridy = 0;
       cons21.anchor = GridBagConstraints.SOUTHEAST;
-      cons21.fill = GridBagConstraints.BOTH;
+      cons21.fill = GridBagConstraints.HORIZONTAL;
       cons21.weightx = 0.0f;
       cons21.weighty = 0.0f;
       cons21.gridy++;
@@ -217,11 +271,10 @@ public class WtAiLanguageDialog implements ActionListener {
       cons1.gridx = 0;
       cons1.gridy = 0;
       cons1.anchor = GridBagConstraints.NORTHWEST;
-      cons1.fill = GridBagConstraints.HORIZONTAL;
-      language.setMaximumSize(new Dimension(700, 5));
+      cons1.fill = GridBagConstraints.BOTH;
       cons1.weightx = 10.0f;
-      cons1.weighty = 0.0f;
-      mainPanel.add(language, cons1);
+      cons1.weighty = 10.0f;
+      mainPanel.add(leftPanel1, cons1);
       cons1.gridx++;
       cons1.fill = GridBagConstraints.NONE;
       cons1.anchor = GridBagConstraints.SOUTHEAST;
@@ -273,7 +326,7 @@ public class WtAiLanguageDialog implements ActionListener {
   /**
    * run the dialog
    */
-  public Locale run() {
+  public TranslationOptions run() {
     if (currentDocument == null || (currentDocument.getDocumentType() != DocumentType.WRITER 
           && currentDocument.getDocumentType() != DocumentType.IMPRESS)) {
       return null;
@@ -288,7 +341,10 @@ public class WtAiLanguageDialog implements ActionListener {
     dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
     dialog.setAutoRequestFocus(true);
     dialog.setVisible(true);
-    return locale;
+    if(locale != null) {
+      return new TranslationOptions(locale, temperature);
+    }
+    return null;
   }
   
   public void toFront() {
@@ -367,7 +423,15 @@ public class WtAiLanguageDialog implements ActionListener {
     return null;
   }
 
-
+  public class TranslationOptions {
+    public Locale locale;
+    public float temperature;
+    
+    TranslationOptions(Locale locale, float temperature) {
+      this.locale = locale;
+      this.temperature = temperature;
+    }
+  }
   
 
 }

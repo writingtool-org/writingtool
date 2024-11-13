@@ -52,9 +52,9 @@ import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtSingleDocument.RuleDesc;
 import org.writingtool.aisupport.WtAiCheckQueue;
 import org.writingtool.aisupport.WtAiErrorDetection;
-import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
+import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAboutDialog;
 import org.writingtool.dialogs.WtCheckDialog;
@@ -1384,8 +1384,8 @@ public class WtDocumentsHandler {
   public void runAiTranslateText() {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        WtAiTranslateDocument aiNewDoc = new WtAiTranslateDocument(xContext, document);
-        aiNewDoc.start();
+        WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, messages);
+        aiTranslate.start();
         return;
       }
     }

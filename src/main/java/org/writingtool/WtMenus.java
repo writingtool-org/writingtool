@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 import org.languagetool.Language;
 import org.writingtool.aisupport.WtAiErrorDetection;
 import org.writingtool.aisupport.WtAiParagraphChanging;
+import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtStatAnDialog;
@@ -300,9 +301,9 @@ public class WtMenus {
       int nProfileItems = setProfileItems();
       setActivateRuleMenu((short)(switchOffPos + 3), (short)(switchOffId + 11), (short)(switchOffId + SUBMENU_ID_DIFF + nProfileItems));
       short nId = (short)(SUBMENU_ID_AI + 1);
-      short nPos = (short)(switchOffPos + 3);
+//      short nPos = (short)(switchOffPos + 3);
       short aiPos = ltMenu.getItemPos((short)(nId + 1));
-      short aiAutoPos = ltMenu.getItemPos(nId);
+//      short aiAutoPos = ltMenu.getItemPos(nId);
 /*      
       if (config.useAiSupport() && !config.aiAutoCorrect() && aiAutoPos < 1) {
         ltMenu.insertItem(nId, MESSAGES.getString("loMenuAiAddErrorMarks"), (short) 0, nPos);
@@ -477,6 +478,11 @@ public class WtMenus {
           xAiSupportMenu.enableItem(nId , true);
           nId++;
           nPos++;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiTranslateCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_TRANSLATE_TEXT);
+          xAiSupportMenu.enableItem(nId , true);
+          nId++;
+          nPos++;
         }
         xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
         xAiSupportMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
@@ -545,6 +551,9 @@ public class WtMenus {
           } else if (event.MenuId == SUBMENU_ID_AI + 4) {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ExpandText);
             aiChange.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 5) {
+            WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
+            aiTranslate.start();
           } else {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.GeneralAi);
             aiChange.start();
@@ -1054,7 +1063,7 @@ public class WtMenus {
         j++;
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
               xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewSubMenuEntry.setPropertyValue("Text", "Translate Text");
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiTranslateCommand"));
         xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_TRANSLATE_TEXT);
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
