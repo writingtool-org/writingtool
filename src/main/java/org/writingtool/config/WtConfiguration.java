@@ -46,6 +46,7 @@ import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtVersionInfo;
 
 /**
  * Configuration like list of disabled rule IDs, server mode etc.
@@ -1813,7 +1814,7 @@ public class WtConfiguration {
     Properties props = new Properties();
     String qualifier = getQualifier(lang);
 
-    String[] versionParts = WtOfficeTools.WT_VERSION.split("-");
+    String[] versionParts = WtVersionInfo.wtVersion.split("-");
     props.setProperty(LT_VERSION_KEY, versionParts[0]);
 
     if (currentProfile != null && !currentProfile.isEmpty()) {
@@ -1833,7 +1834,7 @@ public class WtConfiguration {
     }
     
     try (FileOutputStream fos = new FileOutputStream(configFile)) {
-      props.store(fos, WtOfficeTools.WT_NAME + " configuration (" + WtOfficeTools.getWtInformation() + ")");
+      props.store(fos, WtOfficeTools.WT_NAME + " configuration (" + WtVersionInfo.getWtInformation() + ")");
     }
 
     List<String> prefixes = new ArrayList<>();
@@ -2217,7 +2218,7 @@ public class WtConfiguration {
       props.setProperty(CURRENT_PROFILE_KEY, profile);
     }
     try (FileOutputStream fos = new FileOutputStream(exportFile)) {
-      props.store(fos, WtOfficeTools.WT_NAME + " configuration (" + WtOfficeTools.getWtInformation() + ")");
+      props.store(fos, WtOfficeTools.WT_NAME + " configuration (" + WtVersionInfo.getWtInformation() + ")");
     }
     String prefix = profile;
     if (!prefix.isEmpty()) {

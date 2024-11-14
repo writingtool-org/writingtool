@@ -42,6 +42,7 @@ import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.frame.XModel;
 import com.sun.star.lang.Locale;
@@ -188,7 +189,7 @@ public class WtCacheIO implements Serializable {
       try {
         if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
           allCaches = new AllCaches(docCache, paragraphsCache, mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
-              config.getEnabledRuleIds(), ignoredMatches, WtOfficeTools.ltVersion());
+              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion());
           saveAllCaches(cachePath);
         } else {
           File file = new File( cachePath );
@@ -229,7 +230,7 @@ public class WtCacheIO implements Serializable {
           return true;
         } else {
           WtMessageHandler.printToLogFile("Version or active rules have changed: Cache rejected (Cache Version: " 
-                + allCaches.ltVersion + ", actual LT Version: " + WtOfficeTools.ltVersion() + ")");
+                + allCaches.ltVersion + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
           return false;
         }
       }
@@ -253,7 +254,7 @@ public class WtCacheIO implements Serializable {
       }
       return false;
     }
-    if (!allCaches.ltVersion.equals(WtOfficeTools.ltVersion())) {
+    if (!allCaches.ltVersion.equals(WtVersionInfo.ltVersion())) {
       return false;
     }
     if (config.getEnabledRuleIds().size() != allCaches.enabledRuleIds.size() || config.getDisabledRuleIds().size() != allCaches.disabledRuleIds.size() 
@@ -727,11 +728,11 @@ public class WtCacheIO implements Serializable {
     private static final long serialVersionUID = 1L;
     private final Map<String, List<String>> lastWrongWords = new HashMap<>();
     private final Map<String, List<String[]>> lastSuggestions = new HashMap<>();
-    private String version = WtOfficeTools.ltVersion();
+    private String version = WtVersionInfo.ltVersion();
     
     private boolean putAll (SpellCache sc) {
       version = sc.version;
-      if (!version.equals(WtOfficeTools.ltVersion())) {
+      if (!version.equals(WtVersionInfo.ltVersion())) {
         return false;
       }
       lastWrongWords.clear();
@@ -783,7 +784,7 @@ public class WtCacheIO implements Serializable {
             return true;
           } else {
             WtMessageHandler.printToLogFile("Version has changed: Spell Cache rejected (Cache Version: " 
-                  + version + ", actual LT Version: " + WtOfficeTools.ltVersion() + ")");
+                  + version + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
             return false;
           }
         }

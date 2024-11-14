@@ -72,7 +72,7 @@ import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
-import org.writingtool.tools.WtOfficeTools.OfficeProductInfo;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
@@ -173,8 +173,8 @@ public class WtDocumentsHandler {
     this.xEventListener = xEventListener;
     this.xProofreader = xProofreader;
     xEventListeners = new ArrayList<>();
-    OfficeProductInfo officeInfo = WtOfficeTools.getOfficeProductInfo(xContext);
-    if (officeInfo == null || officeInfo.ooName.equals("OpenOffice")) {
+    WtVersionInfo.init(xContext);
+    if (WtVersionInfo.ooName == null || WtVersionInfo.ooName.equals("OpenOffice")) {
       isOpenOffice = true;
       useOrginalCheckDialog = true;
       configFile = WtOfficeTools.OOO_CONFIG_FILE;
@@ -188,7 +188,7 @@ public class WtDocumentsHandler {
     documents = new ArrayList<>();
     disabledRulesUI = new HashMap<>();
     extraRemoteRules = new ArrayList<>();
-    if (officeInfo == null || officeInfo.osArch.equals("x86")
+    if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
         || !WtSpellChecker.runLTSpellChecker(xContext)) {
       noLtSpeller = true;
     }

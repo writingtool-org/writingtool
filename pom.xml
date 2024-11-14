@@ -90,6 +90,7 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+<!--                 <filtering>true</filtering>   -->
             </resource>
             <resource>
                 <targetPath>META-INF</targetPath>
@@ -180,6 +181,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <!-- <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format> -->
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss Z</maven.build.timestamp.format>
         <!--Maven-Plugin-Versions -->
         <!-- NOTE: don't update without testing OpenOffice, 3.0.2 caused "Got no data stream!" after add-on installation -->

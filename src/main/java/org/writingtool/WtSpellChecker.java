@@ -41,7 +41,7 @@ import org.writingtool.WtCacheIO.SpellCache;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
-import org.writingtool.tools.WtOfficeTools.OfficeProductInfo;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.IllegalArgumentException;
@@ -92,8 +92,8 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       try {
         xContext = xContxt;
         WtMessageHandler.init(xContext, true);
-        OfficeProductInfo officeInfo = WtOfficeTools.getOfficeProductInfo(xContext);
-        if (officeInfo == null || officeInfo.osArch.equals("x86")
+        WtVersionInfo.init(xContext);
+        if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
             || !isEnoughHeap() || !runLTSpellChecker(xContext)) {
           noLtSpeller = true;
         } else {

@@ -33,6 +33,7 @@ import org.languagetool.rules.AbstractStyleTooOftenUsedWordRule;
 import org.languagetool.rules.TextLevelRule;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtVersionInfo;
 
 /**
  * Statistical Analyzes Configuration 
@@ -266,7 +267,7 @@ public class WtStatAnConfiguration {
       
     }
     try (FileOutputStream fos = new FileOutputStream(WtOfficeTools.getStatisticalConfigFilePath())) {
-      props.store(fos, WtOfficeTools.WT_NAME + " statistical analyzes configuration (" + WtOfficeTools.getWtInformation() + ")");
+      props.store(fos, WtOfficeTools.WT_NAME + " statistical analyzes configuration (" + WtVersionInfo.getWtInformation() + ")");
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }

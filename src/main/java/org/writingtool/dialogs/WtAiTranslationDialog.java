@@ -55,6 +55,7 @@ import org.writingtool.WtSingleDocument;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.lang.Locale;
 
@@ -137,7 +138,7 @@ public class WtAiTranslationDialog implements ActionListener {
       String dialogName = messages.getString("loAiTranslationDialogTitle");
       dialog.setName(dialogName);
 //      dialog.setTitle(dialogName);
-      dialog.setTitle(dialogName + " (" + WtOfficeTools.getWtNameWithInformation() + ")");
+      dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
 

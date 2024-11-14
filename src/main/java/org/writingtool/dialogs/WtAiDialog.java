@@ -84,6 +84,7 @@ import org.writingtool.tools.WtOfficeGraphicTools;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
@@ -275,7 +276,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       String dialogName = messages.getString("loAiDialogTitle");
       dialog.setName(dialogName);
-      dialog.setTitle(dialogName + " (" + WtOfficeTools.getWtNameWithInformation() + ")");
+      dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
 

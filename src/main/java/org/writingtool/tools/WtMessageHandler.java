@@ -32,7 +32,6 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import org.languagetool.tools.Tools;
-import org.writingtool.tools.WtOfficeTools.OfficeProductInfo;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -70,16 +69,15 @@ public class WtMessageHandler {
           BufferedWriter br = new BufferedWriter(writer)
           ) {
         Date date = new Date();
-        OfficeProductInfo officeInfo = WtOfficeTools.getOfficeProductInfo(xContext);
         writer.write("WritingTool log from " + date + logLineBreak + logLineBreak);
-        writer.write("WritingTool " + WtOfficeTools.WT_VERSION + " (" + WtOfficeTools.WT_BUILD_DATE + ")" + logLineBreak);
-        writer.write("LanguageTool " + WtOfficeTools.ltVersion() + " (" + WtOfficeTools.ltBuildDate() + ", " 
-            + WtOfficeTools.ltShortGitId() + ")" + logLineBreak);
+        writer.write("WritingTool " + WtVersionInfo.wtVersion + " (" + WtVersionInfo.wtBuildDate + ")" + logLineBreak);
+        writer.write("LanguageTool " + WtVersionInfo.ltVersion() + " (" + WtVersionInfo.ltBuildDate() + ", " 
+            + WtVersionInfo.ltShortGitId() + ")" + logLineBreak);
         writer.write("OS: " + System.getProperty("os.name") + " " 
             + System.getProperty("os.version") + " on " + System.getProperty("os.arch") + logLineBreak);
-        if (officeInfo != null) { 
-          writer.write(officeInfo.ooName + " " + officeInfo.ooVersion + officeInfo.ooExtension
-              + " (" + officeInfo.ooVendor +"), " + officeInfo.ooLocale + logLineBreak);
+        if (WtVersionInfo.ooName != null) { 
+          writer.write(WtVersionInfo.ooName + " " + WtVersionInfo.ooVersion + WtVersionInfo.ooExtension
+              + " (" + WtVersionInfo.ooVendor +"), " + WtVersionInfo.ooLocale + logLineBreak);
         }
         writer.write(WtOfficeTools.getJavaInformation() + logLineBreak + logLineBreak);
       } catch (Throwable t) {
@@ -108,7 +106,7 @@ public class WtMessageHandler {
       throw new RuntimeException(e);
     }
     String msg = "An error has occurred in WritingTool "
-        + WtOfficeTools.WT_VERSION + " (" + WtOfficeTools.WT_BUILD_DATE + "):\n" + e + "\nStacktrace:\n";
+        + WtVersionInfo.wtVersion + " (" + WtVersionInfo.wtBuildDate + "):\n" + e + "\nStacktrace:\n";
     msg += Tools.getFullStackTrace(e);
     String metaInfo = "OS: " + System.getProperty("os.name") + " on "
         + System.getProperty("os.arch") + ", Java version "

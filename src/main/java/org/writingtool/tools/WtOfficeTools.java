@@ -24,17 +24,10 @@ import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -44,7 +37,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 import org.languagetool.JLanguageTool;
 import org.languagetool.Language;
-// import org.languagetool.LtBuildInfo;
 import org.languagetool.rules.AbstractStatisticSentenceStyleRule;
 import org.languagetool.rules.AbstractStatisticStyleRule;
 import org.languagetool.rules.AbstractStyleTooOftenUsedWordRule;
@@ -59,7 +51,6 @@ import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.beans.XPropertySetInfo;
-import com.sun.star.container.XNameAccess;
 import com.sun.star.frame.XController;
 import com.sun.star.frame.XDesktop;
 import com.sun.star.frame.XDispatchHelper;
@@ -70,7 +61,6 @@ import com.sun.star.frame.XModel;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
-import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.linguistic2.SingleProofreadingError;
 import com.sun.star.linguistic2.XProofreadingIterator;
 import com.sun.star.linguistic2.XSearchableDictionaryList;
@@ -107,8 +97,6 @@ public class WtOfficeTools {
   }
     
   public static final String WT_NAME = "WritingTool";
-  public static final String WT_VERSION = "1.1-SNAPSHOT";
-  public static final String WT_BUILD_DATE = getClassBuildTime();
 
   public static final String AI_GRAMMAR_CATEGORY = "AI_GRAMMAR_CATEGORY";
   public static final String AI_STYLE_CATEGORY = "AI_STYLE_CATEGORY";
@@ -182,10 +170,8 @@ public class WtOfficeTools {
   private static final String APPLICATION_ID = "LanguageTool";
   private static final String CACHE_ID = "cache";
   private static String OFFICE_EXTENSION_ID = null;
-  private static OfficeProductInfo OFFICE_PRODUCT_INFO = null;
 
   private static final String RESOURCES = "org.writingtool";
-//  private static final String URL_RESOURCES = "org.writingtool.URLsBundle";
   
   private static final String MENU_BAR = "private:resource/menubar/menubar";
   private static final String LOG_DELIMITER = ",";
@@ -374,8 +360,7 @@ public class WtOfficeTools {
    * Returns null if it fails
    */
   @Nullable
-  public
-  static XPopupMenu getPopupMenu(XComponentContext xContext) {
+  public static XPopupMenu getPopupMenu(XComponentContext xContext) {
     try {
       if (xContext == null) {
         return null;
@@ -511,10 +496,13 @@ public class WtOfficeTools {
 
   public static File getLOConfigDir(XComponentContext xContext) {
     if (OFFICE_EXTENSION_ID == null) {
-      if (xContext == null) {
+      if (WtVersionInfo.ooName == null && xContext == null) {
         OFFICE_EXTENSION_ID = "LibreOffice";
       } else {
-        OFFICE_EXTENSION_ID = getOfficeProductInfo(xContext).ooName;
+        if (WtVersionInfo.ooName == null) {
+          WtVersionInfo.init(xContext);
+        }
+        OFFICE_EXTENSION_ID = WtVersionInfo.ooName;
       }
     }
     String userHome = null;
@@ -651,7 +639,7 @@ public class WtOfficeTools {
   /**
    * Handles files, jar entries, and deployed jar entries in a zip file (EAR).
    * @return A String with the formated date if it can be determined, or an empty string if not.
-   */
+   *//*
   private static String getClassBuildTime() {
       Date date = null;
       WtOfficeTools wtTools = new WtOfficeTools();
@@ -681,63 +669,7 @@ public class WtOfficeTools {
       OffsetDateTime dateTime = date.toInstant().atOffset(ZoneOffset.UTC);
       return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z"));
   }
-
-  /**
-   * Get information about WritingTool
-   */
-  public static String getWtInformation () {
-    String txt = WT_VERSION;
-    if (WT_VERSION.contains("SNAPSHOT")) {
-      txt += " - " + WT_BUILD_DATE;
-    }
-    return txt;
-  }
-
-  /**
-   * Get name and information about WritingTool
-   */
-  public static String getWtNameWithInformation () {
-    return WT_NAME + " " + getWtInformation();
-  }
-  
-  /**
-   * get LanguageTool version
-   * NOTE: The recommended method doesn't work in WritingTool
-   */
-  public static String ltVersion() {
-    return JLanguageTool.VERSION;
-//    return LtBuildInfo.OS.getVersion();
-  }
-
-  /**
-   * get LanguageTool build date
-   * NOTE: The recommended method doesn't work in WritingTool
-   */
-  public static String ltBuildDate() {
-    return JLanguageTool.BUILD_DATE;
-//    return LtBuildInfo.OS.getBuildDate();
-  }
-
-  /**
-   * get LanguageTool short git id
-   * NOTE: The recommended method doesn't work in WritingTool
-   */
-  public static String ltShortGitId() {
-    return JLanguageTool.GIT_SHORT_ID;
-//    return LtBuildInfo.OS.getShortGitId();
-  }
-
-  /**
-   * Get information about LanguageTool
-   */
-  public static String getLtInformation () {
-    String txt = ltVersion();
-    if (txt.contains("SNAPSHOT")) {
-      txt += " - " + ltBuildDate() + ", " + ltShortGitId();
-    }
-    return txt;
-  }
-
+*/
   /**
    * Get LanguageTool Image
    */
@@ -772,57 +704,6 @@ public class WtOfficeTools {
     return WtOfficeTools.class.getResourceAsStream(resource);
   }
 
-  /**
-   * get information of LO/OO office product
-   */
-  public static OfficeProductInfo getOfficeProductInfo(XComponentContext xContext) {
-    if (OFFICE_PRODUCT_INFO == null) {
-      OFFICE_PRODUCT_INFO = readOfficeProductInfo(xContext);
-    }
-    return OFFICE_PRODUCT_INFO;
-  }
-
-  /**
-   * read information of LO/OO office product from system
-   */
-  private static OfficeProductInfo readOfficeProductInfo(XComponentContext xContext) {
-    try {
-      if (xContext == null) {
-        return null;
-      }
-      XMultiServiceFactory xMSF = UnoRuntime.queryInterface(XMultiServiceFactory.class, xContext.getServiceManager());
-      if (xMSF == null) {
-        WtMessageHandler.printToLogFile("XMultiServiceFactory == null");
-        return null;
-      }
-      Object oConfigProvider = xMSF.createInstance("com.sun.star.configuration.ConfigurationProvider");
-      XMultiServiceFactory confMsf = UnoRuntime.queryInterface(XMultiServiceFactory.class, oConfigProvider);
-
-      final String sView = "com.sun.star.configuration.ConfigurationAccess";
-
-      Object args[] = new Object[1];
-      PropertyValue aPathArgument = new PropertyValue();
-      aPathArgument.Name = "nodepath";
-      aPathArgument.Value = "org.openoffice.Setup/Product";
-      args[0] = aPathArgument;
-      Object oConfigAccess =  confMsf.createInstanceWithArguments(sView, args);
-      XNameAccess xName = UnoRuntime.queryInterface(XNameAccess.class, oConfigAccess);
-      
-      aPathArgument.Value = "org.openoffice.Setup/L10N";
-      Object oConfigAccess1 =  confMsf.createInstanceWithArguments(sView, args);
-      
-      XNameAccess xName1 = UnoRuntime.queryInterface(XNameAccess.class, oConfigAccess1);
-      
-      return (new OfficeProductInfo(xName.getByName("ooName"), xName.getByName("ooSetupVersion"), 
-          xName.getByName("ooSetupExtension"), xName.getByName("ooVendor"), xName1.getByName("ooLocale"), System.getProperty("os.arch")));
-      
-    } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
-      return null;           // Return null as method failed
-    }
-
-  }
-  
   /**
    * Get a boolean value from an Object
    */
@@ -1077,33 +958,6 @@ public class WtOfficeTools {
           DEVELOP_MODE = true;
         }
       }
-    }
-  }
-
-  public static class OfficeProductInfo {
-    public final String ooName;
-    public final String ooVersion;
-    public final String ooExtension;
-    public final String ooVendor;
-    public final String ooLocale;
-    public final String osArch;
-    
-    OfficeProductInfo(Object name, Object version, Object extension, Object vendor, Object locale, Object arch) {
-      ooName = new String((String) name);
-      ooVersion = new String((String) version);
-      ooExtension = new String((String) extension);
-      ooVendor = new String((String) vendor);
-      ooLocale = new String((String) locale);
-      osArch = new String((String) arch);
-    }
-    
-    OfficeProductInfo(String name, String version, String extension, String vendor, String locale, String arch) {
-      ooName = new String(name);
-      ooVersion = new String(version);
-      ooExtension = new String(extension);
-      ooVendor = new String(vendor);
-      ooLocale = new String(locale);
-      osArch = new String(arch);
     }
   }
 }

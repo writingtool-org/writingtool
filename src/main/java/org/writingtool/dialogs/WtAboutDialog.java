@@ -52,7 +52,7 @@ import org.languagetool.language.Contributor;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
-import org.writingtool.tools.WtOfficeTools.OfficeProductInfo;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -110,7 +110,6 @@ public class WtAboutDialog {
           + "</html>");
       WtGeneralTools.addHyperlinkListener(licensePane);
 
-      OfficeProductInfo officeInfo = WtOfficeTools.getOfficeProductInfo(xContext);
       JTextPane techPane = new JTextPane();
       techPane.setBackground(new Color(0, 0, 0, 0));
       techPane.setBorder(BorderFactory.createEmptyBorder());
@@ -125,21 +124,21 @@ public class WtAboutDialog {
           + "Java version: %s (%s)<br>"
           + "Java max/total/free memory: %sMB, %sMB, %sMB</p>"
           + "</html>", 
-           WtOfficeTools.WT_VERSION,
-           WtOfficeTools.WT_BUILD_DATE,
-           WtOfficeTools.ltVersion(),
-           WtOfficeTools.ltBuildDate(),
-           WtOfficeTools.ltShortGitId(),
+           WtVersionInfo.wtVersion,
+           WtVersionInfo.wtBuildDate,
+           WtVersionInfo.ltVersion(),
+           WtVersionInfo.ltBuildDate(),
+           WtVersionInfo.ltShortGitId(),
            System.getProperty("os.name"),
            System.getProperty("os.version"),
            System.getProperty("os.arch"),
-           officeInfo.ooName,
-           officeInfo.ooVersion,
-           officeInfo.ooExtension,
-           officeInfo.ooVendor,
-           officeInfo.ooLocale,
-           System.getProperty("java.version"),
-           System.getProperty("java.vm.vendor"),
+           WtVersionInfo.ooName,
+           WtVersionInfo.ooVersion,
+           WtVersionInfo.ooExtension,
+           WtVersionInfo.ooVendor,
+           WtVersionInfo.ooLocale,
+           WtVersionInfo.javaVersion,
+           WtVersionInfo.javaVendor,
            Runtime.getRuntime().maxMemory()/1024/1024,
            Runtime.getRuntime().totalMemory()/1024/1024,
            Runtime.getRuntime().freeMemory()/1024/1024));
@@ -181,19 +180,19 @@ public class WtAboutDialog {
             + "%s %s%s (%s), %s\n"
             + "Java version: %s (%s)\n"
             + "Java max/total/free memory: %sMB, %sMB, %sMB\n",
-             WtOfficeTools.WT_VERSION,
-             WtOfficeTools.WT_BUILD_DATE,
-             WtOfficeTools.ltVersion(),
-             WtOfficeTools.ltBuildDate(),
-             WtOfficeTools.ltShortGitId(),
+             WtVersionInfo.wtVersion,
+             WtVersionInfo.wtBuildDate,
+             WtVersionInfo.ltVersion(),
+             WtVersionInfo.ltBuildDate(),
+             WtVersionInfo.ltShortGitId(),
              System.getProperty("os.name"),
              System.getProperty("os.version"),
              System.getProperty("os.arch"),
-             officeInfo.ooName,
-             officeInfo.ooVersion,
-             officeInfo.ooExtension,
-             officeInfo.ooVendor,
-             officeInfo.ooLocale,
+             WtVersionInfo.ooName,
+             WtVersionInfo.ooVersion,
+             WtVersionInfo.ooExtension,
+             WtVersionInfo.ooVendor,
+             WtVersionInfo.ooLocale,
              System.getProperty("java.version"),
              System.getProperty("java.vm.vendor"),
              Runtime.getRuntime().maxMemory()/1024/1024,

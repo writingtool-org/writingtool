@@ -101,6 +101,7 @@ import org.writingtool.tools.WtViewCursorTools;
 import org.writingtool.tools.WtOfficeDrawTools.UndoMarkupContainer;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
+import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.beans.PropertyState;
 import com.sun.star.beans.PropertyValue;
@@ -1108,7 +1109,7 @@ public class WtCheckDialog extends Thread {
           WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
         }
         dialog.setName(dialogName);
-        dialog.setTitle(dialogName + " (" + WtOfficeTools.getWtNameWithInformation() + ")");
+        dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         ((Frame) dialog.getOwner()).setIconImage(ltImage);
         defaultForeground = dialog.getForeground() == null ? Color.BLACK : dialog.getForeground();

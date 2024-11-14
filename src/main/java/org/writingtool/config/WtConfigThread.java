@@ -26,6 +26,7 @@ import org.languagetool.Language;
 import org.languagetool.rules.Rule;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtVersionInfo;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.dialogs.WtConfigurationDialog;
@@ -54,8 +55,8 @@ public class WtConfigThread extends Thread {
     this.lt = lt;
     this.documents = documents;
     String title = WtOfficeTools.getMessageBundle().getString("guiWtConfigWindowTitle") 
-        + " (WT " + WtOfficeTools.getWtInformation()
-        + ", LT " + WtOfficeTools.getLtInformation() + ")";
+        + " (WT " + WtVersionInfo.getWtInformation()
+        + ", LT " + WtVersionInfo.getLtInformation() + ")";
     cfgDialog = new WtConfigurationDialog(null, WtOfficeTools.getLtImage(), title, config);
   }
 

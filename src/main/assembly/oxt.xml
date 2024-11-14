@@ -9,7 +9,7 @@
         <fileSet>
             <directory>src/main/resources</directory>
             <outputDirectory></outputDirectory>
-            <includes>
+             <includes>
                 <include>COPYING.txt</include>
                 <include>README.txt</include>
                 <include>help/**</include>
@@ -30,6 +30,13 @@
             <outputDirectory>third-party-licenses</outputDirectory>
         </fileSet>
     </fileSets>
+    <files>
+        <file>
+            <source>src/main/resources/version.txt</source>
+            <outputDirectory></outputDirectory>
+            <filtered>true</filtered>
+        </file>
+    </files>
     <containerDescriptorHandlers>
         <!-- both of these handlers are needed so all language-module.properties get merged into one file: -->
         <containerDescriptorHandler>

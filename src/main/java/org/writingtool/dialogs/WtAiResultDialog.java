@@ -50,6 +50,7 @@ import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
+import org.writingtool.tools.WtVersionInfo;
 
 /**
  * Dialog to change paragraphs by AI
@@ -123,7 +124,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       }
       String dialogName = messages.getString("loAiResultDialogTitle");
       dialog.setName(dialogName);
-      dialog.setTitle(dialogName + " (" + WtOfficeTools.getWtNameWithInformation() + ")");
+      dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
 

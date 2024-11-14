@@ -78,6 +78,7 @@ import org.writingtool.stylestatistic.WtStatAnCache.Paragraph;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtVersionInfo;
 import org.writingtool.tools.WtViewCursorTools;
 
 import com.sun.star.lang.XComponent;
@@ -201,7 +202,7 @@ public class WtStatAnDialog extends Thread  {
     }
     dialog = new JDialog();
     dialog.setName(dialogName);
-    dialog.setTitle(dialogName + " (WritingTool " + WtOfficeTools.getWtInformation() + ")");
+    dialog.setTitle(dialogName + " (WritingTool " + WtVersionInfo.getWtInformation() + ")");
     dialog.setMinimumSize(new Dimension(MIN_DIALOG_WIDTH, MIN_DIALOG_HEIGHT));
 //    dialog.setSize(new Dimension(dialogWidth, dialogHeight));
     dialog.addWindowListener(new WindowListener() {
