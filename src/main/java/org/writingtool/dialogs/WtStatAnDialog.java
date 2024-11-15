@@ -18,7 +18,6 @@
  */
 package org.writingtool.dialogs;
 
-import java.awt.AWTError;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -67,6 +66,7 @@ import org.languagetool.rules.TextLevelRule;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtDocumentCache.TextParagraph;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.stylestatistic.WtLevelRule;
@@ -899,7 +899,7 @@ public class WtStatAnDialog extends Thread  {
   }
   
   public void refreshCache(WtSingleDocument document, WaitDialogThread waitdialog) throws Throwable {
-    setJavaLookAndFeel();
+    WtDocumentsHandler.setJavaLookAndFeel();
     if (debugMode) {
       WtMessageHandler.printToLogFile("refreshCache called (method = " + method + ")!");
     }
@@ -1215,7 +1215,7 @@ public class WtStatAnDialog extends Thread  {
   
   /** 
    * Set Look and Feel for Java Swing Components
-   */
+   *//*
   public static void setJavaLookAndFeel() {
     try {
       if (!System.getProperty("os.name").contains("OS X")) {
@@ -1229,7 +1229,7 @@ public class WtStatAnDialog extends Thread  {
     } catch (Exception | AWTError ignored) {
     }
   }
-  
+*/
   class Chapter {
     String name;
     int from;

@@ -21,15 +21,10 @@ package org.writingtool.tools;
 import static org.languagetool.JLanguageTool.MESSAGE_BUNDLE;
 
 import java.awt.Image;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;

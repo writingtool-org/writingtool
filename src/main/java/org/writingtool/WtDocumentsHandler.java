@@ -162,7 +162,7 @@ public class WtDocumentsHandler {
   private boolean isNotTextDocument = false;
   private int heapCheckInterval = HEAP_CHECK_INTERVAL;
   private boolean testMode = false;
-  private boolean javaLookAndFeelIsSet = false;
+  private static boolean javaLookAndFeelIsSet = false;
   private boolean isHelperDisposed = false;
   private boolean statAnDialogRunning = false;
 
@@ -2057,24 +2057,28 @@ public class WtDocumentsHandler {
   /** Set Look and Feel for Java Swing Components
    * 
    */
-  public void setJavaLookAndFeel() {
-    try {
-      // do not set look and feel for on Mac OS X as it causes the following error:
-      // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
-      if (!System.getProperty("os.name").contains("OS X")) {
-         // Cross-Platform Look And Feel @since 3.7
-         if (System.getProperty("os.name").contains("Linux")) {
-           UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-         }
-         else {
-           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-         }
+  public static void setJavaLookAndFeel() {
+    if (!javaLookAndFeelIsSet) {
+      try {
+        // do not set look and feel for on Mac OS X as it causes the following error:
+        // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
+        if (!System.getProperty("os.name").contains("OS X")) {
+           // Cross-Platform Look And Feel @since 3.7
+           if (System.getProperty("os.name").contains("Linux")) {
+             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+           }
+           else {
+             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+           }
+        }
+        javaLookAndFeelIsSet = true;
+      } catch (Throwable t) {
+        try {
+          UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Throwable e) {
+        }
       }
-      javaLookAndFeelIsSet = true;
-    } catch (Exception | AWTError ignored) {
-      // Well, what can we do...
     }
-
   }
   
   /**

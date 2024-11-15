@@ -200,7 +200,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
     ltImage = WtOfficeTools.getLtImage();
     if (!documents.isJavaLookAndFeelSet()) {
-      documents.setJavaLookAndFeel();
+      WtDocumentsHandler.setJavaLookAndFeel();
     }
     
     currentDocument = document;

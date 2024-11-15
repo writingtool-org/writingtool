@@ -1059,7 +1059,7 @@ public class WtCheckDialog extends Thread {
       }
       ltImage = WtOfficeTools.getLtImage();
       if (!documents.isJavaLookAndFeelSet()) {
-        documents.setJavaLookAndFeel();
+        WtDocumentsHandler.setJavaLookAndFeel();
       }
       
       currentDocument = document;

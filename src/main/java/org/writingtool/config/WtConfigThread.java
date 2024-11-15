@@ -66,7 +66,7 @@ public class WtConfigThread extends Thread {
       return;
     }
     if (!documents.isJavaLookAndFeelSet()) {
-      documents.setJavaLookAndFeel();
+      WtDocumentsHandler.setJavaLookAndFeel();
     }
     documents.setConfigurationDialog(cfgDialog);
     try {
