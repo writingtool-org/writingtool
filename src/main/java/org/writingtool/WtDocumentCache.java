@@ -1315,7 +1315,11 @@ public class WtDocumentCache implements Serializable {
   public int[] getFlatParagraphFootnotes(int n) {
     rwLock.readLock().lock();
     try {
-      return footnotes.get(n);
+      if (n >= 0 && n < footnotes.size()) {
+        return footnotes.get(n);
+      } else {
+        return new int[0];
+      }
     } finally {
       rwLock.readLock().unlock();
     }
@@ -1342,7 +1346,11 @@ public class WtDocumentCache implements Serializable {
   public List<Integer> getFlatParagraphDeletedCharacters(int n) {
     rwLock.readLock().lock();
     try {
-      return deletedCharacters.get(n);
+      if (n >= 0 && n < deletedCharacters.size()) {
+        return deletedCharacters.get(n);
+      } else {
+        return new ArrayList<>();
+      }
     } finally {
       rwLock.readLock().unlock();
     }
@@ -2306,7 +2314,11 @@ public class WtDocumentCache implements Serializable {
   public List<AnalyzedSentence> getAnalyzedParagraph(int nFPara) {
     rwLock.readLock().lock();
     try {
-      return analyzedParagraphs.get(nFPara);
+      if (nFPara >= 0 && nFPara < analyzedParagraphs.size()) {
+        return analyzedParagraphs.get(nFPara);
+      } else {
+        return null;
+      }
     } finally {
       rwLock.readLock().unlock();
     }
