@@ -101,7 +101,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final static float DEFAULT_TEMPERATURE = 0.7f;
   private final static int DEFAULT_STEP = 30;
   private final static String TEMP_IMAGE_FILE_NAME = "tmpImage.jpg";
-  private final static String AI_INSTRUCTION_FILE_NAME = "LT_AI_Instructions.dat";
+  private final static String AI_INSTRUCTION_FILE_NAME = "WT_AI_Instructions.dat";
   private final static int MAX_INSTRUCTIONS = 40;
   private final static int SHIFT1 = 14;
   private final static int dialogWidth = 700;
@@ -1293,7 +1293,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   private List<String> readInstructions() {
-    String dir = WtOfficeTools.getLOConfigDir().getAbsolutePath();
+    String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
     File file = new File(dir, AI_INSTRUCTION_FILE_NAME);
     if (!file.canRead() || !file.isFile()) {
       return new ArrayList<>();
@@ -1327,7 +1327,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
 
   private void writeInstructions(List<String> instructions) {
-    String dir = WtOfficeTools.getLOConfigDir().getAbsolutePath();
+    String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
     File file = new File(dir, AI_INSTRUCTION_FILE_NAME);
     PrintWriter pWriter = null;
     try {

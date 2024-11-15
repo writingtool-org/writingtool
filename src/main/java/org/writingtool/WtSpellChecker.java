@@ -91,6 +91,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     if (xContext == null) {
       try {
         xContext = xContxt;
+        WtOfficeTools.renameOldLtFiles();     // This has to be deleted in later versions 
         WtMessageHandler.init(xContext, true);
         WtVersionInfo.init(xContext);
         if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
@@ -498,8 +499,8 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   public static boolean runLTSpellChecker(XComponentContext xContext) {
     WtConfiguration confg;
     try {
-      confg = new WtConfiguration(WtOfficeTools.getLOConfigDir(xContext), 
-          WtOfficeTools.CONFIG_FILE, WtOfficeTools.getOldConfigFile(), null, true);
+      confg = new WtConfiguration(WtOfficeTools.getWtConfigDir(xContext), 
+          WtOfficeTools.CONFIG_FILE, null, true);
       WtOfficeTools.setLogLevel(confg.getlogLevel());
       DEBUG_MODE = WtOfficeTools.DEBUG_MODE_SP;
       return confg.useLtSpellChecker();

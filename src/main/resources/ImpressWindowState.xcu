@@ -11,7 +11,7 @@
 					<value>WritingTool</value>
 				</prop>
 					<prop oor:name="ImageURL" oor:type="xs:string">
-						<value>//org.openoffice.writingtool.oxt/images/LanguageToolBig.png</value>
+						<value>//org.openoffice.writingtool.oxt/images/WTBig.png</value>
 		        </prop>
 				<prop oor:name="DockPos" oor:type="xs:string">
 					<value>1,0</value>

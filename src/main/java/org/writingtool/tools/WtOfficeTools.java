@@ -21,10 +21,15 @@ package org.writingtool.tools;
 import static org.languagetool.JLanguageTool.MESSAGE_BUNDLE;
 
 import java.awt.Image;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -159,15 +164,14 @@ public class WtOfficeTools {
   public static boolean DEVELOP_MODE_ST = false;  //  Activate Development Mode to test sorted text IDs
   public static boolean DEVELOP_MODE = false;     //  Activate Development Mode
 
-  public  static final String CONFIG_FILE = "Languagetool.cfg";
-  public  static final String OOO_CONFIG_FILE = "Languagetool-ooo.cfg";
-  private static final String OLD_CONFIG_FILE = ".languagetool-ooo.cfg";
-  private static final String LOG_FILE = "LanguageTool.log";
-  private static final String LOG_FILE_SP = "LanguageToolSpell.log";
-  public  static final String STATISTICAL_ANALYZES_CONFIG_FILE = "LT_Statistical_Analyzes.cfg";
+  public  static final String CONFIG_FILE = "WritingTool.cfg";
+  public  static final String OOO_CONFIG_FILE = "WritingTool-ooo.cfg";
+  private static final String LOG_FILE = "WritingTool.log";
+  private static final String LOG_FILE_SP = "WritingToolSpell.log";
+  public  static final String STATISTICAL_ANALYZES_CONFIG_FILE = "WT_Statistical_Analyzes.cfg";
 
-  private static final String VENDOR_ID = "languagetool.org";
-  private static final String APPLICATION_ID = "LanguageTool";
+  private static final String VENDOR_ID = "writingtool.org";
+  private static final String APPLICATION_ID = "WritingTool";
   private static final String CACHE_ID = "cache";
   private static String OFFICE_EXTENSION_ID = null;
 
@@ -473,10 +477,92 @@ public class WtOfficeTools {
     }
     return false;
   }
+  
+  /**
+   * Rename old LanguageTool files and directories
+   */
+  public static void renameOldLtFiles() {
+    try {
+      String ltname = "LanguageTool";
+      File baseDir = getBaseDir();
+      if (baseDir == null || !baseDir.isDirectory()) {
+        return;
+      }
+      File wtDir = null;
+      if (SystemUtils.IS_OS_WINDOWS) {
+        String parent = baseDir.getParent();
+        File oldDir = new File(parent);
+        oldDir = new File(oldDir, "languagetool.org");
+        if (oldDir.exists()) {
+          File oldLtDir = new File(oldDir, ltname);
+          if (!oldLtDir.exists()) {
+            return;
+          }
+          wtDir = new File(baseDir, APPLICATION_ID);
+          if (wtDir.exists()) {
+            File tmpDir = new File(wtDir.getAbsolutePath());
+            File newDir = new File(baseDir, APPLICATION_ID + ".sv");
+            tmpDir.renameTo(newDir);
+          }
+          oldLtDir.renameTo(wtDir);
+        }
+      } else {
+        File oldDir = new File(baseDir, ltname);
+        if (!oldDir.exists()) {
+          return;
+        }
+        wtDir = new File(baseDir, APPLICATION_ID);
+        if (wtDir.exists()) {
+          File tmpDir = new File(wtDir.getAbsolutePath());
+          File newDir = new File(baseDir, APPLICATION_ID + ".sv");
+          tmpDir.renameTo(newDir);
+        }
+        oldDir.renameTo(wtDir);
+      }
+      File newDir = wtDir;
+      wtDir = new File(newDir, "LibreOffice");
+      if (wtDir.exists()) {
+        renameOldFile(wtDir, "Languagetool.cfg", CONFIG_FILE);
+        renameOldFile(wtDir, "LanguageTool.log", LOG_FILE_SP);
+        renameOldFile(wtDir, "LanguageToolSpell.log", LOG_FILE_SP);
+        renameOldFile(wtDir, "LT_AI_Instructions.dat", "WT_AI_Instructions.dat");
+        renameOldFile(wtDir, "LT_Statistical_Analyzes.cfg", "WT_Statistical_Analyzes.cfg");
+        File cacheDir = new File(wtDir, "cache");
+        if (cacheDir.exists()) {
+          File[] files = cacheDir.listFiles();
+          for (File f : files) {
+            f.delete();
+          }
+        }
+      }
+      wtDir = new File(newDir, "OpenOffice");
+      if (wtDir.exists()) {
+        renameOldFile(wtDir, "Languagetool-ooo.cfg", OOO_CONFIG_FILE);
+        renameOldFile(wtDir, "LanguageTool.log", LOG_FILE_SP);
+        File cacheDir = new File(wtDir, "cache");
+        if (cacheDir.exists()) {
+          File[] files = cacheDir.listFiles();
+          for (File f : files) {
+            f.delete();
+          }
+        }
+      }
+    } finally {
+    }
+    
+  }
+  
+  private static void renameOldFile(File dir, String oldName, String newName) {
+    File oldFile = new File(dir, oldName);
+    if (oldFile.exists()) {
+      File newFile = new File(dir, newName);
+      oldFile.renameTo(newFile);
+    }
+  }
 
   /**
    * Returns old configuration file
-   */
+   *//*
   public static File getOldConfigFile() {
     String homeDir = System.getProperty("user.home");
     if (homeDir == null) {
@@ -485,26 +571,12 @@ public class WtOfficeTools {
     }
     return new File(homeDir, OLD_CONFIG_FILE);
   }
-
+*/
+  
   /**
-   * Returns directory to store every information for LT office extension
-   * @since 4.7
+   * Get system depend base directory
    */
-  public static File getLOConfigDir() {
-    return getLOConfigDir(null);
-  }
-
-  public static File getLOConfigDir(XComponentContext xContext) {
-    if (OFFICE_EXTENSION_ID == null) {
-      if (WtVersionInfo.ooName == null && xContext == null) {
-        OFFICE_EXTENSION_ID = "LibreOffice";
-      } else {
-        if (WtVersionInfo.ooName == null) {
-          WtVersionInfo.init(xContext);
-        }
-        OFFICE_EXTENSION_ID = WtVersionInfo.ooName;
-      }
-    }
+  private static File getBaseDir() {
     String userHome = null;
     File directory;
     try {
@@ -515,7 +587,7 @@ public class WtOfficeTools {
       WtMessageHandler.showError(new RuntimeException("Could not get home directory"));
       directory = null;
     } else if (SystemUtils.IS_OS_WINDOWS) {
-      // Path: \\user\<YourUserName>\AppData\Roaming\languagetool.org\LanguageTool\LibreOffice  
+      // Path: \\user\<YourUserName>\AppData\Roaming\writingtool.org\WritingTool\LibreOffice  
       File appDataDir = null;
       try {
         String appData = System.getenv("APPDATA");
@@ -525,14 +597,14 @@ public class WtOfficeTools {
       } catch (SecurityException ex) {
       }
       if (appDataDir != null && appDataDir.isDirectory()) {
-        String path = VENDOR_ID + "\\" + APPLICATION_ID + "\\" + OFFICE_EXTENSION_ID + "\\";
+        String path = VENDOR_ID + "\\";
         directory = new File(appDataDir, path);
       } else {
-        String path = "Application Data\\" + VENDOR_ID + "\\" + APPLICATION_ID + "\\" + OFFICE_EXTENSION_ID + "\\";
+        String path = "Application Data\\" + VENDOR_ID + "\\";
         directory = new File(userHome, path);
       }
     } else if (SystemUtils.IS_OS_LINUX) {
-      // Path: /home/<YourUserName>/.config/LanguageTool/LibreOffice  
+      // Path: /home/<YourUserName>/.config/WritingTool/LibreOffice  
       File appDataDir = null;
       try {
         String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
@@ -549,19 +621,56 @@ public class WtOfficeTools {
       } catch (SecurityException ex) {
       }
       if (appDataDir != null && appDataDir.isDirectory()) {
-        String path = APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
-        directory = new File(appDataDir, path);
+        directory = appDataDir;
       } else {
-        String path = ".config/" + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+        String path = ".config/";
         directory = new File(userHome, path);
       }
     } else if (SystemUtils.IS_OS_MAC_OSX) {
-      String path = "Library/Application Support/" + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+      String path = "Library/Application Support/";
       directory = new File(userHome, path);
     } else {
-      String path = "." + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+      String path = ".";
       directory = new File(userHome, path);
     }
+    return directory;
+  }
+  
+  /**
+   * Returns directory to store every information for LT office extension
+   * @since 4.7
+   */
+  public static File getWtConfigDir() {
+    return getWtConfigDir(null);
+  }
+
+  public static File getWtConfigDir(XComponentContext xContext) {
+    if (OFFICE_EXTENSION_ID == null) {
+      if (WtVersionInfo.ooName == null && xContext == null) {
+        OFFICE_EXTENSION_ID = "LibreOffice";
+      } else {
+        if (WtVersionInfo.ooName == null) {
+          WtVersionInfo.init(xContext);
+        }
+        OFFICE_EXTENSION_ID = WtVersionInfo.ooName;
+      }
+    }
+    File directory = getBaseDir();
+    String path;
+    if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX) {
+      path = APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+    } else {
+      path = "." + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+    }
+    directory = new File(directory, path);
+/*    
+    while (atWork) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+      }
+    }
+*/    
     if (directory != null && !directory.exists()) {
       directory.mkdirs();
     }
@@ -577,16 +686,16 @@ public class WtOfficeTools {
 
   public static String getLogFilePath(XComponentContext xContext, boolean isSpellchecker) {
     if (isSpellchecker) {
-      return new File(getLOConfigDir(xContext), LOG_FILE_SP).getAbsolutePath();
+      return new File(getWtConfigDir(xContext), LOG_FILE_SP).getAbsolutePath();
     }
-    return new File(getLOConfigDir(xContext), LOG_FILE).getAbsolutePath();
+    return new File(getWtConfigDir(xContext), LOG_FILE).getAbsolutePath();
   }
   
   /**
    * Returns statistical analyzes configuration file 
    */
   public static String getStatisticalConfigFilePath() {
-    return new File(getLOConfigDir(), STATISTICAL_ANALYZES_CONFIG_FILE).getAbsolutePath();
+    return new File(getWtConfigDir(), STATISTICAL_ANALYZES_CONFIG_FILE).getAbsolutePath();
   }
 
   /**
@@ -598,7 +707,7 @@ public class WtOfficeTools {
   }
   
   public static File getCacheDir(XComponentContext xContext) {
-    File cacheDir = new File(getLOConfigDir(xContext), CACHE_ID);
+    File cacheDir = new File(getWtConfigDir(xContext), CACHE_ID);
     if (cacheDir != null && !cacheDir.exists()) {
       cacheDir.mkdirs();
     }
@@ -671,11 +780,11 @@ public class WtOfficeTools {
   }
 */
   /**
-   * Get LanguageTool Image
+   * Get WritingTool Image
    */
   public static Image getLtImage() {
     try {
-      URL url = WtOfficeTools.class.getResource("/images/LanguageToolSmall.png");
+      URL url = WtOfficeTools.class.getResource("/images/WTSmall.png");
       return ImageIO.read(url);
     } catch (IOException e) {
       WtMessageHandler.showError(e);
@@ -684,14 +793,14 @@ public class WtOfficeTools {
   }
   
   /**
-   * Get LanguageTool Image
+   * Get WritingTool Image
    */
   public static ImageIcon getLtImageIcon(boolean big) {
     URL url;
     if (big) {
-      url = WtOfficeTools.class.getResource("/images/LanguageToolBig.png");
+      url = WtOfficeTools.class.getResource("/images/WTBig.png");
     } else {
-      url = WtOfficeTools.class.getResource("/images/LanguageToolSmall.png");
+      url = WtOfficeTools.class.getResource("/images/WTSmall.png");
     }
     return new ImageIcon(url);
   }

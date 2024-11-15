@@ -206,7 +206,6 @@ public class WtConfiguration {
   // Add new option default parameters to initOptions
   private Language lang;
   private File configFile;
-  private File oldConfigFile;
   private boolean enabledRulesOnly = false;
   private Language language;
   private Language motherTongue = null;
@@ -276,10 +275,10 @@ public class WtConfiguration {
   }
 
   public WtConfiguration(File baseDir, String filename, Language lang) throws IOException {
-    this(baseDir, filename, null, lang, false);
+    this(baseDir, filename, lang, false);
   }
 
-  public WtConfiguration(File baseDir, String filename, File oldConfigFile, Language lang, boolean isOffice) throws IOException {
+  public WtConfiguration(File baseDir, String filename, Language lang, boolean isOffice) throws IOException {
     // already fails silently if file doesn't exist in loadConfiguration, don't fail here either
     // can cause problem when starting LanguageTool server as a user without a home directory because of default arguments
     //if (baseDir == null || !baseDir.isDirectory()) {
@@ -290,7 +289,6 @@ public class WtConfiguration {
     this.isOffice = isOffice;
     this.isOpenOffice = isOffice && filename.contains("ooo");
     configFile = new File(baseDir, filename);
-    this.oldConfigFile = oldConfigFile;
     setAllProfileKeys();
     loadConfiguration();
   }
@@ -1407,12 +1405,7 @@ public class WtConfiguration {
   public void loadConfiguration(String profile) throws IOException {
     String qualifier = getQualifier(lang);
     
-    File cfgFile;
-    if (configFile.exists() || oldConfigFile == null) {
-      cfgFile = configFile;
-    } else {
-      cfgFile = oldConfigFile;
-    }
+    File cfgFile = configFile;
 
     try (FileInputStream fis = new FileInputStream(cfgFile)) {
 
@@ -1866,9 +1859,6 @@ public class WtConfiguration {
       }
     }
     
-    if (oldConfigFile != null && oldConfigFile.exists()) {
-      oldConfigFile.delete();
-    }
   }
 
   private void addListToProperties(Properties props, String key, Set<String> list) {

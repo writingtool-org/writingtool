@@ -8,10 +8,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -21,10 +21,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolCheckSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTCheckSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolCheckBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTCheckBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -34,10 +34,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolCheckAgainSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTCheckAgainSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolCheckAgainBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTCheckAgainBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -47,10 +47,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolOptionsSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTOptionsSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolOptionsBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTOptionsBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -60,10 +60,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolNextSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTNextSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolNextBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTNextBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -73,10 +73,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolRefreshSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTRefreshSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolRefreshBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTRefreshBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -86,10 +86,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolAboutSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAboutSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolAboutBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAboutBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -99,10 +99,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolStatAnSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTStatAnSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolStatAnBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTStatAnBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -113,10 +113,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolStatAnOffSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTStatAnOffSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolStatAnOffBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTStatAnOffBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -127,10 +127,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolActivateRulesSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTActivateRulesSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolActivateRulesBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTActivateRulesBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -140,10 +140,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolBackCheckOffSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBackCheckOffSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolBackCheckOffBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBackCheckOffBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -153,10 +153,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolBackCheckOnSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBackCheckOnSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolBackCheckOnBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBackCheckOnBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -166,10 +166,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolResetPermanentSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTResetPermanentSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolResetPermanentBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTResetPermanentBig.png</value>
                     </prop>
                 </node>
             </node>
@@ -179,10 +179,10 @@
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolProfilesSmall.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTProfilesSmall.png</value>
                     </prop>
                     <prop oor:name="ImageBigURL">
-                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/LanguageToolProfilesBig.png</value>
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTProfilesBig.png</value>
                     </prop>
                 </node>
             </node>

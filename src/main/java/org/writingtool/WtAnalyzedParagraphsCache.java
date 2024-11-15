@@ -99,7 +99,7 @@ public class WtAnalyzedParagraphsCache {
   
   void writeIntoFile() {
     try {
-      File tmpDir = new File(WtOfficeTools.getLOConfigDir(), "tmp");
+      File tmpDir = new File(WtOfficeTools.getWtConfigDir(), "tmp");
       if (tmpDir != null && !tmpDir.exists()) {
         tmpDir.mkdirs();
       }

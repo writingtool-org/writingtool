@@ -124,7 +124,6 @@ public class WtDocumentsHandler {
   private final XEventListener xEventListener;
   private final XProofreader xProofreader;
   private final File configDir;
-  private final File oldConfigFile;
   private String configFile;
   private WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
@@ -174,6 +173,7 @@ public class WtDocumentsHandler {
     this.xProofreader = xProofreader;
     xEventListeners = new ArrayList<>();
     WtVersionInfo.init(xContext);
+    WtOfficeTools.renameOldLtFiles();     // This has to be deleted in later versions 
     if (WtVersionInfo.ooName == null || WtVersionInfo.ooName.equals("OpenOffice")) {
       isOpenOffice = true;
       useOrginalCheckDialog = true;
@@ -182,8 +182,7 @@ public class WtDocumentsHandler {
       isOpenOffice = false;
       configFile = WtOfficeTools.CONFIG_FILE;
     }
-    configDir = WtOfficeTools.getLOConfigDir(xContext);
-    oldConfigFile = WtOfficeTools.getOldConfigFile();
+    configDir = WtOfficeTools.getWtConfigDir(xContext);
     WtMessageHandler.init(xContext, false);
     documents = new ArrayList<>();
     disabledRulesUI = new HashMap<>();
@@ -690,7 +689,7 @@ public class WtDocumentsHandler {
    *  @throws IOException 
    */
   public WtConfiguration getConfiguration(Language lang) throws IOException {
-    return new WtConfiguration(configDir, configFile, oldConfigFile, lang, true);
+    return new WtConfiguration(configDir, configFile, lang, true);
   }
   
   private void disableLTSpellChecker(XComponentContext xContext, Language lang) {
@@ -1225,7 +1224,7 @@ public class WtDocumentsHandler {
       docLanguage = getCurrentLanguage();
     }
     if (config == null) {
-      config = new WtConfiguration(configDir, configFile, oldConfigFile, docLanguage, true);
+      config = new WtConfiguration(configDir, configFile, docLanguage, true);
     }
     noBackgroundCheck = !noBackgroundCheck;
     if (!noBackgroundCheck) {
@@ -1552,7 +1551,7 @@ public class WtDocumentsHandler {
   public void deactivateRule(String ruleId, String langcode, boolean reactivate) {
     if (ruleId != null) {
       try {
-        WtConfiguration confg = new WtConfiguration(configDir, configFile, oldConfigFile, docLanguage, true);
+        WtConfiguration confg = new WtConfiguration(configDir, configFile, docLanguage, true);
         Set<String> ruleIds = new HashSet<>();
         ruleIds.add(ruleId);
         if (reactivate) {

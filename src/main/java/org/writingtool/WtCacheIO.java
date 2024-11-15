@@ -60,12 +60,12 @@ public class WtCacheIO implements Serializable {
   private static final boolean DEBUG_MODE = WtOfficeTools.DEBUG_MODE_IO;
 
   private static final long MAX_CACHE_TIME = 365 * 24 * 3600000;      //  Save cache files maximal one year
-  private static final String CACHEFILE_MAP = "LtCacheMap";           //  Name of cache map file
-  private static final String CACHEFILE_PREFIX = "LtCache";           //  Prefix for cache files (simply a number is added for file name)
+  private static final String CACHEFILE_MAP = "WtCacheMap";           //  Name of cache map file
+  private static final String CACHEFILE_PREFIX = "WtCache";           //  Prefix for cache files (simply a number is added for file name)
   private static final String CACHEFILE_EXTENSION = "lcz";            //  extension of the files name (Note: cache files are in zip format)
   private static final int MIN_CHARACTERS_TO_SAVE_CACHE = 25000;      //  Minimum characters of document for saving cache
 
-  private static final String SPELL_CACHEFILE = "LtSpellCache." + CACHEFILE_EXTENSION;  //  Spell cache name
+  private static final String SPELL_CACHEFILE = "WtSpellCache." + CACHEFILE_EXTENSION;  //  Spell cache name
   
   private String documentPath = null;
   private AllCaches allCaches;

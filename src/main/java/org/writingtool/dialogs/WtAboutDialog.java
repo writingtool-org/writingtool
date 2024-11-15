@@ -207,7 +207,7 @@ public class WtAboutDialog {
 
       JButton OpenLogFilePath = new JButton(messages.getString("loOpenLogFolderDesc"));
       OpenLogFilePath.addActionListener(e -> {
-        File logDir = WtOfficeTools.getLOConfigDir();
+        File logDir = WtOfficeTools.getWtConfigDir();
         close();
         try {
           Desktop.getDesktop().open(logDir);

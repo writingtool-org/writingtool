@@ -23,6 +23,7 @@
 		<src lang="zh-TW" xlink:href=""/>
 		<src lang="sr" xlink:href=""/>
 		<src lang="uk" xlink:href=""/>
+		<src lang="pt-BR" xlink:href=""/>
 		<src lang="is" xlink:href=""/>
 		<src lang="sk" xlink:href=""/>
 		<src lang="da" xlink:href=""/>
@@ -48,6 +49,7 @@
 		<name lang="zh-TW">WritingTool</name>
 		<name lang="sr">WritingTool</name>
 		<name lang="uk">WritingTool</name>
+		<name lang="pt-BR"></name>
 		<name lang="is">WritingTool</name>
 		<name lang="sk">WritingTool</name>
 		<name lang="da">WritingTool</name>
@@ -63,7 +65,7 @@
 		<name lang="pl">WritingTool</name>
 	</display-name>
 	<icon>
-		<default xlink:href="images/LanguageToolBig.png"/>
+		<default xlink:href="images/WTBig.png"/>
 	</icon>
 	<extension-description>
 		<src lang="zh-CN" xlink:href="description/desc_zh-CN.txt"/>
