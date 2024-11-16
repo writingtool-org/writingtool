@@ -484,36 +484,38 @@ public class WtOfficeTools {
         return;
       }
       File wtDir = null;
+      File oldLtDir = null;
       if (SystemUtils.IS_OS_WINDOWS) {
         String parent = baseDir.getParent();
         File oldDir = new File(parent);
         oldDir = new File(oldDir, "languagetool.org");
-        if (oldDir.exists()) {
-          File oldLtDir = new File(oldDir, ltname);
-          if (!oldLtDir.exists()) {
-            return;
-          }
-          wtDir = new File(baseDir, APPLICATION_ID);
-          if (wtDir.exists()) {
-            File tmpDir = new File(wtDir.getAbsolutePath());
-            File newDir = new File(baseDir, APPLICATION_ID + ".sv");
-            tmpDir.renameTo(newDir);
-          }
-          oldLtDir.renameTo(wtDir);
-        }
-      } else {
-        File oldDir = new File(baseDir, ltname);
         if (!oldDir.exists()) {
           return;
         }
-        wtDir = new File(baseDir, APPLICATION_ID);
-        if (wtDir.exists()) {
-          File tmpDir = new File(wtDir.getAbsolutePath());
-          File newDir = new File(baseDir, APPLICATION_ID + ".sv");
-          tmpDir.renameTo(newDir);
-        }
-        oldDir.renameTo(wtDir);
+        oldLtDir = new File(oldDir, ltname);
+      } else {
+        oldLtDir = new File(baseDir, ltname);
       }
+      if (!oldLtDir.exists()) {
+        return;
+      }
+      wtDir = new File(baseDir, APPLICATION_ID);
+      if (wtDir.exists()) {
+        File oCfg = new File(wtDir, "LibreOffice/Languagetool.cfg");
+        File cfg = new File(wtDir, "LibreOffice/" + CONFIG_FILE);
+        if (cfg.exists() || oCfg.exists()) {
+          return;
+        }
+        oCfg = new File(wtDir, "OpenOffice/Languagetool-ooo.cfg");
+        cfg = new File(wtDir, "OpenOffice/" + OOO_CONFIG_FILE);
+        if (cfg.exists() || oCfg.exists()) {
+          return;
+        }
+        File tmpDir = new File(wtDir.getAbsolutePath());
+        File newDir = new File(baseDir, APPLICATION_ID + ".sv");
+        tmpDir.renameTo(newDir);
+      }
+      oldLtDir.renameTo(wtDir);
       File newDir = wtDir;
       wtDir = new File(newDir, "LibreOffice");
       if (wtDir.exists()) {
