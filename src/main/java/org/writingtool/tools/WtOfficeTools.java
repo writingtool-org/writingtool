@@ -499,6 +499,11 @@ public class WtOfficeTools {
       if (!oldLtDir.exists()) {
         return;
       }
+      File lDir = new File(oldLtDir, "LibreOffice");
+      File oDir = new File(oldLtDir, "OpenOffice");
+      if (!lDir.exists() && ! oDir.exists()) {
+        return;
+      }
       wtDir = new File(baseDir, APPLICATION_ID);
       if (wtDir.exists()) {
         File oCfg = new File(wtDir, "LibreOffice/Languagetool.cfg");

@@ -40,6 +40,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -2065,7 +2066,21 @@ public class WtDocumentsHandler {
         if (!System.getProperty("os.name").contains("OS X")) {
            // Cross-Platform Look And Feel @since 3.7
            if (System.getProperty("os.name").contains("Linux")) {
-             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+             boolean isGTK = false;
+             LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
+             if (!(lookAndFeels == null)) {
+               for (LookAndFeelInfo lookAndFeel : lookAndFeels) {
+                 if ("GTK+".equals(lookAndFeel.getName())) {
+                   isGTK = true;
+                   break;
+                 }
+               }
+             }
+             if (isGTK) {
+               UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+             } else {
+               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+             }
            }
            else {
              UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
