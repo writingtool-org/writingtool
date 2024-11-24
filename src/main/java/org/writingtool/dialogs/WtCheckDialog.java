@@ -984,7 +984,7 @@ public class WtCheckDialog extends Thread {
     private final static int toolTipWidth = 300;
     
     private final static int dialogWidth = 640;
-    private final static int dialogHeight = 600;
+    private final static int dialogHeight = 640;
     private final static int MAX_ITEM_LENGTH = 28;
     private UndoMarkupContainer undoMarkup;
 
