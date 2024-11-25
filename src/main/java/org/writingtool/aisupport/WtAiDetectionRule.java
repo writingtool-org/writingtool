@@ -322,6 +322,8 @@ public class WtAiDetectionRule extends TextLevelRule {
       if (j < resultTokens.size() 
               && (!paraTokens.get(i - 1).getToken().equals(resultTokens.get(j - 1).getToken())
                   || (resultTokens.get(j).isNonWord() && !PUNCTUATION.matcher(resultTokens.get(j).getToken()).matches())
+              && ((j + 2 < resultTokens.size()) 
+                  || (!resultTokens.get(j + 1).getToken().equals("-") || !resultTokens.get(j + 2).getToken().equals(">")))
           )) {
         nRuleTokens++;
         if (nSentence > 0) {
@@ -340,6 +342,11 @@ public class WtAiDetectionRule extends TextLevelRule {
           setType(paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1, paraTokens, resultTokens, ruleMatch);
           tmpMatches.add(new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
               paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1));
+          if(debugMode) {
+            WtMessageHandler.printToLogFile("Text: " 
+                + paraText.substring(paraTokens.get(paraTokens.size() - 1).getStartPos(), paraTokens.get(paraTokens.size() - 1).getEndPos())
+                + "; suggestion: " + suggestion);
+          }
         }
       }
       if (tmpMatches.size() > 0) {

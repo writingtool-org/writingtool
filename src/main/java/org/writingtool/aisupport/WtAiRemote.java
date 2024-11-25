@@ -386,6 +386,14 @@ public class WtAiRemote {
         }
       }
     }
+    if (out.contains("->") && !org.contains("->") && out.startsWith(org)) {
+//      WtMessageHandler.printToLogFile("Out(in): " + out);
+      String vOut[] = out.split("->");
+      if (vOut.length > 1) {
+        out = vOut[1].trim();
+      }
+//      WtMessageHandler.printToLogFile("Out(out): " + out);
+    }
     return out;
   }
   
