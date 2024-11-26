@@ -20,8 +20,11 @@ package org.writingtool.aisupport;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -48,6 +51,7 @@ import com.sun.star.lang.Locale;
 public class WtAiRemote {
   
   private final static int REMOTE_TRIALS = 5;
+  private final static int BUFFER_SIZE = 20000;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text";
@@ -72,6 +76,9 @@ public class WtAiRemote {
   private final String imgApiKey;
   private final String imgModel;
   private final String imgUrl;
+  private final String ttsApiKey;
+  private final String ttsModel;
+  private final String ttsUrl;
   private final AiType aiType;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
@@ -83,6 +90,9 @@ public class WtAiRemote {
     imgApiKey = config.aiImgApiKey();
     imgModel = config.aiImgModel();
     imgUrl = config.aiImgUrl();
+    ttsApiKey = config.aiTtsApiKey();
+    ttsModel = config.aiTtsModel();
+    ttsUrl = config.aiTtsUrl();
     if (url.endsWith("/edits/") || url.endsWith("/edits")) {
       aiType = AiType.EDITS;
     } else if (url.endsWith("/chat/completions/") || url.endsWith("/chat/completions")) {
@@ -125,6 +135,25 @@ public class WtAiRemote {
       }
       isRunning = true;
       return runImgInstruction_intern(instruction, exclude, step, seed, size);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
+    } finally {
+      isRunning = false;
+    }
+  }
+
+  public String runTtsInstruction(String text, String filename) throws Throwable {
+    try {
+      while (isRunning) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          WtMessageHandler.printException(e);
+        }
+      }
+      isRunning = true;
+      return runTtsInstruction_intern(text, filename);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;
@@ -273,7 +302,7 @@ public class WtAiRemote {
       size = 256;
     }
     if (debugMode) {
-      WtMessageHandler.printToLogFile("AiRemote: runInstruction: Ask AI started! URL: " + url);
+      WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: Ask AI started! URL: " + url);
     }
     String urlParameters = "{\"model\": \"" + imgModel + "\", " 
         + "\"prompt\": \"" + instruction + "\", "
@@ -292,7 +321,7 @@ public class WtAiRemote {
       return null;
     }
     if (debugMode) {
-      WtMessageHandler.printToLogFile("AiRemote: runInstruction: postData: " + urlParameters);
+      WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: postData: " + urlParameters);
     }
     HttpURLConnection conn = getConnection(postData, checkUrl, imgApiKey);
     try {
@@ -312,10 +341,78 @@ public class WtAiRemote {
     } catch (ConnectException e) {
       WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
       WtMessageHandler.printException(e);
-      stopAiRemote();
+      stopAiImgRemote();
     } catch (Exception e) {
       WtMessageHandler.showError(e);
       stopAiImgRemote();
+    } finally {
+      conn.disconnect();
+    }
+    return null;
+  }
+  
+  private String runTtsInstruction_intern(String text, String filename) throws Throwable {
+    if (text == null || text.trim().isEmpty()) {
+      return null;
+    }
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: Ask AI started! URL: " + url);
+    }
+    String urlParameters = "{"
+/*        
+        + "\"do_sample\": true, "
+        + "\"duration_seconds\": " + 0 + ", "
+        + "\"model_id\": \"" + ttsModel  + "\", "
+        + "\"prompt_influence\": "+ 0 + ", "
+        + "\"text\": \"" + text + "\"}";
+*/
+        + "\"input\": \"" + text + "\", "
+        + "\"model\": \"" + ttsModel + "\"}";
+//        + "\"voice\": \"" + ttsModel + "\"}";
+    
+    byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
+    
+    URL checkUrl;
+    try {
+/*      
+      String sUrl = ttsUrl + (ttsUrl.endsWith("/") ? "" : "/") + ttsModel + "/";
+      checkUrl = new URL(sUrl);
+*/      
+      checkUrl = new URL(ttsUrl);
+    } catch (MalformedURLException e) {
+      WtMessageHandler.showError(e);
+      stopAiTtsRemote();
+      return null;
+    }
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: postData: " + urlParameters);
+    }
+    HttpURLConnection conn = getConnection(postData, checkUrl, ttsApiKey);
+    try {
+      if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        try (InputStream inputStream = conn.getInputStream()) {
+          storeByteStream(inputStream, filename);
+//          String out = readStream(inputStream, "utf-8");
+//          WtMessageHandler.printToLogFile("TTS-Out: " + out);
+          WtMessageHandler.printToLogFile("TTS-Out: " + filename);
+          return filename;
+        }
+      } else {
+        try (InputStream inputStream = conn.getErrorStream()) {
+          String error = readStream(inputStream, "utf-8");
+          WtMessageHandler.printToLogFile("Got error: " + error + " - HTTP response code " + conn.getResponseCode());
+          WtMessageHandler.printToLogFile("Url: " + checkUrl.toString() + "\nurlParameters: " + urlParameters);
+          stopAiTtsRemote();
+          return null;
+        }
+      }
+    } catch (ConnectException e) {
+      WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+      WtMessageHandler.printException(e);
+      stopAiTtsRemote();
+    } catch (Exception e) {
+      WtMessageHandler.showError(e);
+      stopAiTtsRemote();
     } finally {
       conn.disconnect();
     }
@@ -407,6 +504,19 @@ public class WtAiRemote {
       }
     }
     return sb.toString();
+  }
+  
+  private void storeByteStream(InputStream inp, String filename) throws Throwable {
+    try (OutputStream outp = new FileOutputStream(filename)) {
+      byte[] bytes = new byte[BUFFER_SIZE];
+      int rBytes = BUFFER_SIZE;
+      while (rBytes == BUFFER_SIZE) {
+        rBytes = inp.read(bytes);
+        outp.write(bytes, 0, rBytes);
+      }
+      outp.flush();
+      outp.close();
+    }
   }
   
   private String parseJasonOutput(String text) throws Throwable {
@@ -508,6 +618,11 @@ public class WtAiRemote {
   
   private void stopAiImgRemote() throws Throwable {
     config.setUseAiImgSupport(false);
+    WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+  }
+  
+  private void stopAiTtsRemote() throws Throwable {
+    config.setUseAiTtsSupport(false);
     WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
   }
   

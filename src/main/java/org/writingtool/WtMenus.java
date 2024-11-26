@@ -101,6 +101,7 @@ public class WtMenus {
   public static final String LT_AI_REFORMULATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiReformulateText";
   public static final String LT_AI_EXPAND_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiAdvanceText";
   public static final String LT_AI_TRANSLATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTranslateText";
+  public static final String LT_AI_TEXT_TO_SPEECH = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTextToSpeech";
   public static final String LT_AI_GENERAL_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiGeneralCommand";
   
 //  public static final String LT_MENU_REPLACE_COLON = "__|__";
@@ -1002,7 +1003,7 @@ public class WtMenus {
     }
     
     private void addAIMenuEntry(int nId, XIndexContainer xContextMenu, XMultiServiceFactory xMenuElementFactory) throws Throwable {
-      if (!config.useAiSupport() && !config.useAiImgSupport()) {
+      if (!config.useAiSupport() && !config.useAiImgSupport() && !config.useAiTtsSupport()) {
         return;
       }
 /*      
@@ -1068,12 +1069,21 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
-      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
-          xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));
-      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_GENERAL_COMMAND);
-      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
-      
+      if (config.useAiTtsSupport()) {
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiTextToSpeechCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_TEXT_TO_SPEECH);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+      }
+      if (config.useAiSupport() || config.useAiTtsSupport()) {
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_GENERAL_COMMAND);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+      }
       XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
         xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewMenuEntry.setPropertyValue("Text",  MESSAGES.getString("loMenuAiSupport"));

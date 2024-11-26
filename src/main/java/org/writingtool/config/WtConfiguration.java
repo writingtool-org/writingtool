@@ -85,6 +85,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_SAVE_LO_CACHE = true;
   static final boolean DEFAULT_USE_AI_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_IMG_SUPPORT = false;
+  static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
   static final boolean DEFAULT_AI_AUTO_CORRECT = false;
   static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
   
@@ -94,6 +95,9 @@ public class WtConfiguration {
   static final String DEFAULT_AI_IMG_MODEL = "stablediffusion";
   static final String DEFAULT_AI_IMG_URL = "http://localhost:8080/v1/images/generations/";
   static final String DEFAULT_AI_IMG_APIKEY = "1234567";
+  static final String DEFAULT_AI_TTS_MODEL = "voice-de-eva_k-x-low";
+  static final String DEFAULT_AI_TTS_URL = "http://localhost:8080/tts/";
+  static final String DEFAULT_AI_TTS_APIKEY = "1234567";
 
   static final Color STYLE_COLOR_WT = new Color(0, 100, 0);
   static final Color HINT_COLOR_WT = new Color(150, 150, 0);
@@ -167,6 +171,10 @@ public class WtConfiguration {
   private static final String AI_IMG_APIKEY_KEY = "aiImgApiKey";
   private static final String AI_IMG_MODEL_KEY = "aiImgModel";
   private static final String AI_USE_AI_IMG_SUPPORT_KEY = "useAiImgSupport";
+  private static final String AI_TTS_URL_KEY = "aiTtsUrl";
+  private static final String AI_TTS_APIKEY_KEY = "aiTtsApiKey";
+  private static final String AI_TTS_MODEL_KEY = "aiTtsModel";
+  private static final String AI_USE_AI_TTS_SUPPORT_KEY = "useAiTtsSupport";
 
   private static final String DELIMITER = ",";
   // find all comma followed by zero or more white space characters that are preceded by ":" AND a valid 6-digit hex code
@@ -259,6 +267,10 @@ public class WtConfiguration {
   private String aiImgApiKey = DEFAULT_AI_IMG_APIKEY;
   private String aiImgModel = DEFAULT_AI_IMG_MODEL;
   private boolean useAiImgSupport = DEFAULT_USE_AI_IMG_SUPPORT;
+  private String aiTtsUrl = DEFAULT_AI_TTS_URL;
+  private String aiTtsApiKey = DEFAULT_AI_TTS_APIKEY;
+  private String aiTtsModel = DEFAULT_AI_TTS_MODEL;
+  private boolean useAiTtsSupport = DEFAULT_USE_AI_TTS_SUPPORT;
   
   /**
    * Uses the configuration file from the default location.
@@ -353,6 +365,10 @@ public class WtConfiguration {
     aiImgApiKey = DEFAULT_AI_IMG_APIKEY;
     aiImgModel = DEFAULT_AI_IMG_MODEL;
     useAiImgSupport = DEFAULT_USE_AI_IMG_SUPPORT;
+    aiTtsUrl = DEFAULT_AI_TTS_URL;
+    aiTtsApiKey = DEFAULT_AI_TTS_APIKEY;
+    aiTtsModel = DEFAULT_AI_TTS_MODEL;
+    useAiTtsSupport = DEFAULT_USE_AI_TTS_SUPPORT;
     externalRuleDirectory = null;
     lookAndFeelName = null;
     currentProfile = null;
@@ -432,6 +448,10 @@ public class WtConfiguration {
     this.aiImgApiKey = configuration.aiImgApiKey;
     this.aiImgModel = configuration.aiImgModel;
     this.useAiImgSupport = configuration.useAiImgSupport;
+    this.aiTtsUrl = configuration.aiTtsUrl;
+    this.aiTtsApiKey = configuration.aiTtsApiKey;
+    this.aiTtsModel = configuration.aiTtsModel;
+    this.useAiTtsSupport = configuration.useAiTtsSupport;
     
     this.disabledRuleIds.clear();
     this.disabledRuleIds.addAll(configuration.disabledRuleIds);
@@ -715,6 +735,38 @@ public class WtConfiguration {
 
   public void setUseAiImgSupport(boolean useAiImgSupport) {
     this.useAiImgSupport = useAiImgSupport;
+  }
+
+  public String aiTtsUrl() {
+    return aiTtsUrl;
+  }
+
+  public void setAiTtsUrl(String aiTtsUrl) {
+    this.aiTtsUrl = aiTtsUrl;
+  }
+
+  public String aiTtsModel() {
+    return aiTtsModel;
+  }
+
+  public void setAiTtsModel(String aiTtsModel) {
+    this.aiTtsModel = aiTtsModel;
+  }
+
+  public String aiTtsApiKey() {
+    return aiTtsApiKey;
+  }
+
+  public void setAiTtsApiKey(String aiTtsApiKey) {
+    this.aiTtsApiKey = aiTtsApiKey;
+  }
+
+  public boolean useAiTtsSupport() {
+    return useAiTtsSupport;
+  }
+
+  public void setUseAiTtsSupport(boolean useAiTtsSupport) {
+    this.useAiTtsSupport = useAiTtsSupport;
   }
 
   public String getRemoteApiKey() {
@@ -1680,6 +1732,26 @@ public class WtConfiguration {
       useAiImgSupport = Boolean.parseBoolean(aiString);
     }
     
+    aiString = (String) props.get(prefix + AI_TTS_URL_KEY);
+    if (aiString != null) {
+      aiTtsUrl = aiString;
+    }
+    
+    aiString = (String) props.get(prefix + AI_TTS_MODEL_KEY);
+    if (aiString != null) {
+      aiTtsModel = aiString;
+    }
+    
+    aiString = (String) props.get(prefix + AI_TTS_APIKEY_KEY);
+    if (aiString != null) {
+      aiTtsApiKey = aiString;
+    }
+    
+    aiString = (String) props.get(prefix + AI_USE_AI_TTS_SUPPORT_KEY);
+    if (aiString != null) {
+      useAiTtsSupport = Boolean.parseBoolean(aiString);
+    }
+    
     String rulesValuesString = (String) props.get(prefix + CONFIGURABLE_RULE_VALUES_KEY + qualifier);
     if (rulesValuesString == null) {
       rulesValuesString = (String) props.get(prefix + CONFIGURABLE_RULE_VALUES_KEY);
@@ -1922,6 +1994,10 @@ public class WtConfiguration {
     allProfileKeys.add(AI_IMG_APIKEY_KEY);
     allProfileKeys.add(AI_IMG_MODEL_KEY);
     allProfileKeys.add(AI_USE_AI_IMG_SUPPORT_KEY);
+    allProfileKeys.add(AI_TTS_URL_KEY);
+    allProfileKeys.add(AI_TTS_APIKEY_KEY);
+    allProfileKeys.add(AI_TTS_MODEL_KEY);
+    allProfileKeys.add(AI_USE_AI_TTS_SUPPORT_KEY);
 
     allProfileLangKeys.add(DISABLED_RULES_KEY);
     allProfileLangKeys.add(ENABLED_RULES_KEY);
@@ -2088,6 +2164,18 @@ public class WtConfiguration {
     }
     if (useAiImgSupport != DEFAULT_USE_AI_IMG_SUPPORT) {
       props.setProperty(prefix + AI_USE_AI_IMG_SUPPORT_KEY, Boolean.toString(useAiImgSupport));
+    }
+    if (aiTtsUrl != null) {
+      props.setProperty(prefix + AI_TTS_URL_KEY, aiTtsUrl);
+    }
+    if (aiTtsModel != null) {
+      props.setProperty(prefix + AI_TTS_MODEL_KEY, aiTtsModel);
+    }
+    if (aiTtsApiKey != null) {
+      props.setProperty(prefix + AI_TTS_APIKEY_KEY, aiTtsApiKey);
+    }
+    if (useAiTtsSupport != DEFAULT_USE_AI_TTS_SUPPORT) {
+      props.setProperty(prefix + AI_USE_AI_TTS_SUPPORT_KEY, Boolean.toString(useAiTtsSupport));
     }
     if (fontName != null) {
       props.setProperty(prefix + FONT_NAME_KEY, fontName);
