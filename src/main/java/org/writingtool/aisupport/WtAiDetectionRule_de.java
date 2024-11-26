@@ -139,6 +139,11 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
         && !containToken(paraTokens.get(nParaStart).getToken(), nResultStart, nResultEnd, resultTokens)) {
       return true;
     }
+    if(nParaStart == nParaEnd && nResultStart == nResultEnd 
+        && !paraTokens.get(nParaStart).isNonWord() && resultTokens.get(nResultStart).getToken().contains("-")
+        && resultTokens.get(nResultStart).getToken().replace("-", "").equalsIgnoreCase(paraTokens.get(nParaStart).getToken())) {
+      return true;
+    }
     return false;   
   }
   
