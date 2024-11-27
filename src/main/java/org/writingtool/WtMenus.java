@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 import org.languagetool.Language;
 import org.writingtool.aisupport.WtAiErrorDetection;
 import org.writingtool.aisupport.WtAiParagraphChanging;
+import org.writingtool.aisupport.WtAiTextToSpeech;
 import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
@@ -442,7 +443,7 @@ public class WtMenus {
      * Set AI Submenu
      */
     private void setAIMenu(short pos, short id, short submenuStartId) throws Throwable {
-      if (config.useAiSupport() || config.useAiImgSupport()) {
+      if (config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport()) {
         if (ltMenu.getItemPos(id) < 1) {
           ltMenu.insertItem(id, MESSAGES.getString("loMenuAiSupport"), MenuItemStyle.AUTOCHECK, pos);
           xAiSupportMenu = WtOfficeTools.getPopupMenu(xContext);
@@ -485,9 +486,19 @@ public class WtMenus {
           nId++;
           nPos++;
         }
-        xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
-        xAiSupportMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
-        xAiSupportMenu.enableItem(nId , true);
+        if (config.useAiTtsSupport()) {
+          nId = SUBMENU_ID_AI + 8;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiTextToSpeechCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_TEXT_TO_SPEECH);
+          xAiSupportMenu.enableItem(nId , true);
+          nPos++;
+        }
+        if (config.useAiSupport() || config.useAiImgSupport()) {
+          nId = SUBMENU_ID_AI + 9;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
+          xAiSupportMenu.enableItem(nId , true);
+        }
       } else if (xAiSupportMenu != null) {
         pos = ltMenu.getItemPos(id);
         ltMenu.removeItem(pos, (short)1);
@@ -555,7 +566,10 @@ public class WtMenus {
           } else if (event.MenuId == SUBMENU_ID_AI + 5) {
             WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
             aiTranslate.start();
-          } else {
+          } else if (event.MenuId == SUBMENU_ID_AI + 8) {
+            WtAiTextToSpeech aiTextToSpeech = new WtAiTextToSpeech(document, MESSAGES);
+            aiTextToSpeech.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 9){
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.GeneralAi);
             aiChange.start();
           }

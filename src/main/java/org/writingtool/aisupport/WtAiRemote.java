@@ -20,7 +20,6 @@ package org.writingtool.aisupport;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -355,29 +354,18 @@ public class WtAiRemote {
     if (text == null || text.trim().isEmpty()) {
       return null;
     }
+    text = text.replace("\n", "\r").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
     if (debugMode) {
       WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: Ask AI started! URL: " + url);
     }
     String urlParameters = "{"
-/*        
-        + "\"do_sample\": true, "
-        + "\"duration_seconds\": " + 0 + ", "
-        + "\"model_id\": \"" + ttsModel  + "\", "
-        + "\"prompt_influence\": "+ 0 + ", "
-        + "\"text\": \"" + text + "\"}";
-*/
         + "\"input\": \"" + text + "\", "
         + "\"model\": \"" + ttsModel + "\"}";
-//        + "\"voice\": \"" + ttsModel + "\"}";
     
     byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
     
     URL checkUrl;
     try {
-/*      
-      String sUrl = ttsUrl + (ttsUrl.endsWith("/") ? "" : "/") + ttsModel + "/";
-      checkUrl = new URL(sUrl);
-*/      
       checkUrl = new URL(ttsUrl);
     } catch (MalformedURLException e) {
       WtMessageHandler.showError(e);
@@ -392,8 +380,6 @@ public class WtAiRemote {
       if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
         try (InputStream inputStream = conn.getInputStream()) {
           storeByteStream(inputStream, filename);
-//          String out = readStream(inputStream, "utf-8");
-//          WtMessageHandler.printToLogFile("TTS-Out: " + out);
           WtMessageHandler.printToLogFile("TTS-Out: " + filename);
           return filename;
         }
@@ -509,13 +495,13 @@ public class WtAiRemote {
   private void storeByteStream(InputStream inp, String filename) throws Throwable {
     try (OutputStream outp = new FileOutputStream(filename)) {
       byte[] bytes = new byte[BUFFER_SIZE];
-      int rBytes = BUFFER_SIZE;
-      while (rBytes == BUFFER_SIZE) {
-        rBytes = inp.read(bytes);
+      int rBytes;
+      while ((rBytes = inp.read(bytes)) > -1) {
         outp.write(bytes, 0, rBytes);
       }
       outp.flush();
       outp.close();
+      inp.close();
     }
   }
   
