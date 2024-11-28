@@ -2588,6 +2588,9 @@ public class WtDocumentsHandler {
       }
     }
     
+    public void setIndeterminate() {
+      progressBar.setIndeterminate(true);
+    }
   }
 }
 

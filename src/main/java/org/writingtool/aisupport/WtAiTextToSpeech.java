@@ -19,8 +19,12 @@
 package org.writingtool.aisupport;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.ResourceBundle;
+
+import javax.swing.JFileChooser;
 
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
@@ -29,6 +33,9 @@ import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+
+import com.sun.star.frame.XModel;
+import com.sun.star.uno.UnoRuntime;
 
 /**
  * Class for a new document filled by AI
@@ -41,6 +48,8 @@ public class WtAiTextToSpeech extends Thread {
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  
+  private String ParaEndSign = ".";   //  Sign to force speech to make a small pause
 
   public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
@@ -65,6 +74,10 @@ public class WtAiTextToSpeech extends Thread {
   @Override
   public void run() {
     try {
+      String audioDir = getAudioDir();
+      if (audioDir == null) {
+        return;
+      }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
 /*      
@@ -77,13 +90,16 @@ public class WtAiTextToSpeech extends Thread {
 */
       WtConfiguration config = document.getMultiDocumentsHandler().getConfiguration();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
-      String audioDir = getAudioDir();
       int nParaStart = 0;
       int nFile = 0;
       int maxPara = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
       waitDialog.initializeProgressBar(0, maxPara);
       while ((nParaStart = createAudioFile(nParaStart, nFile, audioDir, aiRemote)) < maxPara) {
         nFile++;
+        if (waitDialog.canceled()) {
+          waitDialog.close();
+          return;
+        }
         waitDialog.setValueForProgressBar(nParaStart, true);
       }
       waitDialog.close();
@@ -93,16 +109,43 @@ public class WtAiTextToSpeech extends Thread {
   }
   
   private String getAudioDir() {
-    File audioDir = new File(WtOfficeTools.getWtConfigDir(), TMP_DIRNAME);
+    String sAudioDir = null;
+    XModel xModel = UnoRuntime.queryInterface(XModel.class, document.getXComponent());
+    if (xModel != null) {
+      String url = xModel.getURL();
+      if (url != null && url.startsWith("file://")) {
+        URI uri;
+        try {
+          uri = new URI(url);
+          sAudioDir = uri.getPath();
+          int nDir = sAudioDir.lastIndexOf(".");
+          sAudioDir = sAudioDir.substring(0, nDir) + "_audio";
+        } catch (URISyntaxException e) {
+        }
+      }
+    }
+    if (sAudioDir == null) {
+      sAudioDir = System.getProperty("user.home");
+      if (sAudioDir == null) {
+        return null;
+      }
+      sAudioDir += "/" + TMP_DIRNAME;
+    }
+    File audioDir = new File(sAudioDir);
     if (audioDir.exists()) {
-      File newDir;
+      String path = audioDir.getAbsolutePath();
       int i = 1;
-      while ((newDir = new File(audioDir.getAbsolutePath() + "." + i)).exists()) {
+      while ((audioDir = new File(path + "." + i)).exists()) {
         i++;
       };
-      audioDir.renameTo(newDir);
-      audioDir = new File(WtOfficeTools.getWtConfigDir(), TMP_DIRNAME);
     }
+    JFileChooser fileChooser = new JFileChooser(audioDir.getParent());
+    fileChooser.setSelectedFile(audioDir);
+    int choose = fileChooser.showSaveDialog(null);
+    if (choose != JFileChooser.APPROVE_OPTION) {
+      return null;
+    }
+    audioDir = fileChooser.getSelectedFile();
     audioDir.mkdirs();
     return audioDir.getAbsolutePath() + "/";
   }
@@ -127,11 +170,13 @@ public class WtAiTextToSpeech extends Thread {
     filename = audioDir + (nFile < 10 ? "0" : "") + nFile + "_" + filename;
     StringBuilder sb = new StringBuilder();
     if (n < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT)) {
-      sb.append(docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n))).append('\n');
+      String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
+      sb.append(sPara).append(sPara.endsWith(ParaEndSign) ? " " : ParaEndSign + " ");
       n++;
     }
     for (; n < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT) && !isRealHeader(n); n++) {
-      sb.append(docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n))).append('\n');
+      String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
+      sb.append(sPara).append(sPara.endsWith(ParaEndSign) ? " " : ParaEndSign + " ");
     }
     String text = sb.toString();
     if (debugMode) {
