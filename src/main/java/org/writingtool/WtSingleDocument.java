@@ -1914,7 +1914,8 @@ public class WtSingleDocument {
 
     @Override
     public void documentEventOccured(DocumentEvent event) {
-      if(event.EventName.equals("OnUnload")) {
+//      if(event.EventName.equals("OnUnload")) {
+      if(event.EventName.equals("OnPrepareUnload")) {
         try {
           isOnUnload = true;
           writeCaches();
