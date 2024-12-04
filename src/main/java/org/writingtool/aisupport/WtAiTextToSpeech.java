@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
 
@@ -46,16 +47,17 @@ import com.sun.star.uno.UnoRuntime;
 public class WtAiTextToSpeech extends Thread {
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
-
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
-  
-  private String ParaEndSign = ".";   //  Sign to force speech to make a small pause
+  private final static String ParaEndSign = ".";   //  Sign to force speech to make a small pause
+  private final static String PauseSign = " - . - . - .";
 
   public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
   
   public final static String TMP_DIRNAME = "audioOut";
+
+  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
   
+  private final Pattern ALPHA_NUM = Pattern.compile("[\\p{L}\\d]");
   private WaitDialogThread waitDialog = null;
   private final WtSingleDocument document;
   private final WtDocumentCache docCache;
@@ -157,6 +159,23 @@ public class WtAiTextToSpeech extends Thread {
     return (headingMap.containsKey(nPara) && headingMap.get(nPara) > 0);
   }
   
+  private boolean isPause(String sPara) {
+    return !sPara.isBlank() && !ALPHA_NUM.matcher(sPara).find();
+  }
+  
+  private StringBuilder addToText(int nPara, StringBuilder sb) {
+    String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, nPara));
+    sb.append(sPara);
+    if (!sPara.endsWith(ParaEndSign)) {
+      sb.append(ParaEndSign);
+    }
+    sb.append(" ");
+    if (isRealHeader(nPara) || isPause(sPara)) {
+      sb.append(PauseSign);
+    }
+    return sb;
+  }
+  
   private int createAudioFile(int nParaStart, int nFile, String audioDir, WtAiRemote aiRemote) {
     int n = nParaStart;
     String filename;
@@ -170,13 +189,11 @@ public class WtAiTextToSpeech extends Thread {
     filename = audioDir + (nFile < 10 ? "0" : "") + nFile + "_" + filename;
     StringBuilder sb = new StringBuilder();
     if (n < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT)) {
-      String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
-      sb.append(sPara).append(sPara.endsWith(ParaEndSign) ? " " : ParaEndSign + " ");
+      addToText(n, sb);
       n++;
     }
     for (; n < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT) && !isRealHeader(n); n++) {
-      String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
-      sb.append(sPara).append(sPara.endsWith(ParaEndSign) ? " " : ParaEndSign + " ");
+      addToText(n, sb);
     }
     String text = sb.toString();
     if (debugMode) {

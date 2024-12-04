@@ -52,7 +52,7 @@ public class WtAiDetectionRule extends TextLevelRule {
   private static final Pattern QUOTES = Pattern.compile("[\"“”“„»«]");
   private static final Pattern SINGLE_QUOTES = Pattern.compile("[‚‘’'›‹]");
   private static final Pattern PUNCTUATION = Pattern.compile("[,.!?:]");
-  private static final Pattern OPENING_BRACKETS = Pattern.compile("[{(\\[]");
+  private static final Pattern OPENING_BRACKETS = Pattern.compile("[\\{\\(\\[]");
 
   private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
@@ -330,22 +330,32 @@ public class WtAiDetectionRule extends TextLevelRule {
           nSentence--;
         }
         int j1;
-        for (j1 = j + 1; j1 < resultTokens.size() && !OPENING_BRACKETS.matcher(resultTokens.get(j1).getToken()).matches(); j1++);
+        String out = "";
+        for (j1 = j; j1 < resultTokens.size() && !OPENING_BRACKETS.matcher(resultTokens.get(j1).getToken()).matches(); j1++) {
+          out += resultTokens.get(j1).getToken() + "(" + j1 + ")";
+        }
+//        WtMessageHandler.printToLogFile("j = " + j + ", j1 = " + j1 + ", r.length = " + resultTokens.size() + ", Result: " + out); 
         if (j1 > resultTokens.size()) {
           j1 = resultTokens.size();
         }
+//        WtMessageHandler.printToLogFile("j = " + j + ", j1 = " + j1 + ", r.length = " + resultTokens.size() + ", Result: " + out); 
         String suggestion = aiResultText.substring(resultTokens.get(j - 1).getStartPos(), resultTokens.get(j1 - 1).getEndPos());
-        if (suggestion.isEmpty() || j != j1 || resultTokens.get(j - 1).isNonWord() || linguServices.isCorrectSpell(suggestion, locale)) {
-          RuleMatch ruleMatch = new RuleMatch(this, null, paraTokens.get(paraTokens.size() - 1).getStartPos(), 
-              paraTokens.get(paraTokens.size() - 1).getEndPos(), ruleMessage);
-          ruleMatch.addSuggestedReplacement(suggestion);
-          setType(paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1, paraTokens, resultTokens, ruleMatch);
-          tmpMatches.add(new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
-              paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1));
-          if(debugMode) {
-            WtMessageHandler.printToLogFile("Text: " 
-                + paraText.substring(paraTokens.get(paraTokens.size() - 1).getStartPos(), paraTokens.get(paraTokens.size() - 1).getEndPos())
-                + "; suggestion: " + suggestion);
+//        WtMessageHandler.printToLogFile("StartPos = " + resultTokens.get(j - 1).getStartPos() 
+//            + ", EndPos = " + resultTokens.get(j1 - 1).getEndPos() + ", suggestion = " + suggestion); 
+        if (suggestion.isEmpty() || j != j1 || resultTokens.get(j - 1).isNonWord() 
+            || linguServices.isCorrectSpell(suggestion, locale)) {
+          if (!suggestion.equals(paraTokens.get(paraTokens.size() - 1).getToken())) {
+            RuleMatch ruleMatch = new RuleMatch(this, null, paraTokens.get(paraTokens.size() - 1).getStartPos(), 
+                paraTokens.get(paraTokens.size() - 1).getEndPos(), ruleMessage);
+            ruleMatch.addSuggestedReplacement(suggestion);
+            setType(paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1, paraTokens, resultTokens, ruleMatch);
+            tmpMatches.add(new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
+                paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1));
+            if(debugMode) {
+              WtMessageHandler.printToLogFile("Text: " 
+                  + paraText.substring(paraTokens.get(paraTokens.size() - 1).getStartPos(), paraTokens.get(paraTokens.size() - 1).getEndPos())
+                  + "; suggestion: " + suggestion);
+            }
           }
         }
       }
