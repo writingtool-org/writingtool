@@ -541,6 +541,31 @@ public class WtDocumentsHandler {
   }
   
   /**
+   *  stop all queues before unload LO
+   */
+  public void prepareUnload() {
+    try {
+      if (documents.size() < 2) {
+        isHelperDisposed = true;
+        if (textLevelQueue != null) {
+          textLevelQueue.setStop();
+          textLevelQueue = null;
+        }
+        if (aiQueue != null) {
+          aiQueue.setStop();
+          aiQueue = null;
+        }
+        if (shapeChangeCheck != null) {
+          shapeChangeCheck.stopLoop();
+          shapeChangeCheck = null;
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+  
+  /**
    *  Add a rule to disabled rules by context menu or spell dialog
    */
   void addDisabledRule(String langCode, String ruleId) {

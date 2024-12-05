@@ -1918,6 +1918,7 @@ public class WtSingleDocument {
       if(event.EventName.equals("OnPrepareUnload")) {
         try {
           isOnUnload = true;
+          mDocHandler.prepareUnload();
           writeCaches();
         } catch (Throwable t) {
           WtMessageHandler.printException(t);;
