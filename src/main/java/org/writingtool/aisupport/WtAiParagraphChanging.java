@@ -55,7 +55,7 @@ public class WtAiParagraphChanging extends Thread {
 
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
   public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
@@ -94,7 +94,7 @@ public class WtAiParagraphChanging extends Thread {
         }
         return;
       }
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: commandId: " + commandId);
       }
       XComponent xComponent = document.getXComponent();
@@ -127,12 +127,12 @@ public class WtAiParagraphChanging extends Thread {
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " + text);
       }
       float temp = (commandId == AiCommand.CorrectGrammar || commandId == AiCommand.ImproveStyle) ? 0.0f : 0.7f;
       String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara);
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
       WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages);
@@ -352,7 +352,7 @@ public class WtAiParagraphChanging extends Thread {
       dialog.setAutoRequestFocus(true);
       dialog.setAlwaysOnTop(true);
       dialog.toFront();
-//      if (debugMode) {
+//      if (debugMode > 1) {
 //        MessageHandler.printToLogFile("WaitDialogThread: run: Dialog is running");
 //      }
       dialog.setVisible(true);
@@ -371,7 +371,7 @@ public class WtAiParagraphChanging extends Thread {
     }
     
     private void close_intern() {
-//      if (debugMode) {
+//      if (debugMode > 1) {
 //        MessageHandler.printToLogFile("WaitDialogThread: close: Dialog closed");
 //      }
       isCanceled = true;

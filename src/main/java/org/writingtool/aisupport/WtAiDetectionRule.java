@@ -54,7 +54,7 @@ public class WtAiDetectionRule extends TextLevelRule {
   private static final Pattern PUNCTUATION = Pattern.compile("[,.!?:]");
   private static final Pattern OPENING_BRACKETS = Pattern.compile("[\\{\\(\\[]");
 
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
   private final ResourceBundle messages;
   private final String aiResultText;
@@ -81,7 +81,7 @@ public class WtAiDetectionRule extends TextLevelRule {
     setLocQualityIssueType(ITSIssueType.Grammar);
     setTags(Collections.singletonList(Tag.picky));
     
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiDetectionRule: showStylisticHints: " + showStylisticHints);
     }
   }
@@ -269,11 +269,11 @@ public class WtAiDetectionRule extends TextLevelRule {
             ruleMatch.setType(Type.Hint);
             setType(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd, paraTokens, resultTokens, ruleMatch);
             tmpMatches.add(new AiRuleMatch(ruleMatch, sugStart, sugEnd, nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd));
-            if (debugMode) {
+            if (debugMode > 1) {
               WtMessageHandler.printToLogFile("AiDetectionRule: match: found: start: " + posStart + ", end: " + posEnd
                   + ", suggestion: " + suggestion);
             }
-          } else if (debugMode) {
+          } else if (debugMode > 1) {
             WtMessageHandler.printToLogFile("AiDetectionRule: match: not correct spell: locale: " + WtOfficeTools.localeToString(locale)
                 + ", suggestion: " + suggestion);
           }
@@ -299,14 +299,14 @@ public class WtAiDetectionRule extends TextLevelRule {
                 ruleMatch.addSuggestedReplacement(suggestion);
                 ruleMatch.setType(Type.Other);
                 matches.add(ruleMatch);
-                if (debugMode) {
+                if (debugMode > 1) {
                   WtMessageHandler.printToLogFile("AiDetectionRule: match: Stylistic hint: suggestion: " + suggestion);
                 }
               }
               mergeSentences = false;
             } else {
               addAllRuleMatches(matches, tmpMatches, resultTokens);
-              if (debugMode) {
+              if (debugMode > 1) {
                 WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches: " + tmpMatches.size()
                 + ", total: " + matches.size());
               }
@@ -322,7 +322,7 @@ public class WtAiDetectionRule extends TextLevelRule {
       if (j < resultTokens.size() 
               && (!paraTokens.get(i - 1).getToken().equals(resultTokens.get(j - 1).getToken())
                   || (resultTokens.get(j).isNonWord() && !PUNCTUATION.matcher(resultTokens.get(j).getToken()).matches())
-              && ((j + 2 < resultTokens.size()) 
+              && ((j + 2 > resultTokens.size()) 
                   || (!resultTokens.get(j + 1).getToken().equals("-") || !resultTokens.get(j + 2).getToken().equals(">")))
           )) {
         nRuleTokens++;
@@ -330,11 +330,14 @@ public class WtAiDetectionRule extends TextLevelRule {
           nSentence--;
         }
         int j1;
+        for (j1 = j; j1 < resultTokens.size() && !OPENING_BRACKETS.matcher(resultTokens.get(j1).getToken()).matches(); j1++);
+/*        
         String out = "";
         for (j1 = j; j1 < resultTokens.size() && !OPENING_BRACKETS.matcher(resultTokens.get(j1).getToken()).matches(); j1++) {
           out += resultTokens.get(j1).getToken() + "(" + j1 + ")";
         }
-//        WtMessageHandler.printToLogFile("j = " + j + ", j1 = " + j1 + ", r.length = " + resultTokens.size() + ", Result: " + out); 
+        WtMessageHandler.printToLogFile("j = " + j + ", j1 = " + j1 + ", r.length = " + resultTokens.size() + ", Result: " + out); 
+*/
         if (j1 > resultTokens.size()) {
           j1 = resultTokens.size();
         }
@@ -351,7 +354,7 @@ public class WtAiDetectionRule extends TextLevelRule {
             setType(paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1, paraTokens, resultTokens, ruleMatch);
             tmpMatches.add(new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
                 paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1));
-            if(debugMode) {
+            if(debugMode > 1) {
               WtMessageHandler.printToLogFile("Text: " 
                   + paraText.substring(paraTokens.get(paraTokens.size() - 1).getStartPos(), paraTokens.get(paraTokens.size() - 1).getEndPos())
                   + "; suggestion: " + suggestion);
@@ -363,7 +366,7 @@ public class WtAiDetectionRule extends TextLevelRule {
         boolean overSentenceEnd = j < resultTokens.size() && PUNCTUATION.matcher(resultTokens.get(j - 1).getToken()).matches();
         int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : 
           sentenceEnds.get(sentenceEnds.size() - 1) - sentenceEnds.get(sentenceEnds.size() - 2);
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("AiDetectionRule: match: j < resultTokens.size(): mergeSentences: " + mergeSentences
               + ", nRuleTokens: " + nRuleTokens + ", nSenTokens: " + nSenTokens);
         }
@@ -389,19 +392,19 @@ public class WtAiDetectionRule extends TextLevelRule {
             ruleMatch.addSuggestedReplacement(suggestion);
             ruleMatch.setType(Type.Other);
             matches.add(ruleMatch);
-            if (debugMode) {
+            if (debugMode > 1) {
               WtMessageHandler.printToLogFile("AiDetectionRule: match: Stylistic hint: suggestion: " + suggestion);
             }
           }
         } else {
           addAllRuleMatches(matches, tmpMatches, resultTokens);
-          if (debugMode) {
+          if (debugMode > 1) {
             WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches: " + tmpMatches.size()
             + ", total: " + matches.size());
           }
         }
       }
-      if (debugMode && j < resultTokens.size()) {
+      if (debugMode > 1 && j < resultTokens.size()) {
         WtMessageHandler.printToLogFile("AiDetectionRule: match: j < resultTokens.size(): paraTokens.get(i - 1): " + paraTokens.get(i - 1).getToken()
             + ", resultTokens.get(j - 1): " + resultTokens.get(j - 1).getToken());
       }
@@ -423,7 +426,7 @@ public class WtAiDetectionRule extends TextLevelRule {
 
   private void setType(int nParaTokenStart, int nParaTokenEnd, int nResultTokenStart, int nResultTokenEnd,
       List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("ParaTokenStart: " + paraTokens.get(nParaTokenStart).getToken()
           +", ParaTokenEnd: " + paraTokens.get(nParaTokenEnd).getToken()
           + ", ResultTokenStart: " + resultTokens.get(nResultTokenStart).getToken()

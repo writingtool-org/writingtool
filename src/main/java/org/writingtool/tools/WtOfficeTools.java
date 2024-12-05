@@ -143,7 +143,7 @@ public class WtOfficeTools {
   public static int DEBUG_MODE_SD = 0;            //  Set Debug Mode for SingleDocument
   public static int DEBUG_MODE_SC = 0;            //  Set Debug Mode for SingleCheck
   public static int DEBUG_MODE_CR = 0;            //  Set Debug Mode for CheckRequest
-  public static boolean DEBUG_MODE_AI = false;    //  Activate Debug Mode for AI support
+  public static int DEBUG_MODE_AI = 0;            //  Set Debug Mode for AI support
   public static boolean DEBUG_MODE_CD = false;    //  Activate Debug Mode for SpellAndGrammarCheckDialog
   public static boolean DEBUG_MODE_DC = false;    //  Activate Debug Mode for DocumentCache
   public static boolean DEBUG_MODE_FP = false;    //  Activate Debug Mode for FlatParagraphTools
@@ -1013,7 +1013,8 @@ public class WtOfficeTools {
           if (numLevel > 2) {
             DEBUG_MODE_FP = true;
           }
-        } else if (level.startsWith("sd:") || level.startsWith("sc:") || level.startsWith("cr:")) {
+        } else if (level.startsWith("sd:") || level.startsWith("sc:") 
+            || level.startsWith("cr:") || level.startsWith("ai:")) {
           String[] levelSD = level.split(":");
           if (levelSD.length != 2) {
             continue;
@@ -1026,6 +1027,8 @@ public class WtOfficeTools {
               DEBUG_MODE_SC = numLevel;
             } else if (levelSD[0].equals("cr")) {
               DEBUG_MODE_CR = numLevel;
+            } else if (levelSD[0].equals("ai")) {
+              DEBUG_MODE_AI = numLevel;
             }
           }
         } else if (level.equals("md")) {
@@ -1048,8 +1051,6 @@ public class WtOfficeTools {
           DEBUG_MODE_SR = true;
         } else if (level.equals("sp")) {
           DEBUG_MODE_SP = true;
-        } else if (level.equals("ai")) {
-          DEBUG_MODE_AI = true;
         } else if (level.equals("ta")) {
           DEBUG_MODE_TA = true;
         } else if (level.startsWith("tm")) {

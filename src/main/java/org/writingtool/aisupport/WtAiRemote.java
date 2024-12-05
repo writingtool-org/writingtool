@@ -64,8 +64,8 @@ public class WtAiRemote {
 
   private enum AiType { EDITS, COMPLETIONS, CHAT }
   
-  boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
-  boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;
+  private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
   
   private final WtDocumentsHandler documents;
   private final WtConfiguration config;
@@ -185,7 +185,7 @@ public class WtAiRemote {
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runInstruction: Ask AI started! URL: " + url);
     }
 //    String langName = getLanguageName(locale);
@@ -229,7 +229,7 @@ public class WtAiRemote {
       stopAiRemote();
       return null;
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runInstruction: postData: " + urlParameters);
     }
     HttpURLConnection conn = null;
@@ -300,7 +300,7 @@ public class WtAiRemote {
     if (size != 128 && size != 256 && size != 512) {
       size = 256;
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: Ask AI started! URL: " + url);
     }
     String urlParameters = "{\"model\": \"" + imgModel + "\", " 
@@ -319,7 +319,7 @@ public class WtAiRemote {
       stopAiImgRemote();
       return null;
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: postData: " + urlParameters);
     }
     HttpURLConnection conn = getConnection(postData, checkUrl, imgApiKey);
@@ -355,7 +355,7 @@ public class WtAiRemote {
       return null;
     }
     text = text.replace("\n", "\r").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: Ask AI started! URL: " + url);
     }
     String urlParameters = "{"
@@ -372,7 +372,7 @@ public class WtAiRemote {
       stopAiTtsRemote();
       return null;
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: postData: " + urlParameters);
     }
     HttpURLConnection conn = getConnection(postData, checkUrl, ttsApiKey);
@@ -524,7 +524,7 @@ public class WtAiRemote {
       } else {
         content = choice.getString("text");
       }
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + text);
         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: content: " + content);
       }
@@ -572,7 +572,7 @@ public class WtAiRemote {
       }
       JSONObject choice = data.getJSONObject(0);
       String url = choice.getString("url");
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + text);
         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
       }

@@ -41,7 +41,7 @@ import org.writingtool.tools.WtOfficeTools.DocumentType;
  */
 public class WtAiCheckQueue extends WtTextLevelCheckQueue {
 
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
   public WtAiCheckQueue(WtDocumentsHandler multiDocumentsHandler) {
     super(multiDocumentsHandler);
@@ -55,7 +55,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
    public void addQueueEntry(TextParagraph nTPara, String docId, boolean next) {
      try {
        if (nTPara == null || nTPara.type < 0  || nTPara.number < 0 || docId == null || interruptCheck) {
-         if (debugMode) {
+         if (debugMode > 1) {
            WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Return without add to queue: nCache = " + WtOfficeTools.CACHE_AI
                + ", nTPara = " + (nTPara == null ? "null" : ("(" + nTPara.number + "/" + nTPara.type + ")")) + ", docId = " + docId);
          }
@@ -67,7 +67,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
            for (int i = 0; i < textRuleQueue.size(); i++) {
              QueueEntry entry = textRuleQueue.get(i);
              if (entry.equals(queueEntry)) {
-               if (debugMode) {
+               if (debugMode > 1) {
                  WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Entry removed: nCache = " + WtOfficeTools.CACHE_AI
                      + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
                }
@@ -83,7 +83,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
          } else {
            textRuleQueue.add(queueEntry);
          }
-         if (debugMode) {
+         if (debugMode > 1) {
            WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Entry added: nCache = " + WtOfficeTools.CACHE_AI
                + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
          }
@@ -142,7 +142,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
   public void initLangtool(Language language) throws Throwable {
     lt = null;
     try {
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("TextLevelCheckQueue: initLangtool: language = " + (language == null ? "null" : language.getShortCodeWithCountryAndVariant()));
       }
       WtConfiguration config = multiDocHandler.getConfiguration(language);
@@ -166,7 +166,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
   @Override
   protected void runQueueEntry(QueueEntry qEntry, WtDocumentsHandler multiDocHandler, WtLanguageTool lt) throws Throwable {
     try {
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("Try to run AI Queue Entry for " + qEntry.nStart.number);
       }
       WtSingleDocument document = getSingleDocument(qEntry.docId);
@@ -175,7 +175,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
         WtDocumentCache docCache = document.getDocumentCache();
         if (docCache != null) {
           int nFPara = docCache.getFlatParagraphNumber(nTPara);
-          if (debugMode) {
+          if (debugMode > 1) {
             WtMessageHandler.printToLogFile("Run AI Queue Entry for " 
                 + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId
                 + ", nFPara = " + nFPara);

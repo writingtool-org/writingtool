@@ -55,7 +55,7 @@ public class WtAiTextToSpeech extends Thread {
   
   public final static String TMP_DIRNAME = "audioOut";
 
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
   
   private final Pattern ALPHA_NUM = Pattern.compile("[\\p{L}\\d]");
   private WaitDialogThread waitDialog = null;
@@ -196,7 +196,7 @@ public class WtAiTextToSpeech extends Thread {
       addToText(n, sb);
     }
     String text = sb.toString();
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiTextToSpeech: runInstruction: text: " + text);
     }
     aiRemote.runTtsInstruction(text, filename);

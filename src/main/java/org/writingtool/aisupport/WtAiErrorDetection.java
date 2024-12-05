@@ -53,7 +53,7 @@ public class WtAiErrorDetection {
   
   private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
   private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA || debugModeTm;
-  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI;
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   private final WtSingleDocument document;
@@ -74,7 +74,7 @@ public class WtAiErrorDetection {
   public void addAiRuleMatchesForParagraph() {
     try {
       if (docCache != null) {
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: start");
         }
         WtViewCursorTools viewCursor = new WtViewCursorTools(document.getXComponent());
@@ -97,7 +97,7 @@ public class WtAiErrorDetection {
       int[] footnotePos = docCache.getFlatParagraphFootnotes(nFPara);
       List<Integer> deletedChars = docCache.getFlatParagraphDeletedCharacters(nFPara);
       if (paraText == null || paraText.trim().isEmpty() || lt == null) {
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: nFPara " + nFPara + " is empty: return");
         }
         addMatchesByAiRule(nFPara, null, footnotePos, deletedChars);
@@ -110,7 +110,7 @@ public class WtAiErrorDetection {
 //        MessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: correctCommand: " + correctCommand);
       }
       RuleMatch[] ruleMatches = getAiRuleMatchesForParagraph(nFPara, paraText, locale, footnotePos, deletedChars);
-      if (debugMode && ruleMatches != null) {
+      if (debugMode > 1 && ruleMatches != null) {
         WtMessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: nFPara: " + nFPara + ", rulematches: " + ruleMatches.length);
       }
       addMatchesByAiRule(nFPara, ruleMatches, footnotePos, deletedChars);
@@ -146,7 +146,7 @@ public class WtAiErrorDetection {
       return null;
     }
     if (paraText == null || paraText.trim().isEmpty()) {
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiErrorDetection: getAiRuleMatchesForParagraph: paraText: " + (paraText == null? "NULL" : "EMPTY"));
       }
       return null;
@@ -164,7 +164,7 @@ public class WtAiErrorDetection {
     if (analyzedSentences == null) {
       analyzedSentences = docCache.createAnalyzedParagraph(nFPara, lt);
       if (analyzedSentences == null) {
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("AiErrorDetection: getAiRuleMatchesForParagraph: analyzedSentences == null");
         }
         return null;
@@ -202,12 +202,12 @@ public class WtAiErrorDetection {
     }
 
     if (result == null || result.trim().isEmpty()) {
-      if (debugMode) {
+      if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiErrorDetection: getMatchesByAiRule: result: " + (result == null? "NULL" : "EMPTY"));
       }
       return null;
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("\nAiErrorDetection: getMatchesByAiRule: result: " + result + "\n");
     }
     List<AnalyzedSentence> analyzedAiResult =  lt.analyzeText(result.replace("\u00AD", ""));
@@ -220,7 +220,7 @@ public class WtAiErrorDetection {
       WtMessageHandler.printToLogFile("AiErrorDetection: getMatchesByAiRule: Time to run AI detection rule for Para " 
                                        + nFPara + ": " + runTime + " (AI Time: " + aiTime + ", number matches: " + matches.length + ")");
     }
-    if (debugMode) {
+    if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiErrorDetection: getMatchesByAiRule: matches: " + matches.length);
     }
     return matches;
@@ -230,17 +230,21 @@ public class WtAiErrorDetection {
                     int[] footnotePos, List<Integer> deletedChars) throws Throwable {
     WtResultCache aiCache = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI);
     CacheEntry cEntry = aiCache.getCacheEntry(nFPara);
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("WtAiErrorDetection: Para: "+ nFPara + ", Matches: " 
+          + (ruleMatches == null ? "null" : ruleMatches.length));
+    }
     boolean isMatch = cEntry != null && cEntry.errorArray.length > 0;
     if (ruleMatches == null || ruleMatches.length == 0) {
       aiCache.put(nFPara, null, new WtProofreadingError[0]);
     } else {
       List<WtProofreadingError> errorList = new ArrayList<>();
       for (RuleMatch myRuleMatch : ruleMatches) {
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("Rule match suggestion: " + myRuleMatch.getSuggestedReplacements().get(0));
         }
         WtProofreadingError error = WtSingleCheck.createOOoError(myRuleMatch, 0, footnotePos, null, config);
-        if (debugMode) {
+        if (debugMode > 1) {
           WtMessageHandler.printToLogFile("error suggestion: " + error.aSuggestions[0]);
         }
         errorList.add(WtSingleCheck.correctRuleMatchWithFootnotes(
@@ -273,7 +277,7 @@ public class WtAiErrorDetection {
             (match.getFromPos() >= rMatch.getFromPos() && match.getFromPos() < rMatch.getToPos()) ||
             (match.getToPos() >= rMatch.getFromPos() && match.getToPos() <= rMatch.getToPos())
             ) {
-          if (debugMode) {
+          if (debugMode > 1) {
             WtMessageHandler.printToLogFile("WtErrorDetection: filterRuleMatches: incorrect match: suggestion: " +
               match.getSuggestedReplacements().get(0) + ", reason: " + rMatch.getMessage());
             }
