@@ -729,10 +729,11 @@ public class WtCacheIO implements Serializable {
     private final Map<String, List<String>> lastWrongWords = new HashMap<>();
     private final Map<String, List<String[]>> lastSuggestions = new HashMap<>();
     private String version = WtVersionInfo.ltVersion();
+    private int statVersion = 1;
     
     private boolean putAll (SpellCache sc) {
       version = sc.version;
-      if (!version.equals(WtVersionInfo.ltVersion())) {
+      if (sc.statVersion != statVersion || !version.equals(WtVersionInfo.ltVersion())) {
         return false;
       }
       lastWrongWords.clear();

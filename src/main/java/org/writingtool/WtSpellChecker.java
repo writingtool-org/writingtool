@@ -29,10 +29,9 @@ import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedToken;
 import org.languagetool.AnalyzedTokenReadings;
 import org.languagetool.JLanguageTool;
-// import org.languagetool.JLanguageTool;
-// import org.languagetool.JLanguageTool.ParagraphHandling;
+import org.languagetool.JLanguageTool.ParagraphHandling;
 import org.languagetool.Language;
-// import org.languagetool.rules.Rule;
+import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleMatch;
 import org.languagetool.rules.spelling.SpellingCheckRule;
 import org.languagetool.rules.spelling.hunspell.HunspellRule;
@@ -74,7 +73,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           "com.sun.star.linguistic2.SpellChecker",
           WtOfficeTools.WT_SPELL_SERVICE_NAME };
   
-//  private static JLanguageTool lt = null;
+  private static JLanguageTool lt = null;
   private static Locale lastLocale = null;                //  locale for spell check
   private Language lang;
   private static SpellingCheckRule spellingCheckRule = null;
@@ -261,10 +260,11 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           return true;
         }
 
-//        List<RuleMatch> matches = lt.check(word,true, ParagraphHandling.ONLYNONPARA);
-        RuleMatch matches[] = spellingCheckRule.match(getAnalyzedSentence(word));
+        List<RuleMatch> matches = lt.check(word,true, ParagraphHandling.ONLYNONPARA);
+//        RuleMatch matches[] = spellingCheckRule.match(getAnalyzedSentence(word));
 
-        if (matches == null || matches.length == 0) {
+//        if (matches == null || matches.length == 0) {
+        if (matches == null || matches.isEmpty()) {
           if (DEBUG_MODE) {
             WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: valid word found (matches == 0): " + (word == null ? "null" : word));
           }
@@ -276,7 +276,8 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
         }
         if (!lastWrongWords.get(localeStr).contains(word)) {
           lastWrongWords.get(localeStr).add(new String(word));
-          lastSuggestions.get(localeStr).add(suggestionsToArray(matches[0].getSuggestedReplacements()));
+//          lastSuggestions.get(localeStr).add(suggestionsToArray(matches[0].getSuggestedReplacements()));
+          lastSuggestions.get(localeStr).add(suggestionsToArray(matches.get(0).getSuggestedReplacements()));
           if (lastWrongWords.get(localeStr).size() >= MAX_WRONG) {
             lastWrongWords.get(localeStr).remove(0);
             lastSuggestions.get(localeStr).remove(0);
@@ -311,7 +312,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       if (lastLocale == null || lang == null || !WtOfficeTools.isEqualLocale(lastLocale, locale)) {
         lastLocale = locale;
         lang = WtDocumentsHandler.getLanguage(locale);
-/*
+
         lt = new JLanguageTool(lang);
         for (Rule rule : lt.getAllRules()) {
           if (rule.isDictionaryBasedSpellingRule()) {
@@ -327,7 +328,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
             lt.disableRule(rule.getId());
           }
         }
-*/
+/*
         spellingCheckRule = lang.getDefaultSpellingRule();
         if (spellingCheckRule instanceof MorfologikSpellerRule) {
           mSpellRule = (MorfologikSpellerRule) spellingCheckRule;
@@ -336,6 +337,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           hSpellRule = (HunspellRule) spellingCheckRule;
           mSpellRule = null;
         }
+*/        
       }
     } catch (Throwable e) {
       WtMessageHandler.showSpellError(e);
