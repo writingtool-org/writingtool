@@ -1144,11 +1144,13 @@ public class WtAiDialog extends Thread implements ActionListener {
               + imgInstText + ", exclude: " + excludeText);
       }
       urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageWidth);
-      if (debugMode) {
-        WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
+      if (urlString != null) {
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
+        }
+        image = getImageFromUrl(urlString);
+        imageFrame.setIcon(new ImageIcon(image));
       }
-      image = getImageFromUrl(urlString);
-      imageFrame.setIcon(new ImageIcon(image));
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       closeDialog();
