@@ -61,6 +61,9 @@ public class WtLanguageTool {
   private final MultiThreadedJLanguageToolLo mlt;
   private final WtRemoteLanguageTool rlt;
   private JLanguageToolLo lt;
+  private final Language language;
+  private final Language motherTongue;
+  private final UserConfig userConfig;
 
   private WtSortedTextRules sortedTextRules;
   private boolean isMultiThread;
@@ -79,6 +82,9 @@ public class WtLanguageTool {
       WtConfiguration config, List<Rule> extraRemoteRules,
       boolean noLtSpeller, boolean checkImpressDocument, boolean testMode, boolean onlyDefault) throws Throwable {
     this.config = config;
+    this.language = language;
+    this.motherTongue = motherTongue;
+    this.userConfig = userConfig;
     isMultiThread = config.isMultiThread();
     isRemote = config.doRemoteCheck() && !testMode;
     doReset = false;
@@ -452,11 +458,13 @@ public class WtLanguageTool {
 
   /**
    * Get a list of tokens from a sentence
-   * This Method may be used only for local checks
-   * use local lt for remote checks
+   * This Method use local lt for remote checks
    */
   public List<String> sentenceTokenize(String text) {
     if (isRemote) {
+      if (lt == null) {
+        lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+      }
       return lt.sentenceTokenize(text);
     } else if (isMultiThread) {
         return mlt.sentenceTokenize(text); 
@@ -467,11 +475,13 @@ public class WtLanguageTool {
 
   /**
    * Analyze sentence
-   * This Method may be used only for local checks
-   * use local lt for remote checks
+   * This Method use local lt for remote checks
    */
   public AnalyzedSentence getAnalyzedSentence(String sentence) throws IOException {
     if (isRemote) {
+      if (lt == null) {
+        lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+      }
       return lt.getAnalyzedSentence(sentence);
     } else if (isMultiThread) {
         return mlt.getAnalyzedSentence(sentence); 
@@ -482,11 +492,13 @@ public class WtLanguageTool {
 
   /**
    * Analyze text
-   * This Method may be used only for local checks
-   * use local lt for remote checks
+   * This Method use local lt for remote checks
    */
   public List<AnalyzedSentence> analyzeText(String text) throws IOException {
     if (isRemote) {
+      if (lt == null) {
+        lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+      }
       return lt.analyzeText(text);
     } else if (isMultiThread) {
         return mlt.analyzeText(text); 
