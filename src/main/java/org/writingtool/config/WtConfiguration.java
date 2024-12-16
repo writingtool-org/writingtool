@@ -99,11 +99,14 @@ public class WtConfiguration {
   static final String DEFAULT_AI_TTS_URL = "http://localhost:8080/tts/";
   static final String DEFAULT_AI_TTS_APIKEY = "1234567";
 
+  static final Color GRAMMAR_COLOR_LT = new Color(255, 100, 0);
   static final Color STYLE_COLOR_WT = new Color(0, 100, 0);
   static final Color HINT_COLOR_WT = new Color(150, 150, 0);
-  static final Color GRAMMAR_COLOR_LT = new Color(255, 100, 0);
   static final Color STYLE_COLOR_BLUE = new Color(70, 80, 255);
   static final Color HINT_COLOR_BLUE = new Color(150, 160, 255);
+  static final Color GRAMMAR_COLOR_DARK = new Color(100, 150, 255);
+  static final Color STYLE_COLOR_DARK = new Color(0, 120, 0);
+  static final Color HINT_COLOR_DARK = new Color(100, 100, 0);
 
   private static final String CONFIG_FILE = ".languagetool.cfg";
 
@@ -1276,12 +1279,12 @@ public class WtConfiguration {
       }
     } else {
       if (!categoryIsDefault) {
-        return colorSelection == 1 ? HINT_COLOR_BLUE : HINT_COLOR_WT;
+        return colorSelection == 1 ? HINT_COLOR_BLUE : colorSelection == 3 ? HINT_COLOR_DARK : HINT_COLOR_WT;
       }
       if (styleLikeCategories.contains(category)) {
-        return colorSelection == 1 ? STYLE_COLOR_BLUE : STYLE_COLOR_WT;
+        return colorSelection == 1 ? STYLE_COLOR_BLUE : colorSelection == 3 ? STYLE_COLOR_DARK : STYLE_COLOR_WT;
       }
-      return Color.blue;
+      return colorSelection == 3 ? GRAMMAR_COLOR_DARK : Color.blue;
     }
   }
 

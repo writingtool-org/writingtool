@@ -1069,7 +1069,7 @@ public class WtConfigurationDialog implements ActionListener {
       cons.gridy++;
       portPanel.add(new JLabel(messages.getString("guiColorSelectionLabel")), cons);
       
-      JRadioButton[] radioButtons = new JRadioButton[3];
+      JRadioButton[] radioButtons = new JRadioButton[4];
       ButtonGroup colorSelectionGroup = new ButtonGroup();
       radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPallette")));
       radioButtons[0].addActionListener(e -> {
@@ -1083,8 +1083,12 @@ public class WtConfigurationDialog implements ActionListener {
       radioButtons[2].addActionListener(e -> {
         config.setColorSelection(2);
       });
+      radioButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiDarkColorPallette")));
+      radioButtons[3].addActionListener(e -> {
+        config.setColorSelection(3);
+      });
   
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 4; i++) {
         if (config.getColorSelection() == i) {
           radioButtons[i].setSelected(true);
         } else {
@@ -1094,7 +1098,7 @@ public class WtConfigurationDialog implements ActionListener {
       }
       
       cons.insets = new Insets(0, SHIFT2, 0, 0);
-      for (int i = 0; i < 3; i++) {
+      for (int i = 0; i < 4; i++) {
         cons.gridy++;
         portPanel.add(radioButtons[i], cons);
       }
