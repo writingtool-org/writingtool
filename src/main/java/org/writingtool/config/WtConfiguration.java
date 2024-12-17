@@ -105,7 +105,7 @@ public class WtConfiguration {
   static final Color STYLE_COLOR_BLUE = new Color(70, 80, 255);
   static final Color HINT_COLOR_BLUE = new Color(150, 160, 255);
   static final Color GRAMMAR_COLOR_DARK = new Color(100, 150, 255);
-  static final Color STYLE_COLOR_DARK = new Color(0, 120, 0);
+  static final Color STYLE_COLOR_DARK = new Color(0, 140, 0);
   static final Color HINT_COLOR_DARK = new Color(100, 100, 0);
 
   private static final String CONFIG_FILE = ".languagetool.cfg";
