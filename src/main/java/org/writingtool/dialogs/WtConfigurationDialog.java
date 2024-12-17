@@ -2530,7 +2530,7 @@ public class WtConfigurationDialog implements ActionListener {
     
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridy++;
-    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_STYLE_CATEGORY, WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID, true), cons);
+    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_STYLE_CATEGORY, WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID, false), cons);
 
     return aiOptionPanel;
   }
