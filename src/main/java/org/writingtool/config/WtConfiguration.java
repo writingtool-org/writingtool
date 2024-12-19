@@ -139,6 +139,7 @@ public class WtConfiguration {
   private static final String LF_NAME_KEY = "lookAndFeelName";
   private static final String COLOR_SELECTION_KEY = "colorSelection";
   private static final String ERROR_COLORS_KEY = "errorColors";
+  private static final String UNDERLINE_DEFAULT_COLORS_KEY = "underlineDefaultColors";
   private static final String UNDERLINE_COLORS_KEY = "underlineColors";
   private static final String UNDERLINE_RULE_COLORS_KEY = "underlineRuleColors";
   private static final String UNDERLINE_TYPES_KEY = "underlineTypes";
@@ -213,6 +214,7 @@ public class WtConfiguration {
   private final List<String> definedProfiles = new ArrayList<>();
   private final List<String> allProfileKeys = new ArrayList<>();
   private final List<String> allProfileLangKeys = new ArrayList<>();
+  private final List<Color> underlineDefaultColors = new ArrayList<>();
 
   // Add new option default parameters to initOptions
   private Language lang;
@@ -319,6 +321,7 @@ public class WtConfiguration {
     configForOtherLanguages.clear();
     underlineColors.clear();
     underlineRuleColors.clear();
+    underlineDefaultColors.clear();
     underlineTypes.clear();
     underlineRuleTypes.clear();
     configurableRuleValues.clear();
@@ -464,6 +467,8 @@ public class WtConfiguration {
     this.disabledCategoryNames.addAll(configuration.disabledCategoryNames);
     this.enabledCategoryNames.clear();
     this.enabledCategoryNames.addAll(configuration.enabledCategoryNames);
+    this.underlineDefaultColors.clear();
+    this.underlineDefaultColors.addAll(configuration.underlineDefaultColors);
     this.configForOtherLanguages.clear();
     for (String key : configuration.configForOtherLanguages.keySet()) {
       this.configForOtherLanguages.put(key, configuration.configForOtherLanguages.get(key));
@@ -1255,6 +1260,29 @@ public class WtConfiguration {
   }
 
   /**
+   * @since WT 1.1
+   */
+  public List<Color> getUnderlineDefaultColors() {
+    if (underlineDefaultColors.size() != 3) {
+      List<Color> colors = new ArrayList<>();
+      colors.add(Color.BLUE);
+      colors.add(STYLE_COLOR_WT);
+      colors.add(HINT_COLOR_WT);
+      return colors;
+    }
+    return underlineDefaultColors;
+  }
+
+  /**
+   * @since WT 1.1
+   * Set the rule default colors
+   */
+  public void setUnderlineDefaultColor(List<Color> colors) {
+    underlineDefaultColors.clear();
+    underlineDefaultColors.addAll(colors);
+  }
+
+  /**
    * @since 4.2
    * Get the color to underline a rule match by the Name of its category
    */
@@ -1278,6 +1306,10 @@ public class WtConfiguration {
         return GRAMMAR_COLOR_LT;
       }
     } else {
+      if (colorSelection == 99 && underlineDefaultColors.size() == 3) {
+        return categoryIsDefault ? (!styleLikeCategories.contains(category) ? 
+            underlineDefaultColors.get(0) : underlineDefaultColors.get(1)) : underlineDefaultColors.get(2);
+      }
       if (!categoryIsDefault) {
         return colorSelection == 1 ? HINT_COLOR_BLUE : colorSelection == 3 ? HINT_COLOR_DARK : HINT_COLOR_WT;
       }
@@ -1314,7 +1346,7 @@ public class WtConfiguration {
 
   /**
    * @since 5.3
-   * Set the category color back to default (removes category from map)
+   * Set the rule color back to default (removes rule from map)
    */
   public void setDefaultUnderlineRuleColor(String ruleId) {
     underlineRuleColors.remove(ruleId);
@@ -1770,6 +1802,9 @@ public class WtConfiguration {
     String underlineRuleColorsString = (String) props.get(prefix + UNDERLINE_RULE_COLORS_KEY);
     parseUnderlineColors(underlineRuleColorsString, underlineRuleColors);
 
+    String underlineDefaultColorsString = (String) props.get(prefix + UNDERLINE_DEFAULT_COLORS_KEY);
+    parseUnderlineDefaultColors(underlineDefaultColorsString, underlineDefaultColors);
+
     String underlineTypesString = (String) props.get(prefix + UNDERLINE_TYPES_KEY);
     parseUnderlineTypes(underlineTypesString, underlineTypes);
 
@@ -1804,6 +1839,19 @@ public class WtConfiguration {
           throw new RuntimeException("Could not parse type and color, colon expected: '" + typeToColor + "'");
         }
         underlineColors.put(typeAndColor[0], Color.decode(typeAndColor[1]));
+      }
+    }
+  }
+
+  private void parseUnderlineDefaultColors(String colorsString, List<Color> colors) {
+    if (StringUtils.isNotEmpty(colorsString)) {
+      String[] colorList = colorsString.split(",");
+      if (colorList.length != 3) {
+        throw new RuntimeException("Could not parse default color, comma expected: '" + colorList + "'");
+      }
+      colors.clear();
+      for (String color : colorList) {
+        colors.add(Color.decode(color));
       }
     }
   }
@@ -1967,6 +2015,7 @@ public class WtConfiguration {
     allProfileKeys.add(ERROR_COLORS_KEY);
     allProfileKeys.add(UNDERLINE_COLORS_KEY);
     allProfileKeys.add(UNDERLINE_RULE_COLORS_KEY);
+    allProfileKeys.add(UNDERLINE_DEFAULT_COLORS_KEY);
     allProfileKeys.add(UNDERLINE_TYPES_KEY);
     allProfileKeys.add(UNDERLINE_RULE_TYPES_KEY);
     allProfileKeys.add(LT_SWITCHED_OFF_KEY);
@@ -2236,6 +2285,20 @@ public class WtConfiguration {
         sbUC.append(entry.getKey()).append(":#").append(rgb).append(", ");
       }
       props.setProperty(prefix + UNDERLINE_RULE_COLORS_KEY, sbUC.toString());
+    }
+    if (!underlineDefaultColors.isEmpty()) {
+      StringBuilder sbUC = new StringBuilder();
+      int i = 0;
+      for (Color entry : underlineDefaultColors) {
+        String rgb = Integer.toHexString(entry.getRGB());
+        rgb = rgb.substring(2);
+        if (i > 0) {
+          sbUC = sbUC.append(",");
+        }
+        sbUC.append("#").append(rgb);
+        i++;
+      }
+      props.setProperty(prefix + UNDERLINE_DEFAULT_COLORS_KEY, sbUC.toString());
     }
     if (!underlineTypes.isEmpty()) {
       StringBuilder sbUT = new StringBuilder();

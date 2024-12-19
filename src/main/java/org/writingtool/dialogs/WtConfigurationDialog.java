@@ -454,18 +454,54 @@ public class WtConfigurationDialog implements ActionListener {
       tabpane.addTab(specialTabNames[i], jPane);
     }
     
-    //    technical options tab (only office)
+    //    Default color options tab
+    if (!config.onlySingleParagraphMode()) {
+      //  NOTE: onlySingleParagraphMode is used for OO and old LO installation
+      //        different colors are not supported by such applications
+      jPane = new JPanel();
+      jPane.setLayout(new GridBagLayout());
+      cons = new GridBagConstraints();
+      cons.insets = new Insets(4, 4, 4, 4);
+      cons.gridx = 0;
+      cons.gridy = 0;
+      cons.weightx = 10.0f;
+      cons.weighty = 10.0f;
+      cons.anchor = GridBagConstraints.NORTHWEST;
+      cons.fill = GridBagConstraints.NONE;
+      jPane.add(getOfficeDefaultColorPanel(), cons);
+      String label = messages.getString("guiColorSelectionLabel");
+      if (label.endsWith(":")) {
+        label = label.substring(0, label.length() - 1);
+      }
+      tabpane.add(label, new JScrollPane(jPane));
+    }
+    
+    //    technical options tab
+    jPane = new JPanel();
+    jPane.setLayout(new GridBagLayout());
+    cons = new GridBagConstraints();
+    cons.insets = new Insets(4, 4, 4, 4);
+    cons.gridx = 0;
+    cons.gridy = 0;
+    cons.weightx = 10.0f;
+    cons.weighty = 10.0f;
+    cons.anchor = GridBagConstraints.NORTHWEST;
+    cons.fill = GridBagConstraints.NONE;
+    jPane.add(getOfficeTechnicalElements(), cons);
     String label = messages.getString("guiTechnicalSettings");
     if (label.endsWith(":")) {
       label = label.substring(0, label.length() - 1);
     }
-    tabpane.add(label, new JScrollPane(getOfficeTechnicalElements()));
+    tabpane.add(label, new JScrollPane(jPane));
     
     //    AI options tab
     //    onlySingleParagraphMode doesn't support cache so AI can't be used
     if (!config.onlySingleParagraphMode()) {
+      jPane = new JPanel();
+      jPane.setLayout(new GridBagLayout());
+      jPane.add(getOfficeAiElements(), cons);
       label = messages.getString("guiAiSupportSettings");
-      tabpane.add(label, new JScrollPane(getOfficeAiElements()));
+      tabpane.add(label, new JScrollPane(jPane));
     }
 
     Container contentPane = dialog.getContentPane();
@@ -506,6 +542,160 @@ public class WtConfigurationDialog implements ActionListener {
     dialog.setVisible(true);
     dialog.toFront();
     return configChanged;
+  }
+
+  private JPanel getOfficeDefaultColorPanel() {
+    // default color settings
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridBagLayout());
+    GridBagConstraints cons = new GridBagConstraints();
+    cons.insets = new Insets(0, SHIFT1, 0, 0);
+    cons.gridx = 0;
+    cons.gridy = 0;
+    cons.anchor = GridBagConstraints.WEST;
+    cons.fill = GridBagConstraints.NONE;
+    cons.weightx = 0.0f;
+    
+    JPanel customPanel = new JPanel();
+    customPanel.setLayout(new GridBagLayout());
+    GridBagConstraints cons1 = new GridBagConstraints();
+    cons1.gridx = 0;
+    cons1.gridy = 0;
+    cons1.weightx = 0.0f;
+    cons1.fill = GridBagConstraints.NONE;
+    cons1.anchor = GridBagConstraints.NORTHWEST;
+    
+    JLabel[] jLabels = new JLabel[3];
+    JLabel[] underlineLabels = new JLabel[3];
+    JButton[] changeButtons  = new JButton[3];
+    
+    List<Color> defaultColors = config.getUnderlineDefaultColors();
+    
+    for (int i = 0; i < 3; i++) {
+      cons1.gridx = 0;
+      cons1.gridy++;
+      cons1.insets = new Insets(3, 0, 0, 0);
+      if (i == 0) {
+        jLabels[i] = new JLabel(messages.getString("guiCustomColorGrammar") + ": ");
+      } else if (i == 1) {
+        jLabels[i] = new JLabel(messages.getString("guiCustomColorStyle") + ": ");
+      } else {
+        jLabels[i] = new JLabel(messages.getString("guiCustomColorOptional") + ": ");
+      }
+      jLabels[i].setVerticalAlignment(SwingConstants.CENTER);
+      customPanel.add(jLabels[i], cons1);
+      
+      underlineLabels[i] = new JLabel(COLOR_LABEL);
+      underlineLabels[i].setVerticalAlignment(SwingConstants.CENTER);
+      int n = i;
+      cons1.gridx++;
+      customPanel.add(underlineLabels[i], cons1);
+  
+      changeButtons[i] = new JButton(messages.getString("guiUColorChange"));
+      changeButtons[i].setVerticalAlignment(SwingConstants.CENTER);
+      changeButtons[i].addActionListener(e -> {
+        Color oldColor = underlineLabels[n].getForeground();
+        dialog.setAlwaysOnTop(false);
+        JColorChooser colorChooser = new JColorChooser(oldColor);
+        ActionListener okActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            Color newColor = colorChooser.getColor();
+            if(newColor != null && newColor != oldColor) {
+              underlineLabels[n].setForeground(newColor);
+              defaultColors.set(n, newColor);
+              config.setUnderlineDefaultColor(defaultColors);
+            }
+            dialog.setAlwaysOnTop(true);
+          }
+        };
+        // For cancel selection, change button background to red
+        ActionListener cancelActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            dialog.setAlwaysOnTop(true);
+          }
+        };
+        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+            colorChooser, okActionListener, cancelActionListener);
+        colorDialog.setAlwaysOnTop(true);
+        colorDialog.toFront();
+        colorDialog.setVisible(true);
+      });
+      cons1.gridx++;
+      cons1.insets = new Insets(1, 0, 0, 0);
+      customPanel.add(changeButtons[i], cons1);
+    
+      underlineLabels[i].setForeground(defaultColors.get(i));
+      underlineLabels[i].setBackground(defaultColors.get(i));
+    }
+
+    JPanel radioPanel = new JPanel();
+    radioPanel.setLayout(new GridBagLayout());
+    GridBagConstraints cons2 = new GridBagConstraints();
+    cons2.insets = new Insets(0, SHIFT1, 0, 0);
+    cons2.gridx = 0;
+    cons2.gridy = 0;
+    cons2.anchor = GridBagConstraints.WEST;
+    cons2.fill = GridBagConstraints.NONE;
+    cons2.weightx = 0.0f;
+    
+    JRadioButton[] radioButtons = new JRadioButton[5];
+    ButtonGroup colorSelectionGroup = new ButtonGroup();
+    radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPalette")));
+    radioButtons[0].addActionListener(e -> {
+      config.setColorSelection(0);
+      for (JButton button : changeButtons) {
+        button.setEnabled(false);
+      }
+    });
+    radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPalette")));
+    radioButtons[1].addActionListener(e -> {
+      config.setColorSelection(1);
+      for (JButton button : changeButtons) {
+        button.setEnabled(false);
+      }
+    });
+    radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPalette")));
+    radioButtons[2].addActionListener(e -> {
+      config.setColorSelection(2);
+      for (JButton button : changeButtons) {
+        button.setEnabled(false);
+      }
+    });
+    radioButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiDarkColorPalette")));
+    radioButtons[3].addActionListener(e -> {
+      config.setColorSelection(3);
+      for (JButton button : changeButtons) {
+        button.setEnabled(false);
+      }
+    });
+    radioButtons[4] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiCustomColorPalete") + ":"));
+    radioButtons[4].addActionListener(e -> {
+      config.setColorSelection(99);
+      for (JButton button : changeButtons) {
+        button.setEnabled(true);
+      }
+    });
+
+    for (int i = 0; i < 5; i++) {
+      if ((i == radioButtons.length - 1 && config.getColorSelection() == 99) || config.getColorSelection() == i) {
+        radioButtons[i].setSelected(true);
+      } else {
+        radioButtons[i].setSelected(false);
+      }
+      colorSelectionGroup.add(radioButtons[i]);
+    }
+    
+    cons.insets = new Insets(4, SHIFT1, 0, 0);
+    for (int i = 0; i < 5; i++) {
+      cons2.gridy++;
+      radioPanel.add(radioButtons[i], cons2);
+    }
+    panel.add(radioPanel, cons);
+    cons.insets = new Insets(4, SHIFT3, 0, 0);
+    cons.gridy++;
+    panel.add(customPanel, cons);
+    customPanel.setEnabled(config.getColorSelection() == 99);
+    return panel;
   }
 
   private void addOfficeLanguageElements(GridBagConstraints cons, JPanel portPanel) {
@@ -695,8 +885,8 @@ public class WtConfigurationDialog implements ActionListener {
   
   private JPanel getOfficeTechnicalElements() {
     // technical settings
-    JPanel portPanel = new JPanel();
-    portPanel.setLayout(new GridBagLayout());
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
     cons.insets = new Insets(0, SHIFT1, 0, 0);
     cons.gridx = 0;
@@ -912,7 +1102,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     for (int i = 0; i < 3; i++) {
-      portPanel.add(typeOfCheckButtons[i], cons);
+      panel.add(typeOfCheckButtons[i], cons);
       if (i < 3) cons.gridy++;
     }
 
@@ -934,7 +1124,7 @@ public class WtConfigurationDialog implements ActionListener {
     serverPanel.add(serverExampleLabel, cons1);
     cons.gridx = 0;
     cons.gridy++;
-    portPanel.add(serverPanel, cons);
+    panel.add(serverPanel, cons);
 
     JPanel premiumPanel = new JPanel();
     premiumPanel.setLayout(new GridBagLayout());
@@ -957,7 +1147,7 @@ public class WtConfigurationDialog implements ActionListener {
     premiumPanel.add(apiKeyField, cons1);
     cons.gridx = 0;
     cons.gridy++;
-    portPanel.add(premiumPanel, cons);
+    panel.add(premiumPanel, cons);
     saveCacheBox.setSelected(config.saveLoCache());
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
@@ -965,11 +1155,11 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
-    portPanel.add(saveCacheBox, cons);
+    panel.add(saveCacheBox, cons);
 
     cons.gridy++;
-    portPanel.add(getNgramPanel(), cons);
-    return portPanel;
+    panel.add(getNgramPanel(), cons);
+    return panel;
   }
   
   private void createOfficeElements(GridBagConstraints cons, JPanel portPanel) {
@@ -1062,49 +1252,6 @@ public class WtConfigurationDialog implements ActionListener {
 
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
-    
-    if (!config.onlySingleParagraphMode()) {
-      //  NOTE: onlySingleParagraphMode is used for OO and old LO installation
-      //        different colors are not supported by such applications
-      cons.gridy++;
-      portPanel.add(new JLabel(messages.getString("guiColorSelectionLabel")), cons);
-      
-      JRadioButton[] radioButtons = new JRadioButton[4];
-      ButtonGroup colorSelectionGroup = new ButtonGroup();
-      radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPallette")));
-      radioButtons[0].addActionListener(e -> {
-        config.setColorSelection(0);
-      });
-      radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPallette")));
-      radioButtons[1].addActionListener(e -> {
-        config.setColorSelection(1);
-      });
-      radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPallette")));
-      radioButtons[2].addActionListener(e -> {
-        config.setColorSelection(2);
-      });
-      radioButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiDarkColorPallette")));
-      radioButtons[3].addActionListener(e -> {
-        config.setColorSelection(3);
-      });
-  
-      for (int i = 0; i < 4; i++) {
-        if (config.getColorSelection() == i) {
-          radioButtons[i].setSelected(true);
-        } else {
-          radioButtons[i].setSelected(false);
-        }
-        colorSelectionGroup.add(radioButtons[i]);
-      }
-      
-      cons.insets = new Insets(0, SHIFT2, 0, 0);
-      for (int i = 0; i < 4; i++) {
-        cons.gridy++;
-        portPanel.add(radioButtons[i], cons);
-      }
-  
-      cons.insets = new Insets(0, SHIFT1, 0, 0);
-    }
     
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
@@ -1633,8 +1780,10 @@ public class WtConfigurationDialog implements ActionListener {
       } else if (ind == 2 || ind == 3) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGrammarAndStyle"));
       } else if (ind == 4) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
+        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));  // TODO: create own help page
       } else if (ind == 5) {
+        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
+      } else if (ind == 6) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionAiSupport"));
       }
     }
@@ -2326,9 +2475,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.NORTHWEST;
-    cons.fill = GridBagConstraints.BOTH;
-    cons.weightx = 0.0f;
+    cons.anchor = GridBagConstraints.WEST;
+    cons.fill = GridBagConstraints.HORIZONTAL;
+    cons.weightx = 10.0f;
     cons.weighty = 0.0f;
     
     JLabel otherUrlLabel = new JLabel(messages.getString("guiAiUrl") + ":");
@@ -2542,9 +2691,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.NORTHWEST;
-    cons.fill = GridBagConstraints.BOTH;
-    cons.weightx = 0.0f;
+    cons.anchor = GridBagConstraints.WEST;
+    cons.fill = GridBagConstraints.HORIZONTAL;
+    cons.weightx = 10.0f;
     cons.weighty = 0.0f;
     
     JLabel otherUrlLabel = new JLabel(messages.getString("guiAiUrl") + ":");
@@ -2688,9 +2837,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.NORTHWEST;
-    cons.fill = GridBagConstraints.BOTH;
-    cons.weightx = 0.0f;
+    cons.anchor = GridBagConstraints.WEST;
+    cons.fill = GridBagConstraints.HORIZONTAL;
+    cons.weightx = 10.0f;
     cons.weighty = 0.0f;
     
     JLabel otherUrlLabel = new JLabel(messages.getString("guiAiUrl") + ":");
