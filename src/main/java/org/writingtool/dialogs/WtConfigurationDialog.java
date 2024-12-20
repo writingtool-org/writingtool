@@ -1780,7 +1780,7 @@ public class WtConfigurationDialog implements ActionListener {
       } else if (ind == 2 || ind == 3) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGrammarAndStyle"));
       } else if (ind == 4) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));  // TODO: create own help page
+        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionDefaultColors"));
       } else if (ind == 5) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
       } else if (ind == 6) {
@@ -2468,6 +2468,28 @@ public class WtConfigurationDialog implements ActionListener {
     return colorPanel;
   }
   
+  private JPanel getAiInstallationHint() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new GridBagLayout());
+    GridBagConstraints cons = new GridBagConstraints();
+    cons.insets = new Insets(2, 2, 2, 2);
+    cons.gridx = 0;
+    cons.gridy = 0;
+    cons.weightx = 1.0f;
+    cons.fill = GridBagConstraints.HORIZONTAL;
+    cons.anchor = GridBagConstraints.NORTHWEST;
+    JLabel label = new JLabel(messages.getString("guiAiInstallationHint") + ": ");
+    panel.add(label, cons);
+    cons.gridx++;
+    cons.weightx = 1.0f;
+    JButton installButton = new JButton(messages.getString("guiAiInstallationButton"));
+    installButton.addActionListener(e -> {
+      WtGeneralTools.openURL(WtOfficeTools.getUrl("localAiInstallation"));
+    });
+    panel.add(installButton, cons);
+    return panel;
+  }
+  
   private JPanel getOfficeAiTextElements() {
     JPanel aiOptionPanel = new JPanel();
     aiOptionPanel.setLayout(new GridBagLayout());
@@ -2475,7 +2497,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.WEST;
+    cons.anchor = GridBagConstraints.NORTHWEST;
     cons.fill = GridBagConstraints.HORIZONTAL;
     cons.weightx = 10.0f;
     cons.weighty = 0.0f;
@@ -2624,6 +2646,8 @@ public class WtConfigurationDialog implements ActionListener {
     qualityHint.setForeground(Color.blue);
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
+    cons.gridy++;
+    aiOptionPanel.add(getAiInstallationHint(), cons);
     cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridy++;
     aiOptionPanel.add(useAiSupportBox, cons);
@@ -2691,7 +2715,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.WEST;
+    cons.anchor = GridBagConstraints.NORTHWEST;
     cons.fill = GridBagConstraints.HORIZONTAL;
     cons.weightx = 10.0f;
     cons.weighty = 0.0f;
@@ -2798,6 +2822,8 @@ public class WtConfigurationDialog implements ActionListener {
     qualityHint.setForeground(Color.blue);
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
+    cons.gridy++;
+    aiOptionPanel.add(getAiInstallationHint(), cons);
     cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridy++;
     aiOptionPanel.add(useAiSupportBox, cons);
@@ -2826,6 +2852,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy++;
     aiOptionPanel.add(serverPanel, cons);
+    cons.gridy++;
+    cons.weighty = 10.0f;
+    aiOptionPanel.add(new JLabel(" "), cons);
     
     return aiOptionPanel;
   }
@@ -2837,7 +2866,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(6, 6, 6, 6);
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.anchor = GridBagConstraints.WEST;
+    cons.anchor = GridBagConstraints.NORTHWEST;
     cons.fill = GridBagConstraints.HORIZONTAL;
     cons.weightx = 10.0f;
     cons.weighty = 0.0f;
@@ -2944,6 +2973,8 @@ public class WtConfigurationDialog implements ActionListener {
     qualityHint.setForeground(Color.blue);
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
+    cons.gridy++;
+    aiOptionPanel.add(getAiInstallationHint(), cons);
     cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridy++;
     aiOptionPanel.add(useAiSupportBox, cons);
@@ -2972,6 +3003,10 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy++;
     aiOptionPanel.add(serverPanel, cons);
+
+    cons.gridy++;
+    cons.weighty = 10.0f;
+    aiOptionPanel.add(new JLabel(" "), cons);
     
     return aiOptionPanel;
   }

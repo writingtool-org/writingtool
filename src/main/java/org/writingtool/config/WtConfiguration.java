@@ -1298,7 +1298,7 @@ public class WtConfiguration {
     }
     if (colorSelection == 2) {
       if (!categoryIsDefault) {
-        return HINT_COLOR_BLUE;
+        return STYLE_COLOR_BLUE;
       }
       if (styleLikeCategories.contains(category)) {
         return Color.blue;
