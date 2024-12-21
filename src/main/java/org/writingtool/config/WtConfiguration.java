@@ -1263,14 +1263,15 @@ public class WtConfiguration {
    * @since WT 1.1
    */
   public List<Color> getUnderlineDefaultColors() {
+    List<Color> colors = new ArrayList<>();
     if (underlineDefaultColors.size() != 3) {
-      List<Color> colors = new ArrayList<>();
       colors.add(Color.BLUE);
       colors.add(STYLE_COLOR_WT);
       colors.add(HINT_COLOR_WT);
-      return colors;
+    } else {
+      colors.addAll(underlineDefaultColors);
     }
-    return underlineDefaultColors;
+    return colors;
   }
 
   /**
