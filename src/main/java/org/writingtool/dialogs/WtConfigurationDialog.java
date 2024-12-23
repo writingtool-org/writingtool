@@ -667,6 +667,10 @@ public class WtConfigurationDialog implements ActionListener {
       colorSelectionGroup.add(radioButtons[i]);
     }
     
+    for (JButton button : changeButtons) {
+      button.setEnabled(config.getColorSelection() == 99);
+    }
+    
     cons.insets = new Insets(4, SHIFT1, 0, 0);
     for (int i = 0; i < 5; i++) {
       cons2.gridy++;
