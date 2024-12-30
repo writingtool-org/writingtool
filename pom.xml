@@ -179,8 +179,8 @@
         <lt-revision>6.5</lt-revision>
          -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <timestamp>${maven.build.timestamp}</timestamp>
         <!-- <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format> -->
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss Z</maven.build.timestamp.format>
