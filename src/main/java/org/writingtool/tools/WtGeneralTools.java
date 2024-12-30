@@ -25,7 +25,13 @@ import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
 import org.writingtool.config.WtConfiguration;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+
 import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileFilter;
@@ -344,5 +350,52 @@ public final class WtGeneralTools {
     }
     return String.format("<br/><br/><a href=\"%s\">%s</a>",
             url.toExternalForm(), StringUtils.abbreviate(url.toString(), 50));
+  }
+
+  public static void setJavaLookAndFeel(int theme) throws Exception {
+    switch (theme) {
+    case 1:
+      UIManager.setLookAndFeel(new FlatDarkLaf());
+      break;
+    case 2:
+      UIManager.setLookAndFeel(new FlatIntelliJLaf());
+      break;
+    case 3:
+      UIManager.setLookAndFeel(new FlatDarculaLaf());
+      break;
+    case 4:
+      // System dependent
+      // do not set look and feel for on Mac OS X as it causes the following error:
+      // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
+      if (!System.getProperty("os.name").contains("OS X")) {
+         // Cross-Platform Look And Feel @since 3.7
+         if (System.getProperty("os.name").contains("Linux")) {
+           boolean isGTK = false;
+           LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
+           if (!(lookAndFeels == null)) {
+             for (LookAndFeelInfo lookAndFeel : lookAndFeels) {
+               if ("GTK+".equals(lookAndFeel.getName())) {
+                 isGTK = true;
+                 break;
+               }
+             }
+           }
+           if (isGTK) {
+             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+           } else {
+             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+           }
+         }
+         else {
+           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+         }
+      } else {
+        UIManager.setLookAndFeel(new FlatDarkLaf());
+      }
+      break;
+    default:
+      UIManager.setLookAndFeel(new FlatLightLaf());
+      break;
+    }
   }
 }

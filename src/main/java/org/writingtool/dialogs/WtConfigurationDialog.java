@@ -33,6 +33,7 @@ import org.writingtool.config.WtRuleNode;
 import org.writingtool.config.WtSavablePanel;
 import org.writingtool.config.WtTreeListener;
 import org.writingtool.tools.WtGeneralTools;
+import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 
 import javax.swing.*;
@@ -68,6 +69,7 @@ public class WtConfigurationDialog implements ActionListener {
   private static final int SHIFT1 = 4;
   private static final int SHIFT2 = 20;
   private static final int SHIFT3 = 44;
+  private static final int YSHIFT1 = 8;
 
   private final ResourceBundle messages;
   private final WtConfiguration original;
@@ -91,6 +93,7 @@ public class WtConfigurationDialog implements ActionListener {
   private String category;
   private Rule rule;
   private boolean categoryIsDefault;
+  private int tabIndex = 0;
 
   public WtConfigurationDialog(Frame owner, WtConfiguration config) {
     this(owner, null, null, config);
@@ -308,15 +311,16 @@ public class WtConfigurationDialog implements ActionListener {
 
     cons.gridx = 0;
     cons.gridy = 0;
-    cons.weightx = 1.0f;
-    cons.weighty = 15.0f;
-    cons.fill = GridBagConstraints.BOTH;
+    cons.weightx = 10.0f;
+    cons.weighty = 1.0f;
+    cons.fill = GridBagConstraints.NONE;
     cons.anchor = GridBagConstraints.NORTHWEST;
     
     jProfilePane.add(new JScrollPane(getProfilePanel(rules)), cons);
     
     //  Disabled default rules
-    cons.weighty = 1.0f;
+    cons.fill = GridBagConstraints.BOTH;
+    cons.weighty = 0.0f;
     cons.gridy++;
     cons.insets = new Insets(16, 4, 0, 8);
     jProfilePane.add(new JLabel(addColonToMessageString("guiDisabledDefaultRules")), cons);
@@ -329,7 +333,7 @@ public class WtConfigurationDialog implements ActionListener {
     //  Enabled optional rules
     cons.gridy++;
     cons.insets = new Insets(16, 4, 0, 8);
-    cons.weighty = 1.0f;
+    cons.weighty = 0.0f;
     jProfilePane.add(new JLabel(addColonToMessageString("guiEnabledOptionalRules")), cons);
     cons.insets = new Insets(8, 4, 0, 8);
     cons.gridy++;
@@ -469,10 +473,7 @@ public class WtConfigurationDialog implements ActionListener {
       cons.anchor = GridBagConstraints.NORTHWEST;
       cons.fill = GridBagConstraints.NONE;
       jPane.add(getOfficeDefaultColorPanel(), cons);
-      String label = messages.getString("guiColorSelectionLabel");
-      if (label.endsWith(":")) {
-        label = label.substring(0, label.length() - 1);
-      }
+      String label = messages.getString("guiColorTabLabel");
       tabpane.add(label, new JScrollPane(jPane));
     }
     
@@ -531,7 +532,7 @@ public class WtConfigurationDialog implements ActionListener {
     dialog.setLocationByPlatform(true);
     //  add Profile tab after dimension was set
     tabpane.add(jProfilePane, 0);
-    tabpane.setSelectedIndex(0);
+    tabpane.setSelectedIndex(tabIndex);
     for(JPanel extra : this.extraPanels) {
       if(extra instanceof WtSavablePanel) {
         ((WtSavablePanel) extra).componentShowing();
@@ -556,6 +557,37 @@ public class WtConfigurationDialog implements ActionListener {
     cons.fill = GridBagConstraints.NONE;
     cons.weightx = 0.0f;
     
+    JPanel themePanel = new JPanel();
+    themePanel.setLayout(new GridBagLayout());
+    GridBagConstraints cons3 = new GridBagConstraints();
+    cons3.insets = new Insets(0, 0, 0, 0);
+    cons3.gridx = 0;
+    cons3.gridy = 0;
+    cons3.anchor = GridBagConstraints.WEST;
+    cons3.fill = GridBagConstraints.NONE;
+    cons3.weightx = 0.0f;
+    themePanel.add(new JLabel(messages.getString("guiThemeLabel") + ": "), cons3);
+    String[] themes = { "FlatLight", "FlatDark", "FlatIntelliJ", "FlatDarcula", "System" };
+    JComboBox<String> themeBox = new JComboBox<>(themes);
+    themeBox.setSelectedIndex(config.getThemeSelection());
+    themeBox.addItemListener(e -> {
+      if (e.getStateChange() == ItemEvent.SELECTED) {
+        if (themeBox.getSelectedIndex() != config.getThemeSelection()) {
+          config.setThemeSelection(themeBox.getSelectedIndex());
+          try {
+            WtGeneralTools.setJavaLookAndFeel(themeBox.getSelectedIndex());
+          } catch (Exception e1) {
+            WtMessageHandler.showError(e1);
+          }
+          tabIndex = 4 + config.getSpecialTabNames().length;
+          restartShow = true;
+          dialog.setVisible(false);
+        }
+      }
+    });
+    cons3.gridx++;
+    themePanel.add(themeBox, cons3);
+
     JPanel customPanel = new JPanel();
     customPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
@@ -676,6 +708,12 @@ public class WtConfigurationDialog implements ActionListener {
       cons2.gridy++;
       radioPanel.add(radioButtons[i], cons2);
     }
+    panel.add(themePanel, cons);
+    cons.gridy++;
+    panel.add(new JLabel(" "), cons);
+    cons.gridy++;
+    panel.add(new JLabel(messages.getString("guiColorSelectionLabel") + ":"), cons);
+    cons.gridy++;
     panel.add(radioPanel, cons);
     cons.insets = new Insets(4, SHIFT3, 0, 0);
     cons.gridy++;
@@ -1424,6 +1462,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy = 0;
     cons.weightx = 1.0f;
     cons.anchor = GridBagConstraints.WEST;
+    cons.fill = GridBagConstraints.NONE;
     List<String> profiles = new ArrayList<>();
     String defaultOptions = messages.getString("guiDefaultOptions");
     String userOptions = messages.getString("guiUserProfile");
@@ -1759,17 +1798,18 @@ public class WtConfigurationDialog implements ActionListener {
       dialog.setVisible(false);
     } else if ("Help".equals(e.getActionCommand())) {
       int ind = tabpane.getSelectedIndex();
+      int spTab = config.getSpecialTabNames().length;
       if (ind == 0) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionProfiles"));
       } else if (ind == 1) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGeneral"));
-      } else if (ind == 2 || ind == 3) {
+      } else if (ind >= 2 && ind <= 3 + spTab) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGrammarAndStyle"));
-      } else if (ind == 4) {
+      } else if (ind == 4 + spTab) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionDefaultColors"));
-      } else if (ind == 5) {
+      } else if (ind == 5 + spTab) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
-      } else if (ind == 6) {
+      } else if (ind == 6 + spTab) {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionAiSupport"));
       }
     }
@@ -2640,7 +2680,7 @@ public class WtConfigurationDialog implements ActionListener {
     JPanel serverPanel = new JPanel();
     serverPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, SHIFT2, 0, 0);
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     cons1.gridx = 0;
     cons1.gridy = 0;
     cons1.anchor = GridBagConstraints.WEST;
@@ -2648,14 +2688,19 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.weightx = 0.0f;
     serverPanel.add(otherUrlLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(aiUrlField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(modelLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(modelField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(apiKeyLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);
@@ -2664,6 +2709,7 @@ public class WtConfigurationDialog implements ActionListener {
     aiOptionPanel.add(serverPanel, cons);
     
     cons.gridy++;
+    cons.insets = new Insets(16, SHIFT2, 0, 0);
     aiOptionPanel.add(autoCorrectBox, cons);
     
     cons.insets = new Insets(0, SHIFT3, 0, 0);
@@ -2816,7 +2862,7 @@ public class WtConfigurationDialog implements ActionListener {
     JPanel serverPanel = new JPanel();
     serverPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, SHIFT2, 0, 0);
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     cons1.gridx = 0;
     cons1.gridy = 0;
     cons1.anchor = GridBagConstraints.WEST;
@@ -2824,14 +2870,19 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.weightx = 0.0f;
     serverPanel.add(otherUrlLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(aiUrlField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(modelLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(modelField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(apiKeyLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);
@@ -2967,7 +3018,7 @@ public class WtConfigurationDialog implements ActionListener {
     JPanel serverPanel = new JPanel();
     serverPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, SHIFT2, 0, 0);
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     cons1.gridx = 0;
     cons1.gridy = 0;
     cons1.anchor = GridBagConstraints.WEST;
@@ -2975,14 +3026,19 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.weightx = 0.0f;
     serverPanel.add(otherUrlLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(aiUrlField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(modelLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(modelField, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(YSHIFT1, SHIFT2, 0, 0);
     serverPanel.add(apiKeyLabel, cons1);
     cons1.gridy++;
+    cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);

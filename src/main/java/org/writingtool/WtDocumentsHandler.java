@@ -40,7 +40,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +66,7 @@ import org.writingtool.dialogs.WtCheckDialog.LtCheckDialog;
 import org.writingtool.languagedetectors.WtKhmerDetector;
 import org.writingtool.languagedetectors.WtTamilDetector;
 import org.writingtool.config.WtConfigThread;
+import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeDrawTools;
 import org.writingtool.tools.WtOfficeSpreadsheetTools;
@@ -125,9 +125,9 @@ public class WtDocumentsHandler {
   private Locale locale;                            //  locale for grammar check
   private final XEventListener xEventListener;
   private final XProofreader xProofreader;
-  private final File configDir;
-  private String configFile;
-  private WtConfiguration config = null;
+  private static File configDir;
+  private static String configFile;
+  private static WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
   private static Map<String, Set<String>> disabledRulesUI; //  Rules disabled by context menu or spell dialog
   private final List<Rule> extraRemoteRules;        //  store of rules supported by remote server but not locally
@@ -715,7 +715,7 @@ public class WtDocumentsHandler {
    *  get Configuration for language
    *  @throws IOException 
    */
-  public WtConfiguration getConfiguration(Language lang) throws IOException {
+  public static WtConfiguration getConfiguration(Language lang) throws IOException {
     return new WtConfiguration(configDir, configFile, lang, true);
   }
   
@@ -882,7 +882,7 @@ public class WtDocumentsHandler {
    *  Set configuration Values for all documents
    */
   private void setConfigValues(WtConfiguration config, WtLanguageTool lt) throws Throwable {
-    this.config = config;
+    WtDocumentsHandler.config = config;
     this.lt = lt;
     if (textLevelQueue != null && (heapLimitReached || config.getNumParasToCheck() == 0 || !config.useTextLevelQueue())) {
       textLevelQueue.setStop();
@@ -1654,7 +1654,7 @@ public class WtDocumentsHandler {
       if (lTool == null || !lang.equals(docLanguage)) {
         docLanguage = lang;
         lTool = initLanguageTool();
-        config = this.config;
+        config = WtDocumentsHandler.config;
       }
       config.initStyleCategories(lTool.getAllRules());
       WtConfigThread configThread = new WtConfigThread(lang, config, lTool, this);
@@ -2099,31 +2099,12 @@ public class WtDocumentsHandler {
   public static void setJavaLookAndFeel() {
     if (!javaLookAndFeelIsSet) {
       try {
-        // do not set look and feel for on Mac OS X as it causes the following error:
-        // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
-        if (!System.getProperty("os.name").contains("OS X")) {
-           // Cross-Platform Look And Feel @since 3.7
-           if (System.getProperty("os.name").contains("Linux")) {
-             boolean isGTK = false;
-             LookAndFeelInfo[] lookAndFeels = UIManager.getInstalledLookAndFeels();
-             if (!(lookAndFeels == null)) {
-               for (LookAndFeelInfo lookAndFeel : lookAndFeels) {
-                 if ("GTK+".equals(lookAndFeel.getName())) {
-                   isGTK = true;
-                   break;
-                 }
-               }
-             }
-             if (isGTK) {
-               UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-             } else {
-               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-             }
-           }
-           else {
-             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-           }
+        WtConfiguration config = WtDocumentsHandler.config;
+        if (config == null) {
+          Locale locale = new Locale("en","US","");
+          config = getConfiguration(getLanguage(locale));
         }
+        WtGeneralTools.setJavaLookAndFeel(config == null ? 0 : config.getThemeSelection());
         javaLookAndFeelIsSet = true;
       } catch (Throwable t) {
         try {
