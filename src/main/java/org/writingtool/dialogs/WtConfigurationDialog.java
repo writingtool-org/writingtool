@@ -312,8 +312,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy = 0;
     cons.weightx = 10.0f;
-    cons.weighty = 1.0f;
-    cons.fill = GridBagConstraints.NONE;
+    cons.weighty = 4.0f;
+    cons.fill = GridBagConstraints.BOTH;
     cons.anchor = GridBagConstraints.NORTHWEST;
     
     jProfilePane.add(new JScrollPane(getProfilePanel(rules)), cons);
@@ -337,7 +337,7 @@ public class WtConfigurationDialog implements ActionListener {
     jProfilePane.add(new JLabel(addColonToMessageString("guiEnabledOptionalRules")), cons);
     cons.insets = new Insets(8, 4, 0, 8);
     cons.gridy++;
-    cons.weighty = 5.0f;
+    cons.weighty = 3.0f;
     enabledRulesPanel = getChangedRulesPanel(rules, true, null);
     jProfilePane.add(new JScrollPane(enabledRulesPanel), cons);
     jProfilePane.setName(messages.getString("guiProfiles"));
