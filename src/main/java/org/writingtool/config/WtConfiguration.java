@@ -45,6 +45,7 @@ import org.languagetool.Languages;
 import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
+import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtVersionInfo;
 
@@ -195,6 +196,7 @@ public class WtConfiguration {
   private static final String BLANK = "[ \t]";
   private static final String BLANK_REPLACE = "_";
   private static final String PROFILE_DELIMITER = "__";
+  private static final String COMMA_REPLACE = "__comma__";
   
   // For new Maps, Sets or Lists add a clear to initOptions
   private final Map<String, String> configForOtherProfiles = new HashMap<>();
@@ -1945,6 +1947,10 @@ public class WtConfiguration {
     List<String> list = new ArrayList<>();
     if (value != null && !value.isEmpty()) {
       String[] names = value.split(DELIMITER);
+      for (int i = 0; i < names.length; i++) {
+        names[i] = names[i].replace(COMMA_REPLACE, DELIMITER);
+//        WtMessageHandler.printToLogFile("new Name: " + name);
+      }
       list.addAll(Arrays.asList(names));
     }
     return list;
@@ -2015,7 +2021,11 @@ public class WtConfiguration {
     if (list == null) {
       props.setProperty(key, "");
     } else {
-      props.setProperty(key, String.join(DELIMITER, list));
+      Set<String> corList = new HashSet<>();
+      for (String entry : list) {
+        corList.add(entry.replace(DELIMITER, COMMA_REPLACE));
+      }
+      props.setProperty(key, String.join(DELIMITER, corList));
     }
   }
   
