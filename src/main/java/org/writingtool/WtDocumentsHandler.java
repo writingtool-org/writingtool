@@ -1538,32 +1538,31 @@ public class WtDocumentsHandler {
             try {
               if (debugMode) {
                 WtMessageHandler.printToLogFile("MultiDocumentsHandler: moreInfo: ruleID = " 
-                              + ruleDesc.error.aRuleIdentifier + "langCode = " + ruleDesc.langCode);
+                              + ruleDesc.error.aRuleIdentifier + ", langCode = " + ruleDesc.langCode);
               }
               WtProofreadingError error = ruleDesc.error;
+              //  Try to find exact rule ID
               for (Rule rule : lt.getAllRules()) {
+//              WtMessageHandler.printToLogFile("ruleID: " + rule.getId() + "(search: " + error.aRuleIdentifier + ")");
                 if (error.aRuleIdentifier.equals(rule.getId())) {
-                  String tmp = error.aShortComment;
-                  if (StringUtils.isEmpty(tmp)) {
-                    tmp = error.aFullComment;
-                  }
-                  String msg = org.writingtool.tools.WtGeneralTools.shortenComment(tmp);
-                  String sUrl = null;
-                  for (WtPropertyValue prop : error.aProperties) {
-                    if ("FullCommentURL".equals(prop.name)) {
-                      sUrl = (String) prop.value;
-                    }
-                  }
-                  URL url = sUrl == null? null : new URL(sUrl);
-                  MoreInfoDialogThread infoThread = new MoreInfoDialogThread(msg, error.aFullComment, rule, url,
-                      messages, lt.getLanguage().getShortCodeWithCountryAndVariant());
-                  infoThread.start();
+                  showMoreInfo(error, rule);
                   return;
                 }
               }
+              //  Rule not found: Try to find a rule ID equals the beginning of the searched ID
+              for (Rule rule : lt.getAllRules()) {
+                if (error.aRuleIdentifier.startsWith(rule.getId())) {
+                  showMoreInfo(error, rule);
+                  return;
+                }
+              }
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: moreInfo: ruleID: " 
+                  + ruleDesc.error.aRuleIdentifier + " not found (langCode = " + ruleDesc.langCode + ")");
             } catch (MalformedURLException e) {
               WtMessageHandler.showError(e);
             }
+          } else {
+            WtMessageHandler.printToLogFile("Current Rule not found");
           }
           return;
         }
@@ -1572,6 +1571,25 @@ public class WtDocumentsHandler {
       WtMessageHandler.showError(t);
     }
   }
+  
+  private void showMoreInfo(WtProofreadingError error, Rule rule) throws MalformedURLException {
+    String tmp = error.aShortComment;
+    if (StringUtils.isEmpty(tmp)) {
+      tmp = error.aFullComment;
+    }
+    String msg = org.writingtool.tools.WtGeneralTools.shortenComment(tmp);
+    String sUrl = null;
+    for (WtPropertyValue prop : error.aProperties) {
+      if ("FullCommentURL".equals(prop.name)) {
+        sUrl = (String) prop.value;
+      }
+    }
+    URL url = sUrl == null? null : new URL(sUrl);
+    MoreInfoDialogThread infoThread = new MoreInfoDialogThread(msg, error.aFullComment, rule, url,
+        messages, lt.getLanguage().getShortCodeWithCountryAndVariant());
+    infoThread.start();
+  }
+
   
   /**
    * Remove a special Proofreading error from all caches
