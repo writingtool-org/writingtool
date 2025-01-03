@@ -20,7 +20,10 @@
     <repositories>
         <repository>
             <id>repo.languagetool.org</id>
-            <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>
+            <!-- URL for release  -->
+            <url>https://repo.languagetool.org/artifactory/languagetool-os-release/</url>
+            <!-- URL for snapshot  -->
+<!--            <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>  -->
 	        <snapshots>
 	            <enabled>true</enabled>
 	            <updatePolicy>daily</updatePolicy>
@@ -52,7 +55,7 @@
         <dependency>
             <groupId>org.languagetool</groupId>
             <artifactId>languagetool-http-client</artifactId>
-            <version>${lt-revision}</version>
+            <version>${lt-revision}.20</version>
         </dependency>
         <dependency>
             <groupId>org.openoffice</groupId>
@@ -171,13 +174,14 @@
     </build>
 
     <properties>
-		<!-- snapshot revision -->
+		<!-- snapshot revision 
         <revision>1.1-SNAPSHOT</revision>
         <lt-revision>6.6-SNAPSHOT</lt-revision>
-		<!-- release revision
-        <revision>1.0</revision>
+        -->
+		<!-- release revision -->
+        <revision>1.1</revision>
         <lt-revision>6.5</lt-revision>
-         -->
+        
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
