@@ -358,12 +358,6 @@ public final class WtGeneralTools {
       UIManager.setLookAndFeel(new FlatDarkLaf());
       break;
     case 2:
-      UIManager.setLookAndFeel(new FlatIntelliJLaf());
-      break;
-    case 3:
-      UIManager.setLookAndFeel(new FlatDarculaLaf());
-      break;
-    case 4:
       // System dependent
       // do not set look and feel for on Mac OS X as it causes the following error:
       // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.

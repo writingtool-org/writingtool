@@ -55,7 +55,7 @@
         <dependency>
             <groupId>org.languagetool</groupId>
             <artifactId>languagetool-http-client</artifactId>
-            <version>${lt-revision}.20</version>
+            <version>${lt-revision}</version>
         </dependency>
         <dependency>
             <groupId>org.openoffice</groupId>

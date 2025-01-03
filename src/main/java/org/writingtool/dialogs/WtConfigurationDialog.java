@@ -567,7 +567,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons3.fill = GridBagConstraints.NONE;
     cons3.weightx = 0.0f;
     themePanel.add(new JLabel(messages.getString("guiThemeLabel") + ": "), cons3);
-    String[] themes = { "FlatLight", "FlatDark", "FlatIntelliJ", "FlatDarcula", "System" };
+    String[] themes = { "FlatLight", "FlatDark", "System" };
     JComboBox<String> themeBox = new JComboBox<>(themes);
     themeBox.setSelectedIndex(config.getThemeSelection());
     themeBox.addItemListener(e -> {
