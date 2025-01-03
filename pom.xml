@@ -21,9 +21,9 @@
         <repository>
             <id>repo.languagetool.org</id>
             <!-- URL for release  -->
-            <url>https://repo.languagetool.org/artifactory/languagetool-os-release/</url>
+<!--            <url>https://repo.languagetool.org/artifactory/languagetool-os-release/</url>  -->
             <!-- URL for snapshot  -->
-<!--            <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>  -->
+            <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>
 	        <snapshots>
 	            <enabled>true</enabled>
 	            <updatePolicy>daily</updatePolicy>
@@ -174,14 +174,14 @@
     </build>
 
     <properties>
-		<!-- snapshot revision 
-        <revision>1.1-SNAPSHOT</revision>
+		<!-- snapshot revision --> 
+        <revision>1.2-SNAPSHOT</revision>
         <lt-revision>6.6-SNAPSHOT</lt-revision>
-        -->
-		<!-- release revision -->
+        
+		<!-- release revision
         <revision>1.1</revision>
         <lt-revision>6.5</lt-revision>
-        
+         -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
