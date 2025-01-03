@@ -56,6 +56,8 @@ public class WtVersionInfo {
   public static String osArch;
   public static String javaVersion;
   public static String javaVendor;
+  public static IOException ioEx;
+  public static Throwable thEx;
   
   public static void init(XComponentContext xContext) {
     setWtInfo();
@@ -69,7 +71,7 @@ public class WtVersionInfo {
    */
   public static String getWtInformation () {
     String txt = wtVersion;
-    if (wtVersion.contains("SNAPSHOT")) {
+    if (wtVersion != null && wtVersion.contains("SNAPSHOT")) {
       txt += " - " + wtBuildDate;
     }
     return txt;
@@ -145,8 +147,10 @@ public class WtVersionInfo {
             }
           }
         } catch (IOException e) {
+          ioEx = e;
         }
       } catch (Throwable e1) {
+        thEx = e1;
       }
     }
     wtName = WtOfficeTools.WT_NAME;

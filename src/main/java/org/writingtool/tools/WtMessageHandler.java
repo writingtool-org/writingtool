@@ -80,6 +80,12 @@ public class WtMessageHandler {
               + " (" + WtVersionInfo.ooVendor +"), " + WtVersionInfo.ooLocale + logLineBreak);
         }
         writer.write(WtOfficeTools.getJavaInformation() + logLineBreak + logLineBreak);
+        if (WtVersionInfo.ioEx != null) {
+          writer.write(Tools.getFullStackTrace(WtVersionInfo.ioEx) + logLineBreak + logLineBreak);
+        }
+        if (WtVersionInfo.thEx != null) {
+          writer.write(Tools.getFullStackTrace(WtVersionInfo.thEx) + logLineBreak + logLineBreak);
+        }
       } catch (Throwable t) {
         showError(t);
       }
