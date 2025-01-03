@@ -67,6 +67,7 @@ public class WtConfiguration {
   static final int FONT_STYLE_INVALID = -1;
   static final int FONT_SIZE_INVALID = -1;
   static final int DEFAULT_COLOR_SELECTION = 0;
+  static final int DEFAULT_THEME_SELECTION = 0;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
@@ -139,6 +140,7 @@ public class WtConfiguration {
   private static final String FONT_SIZE_KEY = "font.size";
   private static final String LF_NAME_KEY = "lookAndFeelName";
   private static final String COLOR_SELECTION_KEY = "colorSelection";
+  private static final String THEME_SELECTION_KEY = "themeSelection";
   private static final String ERROR_COLORS_KEY = "errorColors";
   private static final String UNDERLINE_DEFAULT_COLORS_KEY = "underlineDefaultColors";
   private static final String UNDERLINE_COLORS_KEY = "underlineColors";
@@ -236,6 +238,7 @@ public class WtConfiguration {
   private int serverPort = DEFAULT_SERVER_PORT;
   private int numParasToCheck = DEFAULT_NUM_CHECK_PARAS;
   private int colorSelection = DEFAULT_COLOR_SELECTION;
+  private int themeSelection = DEFAULT_THEME_SELECTION;
   private boolean doResetCheck = DEFAULT_DO_RESET;
   private boolean isMultiThreadLO = DEFAULT_MULTI_THREAD;
   private boolean noBackgroundCheck = DEFAULT_NO_BACKGROUND_CHECK;
@@ -346,6 +349,7 @@ public class WtConfiguration {
     serverPort = DEFAULT_SERVER_PORT;
     numParasToCheck = DEFAULT_NUM_CHECK_PARAS;
     colorSelection = DEFAULT_COLOR_SELECTION;
+    themeSelection = DEFAULT_THEME_SELECTION;
     doResetCheck = DEFAULT_DO_RESET;
     isMultiThreadLO = DEFAULT_MULTI_THREAD;
     noBackgroundCheck = DEFAULT_NO_BACKGROUND_CHECK;
@@ -419,6 +423,7 @@ public class WtConfiguration {
     this.serverPort = configuration.serverPort;
     this.numParasToCheck = configuration.numParasToCheck;
     this.colorSelection = configuration.colorSelection;
+    this.themeSelection = configuration.themeSelection;
     this.doResetCheck = configuration.doResetCheck;
     this.useTextLevelQueue = configuration.useTextLevelQueue;
     this.noBackgroundCheck = configuration.noBackgroundCheck;
@@ -942,6 +947,22 @@ public class WtConfiguration {
    */
   public void setColorSelection(int colorSelection) {
     this.colorSelection = colorSelection;
+  }
+
+  /**
+   * get the color model selected
+   * @since WT 1.0
+   */
+  public int getThemeSelection() {
+    return themeSelection;
+  }
+
+  /**
+   * set the color model to use
+   * @since WT 1.0
+   */
+  public void setThemeSelection(int themeSelection) {
+    this.themeSelection = themeSelection;
   }
 
   /**
@@ -1625,6 +1646,11 @@ public class WtConfiguration {
       colorSelection = Integer.parseInt(colorSelectionString);
     }
 
+    String themeSelectionString = (String) props.get(prefix + THEME_SELECTION_KEY);
+    if (themeSelectionString != null) {
+      themeSelection = Integer.parseInt(themeSelectionString);
+    }
+
     String resetCheckString = (String) props.get(prefix + RESET_CHECK_KEY);
     if (resetCheckString != null) {
       doResetCheck = Boolean.parseBoolean(resetCheckString);
@@ -2014,6 +2040,7 @@ public class WtConfiguration {
     allProfileKeys.add(NO_DEFAULT_CHECK_KEY);
     allProfileKeys.add(PARA_CHECK_KEY);
     allProfileKeys.add(COLOR_SELECTION_KEY);
+    allProfileKeys.add(THEME_SELECTION_KEY);
     allProfileKeys.add(RESET_CHECK_KEY);
     allProfileKeys.add(USE_QUEUE_KEY);
     allProfileKeys.add(NO_BACKGROUND_CHECK_KEY);
@@ -2134,6 +2161,9 @@ public class WtConfiguration {
     }
     if (colorSelection != DEFAULT_COLOR_SELECTION) {
       props.setProperty(prefix + COLOR_SELECTION_KEY, Integer.toString(colorSelection));
+    }
+    if (themeSelection != DEFAULT_THEME_SELECTION) {
+      props.setProperty(prefix + THEME_SELECTION_KEY, Integer.toString(themeSelection));
     }
     if (doResetCheck != DEFAULT_DO_RESET) {
       props.setProperty(prefix + RESET_CHECK_KEY, Boolean.toString(doResetCheck));

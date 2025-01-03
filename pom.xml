@@ -82,6 +82,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>${flatlaf.version}</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
@@ -207,6 +212,7 @@
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <dependency-check-maven.pluging.version>7.4.4</dependency-check-maven.pluging.version>
         <flatten.version>1.4.1</flatten.version>
+        <flatlaf.version>3.5.4</flatlaf.version>
         <sortpom-maven.plugin.version>3.2.1</sortpom-maven.plugin.version>
     </properties>
 
