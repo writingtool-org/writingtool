@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 import org.languagetool.JLanguageTool;
@@ -130,6 +131,7 @@ public class WtVersionInfo {
         String dir = resource.getPath();
         dir = dir.substring(5, dir.indexOf("!"));  // get jar file
         dir = dir.substring(0, dir.lastIndexOf("/"));  // get directory
+        dir = URLDecoder.decode(dir, "UTF-8");  // decode URL
         File vFile = new File(dir, "version.txt");
         try (InputStream stream = new FileInputStream(vFile);
             InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
@@ -159,6 +161,7 @@ public class WtVersionInfo {
   /**
    * Set LT Information
    */
+  @SuppressWarnings("deprecation")
   private static void setLtInfo() {
     ltName = "LanguageTool";
     ltVersion = JLanguageTool.VERSION;

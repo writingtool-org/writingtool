@@ -297,7 +297,7 @@ public class WtTextLevelCheckQueue {
     }
     lt = null;
     try {
-      WtConfiguration config = multiDocHandler.getConfiguration(language);
+      WtConfiguration config = WtDocumentsHandler.getConfiguration(language);
       WtLinguisticServices linguServices = multiDocHandler.getLinguisticServices();
       linguServices.setNoSynonymsAsSuggestions(config.noSynonymsAsSuggestions() || multiDocHandler.isTestMode());
       Language fixedLanguage = config.getDefaultLanguage();

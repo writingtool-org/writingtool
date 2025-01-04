@@ -145,7 +145,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("TextLevelCheckQueue: initLangtool: language = " + (language == null ? "null" : language.getShortCodeWithCountryAndVariant()));
       }
-      WtConfiguration config = multiDocHandler.getConfiguration(language);
+      WtConfiguration config = WtDocumentsHandler.getConfiguration(language);
       WtLinguisticServices linguServices = multiDocHandler.getLinguisticServices();
       linguServices.setNoSynonymsAsSuggestions(config.noSynonymsAsSuggestions() || multiDocHandler.isTestMode());
       Language fixedLanguage = config.getDefaultLanguage();

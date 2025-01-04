@@ -25,9 +25,7 @@ import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
 import org.writingtool.config.WtConfiguration;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
