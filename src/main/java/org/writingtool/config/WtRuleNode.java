@@ -45,7 +45,7 @@ public class WtRuleNode extends DefaultMutableTreeNode {
     return enabled;
   }
 
-  void setEnabled(boolean enabled) {
+  public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
 

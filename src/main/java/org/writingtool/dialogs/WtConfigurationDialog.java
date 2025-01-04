@@ -1416,6 +1416,14 @@ public class WtConfigurationDialog implements ActionListener {
       };
   }
 
+  private boolean getDefaultRuleState(Rule rule) {
+    boolean ret = true;
+    if ((rule.isDefaultOff() && !rule.isOfficeDefaultOn()) || rule.isOfficeDefaultOff() || rule.getCategory().isDefaultOff()) {
+      ret = false;
+    }
+    return ret;
+  }
+
   @NotNull
   private JPanel getTreeButtonPanel(int num) {
     GridBagConstraints cons;
@@ -1423,6 +1431,61 @@ public class WtConfigurationDialog implements ActionListener {
     cons = new GridBagConstraints();
     cons.gridx = 0;
     cons.gridy = 0;
+    cons.weightx = 0;
+    cons.weighty = 0;
+    JButton selectAllButton = new JButton(messages.getString("guiSelectAll"));
+    treeButtonPanel.add(selectAllButton, cons);
+    selectAllButton.addActionListener(e -> {
+      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+        n.setEnabled(true);
+        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+          WtRuleNode r = (WtRuleNode) rul.nextElement();
+          r.setEnabled(true);
+        }
+      }
+      configTree[num].repaint();
+    });
+
+    cons.gridx++;
+    JButton deselectAllButton = new JButton(messages.getString("guiDeselectAll"));
+    treeButtonPanel.add(deselectAllButton, cons);
+    deselectAllButton.addActionListener(e -> {
+      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+        n.setEnabled(false);
+        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+          WtRuleNode r = (WtRuleNode) rul.nextElement();
+          r.setEnabled(false);
+        }
+      }
+      configTree[num].repaint();
+    });
+
+    cons.gridx++;
+    JButton defaultButton = new JButton(messages.getString("guiDefault"));
+    treeButtonPanel.add(defaultButton, cons);
+    defaultButton.addActionListener(e -> {
+      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+        n.setEnabled(!n.getCategory().isDefaultOff());
+        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+          WtRuleNode r = (WtRuleNode) rul.nextElement();
+          r.setEnabled(getDefaultRuleState(r.getRule()));
+        }
+      }
+      configTree[num].repaint();
+    });
+    
+    cons.weightx = 10;
+    cons.gridx++;
+    treeButtonPanel.add(new JLabel(" "), cons);
+
+    cons.weightx = 0;
+    cons.gridx++;
     JButton expandAllButton = new JButton(messages.getString("guiExpandAll"));
     treeButtonPanel.add(expandAllButton, cons);
     expandAllButton.addActionListener(e -> {
@@ -1434,9 +1497,7 @@ public class WtConfigurationDialog implements ActionListener {
         configTree[num].expandPath(child);
       }
     });
-
-    cons.gridx = 1;
-    cons.gridy = 0;
+    cons.gridx++;
     JButton collapseAllButton = new JButton(messages.getString("guiCollapseAll"));
     treeButtonPanel.add(collapseAllButton, cons);
     collapseAllButton.addActionListener(e -> {
