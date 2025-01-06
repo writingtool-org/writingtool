@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -885,7 +886,7 @@ public class WtOfficeTools {
   
   public static boolean hasStatisticalStyleRules(Language lang) {
     try {
-      for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, null)) {
+      for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, new ArrayList<>())) {
         if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
             rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
           return true;
