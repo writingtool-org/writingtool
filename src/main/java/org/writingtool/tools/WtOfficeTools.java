@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -72,7 +72,7 @@ import com.sun.star.uno.XComponentContext;
 
 /**
  * Some tools to get information of LibreOffice/OpenOffice document context
- * @since 4.3
+ * @since 1.0
  * @author Fred Kruse
  */
 public class WtOfficeTools {

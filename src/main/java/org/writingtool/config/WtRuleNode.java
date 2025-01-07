@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@ import org.languagetool.rules.Rule;
 
 /**
  * @author Panagiotis Minos
- * @since 2.6
+ * @since 1.0
  */
 public class WtRuleNode extends DefaultMutableTreeNode {
 

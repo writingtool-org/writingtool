@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ import org.writingtool.tools.WtOfficeTools;
 /**
  * class to store all text level rules sorted by the minimum to check paragraphs
  * (currently only full text check and all other text level rules)
- * @since 5.3
+ * @since 1.0
  * @author Fred Kruse
  */
 public class WtSortedTextRules { 

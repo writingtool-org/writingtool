@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@ import org.writingtool.tools.WtOfficeTools;
 
 /**
  * Adapter between LT Rules and Analyzes Dialog 
- * @since 6.2
+ * @since 1.0
  * @author Fred Kruse
  */
 public class WtLevelRule {

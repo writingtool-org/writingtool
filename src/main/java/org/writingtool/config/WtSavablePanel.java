@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ import org.writingtool.dialogs.WtConfigurationDialog;
  * See {@link WtConfigurationDialog#addExtraPanel}
  *
  * @author Panagiotis Minos
- * @since 3.4
+ * @since 1.0
  */
 public interface WtSavablePanel {
 

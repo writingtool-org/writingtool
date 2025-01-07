@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@ import org.languagetool.Languages;
 import org.languagetool.languagemodel.LuceneLanguageModel;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtCategoryNode;
 import org.writingtool.config.WtCheckBoxTreeCellRenderer;
 import org.writingtool.config.WtConfiguration;
@@ -626,12 +627,19 @@ public class WtConfigurationDialog implements ActionListener {
       changeButtons[i] = new JButton(messages.getString("guiUColorChange"));
       changeButtons[i].setVerticalAlignment(SwingConstants.CENTER);
       changeButtons[i].addActionListener(e -> {
-        Color oldColor = underlineLabels[n].getForeground();
-        Color newColor = JColorChooser.showDialog(dialog, messages.getString("guiUColorDialogHeader"), oldColor);
-        if(newColor != null && !newColor.equals(oldColor)) {
-          underlineLabels[n].setForeground(newColor);
-          defaultColors.set(n, newColor);
-          config.setUnderlineDefaultColor(defaultColors);
+        try {
+          int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+          WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+          Color oldColor = underlineLabels[n].getForeground();
+          Color newColor = JColorChooser.showDialog(dialog, messages.getString("guiUColorDialogHeader"), oldColor);
+          if(newColor != null && !newColor.equals(oldColor)) {
+            underlineLabels[n].setForeground(newColor);
+            defaultColors.set(n, newColor);
+            config.setUnderlineDefaultColor(defaultColors);
+          }
+          WtGeneralTools.setJavaLookAndFeel(theme);
+        } catch (Exception e1) {
+          WtMessageHandler.printException(e1);
         }
       });
       cons1.gridx++;
@@ -949,7 +957,7 @@ public class WtConfigurationDialog implements ActionListener {
     JCheckBox useServerBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUseServer")) + " ");
     useServerBox.setSelected(config.useOtherServer());
     useServerBox.addItemListener(e -> {
-      int select = JOptionPane.OK_OPTION;
+      int select = WtOptionPane.OK_OPTION;
       boolean selected = useServerBox.isSelected();
       if(selected && firstSelection) {
         select = showRemoteServerHint(useServerBox, true);
@@ -957,7 +965,7 @@ public class WtConfigurationDialog implements ActionListener {
       } else {
         firstSelection = true;
       }
-      if(select == JOptionPane.OK_OPTION) {
+      if(select == WtOptionPane.OK_OPTION) {
         useServerBox.setSelected(selected);
         config.setUseOtherServer(useServerBox.isSelected());
         otherServerNameField.setEnabled(useServerBox.isSelected());
@@ -1058,7 +1066,7 @@ public class WtConfigurationDialog implements ActionListener {
     });
     typeOfCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseRemoteServer")));
     typeOfCheckButtons[2].addActionListener(e -> {
-      int select = JOptionPane.OK_OPTION;
+      int select = WtOptionPane.OK_OPTION;
       boolean selected = typeOfCheckButtons[2].isSelected();
       if(selected && firstSelection) {
         select = showRemoteServerHint(typeOfCheckButtons[2], false);
@@ -1066,7 +1074,7 @@ public class WtConfigurationDialog implements ActionListener {
       } else {
         firstSelection = true;
       }
-      if(select == JOptionPane.OK_OPTION) {
+      if(select == WtOptionPane.OK_OPTION) {
 //        typeOfCheckButtons[2].setSelected(selected);
         otherServerNameField.setEnabled(useServerBox.isSelected());
         useServerBox.setEnabled(true);
@@ -1292,12 +1300,12 @@ public class WtConfigurationDialog implements ActionListener {
   
   private int showRemoteServerHint(Component component, boolean otherServer) {
     if(config.useOtherServer() || otherServer) {
-        return JOptionPane.showConfirmDialog(component, 
+        return WtOptionPane.showConfirmDialog(component, 
             MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), config.getServerUrl()), 
-          messages.getString("loMenuRemoteInfo"), JOptionPane.OK_CANCEL_OPTION);
+          messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     } else {
-      return JOptionPane.showConfirmDialog(component, messages.getString("loRemoteInfoDefaultServer"), 
-          messages.getString("loMenuRemoteInfo"), JOptionPane.OK_CANCEL_OPTION);
+      return WtOptionPane.showConfirmDialog(component, messages.getString("loRemoteInfoDefaultServer"), 
+          messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     }
   }
 
@@ -1577,7 +1585,7 @@ public class WtConfigurationDialog implements ActionListener {
       boolean noName = true;
       String profileName = (String) profileBox.getSelectedItem();
       while (noName) {
-        profileName = JOptionPane.showInputDialog(dialog, messages.getString("guiRenameProfile") + ":", profileName);
+        profileName = WtOptionPane.showInputDialog(dialog, messages.getString("guiRenameProfile") + ":", profileName);
         if (profileName == null || profileName.equals("")) {
           break;
         }
@@ -1661,7 +1669,7 @@ public class WtConfigurationDialog implements ActionListener {
       boolean noName = true;
       String profileName = "";
       while (noName) {
-        profileName = JOptionPane.showInputDialog(dialog, messages.getString("guiAddNewProfile"), profileName);
+        profileName = WtOptionPane.showInputDialog(dialog, messages.getString("guiAddNewProfile"), profileName);
         if (profileName == null || profileName.equals("")) {
           break;
         }
@@ -1839,7 +1847,7 @@ public class WtConfigurationDialog implements ActionListener {
         String serverName = config.getServerUrl();
         if(serverName == null || (!serverName.startsWith("http://") && !serverName.startsWith("https://"))
             || serverName.endsWith("/") || serverName.endsWith("/v2")) {
-          JOptionPane.showMessageDialog(dialog, WtGeneralTools.getLabel(messages.getString("guiUseServerWarning1")) + "\n" + WtGeneralTools.getLabel(messages.getString("guiUseServerWarning2")));
+          WtOptionPane.showMessageDialog(dialog, WtGeneralTools.getLabel(messages.getString("guiUseServerWarning1")) + "\n" + WtGeneralTools.getLabel(messages.getString("guiUseServerWarning2")));
           if(serverName.endsWith("/")) {
             serverName = serverName.substring(0, serverName.length() - 1);
             config.setOtherServerUrl(serverName);
@@ -1945,7 +1953,7 @@ public class WtConfigurationDialog implements ActionListener {
     } else {
       panel.removeAll();
     }
-    panel.setBackground(new Color(169,169,169));
+//    panel.setBackground(new Color(169,169,169));
     panel.setBorder(BorderFactory.createLineBorder(Color.black));
     panel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
@@ -2118,7 +2126,7 @@ public class WtConfigurationDialog implements ActionListener {
         Color oldColor = uLabel.getForeground();
         dialog.setAlwaysOnTop(false);
         
-        JColorChooser colorChooser = new JColorChooser(oldColor);
+        WtColorChooser colorChooser = new WtColorChooser(oldColor);
         ActionListener okActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
             Color newColor = colorChooser.getColor();
@@ -2135,7 +2143,7 @@ public class WtConfigurationDialog implements ActionListener {
             dialog.setAlwaysOnTop(true);
           }
         };
-        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+        JDialog colorDialog = WtColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
             colorChooser, okActionListener, cancelActionListener);
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
@@ -2217,32 +2225,39 @@ public class WtConfigurationDialog implements ActionListener {
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
       dialog.setAlwaysOnTop(false);
-      JColorChooser colorChooser = new JColorChooser(oldColor);
-      ActionListener okActionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent actionEvent) {
-          Color newColor = colorChooser.getColor();
-          if(newColor != null && newColor != oldColor) {
-            underlineLabel.setForeground(newColor);
-            if (rule == null) {
-              config.setUnderlineColor(category, newColor);
-            } else {
-              config.setUnderlineRuleColor(rule.getId(), newColor);
+      try {
+        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+        JColorChooser colorChooser = new JColorChooser(oldColor);
+        ActionListener okActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            Color newColor = colorChooser.getColor();
+            if(newColor != null && newColor != oldColor) {
+              underlineLabel.setForeground(newColor);
+              if (rule == null) {
+                config.setUnderlineColor(category, newColor);
+              } else {
+                config.setUnderlineRuleColor(rule.getId(), newColor);
+              }
             }
+            dialog.setAlwaysOnTop(true);
           }
-          dialog.setAlwaysOnTop(true);
-        }
-      };
-      // For cancel selection, change button background to red
-      ActionListener cancelActionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent actionEvent) {
-          dialog.setAlwaysOnTop(true);
-        }
-      };
-      JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
-          colorChooser, okActionListener, cancelActionListener);
-      colorDialog.setAlwaysOnTop(true);
-      colorDialog.toFront();
-      colorDialog.setVisible(true);
+        };
+        // For cancel selection, change button background to red
+        ActionListener cancelActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            dialog.setAlwaysOnTop(true);
+          }
+        };
+        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+            colorChooser, okActionListener, cancelActionListener);
+        colorDialog.setAlwaysOnTop(true);
+        colorDialog.toFront();
+        colorDialog.setVisible(true);
+        WtGeneralTools.setJavaLookAndFeel(theme);
+      } catch (Exception e1) {
+        WtMessageHandler.printException(e1);
+      }
     });
     cons1.gridx++;
     colorPanel.add(changeButton);
@@ -2499,32 +2514,39 @@ public class WtConfigurationDialog implements ActionListener {
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
       dialog.setAlwaysOnTop(false);
-      JColorChooser colorChooser = new JColorChooser(oldColor);
-      ActionListener okActionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent actionEvent) {
-          Color newColor = colorChooser.getColor();
-          if(newColor != null && newColor != oldColor) {
-            underlineLabel.setForeground(newColor);
-            if (ruleId == null) {
-              config.setUnderlineColor(category, newColor);
-            } else {
-              config.setUnderlineRuleColor(ruleId, newColor);
+      try {
+        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+        JColorChooser colorChooser = new JColorChooser(oldColor);
+        ActionListener okActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            Color newColor = colorChooser.getColor();
+            if(newColor != null && newColor != oldColor) {
+              underlineLabel.setForeground(newColor);
+              if (ruleId == null) {
+                config.setUnderlineColor(category, newColor);
+              } else {
+                config.setUnderlineRuleColor(ruleId, newColor);
+              }
             }
+            dialog.setAlwaysOnTop(true);
           }
-          dialog.setAlwaysOnTop(true);
-        }
-      };
-      // For cancel selection, change button background to red
-      ActionListener cancelActionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent actionEvent) {
-          dialog.setAlwaysOnTop(true);
-        }
-      };
-      JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
-          colorChooser, okActionListener, cancelActionListener);
-      colorDialog.setAlwaysOnTop(true);
-      colorDialog.toFront();
-      colorDialog.setVisible(true);
+        };
+        // For cancel selection, change button background to red
+        ActionListener cancelActionListener = new ActionListener() {
+          public void actionPerformed(ActionEvent actionEvent) {
+            dialog.setAlwaysOnTop(true);
+          }
+        };
+        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+            colorChooser, okActionListener, cancelActionListener);
+        colorDialog.setAlwaysOnTop(true);
+        colorDialog.toFront();
+        colorDialog.setVisible(true);
+        WtGeneralTools.setJavaLookAndFeel(theme);
+      } catch (Exception e1) {
+        WtMessageHandler.printException(e1);
+      }
     });
     cons1.gridx++;
     colorPanel.add(changeButton);
@@ -2610,7 +2632,7 @@ public class WtConfigurationDialog implements ActionListener {
           serverName = null;
         }
         if (config.isValidAiServerUrl(serverName)) {
-          aiUrlField.setForeground(Color.BLACK);
+          aiUrlField.setForeground(null);
           config.setAiUrl(serverName);;
         } else {
           aiUrlField.setForeground(Color.RED);
@@ -2730,7 +2752,11 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     aiOptionPanel.add(experimentalHint, cons);
     JLabel qualityHint = new JLabel(messages.getString("guiAiQualityHint"));
-    qualityHint.setForeground(Color.blue);
+    if (config.getThemeSelection() == WtGeneralTools.THEME_FLATDARK) {
+      qualityHint.setForeground(WtConfiguration.HINT_COLOR_BLUE);
+    } else {
+      qualityHint.setForeground(Color.blue);
+    }
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
     cons.gridy++;
@@ -2912,7 +2938,11 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     aiOptionPanel.add(experimentalHint, cons);
     JLabel qualityHint = new JLabel(messages.getString("guiAiQualityHint"));
-    qualityHint.setForeground(Color.blue);
+    if (config.getThemeSelection() == WtGeneralTools.THEME_FLATDARK) {
+      qualityHint.setForeground(WtConfiguration.HINT_COLOR_BLUE);
+    } else {
+      qualityHint.setForeground(Color.blue);
+    }
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
     cons.gridy++;
@@ -3068,7 +3098,11 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     aiOptionPanel.add(experimentalHint, cons);
     JLabel qualityHint = new JLabel(messages.getString("guiAiQualityHint"));
-    qualityHint.setForeground(Color.blue);
+    if (config.getThemeSelection() == WtGeneralTools.THEME_FLATDARK) {
+      qualityHint.setForeground(WtConfiguration.HINT_COLOR_BLUE);
+    } else {
+      qualityHint.setForeground(Color.blue);
+    }
     cons.gridy++;
     aiOptionPanel.add(qualityHint, cons);
     cons.gridy++;

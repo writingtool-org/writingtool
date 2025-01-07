@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,7 +54,7 @@ import org.writingtool.tools.WtVersionInfo;
 
 /**
  * Dialog to change paragraphs by AI
- * @since WT 1.1
+ * @since 1.1
  * @author Fred Kruse
  */
 public class WtAiResultDialog extends Thread implements ActionListener {
@@ -78,7 +78,6 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   private final JPanel mainPanel;
 
   private WtSingleDocument currentDocument;
-  private WtDocumentsHandler documents;
   private DocumentType documentType;
   private TextParagraph yPara;
   
@@ -90,13 +89,12 @@ public class WtAiResultDialog extends Thread implements ActionListener {
    * the constructor of the class creates all elements of the dialog
    */
   public WtAiResultDialog(WtSingleDocument document, ResourceBundle messages) {
-    documents = document.getMultiDocumentsHandler();
     long startTime = 0;
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
     }
     ltImage = WtOfficeTools.getLtImage();
-    if (!documents.isJavaLookAndFeelSet()) {
+    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
       WtDocumentsHandler.setJavaLookAndFeel();
     }
     

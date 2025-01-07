@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ import com.sun.star.text.TextMarkupType;
  * Note: There can be some parallel requests from background iteration, dialog, right mouse click or LT text level iteration
  * Gives back the matches found by LT
  * Adds matches to result cache
- * @since 5.3
+ * @since 1.0
  * @author Fred Kruse, (including some methods developed by Marcin Miłkowski)
  */
 public class WtSingleCheck {

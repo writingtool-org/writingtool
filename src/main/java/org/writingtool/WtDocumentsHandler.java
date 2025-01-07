@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -97,7 +97,7 @@ import com.sun.star.uno.XComponentContext;
 
 /**
  * Class to handle multiple LO documents for checking
- * @since 4.3
+ * @since 1.0
  * @author Fred Kruse, Marcin Miłkowski
  */
 public class WtDocumentsHandler {
@@ -164,7 +164,7 @@ public class WtDocumentsHandler {
   private boolean isNotTextDocument = false;
   private int heapCheckInterval = HEAP_CHECK_INTERVAL;
   private boolean testMode = false;
-  private static boolean javaLookAndFeelIsSet = false;
+  private static int javaLookAndFeelSet = -1;
   private boolean isHelperDisposed = false;
   private boolean statAnDialogRunning = false;
 
@@ -236,9 +236,6 @@ public class WtDocumentsHandler {
    */
   ProofreadingResult getCheckResults(String paraText, Locale locale, ProofreadingResult paRes, 
       PropertyValue[] propertyValues, boolean docReset) throws Throwable {
-    if (lt == null) {
-      setJavaLookAndFeel();
-    }
     if (!hasLocale(locale)) {
       docLanguage = null;
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Sorry, don't have locale: " + WtOfficeTools.localeToString(locale));
@@ -264,6 +261,9 @@ public class WtDocumentsHandler {
           extraRemoteRules.clear();
         }
         lt = initLanguageTool();
+        if (javaLookAndFeelSet < 0) {
+          setJavaLookAndFeel();
+        }
         if (initDocs) {
           initDocuments(true);
         }
@@ -1238,8 +1238,12 @@ public class WtDocumentsHandler {
   /**
    * true, if Java look and feel is set
    */
-  public boolean isJavaLookAndFeelSet() {
-    return javaLookAndFeelIsSet;
+  public static boolean isJavaLookAndFeelSet() {
+    return javaLookAndFeelSet >= 0;
+  }
+
+  public static int getJavaLookAndFeelSet() {
+    return javaLookAndFeelSet;
   }
 
   /**
@@ -1794,6 +1798,7 @@ public class WtDocumentsHandler {
     if (config != null) {
       noBackgroundCheck = config.noBackgroundCheck();
     }
+    javaLookAndFeelSet = -1;
     resetIgnoredMatches();
     resetResultCaches(true);
     resetDocument();
@@ -2115,15 +2120,15 @@ public class WtDocumentsHandler {
    * 
    */
   public static void setJavaLookAndFeel() {
-    if (!javaLookAndFeelIsSet) {
+    if (javaLookAndFeelSet < 0) {
       try {
         WtConfiguration config = WtDocumentsHandler.config;
         if (config == null) {
           Locale locale = new Locale("en","US","");
           config = getConfiguration(getLanguage(locale));
         }
-        WtGeneralTools.setJavaLookAndFeel(config == null ? 0 : config.getThemeSelection());
-        javaLookAndFeelIsSet = true;
+        javaLookAndFeelSet = config == null ? -1 : config.getThemeSelection();
+        WtGeneralTools.setJavaLookAndFeel(javaLookAndFeelSet < 0 ? 0 : javaLookAndFeelSet);
       } catch (Throwable t) {
         try {
           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -2480,6 +2485,9 @@ public class WtDocumentsHandler {
       this.dialogName = dialogName;
       this.text = text;
       progressBar = new JProgressBar();
+      if (!isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
     }
 
     @Override

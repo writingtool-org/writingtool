@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ import org.writingtool.tools.WtOfficeTools.DocumentType;
 
 /**
  * Class of a queue to handle check of AI error detection
- * @since 6.5
+ * @since 1.0
  * @author Fred Kruse
  */
 public class WtAiCheckQueue extends WtTextLevelCheckQueue {

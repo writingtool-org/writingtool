@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,12 +32,14 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import org.languagetool.tools.Tools;
+import org.writingtool.WtDocumentsHandler;
+import org.writingtool.dialogs.WtOptionPane;
 
 import com.sun.star.uno.XComponentContext;
 
 /**
  * Writes Messages to screen or log-file
- * @since 4.3
+ * @since 1.0
  * @author Fred Kruse, Marcin Miłkowski
  */
 public class WtMessageHandler {
@@ -228,8 +230,14 @@ public class WtMessageHandler {
     private boolean isException;
 
     DialogThread(String text, boolean isException) {
+      if (text == null || text.isBlank()) {
+        text = "Error empty text";
+      }
       this.text = text;
       this.isException = isException;
+      if (WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
     }
 
     @Override
@@ -237,11 +245,11 @@ public class WtMessageHandler {
       if (isException) {
         if (!isOpen) {
           isOpen = true;
-          JOptionPane.showMessageDialog(null, text);
+          WtOptionPane.showMessageDialog(null, text);
           isOpen = false;
         }
       } else {
-        JOptionPane.showMessageDialog(null, text);
+        WtOptionPane.showMessageDialog(null, text);
       }
     }
   }
@@ -260,21 +268,28 @@ public class WtMessageHandler {
 
     @Override
     public void run() {
-      JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
-      dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
-      dialog.setModal(false);
-      dialog.setAutoRequestFocus(true);
-      dialog.setAlwaysOnTop(true);
-      dialog.addWindowFocusListener(new WindowFocusListener() {
-        @Override
-        public void windowGainedFocus(WindowEvent e) {
-        }
-        @Override
-        public void windowLostFocus(WindowEvent e) {
-          dialog.setVisible(false);
-        }
-      });
-      dialog.setVisible(true);
+      try {
+        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+        JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
+        dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
+        dialog.setModal(false);
+        dialog.setAutoRequestFocus(true);
+        dialog.setAlwaysOnTop(true);
+        dialog.addWindowFocusListener(new WindowFocusListener() {
+          @Override
+          public void windowGainedFocus(WindowEvent e) {
+          }
+          @Override
+          public void windowLostFocus(WindowEvent e) {
+            dialog.setVisible(false);
+          }
+        });
+        dialog.setVisible(true);
+        WtGeneralTools.setJavaLookAndFeel(theme);
+      } catch (Exception e) {
+        WtMessageHandler.printException(e);
+      }
     }
   }
   

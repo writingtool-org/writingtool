@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool 
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@ import org.languagetool.rules.*;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.dialogs.WtOptionPane;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -50,6 +51,10 @@ import org.apache.commons.lang3.SystemUtils;
  * @author Fred Kruse
  */
 public final class WtGeneralTools {
+  
+  public final static int THEME_FLATLIGHT = 0;
+  public final static int THEME_FLATDARK = 1;
+  public final static int THEME_SYSTEM = 2;
 
   private WtGeneralTools() {
     // no public constructor
@@ -101,7 +106,7 @@ public final class WtGeneralTools {
   public static void showError(Exception e) {
     String stackTrace = org.languagetool.tools.Tools.getFullStackTrace(e);
     String msg = "<html><p style='width: 600px;'>" + StringTools.escapeHTML(stackTrace);
-    JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    WtOptionPane.showMessageDialog(null, msg, "Error", WtOptionPane.ERROR_MESSAGE);
     e.printStackTrace();
   }
 
@@ -111,7 +116,7 @@ public final class WtGeneralTools {
    */
   public static void showErrorMessage(Exception e, Component parent) {
     String msg = e.getMessage();
-    JOptionPane.showMessageDialog(parent, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    WtOptionPane.showMessageDialog(parent, msg, "Error", WtOptionPane.ERROR_MESSAGE);
     e.printStackTrace();
   }
 
@@ -301,8 +306,8 @@ public final class WtGeneralTools {
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
     String cleanTitle = title.replace("<suggestion>", "'").replace("</suggestion>", "'");
-    JOptionPane.showMessageDialog(parent, scrollPane, cleanTitle,
-            JOptionPane.INFORMATION_MESSAGE);
+    WtOptionPane.showMessageDialog(parent, scrollPane, cleanTitle,
+            WtOptionPane.INFORMATION_MESSAGE);
   }
 
   public static String encodeUrl(Rule rule) {
@@ -352,10 +357,11 @@ public final class WtGeneralTools {
 
   public static void setJavaLookAndFeel(int theme) throws Exception {
     switch (theme) {
-    case 1:
+    case THEME_FLATDARK:
+      FlatDarkLaf.setup();
       UIManager.setLookAndFeel(new FlatDarkLaf());
       break;
-    case 2:
+    case THEME_SYSTEM:
       // System dependent
       // do not set look and feel for on Mac OS X as it causes the following error:
       // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
@@ -382,10 +388,12 @@ public final class WtGeneralTools {
            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
          }
       } else {
-        UIManager.setLookAndFeel(new FlatDarkLaf());
+        FlatLightLaf.setup();
+        UIManager.setLookAndFeel(new FlatLightLaf());
       }
       break;
     default:
+      FlatLightLaf.setup();
       UIManager.setLookAndFeel(new FlatLightLaf());
       break;
     }

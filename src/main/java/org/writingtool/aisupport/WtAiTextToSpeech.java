@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ import com.sun.star.uno.UnoRuntime;
 
 /**
  * Class for a new document filled by AI
- * @since WT 1.0
+ * @since 1.0
  * @author Fred Kruse
  */
 

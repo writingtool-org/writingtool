@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@ import com.sun.star.text.TextMarkupType;
  * Class for storing and handle the LT results prepared to use in LO/OO
  *
  * @author Fred Kruse
- * @since 4.3
+ * @since 1.0
  */
 public class WtResultCache implements Serializable {
 

@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -100,14 +100,14 @@ public class WtConfiguration {
   static final String DEFAULT_AI_TTS_URL = "http://localhost:8080/tts/";
   static final String DEFAULT_AI_TTS_APIKEY = "1234567";
 
-  static final Color GRAMMAR_COLOR_LT = new Color(255, 100, 0);
-  static final Color STYLE_COLOR_WT = new Color(0, 100, 0);
-  static final Color HINT_COLOR_WT = new Color(150, 150, 0);
-  static final Color STYLE_COLOR_BLUE = new Color(70, 80, 255);
-  static final Color HINT_COLOR_BLUE = new Color(150, 160, 255);
-  static final Color GRAMMAR_COLOR_DARK = new Color(100, 150, 255);
-  static final Color STYLE_COLOR_DARK = new Color(0, 140, 0);
-  static final Color HINT_COLOR_DARK = new Color(100, 100, 0);
+  public static final Color GRAMMAR_COLOR_LT = new Color(255, 100, 0);
+  public static final Color STYLE_COLOR_WT = new Color(0, 100, 0);
+  public static final Color HINT_COLOR_WT = new Color(150, 150, 0);
+  public static final Color STYLE_COLOR_BLUE = new Color(70, 80, 255);
+  public static final Color HINT_COLOR_BLUE = new Color(150, 160, 255);
+  public static final Color GRAMMAR_COLOR_DARK = new Color(100, 150, 255);
+  public static final Color STYLE_COLOR_DARK = new Color(0, 140, 0);
+  public static final Color HINT_COLOR_DARK = new Color(100, 100, 0);
 
   private static final String CONFIG_FILE = ".languagetool.cfg";
 

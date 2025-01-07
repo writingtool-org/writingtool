@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,8 +20,6 @@ package org.writingtool.aisupport;
 
 import java.util.ResourceBundle;
 
-import javax.swing.JOptionPane;
-
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtDocumentCache.TextParagraph;
@@ -30,6 +28,7 @@ import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAiDialog;
 import org.writingtool.dialogs.WtAiResultDialog;
+import org.writingtool.dialogs.WtOptionPane;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
@@ -48,7 +47,7 @@ import com.sun.star.uno.UnoRuntime;
 
 /**
  * Class to execute changes of paragraphs by AI
- * @since 6.5
+ * @since 1.0
  * @author Fred Kruse
  */
 public class WtAiParagraphChanging extends Thread {
@@ -121,8 +120,8 @@ public class WtAiParagraphChanging extends Thread {
       } else if (commandId == AiCommand.ExpandText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
       } else {
-        instruction = JOptionPane.showInputDialog(null, messages.getString("loMenuAiGeneralCommandMessage"), 
-          messages.getString("loMenuAiGeneralCommandTitle"), JOptionPane.QUESTION_MESSAGE);
+        instruction = WtOptionPane.showInputDialog(null, messages.getString("loMenuAiGeneralCommandMessage"), 
+          messages.getString("loMenuAiGeneralCommandTitle"), WtOptionPane.QUESTION_MESSAGE);
       }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
