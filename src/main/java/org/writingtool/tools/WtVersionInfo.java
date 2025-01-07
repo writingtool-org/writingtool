@@ -211,8 +211,8 @@ public class WtVersionInfo {
   }
   
   private static void setJavaInfo() {
-    System.getProperty("java.version");
-    System.getProperty("java.vm.vendor");
+    javaVersion = System.getProperty("java.version");
+    javaVendor = System.getProperty("java.vm.vendor");
   }
   
 

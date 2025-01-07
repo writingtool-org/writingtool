@@ -18,19 +18,7 @@
  */
 package org.writingtool.dialogs;
 
-import java.awt.Color;
-/**
- * simple panes for information and confirmation 
- * (adapter for JOptionPane)
- * NOTE: JOptionPane does not work with FlatLight and FlatDark themes
- * @since 1.2
- * @author Fred Kruse
- */
 import java.awt.Component;
-import java.awt.event.ActionListener;
-
-import javax.swing.JColorChooser;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
 import org.writingtool.WtDocumentsHandler;
@@ -38,7 +26,9 @@ import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 
 /**
- * simple panes for information and confirmation
+ * simple panes for information and confirmation 
+ * (adapter for JOptionPane)
+ * NOTE: JOptionPane does not work with FlatLight and FlatDark themes
  * @since 1.2
  * @author Fred Kruse
  */
@@ -111,33 +101,5 @@ public class WtOptionPane {
     }
     return -1;
   }
-/*  
-  public static JDialog createColorChooserDialog(Component c, String title, boolean modal, JColorChooser chooserPane, 
-      ActionListener okListener, ActionListener cancelListener) {
-    try {
-      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-      JDialog colorDialog = JColorChooser.createDialog(c, title, modal, chooserPane, okListener, cancelListener);
-      WtGeneralTools.setJavaLookAndFeel(theme);
-      return colorDialog;
-    } catch (Exception e) {
-      WtMessageHandler.printException(e);
-    }
-    return null;
-  }
-  
-  public static Color showColorChooserDialog(Component c, String title, Color oldColor) {
-    try {
-      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-      Color color = JColorChooser.showDialog(c, title, oldColor);
-      WtGeneralTools.setJavaLookAndFeel(theme);
-      return color;
-    } catch (Exception e) {
-      WtMessageHandler.printException(e);
-    }
-    return null;
-  }
-*/
 
 }
