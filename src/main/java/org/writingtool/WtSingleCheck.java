@@ -740,7 +740,6 @@ public class WtSingleCheck {
     // older version will simply ignore the properties
     String category = ruleMatch.getRule().getCategory().getName();
     String ruleId = ruleMatch.getRule().getId();
-    boolean catIsDef = !ruleMatch.getRule().getCategory().isDefaultOff();
     if (ruleMatch.getRule() instanceof WtAiDetectionRule) {
       if (ruleMatch.getType() == Type.Hint) {
         category = WtOfficeTools.AI_GRAMMAR_CATEGORY;
@@ -750,7 +749,7 @@ public class WtSingleCheck {
         ruleId = WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID;
       }
     }
-    Color underlineColor = config.getUnderlineColor(category, ruleId, catIsDef);
+    Color underlineColor = config.getUnderlineColor(category, ruleId);
     short underlineType = config.getUnderlineType(category, ruleId);
     URL url = ruleMatch.getUrl();
     if (url == null) {                      // match URL overrides rule URL 

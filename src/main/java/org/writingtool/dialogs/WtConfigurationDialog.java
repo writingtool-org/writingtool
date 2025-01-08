@@ -93,7 +93,6 @@ public class WtConfigurationDialog implements ActionListener {
   private final List<Rule> configurableRules = new ArrayList<>();
   private String category;
   private Rule rule;
-  private boolean categoryIsDefault;
   private int tabIndex = 0;
 
   public WtConfigurationDialog(Frame owner, WtConfiguration config) {
@@ -2271,7 +2270,7 @@ public class WtConfigurationDialog implements ActionListener {
       } else {
         config.setDefaultUnderlineRuleColor(ruleId);
       }
-      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
+      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
       if ( rule == null) {
         config.setDefaultUnderlineType(category);
       } else {
@@ -2306,11 +2305,11 @@ public class WtConfigurationDialog implements ActionListener {
         if (node instanceof WtRuleNode) {
           WtRuleNode o = (WtRuleNode) node;
           rule = o.getRule();
+          WtMessageHandler.printToLogFile("node is rule: " + rule.getDescription());
           category = rule.getCategory().getName();
-          categoryIsDefault = !rule.getCategory().isDefaultOff();
           String ruleId = rule.getId();
-          underlineLabel.setForeground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
-          underlineLabel.setBackground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
+          underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
+          underlineLabel.setBackground(config.getUnderlineColor(category, ruleId));
           underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
           colorPanel.setVisible(true);
           RuleOption[] ruleOptions = rule.getRuleOptions();
@@ -2465,9 +2464,8 @@ public class WtConfigurationDialog implements ActionListener {
         } else if (node instanceof WtCategoryNode) {
           WtCategoryNode o = (WtCategoryNode) node;
           category = o.getCategory().getName();
-          categoryIsDefault = !rule.getCategory().isDefaultOff();
-          underlineLabel.setForeground(config.getUnderlineColor(category, null, categoryIsDefault));
-          underlineLabel.setBackground(config.getUnderlineColor(category, null, categoryIsDefault));
+          underlineLabel.setForeground(config.getUnderlineColor(category, null));
+          underlineLabel.setBackground(config.getUnderlineColor(category, null));
           underlineType.setSelectedIndex(getUnderlineType(category, null));
           colorPanel.setVisible(true);
           rule = null;
@@ -2478,7 +2476,7 @@ public class WtConfigurationDialog implements ActionListener {
     return ruleOptionsPanel;
   }
   
-  private JPanel getColorPanel(String category, String ruleId, boolean categoryIsDefault) {
+  private JPanel getColorPanel(String category, String ruleId) {
     //  Color Panel
     JPanel colorPanel = new JPanel();
     colorPanel.setLayout(null);
@@ -2558,7 +2556,7 @@ public class WtConfigurationDialog implements ActionListener {
       } else {
         config.setDefaultUnderlineRuleColor(ruleId);
       }
-      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
+      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
       if ( ruleId == null) {
         config.setDefaultUnderlineType(category);
       } else {
@@ -2569,8 +2567,8 @@ public class WtConfigurationDialog implements ActionListener {
     });
     cons1.gridx++;
     colorPanel.add(defaultButton);
-    underlineLabel.setForeground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
-    underlineLabel.setBackground(config.getUnderlineColor(category, ruleId, categoryIsDefault));
+    underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
+    underlineLabel.setBackground(config.getUnderlineColor(category, ruleId));
     underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
     colorPanel.setVisible(true);
     // End of Color Panel
@@ -2813,7 +2811,7 @@ public class WtConfigurationDialog implements ActionListener {
     
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridy++;
-    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_GRAMMAR_CATEGORY, WtOfficeTools.AI_GRAMMAR_HINT_RULE_ID, true), cons);
+    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_GRAMMAR_CATEGORY, WtOfficeTools.AI_GRAMMAR_HINT_RULE_ID), cons);
 
     cons.insets = new Insets(12, SHIFT2, 0, 0);
     cons.gridy++;
@@ -2822,7 +2820,7 @@ public class WtConfigurationDialog implements ActionListener {
     
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridy++;
-    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_STYLE_CATEGORY, WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID, false), cons);
+    aiOptionPanel.add(getColorPanel(WtOfficeTools.AI_STYLE_CATEGORY, WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID), cons);
 
     return aiOptionPanel;
   }

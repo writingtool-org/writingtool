@@ -207,6 +207,7 @@ public class WtConfiguration {
   private final Map<String, Short> underlineRuleTypes = new HashMap<>();
   private final Map<String, Object[]> configurableRuleValues = new HashMap<>();
   private final Set<String> styleLikeCategories = new HashSet<>();
+  private final Set<String> optionalCategories = new HashSet<>();
   private final Map<String, String> specialTabCategories = new HashMap<>();
 
   // For new Maps, Sets or Lists add a clear to initOptions
@@ -392,7 +393,7 @@ public class WtConfiguration {
   /**
    * Returns a copy of the given configuration.
    * @param configuration the object to copy.
-   * @since 2.6
+   * @since LT2.6
    */
   public WtConfiguration copy(WtConfiguration configuration) {
     WtConfiguration copy = new WtConfiguration();
@@ -403,7 +404,7 @@ public class WtConfiguration {
   /**
    * Restore the state of this object from configuration.
    * @param configuration the object from which we will read the state
-   * @since 2.6
+   * @since LT2.6
    */
   public void restoreState(WtConfiguration configuration) {
     this.configFile = configuration.configFile;
@@ -501,6 +502,8 @@ public class WtConfiguration {
     }
     this.styleLikeCategories.clear();
     this.styleLikeCategories.addAll(configuration.styleLikeCategories);
+    this.optionalCategories.clear();
+    this.optionalCategories.addAll(configuration.optionalCategories);
     this.specialTabCategories.clear();
     for (Map.Entry<String, String> entry : configuration.specialTabCategories.entrySet()) {
       this.specialTabCategories.put(entry.getKey(), entry.getValue());
@@ -868,7 +871,7 @@ public class WtConfiguration {
    * log.
    * @return true if the tagger window will print the disambiguation log,
    * false otherwise
-   * @since 3.3
+   * @since LT3.3
    */
   public boolean getTaggerShowsDisambigLog() {
     return taggerShowsDisambigLog;
@@ -878,7 +881,7 @@ public class WtConfiguration {
    * Enables or disables the disambiguation log on the tagger window,
    * depending on the value of the parameter taggerShowsDisambigLog.
    * @param taggerShowsDisambigLog If true, the tagger window will print the
-   * @since 3.3
+   * @since LT3.3
    */
   public void setTaggerShowsDisambigLog(boolean taggerShowsDisambigLog) {
     this.taggerShowsDisambigLog = taggerShowsDisambigLog;
@@ -918,7 +921,7 @@ public class WtConfiguration {
 
   /**
    * get the number of paragraphs to be checked for TextLevelRules
-   * @since 4.0
+   * @since LT4.0
    */
   public int getNumParasToCheck() {
     return numParasToCheck;
@@ -926,7 +929,7 @@ public class WtConfiguration {
 
   /**
    * set the number of paragraphs to be checked for TextLevelRules
-   * @since 4.0
+   * @since LT4.0
    */
   public void setNumParasToCheck(int numParas) {
     this.numParasToCheck = numParas;
@@ -934,7 +937,7 @@ public class WtConfiguration {
 
   /**
    * get the color model selected
-   * @since WT 1.0
+   * @since LTWT 1.0
    */
   public int getColorSelection() {
     return colorSelection;
@@ -942,7 +945,7 @@ public class WtConfiguration {
 
   /**
    * set the color model to use
-   * @since WT 1.0
+   * @since LTWT 1.0
    */
   public void setColorSelection(int colorSelection) {
     this.colorSelection = colorSelection;
@@ -950,7 +953,7 @@ public class WtConfiguration {
 
   /**
    * get the color model selected
-   * @since WT 1.0
+   * @since LTWT 1.0
    */
   public int getThemeSelection() {
     return themeSelection;
@@ -958,7 +961,7 @@ public class WtConfiguration {
 
   /**
    * set the color model to use
-   * @since WT 1.0
+   * @since LTWT 1.0
    */
   public void setThemeSelection(int themeSelection) {
     this.themeSelection = themeSelection;
@@ -966,7 +969,7 @@ public class WtConfiguration {
 
   /**
    * will all paragraphs check after every change of text?
-   * @since 4.2
+   * @since LT4.2
    */
   public boolean isResetCheck() {
     return doResetCheck;
@@ -974,7 +977,7 @@ public class WtConfiguration {
 
   /**
    * set all paragraphs to be checked after every change of text
-   * @since 4.2
+   * @since LT4.2
    */
   public void setDoResetCheck(boolean resetCheck) {
     this.doResetCheck = resetCheck;
@@ -983,7 +986,7 @@ public class WtConfiguration {
   /**
    * will all paragraphs not checked after every change of text 
    * if more than one document loaded?
-   * @since 4.5
+   * @since LT4.5
    */
   public boolean useTextLevelQueue() {
     return useTextLevelQueue;
@@ -992,7 +995,7 @@ public class WtConfiguration {
   /**
    * set all paragraphs to be not checked after every change of text
    * if more than one document loaded?
-   * @since 4.5
+   * @since LT4.5
    */
   public void setUseTextLevelQueue(boolean useTextLevelQueue) {
     this.useTextLevelQueue = useTextLevelQueue;
@@ -1001,7 +1004,7 @@ public class WtConfiguration {
   /**
    * set option to switch off background check
    * if true: LT engine is switched of (no marks inside of document)
-   * @since 5.2
+   * @since LT5.2
    */
   public void setNoBackgroundCheck(boolean noBackgroundCheck) {
     this.noBackgroundCheck = noBackgroundCheck;
@@ -1010,7 +1013,7 @@ public class WtConfiguration {
   /**
    * set option to switch off background check
    * and save configuration
-   * @since 5.2
+   * @since LT5.2
    */
   public void saveNoBackgroundCheck(boolean noBackgroundCheck, Language lang) throws IOException {
     this.noBackgroundCheck = noBackgroundCheck;
@@ -1020,7 +1023,7 @@ public class WtConfiguration {
   /**
    * return true if background check is switched of
    * (no marks inside of document)
-   * @since 5.2
+   * @since LT5.2
    */
   public boolean noBackgroundCheck() {
     return noBackgroundCheck;
@@ -1028,7 +1031,7 @@ public class WtConfiguration {
   
   /**
    * get the current profile
-   * @since 4.7
+   * @since LT4.7
    */
   public String getCurrentProfile() {
     return currentProfile;
@@ -1036,7 +1039,7 @@ public class WtConfiguration {
   
   /**
    * set the current profile
-   * @since 4.7
+   * @since LT4.7
    */
   public void setCurrentProfile(String profile) {
     currentProfile = profile;
@@ -1044,7 +1047,7 @@ public class WtConfiguration {
   
   /**
    * get the current profile
-   * @since 4.7
+   * @since LT4.7
    */
   public List<String> getDefinedProfiles() {
     return definedProfiles;
@@ -1052,7 +1055,7 @@ public class WtConfiguration {
   
   /**
    * add a new profile
-   * @since 4.7
+   * @since LT4.7
    */
   public void addProfile(String profile) {
     definedProfiles.add(profile);
@@ -1060,7 +1063,7 @@ public class WtConfiguration {
   
   /**
    * add a list of profiles
-   * @since 4.7
+   * @since LT4.7
    */
   public void addProfiles(List<String> profiles) {
     definedProfiles.clear();
@@ -1069,7 +1072,7 @@ public class WtConfiguration {
   
   /**
    * remove an existing profile
-   * @since 4.7
+   * @since LT4.7
    */
   public void removeProfile(String profile) {
     definedProfiles.remove(profile);
@@ -1077,7 +1080,7 @@ public class WtConfiguration {
 
   /**
    * run LO in multi thread mode
-   * @since 4.6
+   * @since LT4.6
    */
   public void setMultiThreadLO(boolean isMultiThread) {
     this.isMultiThreadLO = isMultiThread;
@@ -1085,7 +1088,7 @@ public class WtConfiguration {
 
   /**
    * shall LO run in multi thread mode 
-   * @since 4.6
+   * @since LT4.6
    */
   public boolean isMultiThread() {
     return isMultiThreadLO;
@@ -1095,7 +1098,7 @@ public class WtConfiguration {
    * Returns the name of the GUI's editing textarea font.
    * @return the name of the font.
    * @see Font#getFamily()
-   * @since 2.6
+   * @since LT2.6
    */
   public String getFontName() {
     return fontName;
@@ -1105,7 +1108,7 @@ public class WtConfiguration {
    * Sets the name of the GUI's editing textarea font.
    * @param fontName the name of the font.
    * @see Font#getFamily()
-   * @since 2.6
+   * @since LT2.6
    */
   public void setFontName(String fontName) {
     this.fontName = fontName;
@@ -1115,7 +1118,7 @@ public class WtConfiguration {
    * Returns the style of the GUI's editing textarea font.
    * @return the style of the font.
    * @see Font#getStyle()
-   * @since 2.6
+   * @since LT2.6
    */
   public int getFontStyle() {
     return fontStyle;
@@ -1125,7 +1128,7 @@ public class WtConfiguration {
    * Sets the style of the GUI's editing textarea font.
    * @param fontStyle the style of the font.
    * @see Font#getStyle()
-   * @since 2.6
+   * @since LT2.6
    */
   public void setFontStyle(int fontStyle) {
     this.fontStyle = fontStyle;
@@ -1135,7 +1138,7 @@ public class WtConfiguration {
    * Returns the size of the GUI's editing textarea font.
    * @return the size of the font.
    * @see Font#getSize()
-   * @since 2.6
+   * @since LT2.6
    */
   public int getFontSize() {
     return fontSize;
@@ -1145,7 +1148,7 @@ public class WtConfiguration {
    * Sets the size of the GUI's editing textarea font.
    * @param fontSize the size of the font.
    * @see Font#getSize()
-   * @since 2.6
+   * @since LT2.6
    */
   public void setFontSize(int fontSize) {
     this.fontSize = fontSize;
@@ -1155,7 +1158,7 @@ public class WtConfiguration {
    * Returns the name of the GUI's LaF.
    * @return the name of the LaF.
    * @see javax.swing.UIManager.LookAndFeelInfo#getName()
-   * @since 2.6
+   * @since LT2.6
    */
   public String getLookAndFeelName() {
     return this.lookAndFeelName;
@@ -1165,7 +1168,7 @@ public class WtConfiguration {
    * Sets the name of the GUI's LaF.
    * @param lookAndFeelName the name of the LaF.
    * @see javax.swing.UIManager.LookAndFeelInfo#getName()
-   * @since 2.6 @see
+   * @since LT2.6 @see
    */
   public void setLookAndFeelName(String lookAndFeelName) {
     this.lookAndFeelName = lookAndFeelName;
@@ -1173,7 +1176,7 @@ public class WtConfiguration {
 
   /**
    * Directory with ngram data or null.
-   * @since 3.0
+   * @since LT3.0
    */
   @Nullable
   public File getNgramDirectory() {
@@ -1182,21 +1185,21 @@ public class WtConfiguration {
 
   /**
    * Sets the directory with ngram data (may be null).
-   * @since 3.0
+   * @since LT3.0
    */
   public void setNgramDirectory(File dir) {
     this.ngramDirectory = dir;
   }
 
   /**
-   * @since 2.8
+   * @since LT2.8
    */
   public Map<ITSIssueType, Color> getErrorColors() {
     return errorColors;
   }
 
   /**
-   * @since 4.3
+   * @since LT4.3
    * Returns true if category is style like
    */
   public boolean isStyleCategory(String category) {
@@ -1204,10 +1207,19 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.4
+   * @since 1.2
+   * Returns true if category is style like
+   */
+  public boolean isOptionalCategory(String category) {
+    return optionalCategories.contains(category);
+  }
+
+  /**
+   * @since LT4.4
    * Initialize set of style like categories
    */
   public void initStyleCategories(List<Rule> allRules) {
+    Map<String, Boolean> categoryMap = new HashMap<>();
     for (Rule rule : allRules) {
       if (rule.getCategory().getTabName() != null && !specialTabCategories.containsKey(rule.getCategory().getName())) {
         specialTabCategories.put(rule.getCategory().getName(), rule.getCategory().getTabName());
@@ -1218,12 +1230,21 @@ public class WtConfiguration {
               || rule.getCategory().getId().toString().equals("STYLE")) {
         styleLikeCategories.add(rule.getCategory().getName());
       }
+      boolean isDefault = !rule.isOfficeDefaultOff() && (!rule.isDefaultOff() || rule.isOfficeDefaultOn());
+      if (!categoryMap.containsKey(rule.getCategory().getName()) || isDefault) {
+        categoryMap.put(rule.getCategory().getName(), isDefault);
+      }
     }
-    styleLikeCategories.add(WtOfficeTools.AI_STYLE_CATEGORY);
+    for (String category : categoryMap.keySet()) {
+      if (!categoryMap.get(category)) {
+        optionalCategories.add(category);
+      }
+    }
+    optionalCategories.add(WtOfficeTools.AI_STYLE_CATEGORY);
   }
 
   /**
-   * @since 4.3
+   * @since LT4.3
    * Returns true if category is a special Tab category
    */
   public boolean isSpecialTabCategory(String category) {
@@ -1231,7 +1252,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.3
+   * @since LT4.3
    * Returns true if category is member of named special Tab
    */
   public boolean isInSpecialTab(String category, String tabName) {
@@ -1242,7 +1263,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.3
+   * @since LT4.3
    * Returns all special tab names
    */
   public String[] getSpecialTabNames() {
@@ -1254,7 +1275,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.3
+   * @since LT4.3
    * Returns all categories for a named special tab
    */
   public Set<String> getSpecialTabCategories(String tabName) {
@@ -1268,21 +1289,21 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.2
+   * @since LT4.2
    */
   public Map<String, Color> getUnderlineColors() {
     return underlineColors;
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    */
   public Map<String, Color> getUnderlineRuleColors() {
     return underlineRuleColors;
   }
 
   /**
-   * @since WT 1.1
+   * @since LTWT 1.1
    */
   public List<Color> getUnderlineDefaultColors() {
     List<Color> colors = new ArrayList<>();
@@ -1297,7 +1318,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since WT 1.1
+   * @since LTWT 1.1
    * Set the rule default colors
    */
   public void setUnderlineDefaultColor(List<Color> colors) {
@@ -1306,10 +1327,10 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.2
+   * @since LT4.2
    * Get the color to underline a rule match by the Name of its category
    */
-  public Color getUnderlineColor(String category, String ruleId, boolean categoryIsDefault) {
+  public Color getUnderlineColor(String category, String ruleId) {
     if (isOpenOffice) {
       return Color.blue;
     }
@@ -1319,6 +1340,8 @@ public class WtConfiguration {
     if (underlineColors.containsKey(category)) {
       return underlineColors.get(category);
     }
+    boolean categoryIsDefault = !optionalCategories.contains(category);
+    boolean categoryIsStyle = styleLikeCategories.contains(category);
     if (colorSelection == 2) {
       if (!categoryIsDefault) {
         return STYLE_COLOR_BLUE;
@@ -1330,13 +1353,13 @@ public class WtConfiguration {
       }
     } else {
       if (colorSelection == 99 && underlineDefaultColors.size() == 3) {
-        return categoryIsDefault ? (!styleLikeCategories.contains(category) ? 
+        return categoryIsDefault ? (!categoryIsStyle ? 
             underlineDefaultColors.get(0) : underlineDefaultColors.get(1)) : underlineDefaultColors.get(2);
       }
       if (!categoryIsDefault) {
         return colorSelection == 1 ? HINT_COLOR_BLUE : colorSelection == 3 ? HINT_COLOR_DARK : HINT_COLOR_WT;
       }
-      if (styleLikeCategories.contains(category)) {
+      if (categoryIsStyle) {
         return colorSelection == 1 ? STYLE_COLOR_BLUE : colorSelection == 3 ? STYLE_COLOR_DARK : STYLE_COLOR_WT;
       }
       return colorSelection == 3 ? GRAMMAR_COLOR_DARK : Color.blue;
@@ -1344,7 +1367,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.2
+   * @since LT4.2
    * Set the color to underline a rule match for its category
    */
   public void setUnderlineColor(String category, Color col) {
@@ -1352,7 +1375,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    * Set the color to underline a rule match for this rule
    */
   public void setUnderlineRuleColor(String ruleId, Color col) {
@@ -1360,7 +1383,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.2
+   * @since LT4.2
    * Set the category color back to default (removes category from map)
    */
   public void setDefaultUnderlineColor(String category) {
@@ -1368,7 +1391,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    * Set the rule color back to default (removes rule from map)
    */
   public void setDefaultUnderlineRuleColor(String ruleId) {
@@ -1376,21 +1399,21 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.9
+   * @since LT4.9
    */
   public Map<String, Short> getUnderlineTypes() {
     return underlineTypes;
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    */
   public Map<String, Short> getUnderlineRuleTypes() {
     return underlineRuleTypes;
   }
 
   /**
-   * @since 4.9
+   * @since LT4.9
    * Get the type to underline a rule match by the Name of its category
    */
   public Short getUnderlineType(String category, String ruleId) {
@@ -1404,7 +1427,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.9
+   * @since LT4.9
    * Set the type to underline a rule match for its category
    */
   public void setUnderlineType(String category, short type) {
@@ -1412,7 +1435,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    * Set the type to underline a rule match
    */
   public void setUnderlineRuleType(String ruleID, short type) {
@@ -1420,7 +1443,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 4.9
+   * @since LT4.9
    * Set the type back to default (removes category from map)
    */
   public void setDefaultUnderlineType(String category) {
@@ -1428,7 +1451,7 @@ public class WtConfiguration {
   }
 
   /**
-   * @since 5.3
+   * @since LT5.3
    * Set the type back to default (removes ruleId from map)
    */
   public void setDefaultUnderlineRuleType(String ruleID) {
@@ -1437,7 +1460,7 @@ public class WtConfiguration {
 
   /**
    * returns all configured values
-   * @since 4.2
+   * @since LT4.2
    */
   public Map<String, Object[]> getConfigurableValues() {
     return configurableRuleValues;
@@ -1446,7 +1469,7 @@ public class WtConfiguration {
   /**
    * Get the configurable value of a rule by ruleID
    * returns default value if no value is set by configuration
-   * @since 6.5
+   * @since LT6.5
    */
   @SuppressWarnings("unchecked")
   public <T> T getConfigValueByID(String ruleID, int index, Class<T> clazz, T defaultValue) {
@@ -1459,7 +1482,7 @@ public class WtConfiguration {
 
   /**
    * Set the values for a rule by ruleID
-   * @since 6.5
+   * @since LT6.5
    */
   public void setConfigurableValue(String ruleID, Object[] values) {
     configurableRuleValues.put(ruleID, values);
@@ -1467,7 +1490,7 @@ public class WtConfiguration {
 
   /**
    * Remove the configuration values of a rule by ruleID
-   * @since 6.5
+   * @since LT6.5
    */
   public void removeConfigurableValue(String ruleID) {
     configurableRuleValues.remove(ruleID);
@@ -1475,7 +1498,7 @@ public class WtConfiguration {
 
   /**
    * only single paragraph mode can be used (for OO and old LO
-   * @since 5.6
+   * @since LT5.6
    */
   public boolean onlySingleParagraphMode() {
     return isOpenOffice;
@@ -1484,7 +1507,7 @@ public class WtConfiguration {
   /**
    * Set LT is switched Off or On
    * save configuration
-   * @since 4.4
+   * @since LT4.4
    */
 //  public void setSwitchedOff(boolean switchOff, Language lang) throws IOException {
 //    this.switchOff = switchOff;
