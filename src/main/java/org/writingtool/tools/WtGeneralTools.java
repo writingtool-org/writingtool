@@ -359,7 +359,6 @@ public final class WtGeneralTools {
     switch (theme) {
     case THEME_FLATDARK:
       FlatDarkLaf.setup();
-      UIManager.setLookAndFeel(new FlatDarkLaf());
       break;
     case THEME_SYSTEM:
       // System dependent
@@ -388,13 +387,11 @@ public final class WtGeneralTools {
            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
          }
       } else {
-        FlatLightLaf.setup();
-        UIManager.setLookAndFeel(new FlatLightLaf());
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
       break;
     default:
       FlatLightLaf.setup();
-      UIManager.setLookAndFeel(new FlatLightLaf());
       break;
     }
   }

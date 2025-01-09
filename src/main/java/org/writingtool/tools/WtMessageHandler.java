@@ -235,9 +235,6 @@ public class WtMessageHandler {
       }
       this.text = text;
       this.isException = isException;
-      if (WtDocumentsHandler.isJavaLookAndFeelSet()) {
-        WtDocumentsHandler.setJavaLookAndFeel();
-      }
     }
 
     @Override

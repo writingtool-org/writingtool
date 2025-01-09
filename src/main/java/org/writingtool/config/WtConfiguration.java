@@ -45,6 +45,7 @@ import org.languagetool.Languages;
 import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
+import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtVersionInfo;
 
@@ -66,7 +67,7 @@ public class WtConfiguration {
   static final int FONT_STYLE_INVALID = -1;
   static final int FONT_SIZE_INVALID = -1;
   static final int DEFAULT_COLOR_SELECTION = 0;
-  static final int DEFAULT_THEME_SELECTION = 0;
+  static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_SYSTEM;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
