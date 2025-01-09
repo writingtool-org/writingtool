@@ -1,0 +1,2 @@
+Íróeszköz az írósegéd.
+Nyelveszköz (nyelvtani, stílus- és helyesírás-ellenőrző több mint 25 nyelvhez) alapján.
