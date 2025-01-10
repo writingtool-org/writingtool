@@ -69,7 +69,7 @@ public class WtVersionInfo {
    */
   public static String getWtInformation () {
     String txt = wtVersion;
-    if (wtVersion.contains("SNAPSHOT")) {
+    if (wtVersion != null && wtVersion.contains("SNAPSHOT")) {
       txt += " - " + wtBuildDate;
     }
     return txt;
@@ -204,8 +204,8 @@ public class WtVersionInfo {
   }
   
   private static void setJavaInfo() {
-    System.getProperty("java.version");
-    System.getProperty("java.vm.vendor");
+    javaVersion = System.getProperty("java.version");
+    javaVendor = System.getProperty("java.vm.vendor");
   }
   
 

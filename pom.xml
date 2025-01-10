@@ -179,7 +179,7 @@
         <lt-revision>6.6-SNAPSHOT</lt-revision>
         -->
 		<!-- release revision -->
-        <revision>1.1</revision>
+        <revision>1.1.1</revision>
         <lt-revision>6.5</lt-revision>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
