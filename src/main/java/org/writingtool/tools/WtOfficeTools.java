@@ -48,6 +48,7 @@ import org.writingtool.WtProofreadingError;
 
 import com.sun.star.awt.XMenuBar;
 import com.sun.star.awt.XPopupMenu;
+import com.sun.star.awt.XWindow;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
@@ -216,6 +217,32 @@ public class WtOfficeTools {
     }
   }
 
+  /** 
+   * Returns the current XFrame 
+   * Returns null if it fails
+   */
+  @Nullable
+  public static XFrame getCurrentFrame(XComponentContext xContext) {
+    XDesktop xDesktop = getDesktop(xContext);
+    if (xDesktop == null) {
+      return null;
+    }
+    return xDesktop.getCurrentFrame();
+  }
+
+  /** 
+   * Returns the current XFrame 
+   * Returns null if it fails
+   */
+  @Nullable
+  public static XWindow getCurrentWindow(XComponentContext xContext) {
+    XFrame xFrame = getCurrentFrame(xContext);
+    if (xFrame == null) {
+      return null;
+    }
+    return xFrame.getContainerWindow();
+  }
+  
   /** 
    * Returns the current XComponent 
    * Returns null if it fails

@@ -23,6 +23,7 @@ import org.languagetool.JLanguageTool;
 import org.languagetool.rules.*;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
 
@@ -52,9 +53,9 @@ import org.apache.commons.lang3.SystemUtils;
  */
 public final class WtGeneralTools {
   
-  public final static int THEME_FLATLIGHT = 0;
+  public final static int THEME_SYSTEM = 0;
   public final static int THEME_FLATDARK = 1;
-  public final static int THEME_SYSTEM = 2;
+  public final static int THEME_FLATLIGHT = 2;
 
   private WtGeneralTools() {
     // no public constructor
@@ -279,35 +280,44 @@ public final class WtGeneralTools {
   }
 
   public static void showRuleInfoDialog(Component parent, String title, String message, Rule rule, URL matchUrl, ResourceBundle messages, String lang) {
-    int dialogWidth = 320;
-    JTextPane textPane = new JTextPane();
-    textPane.setEditable(false);
-    textPane.setContentType("text/html");
-    textPane.setBorder(BorderFactory.createEmptyBorder());
-    textPane.setOpaque(false);
-    textPane.setBackground(new Color(0, 0, 0, 0));
-    WtGeneralTools.addHyperlinkListener(textPane);
-    textPane.setSize(dialogWidth, Short.MAX_VALUE);
-    String messageWithBold = message.replaceAll("<suggestion>", "<b>").replaceAll("</suggestion>", "</b>");
-    String exampleSentences = getExampleSentences(rule, messages);
-    String url = "http://community.languagetool.org/rule/show/" + encodeUrl(rule)
-            + "?lang=" + lang + "&amp;ref=standalone-gui";
-    boolean isExternal = rule.getCategory().getLocation() == Category.Location.EXTERNAL;
-    String ruleDetailLink = rule instanceof FalseFriendPatternRule || isExternal ?
-            "" : "<a href='" + url + "'>" + messages.getString("ruleDetailsLink") +"</a>";
-    textPane.setText("<html>"
-            + messageWithBold + exampleSentences + formatURL(matchUrl)
-            + "<br><br>"
-            + ruleDetailLink
-            + "</html>");
-    JScrollPane scrollPane = new JScrollPane(textPane);
-    scrollPane.setPreferredSize(
-            new Dimension(dialogWidth, textPane.getPreferredSize().height));
-    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    try {
+      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
 
-    String cleanTitle = title.replace("<suggestion>", "'").replace("</suggestion>", "'");
-    WtOptionPane.showMessageDialog(parent, scrollPane, cleanTitle,
-            WtOptionPane.INFORMATION_MESSAGE);
+      int dialogWidth = 320;
+      JTextPane textPane = new JTextPane();
+      textPane.setEditable(false);
+      textPane.setContentType("text/html");
+      textPane.setBorder(BorderFactory.createEmptyBorder());
+      textPane.setOpaque(false);
+      textPane.setBackground(new Color(0, 0, 0, 0));
+      WtGeneralTools.addHyperlinkListener(textPane);
+      textPane.setSize(dialogWidth, Short.MAX_VALUE);
+      String messageWithBold = message.replaceAll("<suggestion>", "<b>").replaceAll("</suggestion>", "</b>");
+      String exampleSentences = getExampleSentences(rule, messages);
+      String url = "http://community.languagetool.org/rule/show/" + encodeUrl(rule)
+              + "?lang=" + lang + "&amp;ref=standalone-gui";
+      boolean isExternal = rule.getCategory().getLocation() == Category.Location.EXTERNAL;
+      String ruleDetailLink = rule instanceof FalseFriendPatternRule || isExternal ?
+              "" : "<a href='" + url + "'>" + messages.getString("ruleDetailsLink") +"</a>";
+      textPane.setText("<html>"
+              + messageWithBold + exampleSentences + formatURL(matchUrl)
+              + "<br><br>"
+              + ruleDetailLink
+              + "</html>");
+      JScrollPane scrollPane = new JScrollPane(textPane);
+      scrollPane.setPreferredSize(
+              new Dimension(dialogWidth, textPane.getPreferredSize().height));
+      scrollPane.setBorder(BorderFactory.createEmptyBorder());
+  
+      String cleanTitle = title.replace("<suggestion>", "'").replace("</suggestion>", "'");
+      JOptionPane.showMessageDialog(parent, scrollPane, cleanTitle,
+              WtOptionPane.INFORMATION_MESSAGE);
+
+      WtGeneralTools.setJavaLookAndFeel(theme);
+    } catch (Exception ex) {
+      WtGeneralTools.showErrorMessage(ex);
+    }
   }
 
   public static String encodeUrl(Rule rule) {
@@ -360,7 +370,10 @@ public final class WtGeneralTools {
     case THEME_FLATDARK:
       FlatDarkLaf.setup();
       break;
-    case THEME_SYSTEM:
+    case THEME_FLATLIGHT:
+      FlatLightLaf.setup();
+      break;
+    default:
       // System dependent
       // do not set look and feel for on Mac OS X as it causes the following error:
       // soffice[2149:2703] Apple AWT Java VM was loaded on first thread -- can't start AWT.
@@ -389,9 +402,6 @@ public final class WtGeneralTools {
       } else {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
-      break;
-    default:
-      FlatLightLaf.setup();
       break;
     }
   }

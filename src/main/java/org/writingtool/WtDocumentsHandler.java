@@ -139,7 +139,7 @@ public class WtDocumentsHandler {
   private WaitDialogThread waitDialog = null;
 
   
-  private XComponentContext xContext;               //  The context of the document
+  private static XComponentContext xContext;               //  The context of the document
   private final List<WtSingleDocument> documents;   //  The List of LO documents to be checked
   private boolean isDisposed = false;
   private boolean recheck = true;                   //  if true: recheck the whole document at next iteration
@@ -433,11 +433,18 @@ public class WtDocumentsHandler {
   /**
    *  Set XComponentContext
    */
-  void setComponentContext(XComponentContext xContext) {
-    if (this.xContext != null && !xContext.equals(this.xContext)) {
+  void setComponentContext(XComponentContext xContxt) {
+    if (xContext != null && !xContext.equals(xContxt)) {
       setRecheck();
     }
-    this.xContext = xContext;
+    xContext = xContxt;
+  }
+  
+  /**
+   *  Get XComponentContext
+   */
+  public static XComponentContext getComponentContext() {
+    return xContext;
   }
   
   /**

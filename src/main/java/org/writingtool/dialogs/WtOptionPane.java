@@ -19,6 +19,7 @@
 package org.writingtool.dialogs;
 
 import java.awt.Component;
+
 import javax.swing.JOptionPane;
 
 import org.writingtool.WtDocumentsHandler;
@@ -35,24 +36,35 @@ import org.writingtool.tools.WtMessageHandler;
 public class WtOptionPane {
 
   public static final int OK_OPTION = JOptionPane.OK_OPTION;
+  public static final int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
   public static final int OK_CANCEL_OPTION = JOptionPane.OK_CANCEL_OPTION;
   public static final int QUESTION_MESSAGE = JOptionPane.QUESTION_MESSAGE;
   public static final int ERROR_MESSAGE = JOptionPane.ERROR_MESSAGE;
   public static final int INFORMATION_MESSAGE = JOptionPane.INFORMATION_MESSAGE;
   
-
-  public static void showMessageDialog (Component parent, Object msg) {
+/*
+  public static void showErrorDialog (Component parent, String msg) {
+    try {
+      showMessageBox(null, MessageBoxType.ERRORBOX, UIManager.getString("OptionPane.messageDialogTitle", null), msg);      
+    } catch (Exception e) {
+      WtMessageHandler.printException(e);
+    }
+  }
+*/  
+  public static void showMessageDialog (Component parent, String msg) {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
       JOptionPane.showMessageDialog(parent, msg);
       WtGeneralTools.setJavaLookAndFeel(theme);
+//      showMessageBox(null, MessageBoxType.WARNINGBOX, UIManager.getString("OptionPane.messageDialogTitle", null), msg);      
     } catch (Exception e) {
       WtMessageHandler.printException(e);
     }
   }
   
-  public static void showMessageDialog (Component parent, Object msg, String title, int opt) {
+  public static void showMessageDialog (Component parent, String msg, String title, int opt) {
+      
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -61,9 +73,10 @@ public class WtOptionPane {
     } catch (Exception e) {
       WtMessageHandler.printException(e);
     }
+//    showMessageBox(null, MessageBoxType.WARNINGBOX, title, msg);      
   }
   
-  public static String showInputDialog (Component parent, Object msg, String title, int opt) {
+  public static String showInputDialog(Component parent, Object msg, String title, int opt) {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -76,7 +89,7 @@ public class WtOptionPane {
     return null;
   }
   
-  public static String showInputDialog (Component parent, Object msg, Object initial) {
+  public static String showInputDialog(Component parent, String msg, String initial) {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -89,7 +102,7 @@ public class WtOptionPane {
     return null;
   }
   
-  public static int showConfirmDialog (Component parent, Object msg, String title, int opt) {
+  public static int showConfirmDialog (Component parent, String msg, String title, int opt) {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -99,7 +112,51 @@ public class WtOptionPane {
     } catch (Exception e) {
       WtMessageHandler.printException(e);
     }
-    return -1;
+    return CANCEL_OPTION;
+/*
+    if (showMessageBox(null, MessageBoxType.QUERYBOX, title, msg) == MessageBoxResults.OK) {
+      return OK_OPTION;
+    }
+    return CANCEL_OPTION;
+*/
   }
+/*
+ * This is commented out for further development
+ * LO dialogs are not so flexible as java dialogs  
+
+  public static short showMessageBox(XDialog dialog, MessageBoxType type, String sTitle, String sMessage) {
+    XToolkit xToolkit;
+    XComponentContext context = WtDocumentsHandler.getComponentContext();
+    try {
+      xToolkit = UnoRuntime.queryInterface(XToolkit.class,
+            context.getServiceManager().createInstanceWithContext("com.sun.star.awt.Toolkit", context));
+    } catch (Exception e) {
+      return -1;
+    }
+    XMessageBoxFactory xMessageBoxFactory = UnoRuntime.queryInterface(XMessageBoxFactory.class, xToolkit);
+    XWindowPeer xParentWindowPeer;
+    if (dialog == null) {
+      XWindow window = WtOfficeTools.getCurrentWindow(context);
+      if (window == null) {
+        return -1;
+      }
+      xParentWindowPeer = UnoRuntime.queryInterface(XWindowPeer.class, window);
+    } else {
+      xParentWindowPeer = UnoRuntime.queryInterface(XWindowPeer.class, dialog);
+    }
+    XMessageBox xMessageBox;
+    if (type == MessageBoxType.QUERYBOX) {
+      xMessageBox = xMessageBoxFactory.createMessageBox(xParentWindowPeer, type, MessageBoxButtons.BUTTONS_OK_CANCEL, sTitle, sMessage);
+    } else {
+      xMessageBox = xMessageBoxFactory.createMessageBox(xParentWindowPeer, type, MessageBoxButtons.BUTTONS_OK, sTitle, sMessage);
+    }
+    if (xMessageBox == null) {
+      return -1;
+    }
+    return xMessageBox.execute();
+  }
+*/
+  
+  
 
 }

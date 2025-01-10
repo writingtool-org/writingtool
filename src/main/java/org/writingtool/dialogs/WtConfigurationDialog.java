@@ -567,7 +567,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons3.fill = GridBagConstraints.NONE;
     cons3.weightx = 0.0f;
     themePanel.add(new JLabel(messages.getString("guiThemeLabel") + ": "), cons3);
-    String[] themes = { "FlatLight", "FlatDark", "System" };
+    String[] themes = { "System", "FlatDark", "FlatLight" };
     JComboBox<String> themeBox = new JComboBox<>(themes);
     themeBox.setSelectedIndex(config.getThemeSelection());
     themeBox.addItemListener(e -> {
@@ -1298,14 +1298,16 @@ public class WtConfigurationDialog implements ActionListener {
   }
   
   private int showRemoteServerHint(Component component, boolean otherServer) {
+    int ret;
     if(config.useOtherServer() || otherServer) {
-        return WtOptionPane.showConfirmDialog(component, 
+        ret = WtOptionPane.showConfirmDialog(component, 
             MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), config.getServerUrl()), 
           messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     } else {
-      return WtOptionPane.showConfirmDialog(component, messages.getString("loRemoteInfoDefaultServer"), 
+      ret = WtOptionPane.showConfirmDialog(component, messages.getString("loRemoteInfoDefaultServer"), 
           messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     }
+    return ret;
   }
 
   @NotNull
@@ -1389,21 +1391,29 @@ public class WtConfigurationDialog implements ActionListener {
             tree.setSelectionPath(path);
           }
           if (node.isLeaf()) {
-            JPopupMenu popup = new JPopupMenu();
-            JMenuItem aboutRuleMenuItem = new JMenuItem(messages.getString("guiAboutRuleMenu"));
-            aboutRuleMenuItem.addActionListener(actionEvent -> {
-              WtRuleNode node1 = (WtRuleNode) tree.getSelectionPath().getLastPathComponent();
-              Rule rule = node1.getRule();
-              Language lang = config.getLanguage();
-              if(lang == null) {
-                lang = Languages.getLanguageForLocale(Locale.getDefault());
-              }
-              WtGeneralTools.showRuleInfoDialog(tree, messages.getString("guiAboutRuleTitle"),
-                      rule.getDescription(), rule, rule.getUrl(), messages,
-                      lang.getShortCodeWithCountryAndVariant());
-            });
-            popup.add(aboutRuleMenuItem);
-            popup.show(tree, e.getX(), e.getY());
+            try {
+              int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+              WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+  
+              JPopupMenu popup = new JPopupMenu();
+              JMenuItem aboutRuleMenuItem = new JMenuItem(messages.getString("guiAboutRuleMenu"));
+              aboutRuleMenuItem.addActionListener(actionEvent -> {
+                WtRuleNode node1 = (WtRuleNode) tree.getSelectionPath().getLastPathComponent();
+                Rule rule = node1.getRule();
+                Language lang = config.getLanguage();
+                if(lang == null) {
+                  lang = Languages.getLanguageForLocale(Locale.getDefault());
+                }
+                WtGeneralTools.showRuleInfoDialog(tree, messages.getString("guiAboutRuleTitle"),
+                        rule.getDescription(), rule, rule.getUrl(), messages,
+                        lang.getShortCodeWithCountryAndVariant());
+              });
+              popup.add(aboutRuleMenuItem);
+              popup.show(tree, e.getX(), e.getY());
+              WtGeneralTools.setJavaLookAndFeel(theme);
+            } catch (Exception ex) {
+              WtGeneralTools.showErrorMessage(ex);
+            }
           }
         }
   
@@ -2305,7 +2315,6 @@ public class WtConfigurationDialog implements ActionListener {
         if (node instanceof WtRuleNode) {
           WtRuleNode o = (WtRuleNode) node;
           rule = o.getRule();
-          WtMessageHandler.printToLogFile("node is rule: " + rule.getDescription());
           category = rule.getCategory().getName();
           String ruleId = rule.getId();
           underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
