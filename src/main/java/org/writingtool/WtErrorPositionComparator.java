@@ -29,17 +29,19 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
   public int compare(WtProofreadingError match1, WtProofreadingError match2) {
     int error1pos = match1.nErrorStart;
     int error2pos = match2.nErrorStart;
-    if (match2.nErrorStart == match1.nErrorStart) {
-      if (match2.nErrorLength < match1.nErrorLength) {
+    int error1len = match1.nErrorLength;
+    int error2len = match2.nErrorLength;
+    if (error1pos == error2pos) {
+      if (error2len < error1len) {
         return 1;
-      } else if (match1.nErrorLength < match2.nErrorLength) {
+      } else if (error1len < error1len) {
         return -1;
       }
     }
-    if (match2.nErrorStart > match1.nErrorStart && match2.nErrorStart < match1.nErrorStart + match1.nErrorLength) {
+    if (error2pos > error1pos && error2pos < error1pos + error1len) {
       return 1;
     }
-    if (match1.nErrorStart > match2.nErrorStart && match1.nErrorStart < match2.nErrorStart + match2.nErrorLength) {
+    if (error1pos > error2pos && error1pos < error2pos + error2len) {
       return -1;
     }
     if (error1pos > error2pos) {
@@ -47,12 +49,14 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
     } else if (error1pos < error2pos) {
       return -1;
     } else {
-      if (match1.nErrorLength > match2.nErrorLength) {
+      if (error1len > error2len) {
         return 1;
       }
-      if (match1.nErrorLength < match2.nErrorLength) {
+      if (error1len < error2len) {
         return -1;
       }
+      return Integer.compare(match2.aSuggestions.length, match1.aSuggestions.length);
+/*
       if (match1.aSuggestions.length == 0 && match2.aSuggestions.length > 0) {
         return 1;
       }
@@ -63,9 +67,10 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
           && match1.aSuggestions.length != match2.aSuggestions.length) {
         return Integer.compare(match1.aSuggestions.length, match2.aSuggestions.length);
       }
+*/      
     }
 //    return match1.aRuleIdentifier.compareTo(match2.aRuleIdentifier);
-    return 0;
+//    return 0;
   }
 
 }
