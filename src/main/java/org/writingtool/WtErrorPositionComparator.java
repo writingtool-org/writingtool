@@ -65,7 +65,7 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
       }
     }
 //    return match1.aRuleIdentifier.compareTo(match2.aRuleIdentifier);
-    return -1;
+    return 0;
   }
 
 }
