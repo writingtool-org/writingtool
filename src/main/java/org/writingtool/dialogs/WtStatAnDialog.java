@@ -289,6 +289,8 @@ public class WtStatAnDialog extends Thread  {
       closeDialog(waitdialog);
     }
 
+    optionLabel = new JLabel (MESSAGES.getString("loStatisticalAnalysisOptionsLabel") + ":");
+    optionLabel.createToolTip().updateUI();
     
     // main pane
     mainPanel = new JPanel();
@@ -587,7 +589,6 @@ public class WtStatAnDialog extends Thread  {
     cons21.anchor = GridBagConstraints.NORTHWEST;
     cons21.weightx = 0.0;
     cons21.weighty = 0.0;
-    optionLabel = new JLabel (MESSAGES.getString("loStatisticalAnalysisOptionsLabel") + ":");
     optionPanel.add(optionLabel, cons21);
     withoutDirectSpeech = new JCheckBox(MESSAGES.getString("loStatisticalAnalysisWithoutDirectSpreech"));
     if (config == null) {
@@ -919,8 +920,9 @@ public class WtStatAnDialog extends Thread  {
       return;
     }
     lastSinglePara = -1;
-    UIManager.put("ToolTip.foreground", Color.black);
-    UIManager.put("ToolTip.background", Color.yellow);
+    
+//    UIManager.put("ToolTip.foreground", Color.black);
+//    UIManager.put("ToolTip.background", Color.yellow);
     hierarchy = chapter == null ? 0 : chapter.hierarchy;
     setChapterPanel(chapter);
     if (chapter == null) {

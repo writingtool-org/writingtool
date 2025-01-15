@@ -1116,6 +1116,8 @@ public class WtCheckDialog extends Thread {
   
         Font dialogFont = languageLabel.getFont();
         languageLabel.setFont(dialogFont);
+        languageLabel.createToolTip().updateUI();
+        
   
         language.setFont(dialogFont);
         language.setToolTipText(formatToolTipText(languageHelp));
