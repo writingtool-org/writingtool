@@ -1240,6 +1240,9 @@ public class WtCheckDialog extends Thread {
         suggestions.setToolTipText(formatToolTipText(suggestionsHelp));
         JScrollPane suggestionsPane = new JScrollPane(suggestions);
         suggestionsPane.setMinimumSize(new Dimension(0, 30));
+        if (WtDocumentsHandler.getJavaLookAndFeelSet() != WtGeneralTools.THEME_SYSTEM) {
+          suggestions.setSelectionForeground(suggestions.getBackground());
+        }
   
         checkTypeLabel.setFont(dialogFont);
         checkTypeLabel.setToolTipText(formatToolTipText(checkTypeHelp));
