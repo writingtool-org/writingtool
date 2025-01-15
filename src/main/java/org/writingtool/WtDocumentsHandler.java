@@ -170,7 +170,7 @@ public class WtDocumentsHandler {
 
   
   WtDocumentsHandler(XComponentContext xContext, XProofreader xProofreader, XEventListener xEventListener) {
-    this.xContext = xContext;
+    WtDocumentsHandler.xContext = xContext;
     this.xEventListener = xEventListener;
     this.xProofreader = xProofreader;
     xEventListeners = new ArrayList<>();

@@ -37,24 +37,18 @@ import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.plaf.TextUI;
 
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
-import org.writingtool.tools.WtVersionInfo;
-
-import com.sun.jna.platform.unix.X11.Font;
 
 /**
  * simple panes for information and confirmation 
@@ -75,6 +69,10 @@ public class WtOptionPane {
   public static final int INFORMATION_MESSAGE = JOptionPane.INFORMATION_MESSAGE;
   public static final int MESSAGE_BOX = 0;
   public static final int INPUT_BOX = 1;
+  public static final Color DARK_FOREGROUND = new Color(0xbabab2);
+  public static final Color DARK_BACKGROUND = new Color(0x3c3f41);
+  public static final Color DARK_BUTTON_BACKGROUND = new Color(0x4e5052);
+  public static final Color DARK_BORDER = new Color(0x565c5f);
 
   private static int ret = CANCEL_OPTION;
   private static String out = null;
@@ -93,7 +91,8 @@ public class WtOptionPane {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-      JOptionPane.showMessageDialog(parent, msg);
+      showMessageBox(parent, msg, UIManager.getString("OptionPane.messageDialogTitle", null), OK_OPTION, true);
+//      JOptionPane.showMessageDialog(parent, msg);
       WtGeneralTools.setJavaLookAndFeel(theme);
 //      showMessageBox(null, MessageBoxType.WARNINGBOX, UIManager.getString("OptionPane.messageDialogTitle", null), msg);      
     } catch (Exception e) {
@@ -106,7 +105,8 @@ public class WtOptionPane {
     int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
     try {
       WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-      JOptionPane.showMessageDialog(parent, msg, title, opt);
+      showMessageBox(parent, msg, title, opt, true);
+//      JOptionPane.showMessageDialog(parent, msg, title, opt);
       WtGeneralTools.setJavaLookAndFeel(theme);
     } catch (Exception e) {
       WtMessageHandler.printException(e);
@@ -155,7 +155,7 @@ public class WtOptionPane {
     }
     return CANCEL_OPTION;
 */
-    return showMessageBox(parent, msg, title, opt);
+    return showMessageBox(parent, msg, title, opt, false);
   }
 /*
  * This is commented out for further development
@@ -194,10 +194,10 @@ public class WtOptionPane {
   }
 */
   
-  public static int showMessageBox(Component parent, String msg, String title, int opt) {
+  public static int showMessageBox(Component parent, String msg, String title, int opt, boolean isSystem) {
     try {
       ret = CANCEL_OPTION;
-//      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
 //      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
       JDialog dialog;
       if (parent == null) {
@@ -219,32 +219,19 @@ public class WtOptionPane {
       JPanel mainPanel = new JPanel();
       msg = "<html><body>" + msg.replace("\n", "<br>") + "</body></html>";
       text.setText(msg);
-//      text.setEditable(false);
-//      text.setMinimumSize(new Dimension(100, 30));
-      text.setBackground(dialog.getBackground());
-      text.setBorder(null);
-      text.setBorder(BorderFactory.createLineBorder(dialog.getBackground()));
-//      dialog.setName(dialogName);
+      JScrollPane textPane = new JScrollPane(text);
       if (title == null) {
         title = "";
       }
       dialog.setTitle(title);
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-//      Font dialogFont = (new JLabel(" ")).getFont();
-
-//      JScrollPane textPane = new JScrollPane(text);
-//      textPane.setBackground(dialog.getBackground());
-//      textPane.setMinimumSize(new Dimension(100, 30));
-      
-//      okButton.setFont(dialogFont);
       okButton.addActionListener(e -> {
         ret = OK_OPTION;
         dialog.setVisible(false);
       });
       okButton.setVisible(opt != CANCEL_OPTION);
       
-//      cancelButton.setFont(dialogFont);
       cancelButton.addActionListener(e -> {
         dialog.setVisible(false);
       });
@@ -275,11 +262,9 @@ public class WtOptionPane {
         }
       });
       
-      //  Define Text panels
-
-      //  Define 1. right panel
-      JPanel rightPanel1 = new JPanel();
-      rightPanel1.setLayout(new GridBagLayout());
+      //  Define Button panel
+      JPanel buttonPanel = new JPanel();
+      buttonPanel.setLayout(new GridBagLayout());
       GridBagConstraints cons21 = new GridBagConstraints();
       cons21.insets = new Insets(2, 0, 2, 0);
       cons21.gridx = 0;
@@ -288,9 +273,9 @@ public class WtOptionPane {
       cons21.fill = GridBagConstraints.BOTH;
       cons21.weightx = 0.0f;
       cons21.weighty = 0.0f;
-      rightPanel1.add(okButton, cons21);
+      buttonPanel.add(okButton, cons21);
       cons21.gridx++;
-      rightPanel1.add(cancelButton, cons21);
+      buttonPanel.add(cancelButton, cons21);
 
       //  Define main panel
       mainPanel.setLayout(new GridBagLayout());
@@ -302,14 +287,14 @@ public class WtOptionPane {
       cons1.fill = GridBagConstraints.BOTH;
       cons1.weightx = 10.0f;
       cons1.weighty = 10.0f;
-      mainPanel.add(new JScrollPane(text), cons1);
+      mainPanel.add(textPane, cons1);
       cons1.insets = new Insets(14, 4, 4, 4);
       cons1.gridy++;
       cons1.fill = GridBagConstraints.BOTH;
       cons1.anchor = GridBagConstraints.CENTER;
       cons1.weightx = 1.0f;
       cons1.weighty = 1.0f;
-      mainPanel.add(rightPanel1, cons1);
+      mainPanel.add(buttonPanel, cons1);
 
       contentPane.setLayout(new GridBagLayout());
       GridBagConstraints cons = new GridBagConstraints();
@@ -321,18 +306,37 @@ public class WtOptionPane {
       cons.weightx = 1.0f;
       cons.weighty = 1.0f;
       contentPane.add(mainPanel, cons);
+      
+      if (isSystem && theme == WtGeneralTools.THEME_FLATDARK) {
+        dialog.setBackground(DARK_BACKGROUND);
+        contentPane.setBackground(DARK_BACKGROUND);
+        mainPanel.setBackground(DARK_BACKGROUND);
+        buttonPanel.setBackground(DARK_BACKGROUND);
+        textPane.setBackground(DARK_BACKGROUND);
+        text.setBackground(DARK_BACKGROUND);
+        text.setForeground(DARK_FOREGROUND);
+        text.setOpaque(true);
+        okButton.setBackground(DARK_BUTTON_BACKGROUND);
+        okButton.setForeground(DARK_FOREGROUND);
+        okButton.setContentAreaFilled(false);
+        okButton.setOpaque(true);
+        okButton.setBorder(BorderFactory.createLineBorder(DARK_BORDER));
+        cancelButton.setBackground(DARK_BUTTON_BACKGROUND);
+        cancelButton.setForeground(DARK_FOREGROUND);
+        cancelButton.setContentAreaFilled(false);
+        cancelButton.setOpaque(true);
+        cancelButton.setBorder(BorderFactory.createLineBorder(DARK_BORDER));
+      }
+      text.setBorder(BorderFactory.createLineBorder(text.getBackground()));
 
       dialog.pack();
       // center on screen:
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//      Dimension frameSize = new Dimension(dialogWidth, dialogHeight);
-//      dialog.setSize(frameSize);
       Dimension frameSize = dialog.getSize();
       dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
           screenSize.height / 2 - frameSize.height / 2);
       dialog.setLocationByPlatform(true);
       dialog.setVisible(true);
-//      WtGeneralTools.setJavaLookAndFeel(theme);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     }
@@ -342,8 +346,6 @@ public class WtOptionPane {
   public static String showInputBox(Component parent, String title, String initial) {
     out = null;
     try {
-//      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-//      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
       JDialog dialog;
       if (parent == null) {
         dialog = new JDialog();
@@ -368,32 +370,19 @@ public class WtOptionPane {
       JPanel mainPanel = new JPanel();
       text.setEditable(true);
       text.setMinimumSize(new Dimension(100, 30));
-//      JScrollPane textpane = new JScrollPane(text);
-//      textpane.setMinimumSize(new Dimension(100, 30));
-//      JEditorPane edit = text;
-//      edit.setUI(ui);
       text.setBorder(BorderFactory.createLineBorder(Color.gray));
       text.updateUI();
-//      dialog.setName(dialogName);
       if (title == null) {
         title = "";
       }
       dialog.setTitle(title);
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-//      Font dialogFont = (new JLabel(" ")).getFont();
-
-//      JScrollPane textPane = new JScrollPane(text);
-//      textPane.setBackground(dialog.getBackground());
-//      textPane.setMinimumSize(new Dimension(100, 30));
-      
-//      okButton.setFont(dialogFont);
       okButton.addActionListener(e -> {
         out = text.getText();
         dialog.setVisible(false);
       });
       
-//      cancelButton.setFont(dialogFont);
       cancelButton.addActionListener(e -> {
         out = null;
         dialog.setVisible(false);
@@ -425,11 +414,9 @@ public class WtOptionPane {
         }
       });
       
-      //  Define Text panels
-
-      //  Define 1. right panel
-      JPanel rightPanel1 = new JPanel();
-      rightPanel1.setLayout(new GridBagLayout());
+      //  Define button panel
+      JPanel buttonPanel = new JPanel();
+      buttonPanel.setLayout(new GridBagLayout());
       GridBagConstraints cons21 = new GridBagConstraints();
       cons21.insets = new Insets(2, 0, 2, 0);
       cons21.gridx = 0;
@@ -438,9 +425,9 @@ public class WtOptionPane {
       cons21.fill = GridBagConstraints.BOTH;
       cons21.weightx = 0.0f;
       cons21.weighty = 0.0f;
-      rightPanel1.add(okButton, cons21);
+      buttonPanel.add(okButton, cons21);
       cons21.gridx++;
-      rightPanel1.add(cancelButton, cons21);
+      buttonPanel.add(cancelButton, cons21);
 
       //  Define main panel
       mainPanel.setLayout(new GridBagLayout());
@@ -459,7 +446,7 @@ public class WtOptionPane {
       cons1.anchor = GridBagConstraints.CENTER;
       cons1.weightx = 1.0f;
       cons1.weighty = 1.0f;
-      mainPanel.add(rightPanel1, cons1);
+      mainPanel.add(buttonPanel, cons1);
 
       contentPane.setLayout(new GridBagLayout());
       GridBagConstraints cons = new GridBagConstraints();
@@ -474,23 +461,16 @@ public class WtOptionPane {
       
       dialog.pack();
 
-//      WtGeneralTools.setJavaLookAndFeel(theme);
-//      SwingUtilities.updateComponentTreeUI( dialog );
-
       // center on screen:
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//      Dimension frameSize = new Dimension(dialogWidth, dialogHeight);
-//      dialog.setSize(frameSize);
       Dimension frameSize = dialog.getSize();
       dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
           screenSize.height / 2 - frameSize.height / 2);
       dialog.setLocationByPlatform(true);
-//      dialog.repaint();
       if (initial != null) {
         text.setText(initial);
       }
       dialog.setVisible(true);
-//      WtGeneralTools.setJavaLookAndFeel(theme);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     }
