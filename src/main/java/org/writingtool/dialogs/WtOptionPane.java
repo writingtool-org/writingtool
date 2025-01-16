@@ -62,7 +62,7 @@ public class WtOptionPane {
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   public static final int OK_OPTION = JOptionPane.OK_OPTION;
-  public static final int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
+  public static final int CANCEL_OPTION = JOptionPane.NO_OPTION;
   public static final int OK_CANCEL_OPTION = JOptionPane.OK_CANCEL_OPTION;
   public static final int QUESTION_MESSAGE = JOptionPane.QUESTION_MESSAGE;
   public static final int ERROR_MESSAGE = JOptionPane.ERROR_MESSAGE;
