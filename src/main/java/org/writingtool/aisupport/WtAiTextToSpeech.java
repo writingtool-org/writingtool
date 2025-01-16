@@ -26,6 +26,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
 
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
@@ -95,14 +96,16 @@ public class WtAiTextToSpeech extends Thread {
       int nParaStart = 0;
       int nFile = 0;
       int maxPara = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
-      waitDialog.initializeProgressBar(0, maxPara);
+      SwingUtilities.invokeLater(() -> { waitDialog.initializeProgressBar(0, maxPara); });
+      
       while ((nParaStart = createAudioFile(nParaStart, nFile, audioDir, aiRemote)) < maxPara) {
         nFile++;
         if (waitDialog.canceled()) {
           waitDialog.close();
           return;
         }
-        waitDialog.setValueForProgressBar(nParaStart, true);
+        int nValue = nParaStart;
+        SwingUtilities.invokeLater(() -> { waitDialog.setValueForProgressBar(nValue, true); });
       }
       waitDialog.close();
     } catch (Throwable e) {

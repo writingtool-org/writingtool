@@ -20,6 +20,8 @@ package org.writingtool.aisupport;
 
 import java.util.ResourceBundle;
 
+import javax.swing.SwingUtilities;
+
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.dialogs.WtAiTranslationDialog;
@@ -164,7 +166,7 @@ public class WtAiTranslateDocument extends Thread {
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), document.getMultiDocumentsHandler().getConfiguration());
       docCursor = document.getDocumentCursorTools();
       String instruction = TRANSLATE_INSTRUCTION + locale.Language + TRANSLATE_INSTRUCTION_POST;
-      waitDialog.initializeProgressBar(0, fromCache.size());
+      SwingUtilities.invokeLater(() -> { waitDialog.initializeProgressBar(0, fromCache.size()); });
       for(int i = 0; i < fromCache.size(); i++) {
         if (waitDialog.canceled()) {
           break;
@@ -176,7 +178,8 @@ public class WtAiTranslateDocument extends Thread {
         String out = aiRemote.runInstruction(instruction, str, temperature, 1, locale, true);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
         replaceParagraph(textPara, out, locale);
-        waitDialog.setValueForProgressBar(i, true);
+        int nValue = i;
+        SwingUtilities.invokeLater(() -> { waitDialog.setValueForProgressBar(nValue, true); });
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);

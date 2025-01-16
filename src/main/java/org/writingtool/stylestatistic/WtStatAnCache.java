@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.SwingUtilities;
+
 import org.languagetool.AnalyzedSentence;
 import org.languagetool.Language;
 import org.languagetool.rules.AbstractStyleTooOftenUsedWordRule;
@@ -93,7 +95,7 @@ public class WtStatAnCache {
       }
     }
     if (waitdialog != null) {
-      waitdialog.initializeProgressBar(0, 100);
+      SwingUtilities.invokeLater(() -> { waitdialog.initializeProgressBar(0, 100); });
     }
     int textSize = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
     for (int i = 0; i < textSize; i++) {
@@ -121,7 +123,8 @@ public class WtStatAnCache {
 //      }
 //      analyzedParagraphs.add(sentences);
       if (waitdialog != null) {
-        waitdialog.setValueForProgressBar(90 * i / textSize, false);;
+        int nValue = i;
+        SwingUtilities.invokeLater(() -> { waitdialog.setValueForProgressBar(90 * nValue / textSize, false); });
       }
     }
     setHeadings();

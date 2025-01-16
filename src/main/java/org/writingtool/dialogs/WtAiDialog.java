@@ -433,6 +433,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       JTextField iText = (JTextField) instruction.getEditor().getEditorComponent();
       iText.setSelectionColor(imgInstruction.getSelectionColor());
+      iText.updateUI();
       
       instruction.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
         @Override
