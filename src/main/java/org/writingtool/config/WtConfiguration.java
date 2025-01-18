@@ -208,7 +208,8 @@ public class WtConfiguration {
   private final Map<String, Short> underlineRuleTypes = new HashMap<>();
   private final Map<String, Object[]> configurableRuleValues = new HashMap<>();
   private final Set<String> styleLikeCategories = new HashSet<>();
-  private final Set<String> optionalCategories = new HashSet<>();
+// private final Set<String> optionalCategories = new HashSet<>();
+  private final Set<String> optionalRules = new HashSet<>();
   private final Map<String, String> specialTabCategories = new HashMap<>();
 
   // For new Maps, Sets or Lists add a clear to initOptions
@@ -503,8 +504,10 @@ public class WtConfiguration {
     }
     this.styleLikeCategories.clear();
     this.styleLikeCategories.addAll(configuration.styleLikeCategories);
-    this.optionalCategories.clear();
-    this.optionalCategories.addAll(configuration.optionalCategories);
+//    this.optionalCategories.clear();
+//    this.optionalCategories.addAll(configuration.optionalCategories);
+    this.optionalRules.clear();
+    this.optionalRules.addAll(configuration.optionalRules);
     this.specialTabCategories.clear();
     for (Map.Entry<String, String> entry : configuration.specialTabCategories.entrySet()) {
       this.specialTabCategories.put(entry.getKey(), entry.getValue());
@@ -1210,17 +1213,17 @@ public class WtConfiguration {
   /**
    * @since 1.2
    * Returns true if category is style like
-   */
+   *//*
   public boolean isOptionalCategory(String category) {
     return optionalCategories.contains(category);
   }
-
+*/
   /**
    * @since LT4.4
    * Initialize set of style like categories
    */
   public void initStyleCategories(List<Rule> allRules) {
-    Map<String, Boolean> categoryMap = new HashMap<>();
+//    Map<String, Boolean> categoryMap = new HashMap<>();
     for (Rule rule : allRules) {
       if (rule.getCategory().getTabName() != null && !specialTabCategories.containsKey(rule.getCategory().getName())) {
         specialTabCategories.put(rule.getCategory().getName(), rule.getCategory().getTabName());
@@ -1232,16 +1235,23 @@ public class WtConfiguration {
         styleLikeCategories.add(rule.getCategory().getName());
       }
       boolean isDefault = !rule.isOfficeDefaultOff() && (!rule.isDefaultOff() || rule.isOfficeDefaultOn());
+      if (!isDefault) {
+        optionalRules.add(rule.getId());
+      }
+/*
       if (!categoryMap.containsKey(rule.getCategory().getName()) || isDefault) {
         categoryMap.put(rule.getCategory().getName(), isDefault);
       }
+*/
     }
+/*
     for (String category : categoryMap.keySet()) {
       if (!categoryMap.get(category)) {
         optionalCategories.add(category);
       }
     }
     optionalCategories.add(WtOfficeTools.AI_STYLE_CATEGORY);
+*/
   }
 
   /**
@@ -1341,7 +1351,8 @@ public class WtConfiguration {
     if (underlineColors.containsKey(category)) {
       return underlineColors.get(category);
     }
-    boolean categoryIsDefault = !optionalCategories.contains(category);
+//    boolean categoryIsDefault = !optionalCategories.contains(category);
+    boolean categoryIsDefault = !optionalRules.contains(ruleId);
     boolean categoryIsStyle = styleLikeCategories.contains(category);
     if (colorSelection == 2) {
       if (!categoryIsDefault) {

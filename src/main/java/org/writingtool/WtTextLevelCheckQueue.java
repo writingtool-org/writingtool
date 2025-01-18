@@ -638,6 +638,7 @@ public class WtTextLevelCheckQueue {
                   lastLanguage = null;
 //                  queueWaits = true;
                   interruptCheck = false;
+                  lt = null;
 //                  queueWakeup.wait();
                   continue;
                 } catch (Throwable e) {
