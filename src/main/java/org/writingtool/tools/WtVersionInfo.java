@@ -1,5 +1,5 @@
 /* WritingTool, a LibreOffice Extension based on LanguageTool
- * Copyright (C) 2024 Fred Kruse (https://fk-es.de)
+ * Copyright (C) 2024 Fred Kruse (https://writingtool.org)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 import org.languagetool.JLanguageTool;
@@ -37,7 +38,7 @@ import com.sun.star.uno.XComponentContext;
 
 /**
  * class to get information about the application and the environment
- * @since WT 1.1
+ * @since 1.1
  * @author Fred Kruse
  */
 public class WtVersionInfo {
@@ -56,6 +57,8 @@ public class WtVersionInfo {
   public static String osArch;
   public static String javaVersion;
   public static String javaVendor;
+  public static IOException ioEx;
+  public static Throwable thEx;
   
   public static void init(XComponentContext xContext) {
     setWtInfo();
@@ -128,6 +131,7 @@ public class WtVersionInfo {
         String dir = resource.getPath();
         dir = dir.substring(5, dir.indexOf("!"));  // get jar file
         dir = dir.substring(0, dir.lastIndexOf("/"));  // get directory
+        dir = URLDecoder.decode(dir, "UTF-8");  // decode URL
         File vFile = new File(dir, "version.txt");
         try (InputStream stream = new FileInputStream(vFile);
             InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
@@ -145,8 +149,10 @@ public class WtVersionInfo {
             }
           }
         } catch (IOException e) {
+          ioEx = e;
         }
       } catch (Throwable e1) {
+        thEx = e1;
       }
     }
     wtName = WtOfficeTools.WT_NAME;
@@ -155,6 +161,7 @@ public class WtVersionInfo {
   /**
    * Set LT Information
    */
+  @SuppressWarnings("deprecation")
   private static void setLtInfo() {
     ltName = "LanguageTool";
     ltVersion = JLanguageTool.VERSION;
