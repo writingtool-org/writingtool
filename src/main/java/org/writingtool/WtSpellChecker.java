@@ -128,7 +128,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   /**
    * Get XSingleComponentFactory
    * Default method called by LO/OO extensions
-   */
+   *//*
   public static XSingleComponentFactory __getComponentFactory(String sImplName) {
     WtSingletonFactory xFactory = null;
     if (sImplName.equals(WtSpellChecker.class.getName())) {
@@ -136,15 +136,15 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     }
     return xFactory;
   }
-
+*/
   /**
    * Write keys to registry
    * Default method called by LO/OO extensions
-   */
+   *//*
   public static boolean __writeRegistryServiceInfo(XRegistryKey regKey) {
     return Factory.writeRegistryServiceInfo(WtSpellChecker.class.getName(), WtSpellChecker.getServiceNames(), regKey);
   }
-
+*/
   @Override
   public Locale[] getLocales() {
     if (noLtSpeller) {

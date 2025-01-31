@@ -14,6 +14,10 @@
 		manifest:media-type="application/vnd.sun.star.configuration-data" />
     <manifest:file-entry manifest:full-path="Accelerators.xcu"
         manifest:media-type="application/vnd.sun.star.configuration-data" />
+    <manifest:file-entry manifest:full-path="Factories.xcu"
+        manifest:media-type="application/vnd.sun.star.configuration-data" />
+    <manifest:file-entry manifest:full-path="Sidebar.xcu"
+        manifest:media-type="application/vnd.sun.star.configuration-data" />
 	<manifest:file-entry manifest:full-path="help"
 		manifest:media-type="application/vnd.sun.star.help"/>
 </manifest:manifest>

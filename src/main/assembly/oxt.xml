@@ -19,6 +19,8 @@
                 <include>description/**</include>
                 <include>Addons.xcu</include>
                 <include>Accelerators.xcu</include>
+                <include>Factories.xcu</include>
+                <include>Sidebar.xcu</include>
                 <include>Linguistic.xcu</include>
                 <include>WriterWindowState.xcu</include>
                 <include>ImpressWindowState.xcu</include>

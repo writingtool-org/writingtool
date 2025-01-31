@@ -20,6 +20,7 @@ package org.writingtool;
 
 import com.sun.star.lang.*;
 
+import org.writingtool.sidebar.WtSidebarFactory;
 import org.writingtool.tools.WtOfficeTools;
 
 import com.sun.star.beans.PropertyValue;
@@ -181,9 +182,11 @@ public class WritingTool extends WeakBase implements XJobExecutor,
   public static XSingleComponentFactory __getComponentFactory(String sImplName) {
     WtSingletonFactory xFactory = null;
     if (sImplName.equals(WritingTool.class.getName())) {
-      xFactory = new WtSingletonFactory(false);
+      xFactory = new WtSingletonFactory(WtSingletonFactory.serviceType.Proofreading);
     } else if (sImplName.equals(WtSpellChecker.class.getName())) {
-      xFactory = new WtSingletonFactory(true);
+      xFactory = new WtSingletonFactory(WtSingletonFactory.serviceType.Spellchecking);
+    } else if (sImplName.equals(WtSidebarFactory.class.getName())) {
+      xFactory = new WtSingletonFactory(WtSingletonFactory.serviceType.Sidebar);
     }
     return xFactory;
   }
@@ -193,8 +196,14 @@ public class WritingTool extends WeakBase implements XJobExecutor,
    * Default method called by LO/OO extensions
    */
   public static boolean __writeRegistryServiceInfo(XRegistryKey regKey) {
-    boolean ret = Factory.writeRegistryServiceInfo(WritingTool.class.getName(), WritingTool.getServiceNames(), regKey);
-    ret = ret && Factory.writeRegistryServiceInfo(WtSpellChecker.class.getName(), WtSpellChecker.getServiceNames(), regKey);
+    boolean ret = true;
+    try {
+      ret = Factory.writeRegistryServiceInfo(WritingTool.class.getName(), WritingTool.getServiceNames(), regKey);
+      ret = ret && Factory.writeRegistryServiceInfo(WtSpellChecker.class.getName(), WtSpellChecker.getServiceNames(), regKey);
+      ret = ret && Factory.writeRegistryServiceInfo(WtSidebarFactory.class.getName(), WtSidebarFactory.getServiceNames(), regKey);
+    } catch (java.lang.Exception e) {
+      System.err.println(e);
+    }
     return ret;
   }
 
