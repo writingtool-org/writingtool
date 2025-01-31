@@ -33,9 +33,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.TreeMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -45,14 +43,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import org.languagetool.Language;
-import org.languagetool.LanguageMaintainedState;
-import org.languagetool.Languages;
-import org.languagetool.language.Contributor;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
-import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -88,9 +81,7 @@ public class WtAboutDialog {
       headerText.setContentType("text/html");
       headerText.setEditable(false);
       headerText.setOpaque(false);
-      headerText.setText("<html><FONT SIZE=\"+2\"><b>"
-          + WtOfficeTools.WT_NAME + " - " 
-          + messages.getString("loAboutLtDesc") + "</b></FONT></html>");
+      headerText.setText(WtOfficeTools.getFormatedWtHeader(messages));
       JPanel headerPanel = new JPanel();
       headerPanel.add(headerLabel);
       headerPanel.add(headerText);
@@ -101,13 +92,7 @@ public class WtAboutDialog {
       licensePane.setContentType("text/html");
       licensePane.setEditable(false);
       licensePane.setOpaque(false);
-      licensePane.setText("<html>"
-          + "<p>Copyright (C) 2024 Fred Kruse - "
-          + "<a href=\"" + WtOfficeTools.WT_SERVER + "\">" + WtOfficeTools.WT_SERVER + "</a><br>  <br>"
-          + "based on LanguageTool - "
-          + "Copyright (C) 2005-2024 the LanguageTool community and Daniel Naber.<br>  <br>"
-          + "WritingTool and LanguageTool are licensed under the GNU Lesser General Public License.<br>"
-          + "</html>");
+      licensePane.setText(WtOfficeTools.getFormatedLicenseInformation());
       WtGeneralTools.addHyperlinkListener(licensePane);
 
       JTextPane techPane = new JTextPane();
@@ -116,32 +101,7 @@ public class WtAboutDialog {
       techPane.setContentType("text/html");
       techPane.setEditable(false);
       techPane.setOpaque(false);
-      techPane.setText(String.format("<html>"
-          + "<p>WritingTool %s (%s)<br>"
-          + "based on LanguageTool %s (%s, %s)<br>"
-          + "OS: %s %s (%s)<br>"
-          + "%s %s%s (%s), %s<br>"
-          + "Java version: %s (%s)<br>"
-          + "Java max/total/free memory: %sMB, %sMB, %sMB</p>"
-          + "</html>", 
-           WtVersionInfo.wtVersion,
-           WtVersionInfo.wtBuildDate,
-           WtVersionInfo.ltVersion(),
-           WtVersionInfo.ltBuildDate(),
-           WtVersionInfo.ltShortGitId(),
-           System.getProperty("os.name"),
-           System.getProperty("os.version"),
-           System.getProperty("os.arch"),
-           WtVersionInfo.ooName,
-           WtVersionInfo.ooVersion,
-           WtVersionInfo.ooExtension,
-           WtVersionInfo.ooVendor,
-           WtVersionInfo.ooLocale,
-           WtVersionInfo.javaVersion,
-           WtVersionInfo.javaVendor,
-           Runtime.getRuntime().maxMemory()/1024/1024,
-           Runtime.getRuntime().totalMemory()/1024/1024,
-           Runtime.getRuntime().freeMemory()/1024/1024));
+      techPane.setText(WtOfficeTools.getFormatedHtmlVersionInformation());
 
       JTextPane aboutPane = new JTextPane();
       aboutPane.setBackground(new Color(0, 0, 0, 0));
@@ -149,11 +109,7 @@ public class WtAboutDialog {
       aboutPane.setContentType("text/html");
       aboutPane.setEditable(false);
       aboutPane.setOpaque(false);
-      aboutPane.setText(String.format("<html>"
-          + "<p>Maintainer of the office extension: %s</p>"
-          + "<p>Maintainers or former maintainers of the language modules -<br>"
-          + "(*) means language is unmaintained in LanguageTool:</p><br>"
-          + "</html>", WtOfficeTools.EXTENSION_MAINTAINER));
+      aboutPane.setText(WtOfficeTools.getFormatedExtensionMaintainer());
 
       JTextPane maintainersPane = new JTextPane();
       maintainersPane.setBackground(new Color(0, 0, 0, 0));
@@ -162,7 +118,7 @@ public class WtAboutDialog {
       maintainersPane.setEditable(false);
       maintainersPane.setOpaque(false);
   
-      maintainersPane.setText(getMaintainers());
+      maintainersPane.setText(WtOfficeTools.getFormatedLanguageToolMaintainers(messages));
   
       int prefWidth = Math.max(520, maintainersPane.getPreferredSize().width);
       int maxHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
@@ -174,30 +130,7 @@ public class WtAboutDialog {
       
       JButton copyToClipboard = new JButton(messages.getString("loCopyToClipBoardDesc"));
       copyToClipboard.addActionListener(e -> {
-        String str = String.format("\nWritingTool %s (%s)\n"
-            + "based on LanguageTool %s (%s, %s)\n"
-            + "OS: %s %s (%s)\n"
-            + "%s %s%s (%s), %s\n"
-            + "Java version: %s (%s)\n"
-            + "Java max/total/free memory: %sMB, %sMB, %sMB\n",
-             WtVersionInfo.wtVersion,
-             WtVersionInfo.wtBuildDate,
-             WtVersionInfo.ltVersion(),
-             WtVersionInfo.ltBuildDate(),
-             WtVersionInfo.ltShortGitId(),
-             System.getProperty("os.name"),
-             System.getProperty("os.version"),
-             System.getProperty("os.arch"),
-             WtVersionInfo.ooName,
-             WtVersionInfo.ooVersion,
-             WtVersionInfo.ooExtension,
-             WtVersionInfo.ooVendor,
-             WtVersionInfo.ooLocale,
-             System.getProperty("java.version"),
-             System.getProperty("java.vm.vendor"),
-             Runtime.getRuntime().maxMemory()/1024/1024,
-             Runtime.getRuntime().totalMemory()/1024/1024,
-             Runtime.getRuntime().freeMemory()/1024/1024);
+        String str = WtOfficeTools.getFormatedHtmlVersionInformation();
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Clipboard clipboard = toolkit.getSystemClipboard();
         StringSelection strSel = new StringSelection(str);
@@ -288,45 +221,6 @@ public class WtAboutDialog {
     }
   }
 
-  private String getMaintainers() {
-    TreeMap<String, Language> list = new TreeMap<>();
-    for (Language lang : Languages.get()) {
-      if (!lang.isVariant()) {
-        if (lang.getMaintainers() != null) {
-          list.put(messages.getString(lang.getShortCode()), lang);
-        }
-      }
-    }
-    StringBuilder str = new StringBuilder();
-    str.append("<table border=0 cellspacing=0 cellpadding=0>");
-    for (Map.Entry<String, Language> entry : list.entrySet()) {
-      str.append("<tr valign=\"top\"><td>");
-      str.append(entry.getKey());
-      if (entry.getValue().getMaintainedState() == LanguageMaintainedState.LookingForNewMaintainer) {
-        str.append("(*)");
-      }
-      str.append(":</td>");
-      str.append("<td>&nbsp;</td>");
-      str.append("<td>");
-      int i = 0;
-      Contributor[] maintainers = list.get(entry.getKey()).getMaintainers();
-      if (maintainers != null) {
-        for (Contributor contributor : maintainers) {
-          if (i > 0) {
-            str.append(", ");
-            if (i % 3 == 0) {
-              str.append("<br>");
-            }
-          }
-          str.append(contributor.getName());
-          i++;
-        }
-      }
-      str.append("</td></tr>");
-    }
-    str.append("</table>");
-    return str.toString();
-  }
 /*  
   private String getMaintainersAsText() {
     TreeMap<String, Language> list = new TreeMap<>();

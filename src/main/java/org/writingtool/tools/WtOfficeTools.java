@@ -27,8 +27,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -38,6 +40,9 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 import org.languagetool.JLanguageTool;
 import org.languagetool.Language;
+import org.languagetool.LanguageMaintainedState;
+import org.languagetool.Languages;
+import org.languagetool.language.Contributor;
 import org.languagetool.rules.AbstractStatisticSentenceStyleRule;
 import org.languagetool.rules.AbstractStatisticStyleRule;
 import org.languagetool.rules.AbstractStyleTooOftenUsedWordRule;
@@ -1001,6 +1006,144 @@ public class WtOfficeTools {
       wErrors[i] = new WtProofreadingError(errors[i]);
     }
     return wErrors;
+  }
+
+  /**
+   * get formated WT header
+   */
+  public static String getFormatedWtHeader(ResourceBundle messages) {
+    return "<html><FONT SIZE=\"+2\"><b>"
+        + WtOfficeTools.WT_NAME + " - " 
+        + messages.getString("loAboutLtDesc") + "</b></FONT></html>";
+  }
+
+  /**
+   * get formated license information
+   */
+  public static String getFormatedLicenseInformation() {
+    return "<html>"
+        + "<p>Copyright (C) 2024 Fred Kruse - "
+        + "<a href=\"" + WtOfficeTools.WT_SERVER + "\">" + WtOfficeTools.WT_SERVER + "</a><br>  <br>"
+        + "based on LanguageTool - "
+        + "Copyright (C) 2005-2024 the LanguageTool community and Daniel Naber.<br>  <br>"
+        + "WritingTool and LanguageTool are licensed under the GNU Lesser General Public License.<br>"
+        + "</html>";
+  }
+
+  /**
+   * get HTML formated version information
+   */
+  public static String getFormatedHtmlVersionInformation() {
+    return String.format("<html>"
+        + "<p>WritingTool %s (%s)<br>"
+        + "based on LanguageTool %s (%s, %s)<br>"
+        + "OS: %s %s (%s)<br>"
+        + "%s %s%s (%s), %s<br>"
+        + "Java version: %s (%s)<br>"
+        + "Java max/total/free memory: %sMB, %sMB, %sMB</p>"
+        + "</html>", 
+         WtVersionInfo.wtVersion,
+         WtVersionInfo.wtBuildDate,
+         WtVersionInfo.ltVersion(),
+         WtVersionInfo.ltBuildDate(),
+         WtVersionInfo.ltShortGitId(),
+         System.getProperty("os.name"),
+         System.getProperty("os.version"),
+         System.getProperty("os.arch"),
+         WtVersionInfo.ooName,
+         WtVersionInfo.ooVersion,
+         WtVersionInfo.ooExtension,
+         WtVersionInfo.ooVendor,
+         WtVersionInfo.ooLocale,
+         WtVersionInfo.javaVersion,
+         WtVersionInfo.javaVendor,
+         Runtime.getRuntime().maxMemory()/1024/1024,
+         Runtime.getRuntime().totalMemory()/1024/1024,
+         Runtime.getRuntime().freeMemory()/1024/1024);
+  }
+
+  /**
+   * get flat formated version information
+   */
+  public static String getFormatedTextVersionInformation() {
+    return String.format("\nWritingTool %s (%s)\n"
+        + "based on LanguageTool %s (%s, %s)\n"
+        + "OS: %s %s (%s)\n"
+        + "%s %s%s (%s), %s\n"
+        + "Java version: %s (%s)\n"
+        + "Java max/total/free memory: %sMB, %sMB, %sMB\n",
+         WtVersionInfo.wtVersion,
+         WtVersionInfo.wtBuildDate,
+         WtVersionInfo.ltVersion(),
+         WtVersionInfo.ltBuildDate(),
+         WtVersionInfo.ltShortGitId(),
+         System.getProperty("os.name"),
+         System.getProperty("os.version"),
+         System.getProperty("os.arch"),
+         WtVersionInfo.ooName,
+         WtVersionInfo.ooVersion,
+         WtVersionInfo.ooExtension,
+         WtVersionInfo.ooVendor,
+         WtVersionInfo.ooLocale,
+         System.getProperty("java.version"),
+         System.getProperty("java.vm.vendor"),
+         Runtime.getRuntime().maxMemory()/1024/1024,
+         Runtime.getRuntime().totalMemory()/1024/1024,
+         Runtime.getRuntime().freeMemory()/1024/1024);
+  }
+
+  /**
+   * get formated extension maintainer
+   */
+  public static String getFormatedExtensionMaintainer() {
+    return String.format("<html>"
+        + "<p>Maintainer of the office extension: %s</p>"
+        + "<p>Maintainers or former maintainers of the language modules -<br>"
+        + "(*) means language is unmaintained in LanguageTool:</p><br>"
+        + "</html>", WtOfficeTools.EXTENSION_MAINTAINER);
+  }
+
+  /**
+   * get formated LanguageTool maintainer
+   */
+  public static String getFormatedLanguageToolMaintainers(ResourceBundle messages) {
+    TreeMap<String, Language> list = new TreeMap<>();
+    for (Language lang : Languages.get()) {
+      if (!lang.isVariant()) {
+        if (lang.getMaintainers() != null) {
+          list.put(messages.getString(lang.getShortCode()), lang);
+        }
+      }
+    }
+    StringBuilder str = new StringBuilder();
+    str.append("<table border=0 cellspacing=0 cellpadding=0>");
+    for (Map.Entry<String, Language> entry : list.entrySet()) {
+      str.append("<tr valign=\"top\"><td>");
+      str.append(entry.getKey());
+      if (entry.getValue().getMaintainedState() == LanguageMaintainedState.LookingForNewMaintainer) {
+        str.append("(*)");
+      }
+      str.append(":</td>");
+      str.append("<td>&nbsp;</td>");
+      str.append("<td>");
+      int i = 0;
+      Contributor[] maintainers = list.get(entry.getKey()).getMaintainers();
+      if (maintainers != null) {
+        for (Contributor contributor : maintainers) {
+          if (i > 0) {
+            str.append(", ");
+            if (i % 3 == 0) {
+              str.append("<br>");
+            }
+          }
+          str.append(contributor.getName());
+          i++;
+        }
+      }
+      str.append("</td></tr>");
+    }
+    str.append("</table>");
+    return str.toString();
   }
 
   /**
