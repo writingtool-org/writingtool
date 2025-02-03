@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.writingtool.tools.WtMessageHandler;
+
 public class WtQuotesDetection {
   
   private static final List<String> startSymbols = Arrays.asList("“", "„", "»", "«", "\"");
@@ -120,5 +122,51 @@ public class WtQuotesDetection {
     }
   }
 
+  /**
+   * update a following paragraph
+   * returns true, if the following paragraph has to be changed
+   */
+  private boolean updateFollowingParagraph(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, boolean isQuoteBefore) {
+    if (isQuoteBefore) {
+      if (oQuotes.get(nPara) != null && oQuotes.get(nPara).size() > 0 && oQuotes.get(nPara).get(0) <= 0) {
+        return false;
+      }
+      if (oQuotes.get(nPara) == null) {
+        oQuotes.set(nPara, new ArrayList<Integer>());
+      }
+      oQuotes.get(nPara).add(-1);
+      if (cQuotes.get(nPara) != null && cQuotes.get(nPara).size() > 0) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      if (oQuotes.get(nPara) == null || oQuotes.get(nPara).size() == 0 || oQuotes.get(nPara).get(0) >= 0) {
+        return false;
+      }
+      oQuotes.get(nPara).remove(0);
+      if (cQuotes.get(nPara) == null || cQuotes.get(nPara).size() == 0) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+  }
+  
+  private void updateTextParagraphs(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, boolean isQuoteBefore) {
+    boolean hasChanged = true;
+    for (int i = nPara + 1; hasChanged && i < oQuotes.size(); i++) {
+      hasChanged = updateFollowingParagraph(oQuotes, cQuotes, i, isQuoteBefore);
+    }
+  }
+  
+  public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) {
+    boolean isQuoteBefore = oQuotes.get(nPara) != null && oQuotes.get(nPara).size() > 0 && oQuotes.get(nPara).get(0) < 0; 
+    isQuoteBefore = analyzeOneParagraph(txt, isQuoteBefore);
+    oQuotes.set(nPara, openingQuotes);
+    cQuotes.set(nPara, closingQuotes);
+    updateTextParagraphs(oQuotes, cQuotes, nPara, isQuoteBefore);
+  }
 
 }

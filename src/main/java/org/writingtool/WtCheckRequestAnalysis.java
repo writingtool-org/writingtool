@@ -843,6 +843,7 @@ class WtCheckRequestAnalysis {
 //      WtMessageHandler.printToLogFile("setFlatParagraph: " + nPara + ", locale: " + WtOfficeTools.localeToString(locale));
       docCache.setFlatParagraphFootnotes(nPara, footnotePos);
       docCache.setFlatParagraphDeletedCharacters(nPara, deletedChars);
+      docCache.updateQuoteInfo(singleDocument, nPara);
   //    mDocHandler.handleLtDictionary(chPara, locale);
       if (useQueue) {
         runningParas.add(nPara);

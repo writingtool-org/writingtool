@@ -2586,6 +2586,21 @@ public class WtDocumentCache implements Serializable {
   }
 
   /**
+   * update information about opening and closing quotes
+   */
+  public void updateQuoteInfo(WtSingleDocument document, int nPara) {
+    boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
+        != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
+    if (needQuoteInfo) {
+      TextParagraph tPara = getNumberOfTextParagraph(nPara);
+      if (tPara.type == CURSOR_TYPE_TEXT) {
+        WtQuotesDetection quotesDetector = new WtQuotesDetection();
+        quotesDetector.updateTextParagraph(getFlatParagraph(nPara), nPara, openingQuotes, closingQuotes);
+      }
+    }
+  }
+
+  /**
    * is opening quote before nStart
    * nTPara numbers the text paragraphs
    */
@@ -2594,13 +2609,13 @@ public class WtDocumentCache implements Serializable {
       return false;
     }
     for (int i = openingQuotes.get(nTPara).size() - 1; i >= 0; i--) {
-      if (i < nStart) {
+      if (openingQuotes.get(nTPara).get(i) < nStart) {
         if (closingQuotes.size() <= nTPara || closingQuotes.get(nTPara) == null || closingQuotes.get(nTPara).size() == 0) {
           return true;
         }
         for (int j = closingQuotes.get(nTPara).size() - 1; j >= 0; j--) {
-          if (j < nStart) {
-            if (j > i) {
+          if (closingQuotes.get(nTPara).get(j) < nStart) {
+            if (closingQuotes.get(nTPara).get(j) > openingQuotes.get(nTPara).get(i)) {
               return false;
             } else {
               return true;
@@ -2626,8 +2641,9 @@ public class WtDocumentCache implements Serializable {
       return errorArray;
     }
     List<WtProofreadingError> errors = new ArrayList<>();
+    boolean isNoDirectSpeech = config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO;
     for (WtProofreadingError error : errorArray) {
-      if (!isOpenQuote(tPara.number, error.nErrorStart)) {
+      if ((!error.bStyleRule && !isNoDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
         errors.add(error);
       }
     }

@@ -739,6 +739,11 @@ public class WtSingleCheck {
     // LibreOffice since version 6.2 supports the change of underline style (key: "LineType", value: short (DASHED = 5))
     // older version will simply ignore the properties
     String category = ruleMatch.getRule().getCategory().getName();
+    if (config.isStyleCategory(category)) {
+      aError.bStyleRule = true;
+    } else {
+      aError.bStyleRule = false;
+    }
     String ruleId = ruleMatch.getRule().getId();
     if (ruleMatch.getRule() instanceof WtAiDetectionRule) {
       if (ruleMatch.getType() == Type.Hint) {
