@@ -1422,6 +1422,7 @@ public class WtSingleDocument {
       }
     }
     Arrays.sort(errorArray, new WtErrorPositionComparator());
+    errorArray = docCache.filterDirectSpeech (errorArray, nPara, config);
     return filterIgnoredMatches(errorArray, nPara);
   }
   

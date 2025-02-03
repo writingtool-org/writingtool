@@ -1275,6 +1275,30 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(filterOverlappingMatchesBox, cons);
 
+    JCheckBox noCheckGrammarDirectSpeechBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiNoGrammarCheckWithinDirectSpeech")));
+    noCheckGrammarDirectSpeechBox.setSelected(config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO);
+    noCheckGrammarDirectSpeechBox.addItemListener(e -> {
+      config.setCheckDirectSpeech(noCheckGrammarDirectSpeechBox.isSelected() ? 
+          WtConfiguration.CHECK_DIRECT_SPEECH_NO : WtConfiguration.CHECK_DIRECT_SPEECH_NO_STYLE);
+    });
+    
+    JCheckBox noCheckStyleDirectSpeechBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiNoStyleCheckWithinDirectSpeech")));
+    noCheckStyleDirectSpeechBox.setSelected(config.getCheckDirectSpeech() != WtConfiguration.CHECK_DIRECT_SPEECH_YES);
+    noCheckGrammarDirectSpeechBox.setEnabled(noCheckStyleDirectSpeechBox.isSelected());
+    noCheckStyleDirectSpeechBox.addItemListener(e -> {
+      config.setCheckDirectSpeech(noCheckStyleDirectSpeechBox.isSelected() ? (noCheckGrammarDirectSpeechBox.isSelected() ? 
+          WtConfiguration.CHECK_DIRECT_SPEECH_NO : WtConfiguration.CHECK_DIRECT_SPEECH_NO_STYLE) :
+          WtConfiguration.CHECK_DIRECT_SPEECH_YES);
+      noCheckGrammarDirectSpeechBox.setEnabled(noCheckStyleDirectSpeechBox.isSelected());
+    });
+    cons.gridy++;
+    portPanel.add(noCheckStyleDirectSpeechBox, cons);
+    cons.insets = new Insets(0, SHIFT2, 0, 0);
+
+    cons.gridy++;
+    portPanel.add(noCheckGrammarDirectSpeechBox, cons);
+    cons.insets = new Insets(0, SHIFT1, 0, 0);
+
     JCheckBox noBackgroundCheckBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiNoBackgroundCheck")));
     noBackgroundCheckBox.setSelected(config.noBackgroundCheck());
     noBackgroundCheckBox.addItemListener(e -> config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected()));
