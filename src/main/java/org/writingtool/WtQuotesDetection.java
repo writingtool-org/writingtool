@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.writingtool.tools.WtMessageHandler;
-
 public class WtQuotesDetection {
   
   private static final List<String> startSymbols = Arrays.asList("“", "„", "»", "«", "\"");

@@ -2641,9 +2641,9 @@ public class WtDocumentCache implements Serializable {
       return errorArray;
     }
     List<WtProofreadingError> errors = new ArrayList<>();
-    boolean isNoDirectSpeech = config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO;
+    boolean isNoStyleDirectSpeech = config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO_STYLE;
     for (WtProofreadingError error : errorArray) {
-      if ((!error.bStyleRule && !isNoDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
+      if ((!error.bStyleRule && isNoStyleDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
         errors.add(error);
       }
     }
