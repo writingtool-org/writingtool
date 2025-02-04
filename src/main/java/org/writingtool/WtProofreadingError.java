@@ -36,6 +36,7 @@ public class WtProofreadingError implements Serializable {
   public int nErrorType;
   public boolean bDefaultRule;
   public boolean bStyleRule;
+  public boolean bPunctuationRule;
   public String aFullComment;
   public String aRuleIdentifier;
   public String aShortComment;
@@ -55,6 +56,7 @@ public class WtProofreadingError implements Serializable {
     aSuggestions = error.aSuggestions;
     bDefaultRule = error.bDefaultRule;
     bStyleRule = error.bStyleRule;
+    bPunctuationRule = error.bPunctuationRule;
     if (error.aProperties != null) {
       aProperties = new WtPropertyValue[error.aProperties.length];
       for (int i = 0; i < error.aProperties.length; i++) {

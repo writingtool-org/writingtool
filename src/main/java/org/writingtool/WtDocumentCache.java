@@ -2609,12 +2609,12 @@ public class WtDocumentCache implements Serializable {
       return false;
     }
     for (int i = openingQuotes.get(nTPara).size() - 1; i >= 0; i--) {
-      if (openingQuotes.get(nTPara).get(i) < nStart) {
+      if (openingQuotes.get(nTPara).get(i) <= nStart) {
         if (closingQuotes.size() <= nTPara || closingQuotes.get(nTPara) == null || closingQuotes.get(nTPara).size() == 0) {
           return true;
         }
         for (int j = closingQuotes.get(nTPara).size() - 1; j >= 0; j--) {
-          if (closingQuotes.get(nTPara).get(j) < nStart) {
+          if (closingQuotes.get(nTPara).get(j) <= nStart) {
             if (closingQuotes.get(nTPara).get(j) > openingQuotes.get(nTPara).get(i)) {
               return false;
             } else {
@@ -2643,7 +2643,7 @@ public class WtDocumentCache implements Serializable {
     List<WtProofreadingError> errors = new ArrayList<>();
     boolean isNoStyleDirectSpeech = config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO_STYLE;
     for (WtProofreadingError error : errorArray) {
-      if ((!error.bStyleRule && isNoStyleDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
+      if (error.bPunctuationRule || (!error.bStyleRule && isNoStyleDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
         errors.add(error);
       }
     }

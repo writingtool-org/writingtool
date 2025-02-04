@@ -92,7 +92,11 @@ public class WtQuotesDetection {
     }
     for (int i = 0; i < txt.length(); i++) {
       if (isOpeningQuote(txt, i)) {
-        openingQuotes.add(i);
+        if (i == 0 && openingQuotes.size() > 0) {
+          openingQuotes.set(0, i);
+        } else {
+          openingQuotes.add(i);
+        }
         openQuote = new String(txt.substring(i, i + 1));
         isQuoteBefore = true;
       } else if (isClosingQuote(txt, i)) {
@@ -132,7 +136,7 @@ public class WtQuotesDetection {
       if (oQuotes.get(nPara) == null) {
         oQuotes.set(nPara, new ArrayList<Integer>());
       }
-      oQuotes.get(nPara).add(-1);
+      oQuotes.get(nPara).add(0, -1);
       if (cQuotes.get(nPara) != null && cQuotes.get(nPara).size() > 0) {
         return false;
       } else {
