@@ -96,10 +96,6 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
             .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
     XControl xContainer = UNO.XControl(controlContainer);
     xContainer.createPeer(parentToolkit, parentWindowPeer);
-/*
-    controlContainer2 = UNO
-        .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
-    UNO.XControl(controlContainer2).createPeer(parentToolkit, xContainer.getPeer());
 /*    
     XControl tabControl = GuiFactory.createTabPageContainer(xMCF, context);
     XTabPageContainer tabContainer = UNO.XTabPageContainer(tabControl);
@@ -134,27 +130,31 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
     };
     xbutton.addActionListener(xButtonAction);
-    controlContainer.addControl("button1", button);
+    controlContainer.addControl("button0", button);
     layout.addControl(button);
 
-    XControl xButtonContainer = GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 100, 32), null);
+    XControl xButtonContainer = GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 90, 32), null);
     controlContainer.addControl("buttonContainer", xButtonContainer);
     layout.addControl(xButtonContainer);
     XControlContainer buttonContainer = UNO.XControlContainer(xButtonContainer);
-    XWindow buttonContainerWindow = UNO.XWindow(xButtonContainer);
+    XWindow containerWindow = UNO.XWindow(xContainer);
     AbstractWindowListener buttonContainerAdapter = new AbstractWindowListener() {
       @Override
       public void windowResized(WindowEvent e) {
-        layout2.layout(buttonContainerWindow.getPosSize());
+        layout2.layout(containerWindow.getPosSize());
       }
     };
-    buttonContainerWindow.addWindowListener(buttonContainerAdapter);
+    containerWindow.addWindowListener(buttonContainerAdapter);
+//    XWindowPeer containerWindowPeer = UNO.XWindowPeer(containerWindow);
+//    XToolkit containerToolkit = containerWindowPeer.getToolkit();
+//    xButtonContainer.createPeer(containerToolkit, containerWindowPeer);
     
     // Add button
+    
     SortedMap<String, Object> bProps = new TreeMap<>();
-    bProps.put(UnoProperty.IMAGE_URL, "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTNextBig.png");
-    bProps.put("ImagePosition", ImagePosition.LeftCenter);
-    XControl button1 = GuiFactory.createButton(xMCF, context, "Next Error", null, new Rectangle(0, 0, 15, 15), bProps);
+    bProps.put(UnoProperty.IMAGE_URL, "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTNextSmall.png");
+    bProps.put("ImagePosition", ImagePosition.Centered);
+    XControl button1 = GuiFactory.createButton(xMCF, context, "", null, new Rectangle(0, 0, 15, 15), bProps);
 //    XButton xbutton1 = UNO.XButton(button1);
 /*    
     AbstractActionListener xButtonAction = event -> {
@@ -171,8 +171,16 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 */
     
     layout2 = new HorizontalLayout(5, 5, 5, 5, 5);
-    controlContainer.addControl("button2", button1);
-    layout.addControl(button1);
+    buttonContainer.addControl("button1", button1);
+    layout2.addControl(button1);
+    
+    bProps = new TreeMap<>();
+    bProps.put(UnoProperty.IMAGE_URL, "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTOptionsSmall.png");
+    bProps.put("ImagePosition", ImagePosition.Centered);
+    XControl button2 = GuiFactory.createButton(xMCF, context, "", null, new Rectangle(0, 0, 15, 15), bProps);
+    buttonContainer.addControl("button2", button2);
+    layout2.addControl(button2);
+    
   }
 
   @Override
