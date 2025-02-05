@@ -24,6 +24,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.sun.star.accessibility.XAccessible;
+import com.sun.star.awt.ImagePosition;
 import com.sun.star.awt.Rectangle;
 import com.sun.star.awt.WindowEvent;
 import com.sun.star.awt.XButton;
@@ -51,8 +52,10 @@ import org.libreoffice.ext.unohelper.common.UnoHelperException;
 import org.libreoffice.ext.unohelper.dialog.adapter.AbstractActionListener;
 import org.libreoffice.ext.unohelper.dialog.adapter.AbstractWindowListener;
 import org.libreoffice.ext.unohelper.ui.GuiFactory;
+import org.libreoffice.ext.unohelper.ui.layout.HorizontalLayout;
 import org.libreoffice.ext.unohelper.ui.layout.Layout;
 import org.libreoffice.ext.unohelper.ui.layout.VerticalLayout;
+import org.libreoffice.ext.unohelper.util.UnoProperty;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 
@@ -69,14 +72,13 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XMultiComponentFactory xMCF;  // The component factory
   private XControlContainer controlContainer;  //  The container of the controls
   private Layout layout;  //  The layout of the controls
+  private Layout layout2;  //  The layout of the controls
 
   public WtSidebarContent(XComponentContext context, XWindow parentWindow) {
-    AbstractWindowListener windowAdapter = new AbstractWindowListener()
-    {
+    AbstractWindowListener windowAdapter = new AbstractWindowListener() {
       @Override
-      public void windowResized(WindowEvent e)
-      {
-          layout.layout(parentWindow.getPosSize());
+      public void windowResized(WindowEvent e) {
+        layout.layout(parentWindow.getPosSize());
       }
     };
     parentWindow.addWindowListener(windowAdapter);
@@ -92,15 +94,20 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     XToolkit parentToolkit = parentWindowPeer.getToolkit();
     controlContainer = UNO
             .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
-    UNO.XControl(controlContainer).createPeer(parentToolkit, parentWindowPeer);
-    
+    XControl xContainer = UNO.XControl(controlContainer);
+    xContainer.createPeer(parentToolkit, parentWindowPeer);
+/*
+    controlContainer2 = UNO
+        .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
+    UNO.XControl(controlContainer2).createPeer(parentToolkit, xContainer.getPeer());
+/*    
     XControl tabControl = GuiFactory.createTabPageContainer(xMCF, context);
     XTabPageContainer tabContainer = UNO.XTabPageContainer(tabControl);
     XTabPageContainerModel tabModel = UNO.XTabPageContainerModel(tabControl.getModel());
     GuiFactory.createTab(xMCF, context, tabModel, "Test1", (short) 1, 100);
     controlContainer.addControl("tabs", UNO.XControl(tabContainer));
     layout.addControl(UNO.XControl(tabContainer));
-
+*/
     // Add text field
     SortedMap<String, Object> props = new TreeMap<>();
     props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
@@ -129,6 +136,43 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     xbutton.addActionListener(xButtonAction);
     controlContainer.addControl("button1", button);
     layout.addControl(button);
+
+    XControl xButtonContainer = GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 100, 32), null);
+    controlContainer.addControl("buttonContainer", xButtonContainer);
+    layout.addControl(xButtonContainer);
+    XControlContainer buttonContainer = UNO.XControlContainer(xButtonContainer);
+    XWindow buttonContainerWindow = UNO.XWindow(xButtonContainer);
+    AbstractWindowListener buttonContainerAdapter = new AbstractWindowListener() {
+      @Override
+      public void windowResized(WindowEvent e) {
+        layout2.layout(buttonContainerWindow.getPosSize());
+      }
+    };
+    buttonContainerWindow.addWindowListener(buttonContainerAdapter);
+    
+    // Add button
+    SortedMap<String, Object> bProps = new TreeMap<>();
+    bProps.put(UnoProperty.IMAGE_URL, "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTNextBig.png");
+    bProps.put("ImagePosition", ImagePosition.LeftCenter);
+    XControl button1 = GuiFactory.createButton(xMCF, context, "Next Error", null, new Rectangle(0, 0, 15, 15), bProps);
+//    XButton xbutton1 = UNO.XButton(button1);
+/*    
+    AbstractActionListener xButtonAction = event -> {
+      String text = searchBox.getText();
+      try {
+        UNO.init(xMCF);
+        XTextDocument doc = UNO.getCurrentTextDocument();
+        doc.getText().setString(text);
+      } catch (UnoHelperException e1) {
+        WtMessageHandler.printException(e1);
+      }
+    };
+    xbutton.addActionListener(xButtonAction);
+*/
+    
+    layout2 = new HorizontalLayout(5, 5, 5, 5, 5);
+    controlContainer.addControl("button2", button1);
+    layout.addControl(button1);
   }
 
   @Override
