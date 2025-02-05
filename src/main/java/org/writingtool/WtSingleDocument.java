@@ -1384,6 +1384,7 @@ public class WtSingleDocument {
         }
       }
       errors = filterOverlappingErrors(errors, config.filterOverlappingMatches());
+      errors = docCache.filterDirectSpeech(errors, nPara, config);
       for (int i = 0; i < errors.length; i++) {
         if (nChar >= errors[i].nErrorStart && nChar < errors[i].nErrorStart + errors[i].nErrorLength) {
           return errors[i];
