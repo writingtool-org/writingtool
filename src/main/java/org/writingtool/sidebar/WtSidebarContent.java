@@ -19,6 +19,7 @@
 package org.writingtool.sidebar;
 
 import java.awt.SystemColor;
+import java.util.ResourceBundle;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -28,10 +29,13 @@ import com.sun.star.awt.WindowEvent;
 import com.sun.star.awt.XButton;
 import com.sun.star.awt.XControl;
 import com.sun.star.awt.XControlContainer;
+import com.sun.star.awt.XFixedText;
 import com.sun.star.awt.XTextComponent;
 import com.sun.star.awt.XToolkit;
 import com.sun.star.awt.XWindow;
 import com.sun.star.awt.XWindowPeer;
+import com.sun.star.awt.tab.XTabPageContainer;
+import com.sun.star.awt.tab.XTabPageContainerModel;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lib.uno.helper.ComponentBase;
@@ -50,6 +54,7 @@ import org.libreoffice.ext.unohelper.ui.GuiFactory;
 import org.libreoffice.ext.unohelper.ui.layout.Layout;
 import org.libreoffice.ext.unohelper.ui.layout.VerticalLayout;
 import org.writingtool.tools.WtMessageHandler;
+import org.writingtool.tools.WtOfficeTools;
 
 /**
  * Create the window for the WT sidebar panel
@@ -58,6 +63,8 @@ import org.writingtool.tools.WtMessageHandler;
  * @author Fred Kruse
  */
 public class WtSidebarContent extends ComponentBase implements XToolPanel, XSidebarPanel {
+
+  private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   private XMultiComponentFactory xMCF;  // The component factory
   private XControlContainer controlContainer;  //  The container of the controls
@@ -86,14 +93,23 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     controlContainer = UNO
             .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
     UNO.XControl(controlContainer).createPeer(parentToolkit, parentWindowPeer);
+    
+    XControl tabControl = GuiFactory.createTabPageContainer(xMCF, context);
+    XTabPageContainer tabContainer = UNO.XTabPageContainer(tabControl);
+    XTabPageContainerModel tabModel = UNO.XTabPageContainerModel(tabControl.getModel());
+    GuiFactory.createTab(xMCF, context, tabModel, "Test1", (short) 1, 100);
+    controlContainer.addControl("tabs", UNO.XControl(tabContainer));
+    layout.addControl(UNO.XControl(tabContainer));
 
     // Add text field
     SortedMap<String, Object> props = new TreeMap<>();
     props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
     props.put("Autocomplete", false);
     props.put("HideInactiveSelection", true);
-    XTextComponent searchBox = UNO.XTextComponent(
-            GuiFactory.createTextfield(xMCF, context, "", new Rectangle(0, 0, 100, 32), props, null));
+    XFixedText searchBox = UNO.XFixedText(
+        GuiFactory.createLabel(xMCF, context, WtOfficeTools.getFormatedTextVersionInformation(), new Rectangle(0, 0, 100, 32), props));
+//    XTextComponent searchBox = UNO.XTextComponent(
+//            GuiFactory.createTextfield(xMCF, context, WtOfficeTools.getFormatedLicenseInformation(), new Rectangle(0, 0, 100, 32), props, null));
     controlContainer.addControl("searchbox", UNO.XControl(searchBox));
     layout.addControl(UNO.XControl(searchBox));
 
