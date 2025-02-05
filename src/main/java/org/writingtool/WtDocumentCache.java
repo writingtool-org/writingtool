@@ -30,6 +30,7 @@ import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedToken;
 import org.languagetool.AnalyzedTokenReadings;
 import org.languagetool.JLanguageTool;
+import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtFlatParagraphTools;
 import org.writingtool.tools.WtMessageHandler;
@@ -82,6 +83,8 @@ public class WtDocumentCache implements Serializable {
   private final List<SerialLocale> locales = new ArrayList<SerialLocale>(); // stores the language of the paragraphs;
   private final List<int[]> footnotes = new ArrayList<int[]>();             // stores the footnotes of the paragraphs;
   private final List<List<Integer>> deletedCharacters = new ArrayList<List<Integer>>(); // stores the deleted characters (report changes) of the paragraphs;
+  private final List<List<Integer>> openingQuotes = new ArrayList<List<Integer>>(); // stores the opening quotes in a paragraph;
+  private final List<List<Integer>> closingQuotes = new ArrayList<List<Integer>>(); // stores the closing quotes in a paragraph;
   private final List<TextParagraph> toTextMapping = new ArrayList<>(); // Mapping from FlatParagraph to DocumentCursor
   protected final List<List<Integer>> toParaMapping = new ArrayList<>(); // Mapping from DocumentCursor to FlatParagraph
   private final DocumentType docType;                 // stores the document type (Writer, Impress, Calc)
@@ -209,6 +212,8 @@ public class WtDocumentCache implements Serializable {
       List<TextParagraph> toTextMapping = new ArrayList<>();
       List<List<Integer>> toParaMapping = new ArrayList<>();
       List<Integer> sortedTextIds;
+      List<List<Integer>> openingQuotes = new ArrayList<List<Integer>>();
+      List<List<Integer>> closingQuotes = new ArrayList<List<Integer>>();
       clear();
       boolean withDeleted = document.getMultiDocumentsHandler().getConfiguration().includeTrackedChanges();
       for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
@@ -338,8 +343,10 @@ public class WtDocumentCache implements Serializable {
         }
         mapParagraphsWNI(paragraphs, toTextMapping, toParaMapping, chapterBegins, locales, footnotes, textSortedTextIds, sortedTextIds, deletedCharacters, deletedChars);
       }
+      addQuoteInfo(document, documentTexts.get(CURSOR_TYPE_TEXT).paragraphs);
       actualizeCache (paragraphs, chapterBegins, locales, footnotes, toTextMapping, toParaMapping, 
-          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds);
+          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds,
+          openingQuotes, closingQuotes);
 //      for (Locale locale : getDifferentLocalesOftext(paragraphContainer.locales)) {
 //        document.getMultiDocumentsHandler().handleLtDictionary(getDocAsString(), locale);
 //      }
@@ -357,7 +364,8 @@ public class WtDocumentCache implements Serializable {
    */
   private void actualizeCache (List<String> paragraphs, List<List<Integer>> chapterBegins, List<SerialLocale> locales, 
       List<int[]> footnotes, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping, 
-      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds) {
+      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds,
+      List<List<Integer>> openingQuotes, List<List<Integer>> closingQuotes) {
     rwLock.writeLock().lock();
     try {
       clearAnalyzedParagraphs();
@@ -375,6 +383,8 @@ public class WtDocumentCache implements Serializable {
       this.deletedCharacters.clear();
       this.deletedCharacters.addAll(deletedCharacters);
       this.automaticParagraphs.addAll(automaticParagraphs);
+      this.openingQuotes.addAll(openingQuotes);
+      this.closingQuotes.addAll(closingQuotes);
       if (sortedTextIds != null) {
         if (this.sortedTextIds == null) {
           this.sortedTextIds = new ArrayList<>();
@@ -2564,6 +2574,83 @@ public class WtDocumentCache implements Serializable {
   }
 */
   /**
+   * add information about opening and closing quotes
+   */
+  private void addQuoteInfo(WtSingleDocument document, List<String> textParagraphs) {
+    boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
+        != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
+    if (needQuoteInfo) {
+      WtQuotesDetection quotesDetector = new WtQuotesDetection();
+      quotesDetector.analyzeTextParagraphs(textParagraphs, openingQuotes, closingQuotes);
+    }
+  }
+
+  /**
+   * update information about opening and closing quotes
+   */
+  public void updateQuoteInfo(WtSingleDocument document, int nPara) {
+    boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
+        != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
+    if (needQuoteInfo) {
+      TextParagraph tPara = getNumberOfTextParagraph(nPara);
+      if (tPara.type == CURSOR_TYPE_TEXT) {
+        WtQuotesDetection quotesDetector = new WtQuotesDetection();
+        quotesDetector.updateTextParagraph(getFlatParagraph(nPara), nPara, openingQuotes, closingQuotes);
+      }
+    }
+  }
+
+  /**
+   * is opening quote before nStart
+   * nTPara numbers the text paragraphs
+   */
+  private boolean isOpenQuote(int nTPara, int nStart) {
+    if (openingQuotes.size() <= nTPara || openingQuotes.get(nTPara) == null || openingQuotes.get(nTPara).size() == 0) {
+      return false;
+    }
+    for (int i = openingQuotes.get(nTPara).size() - 1; i >= 0; i--) {
+      if (openingQuotes.get(nTPara).get(i) <= nStart) {
+        if (closingQuotes.size() <= nTPara || closingQuotes.get(nTPara) == null || closingQuotes.get(nTPara).size() == 0) {
+          return true;
+        }
+        for (int j = closingQuotes.get(nTPara).size() - 1; j >= 0; j--) {
+          if (closingQuotes.get(nTPara).get(j) <= nStart) {
+            if (closingQuotes.get(nTPara).get(j) > openingQuotes.get(nTPara).get(i)) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
+   * filter sentence in quotes our of error array
+   */
+  public WtProofreadingError[] filterDirectSpeech (WtProofreadingError[] errorArray, int nPara, WtConfiguration config) {
+    if (config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_YES 
+        || errorArray == null || errorArray.length == 0) {
+      return errorArray;
+    }
+    TextParagraph tPara = getNumberOfTextParagraph(nPara);
+    if (tPara.type != CURSOR_TYPE_TEXT) {
+      return errorArray;
+    }
+    List<WtProofreadingError> errors = new ArrayList<>();
+    boolean isNoStyleDirectSpeech = config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_NO_STYLE;
+    for (WtProofreadingError error : errorArray) {
+      if (error.bPunctuationRule || (!error.bStyleRule && isNoStyleDirectSpeech) || !isOpenQuote(tPara.number, error.nErrorStart)) {
+        errors.add(error);
+      }
+    }
+    return errors.toArray(new WtProofreadingError[0]);
+  }
+
+  /**
    * Class of serializable locale needed to save cache
    */
   public static class SerialLocale implements Serializable {
@@ -2615,7 +2702,7 @@ public class WtDocumentCache implements Serializable {
       return ((locale == null || Language == null || Country == null || Variant == null) ? false
           : Language.equals(locale.Language) && Country.equals(locale.Country) && Variant.equals(locale.Variant));
     }
-
+    
   }
 
   public static class ChangedRange {
@@ -2643,5 +2730,5 @@ public class WtDocumentCache implements Serializable {
       this.text = text;
     }
   }
-
+ 
 }
