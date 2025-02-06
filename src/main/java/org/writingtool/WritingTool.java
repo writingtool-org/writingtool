@@ -49,12 +49,17 @@ public class WritingTool extends WeakBase implements XJobExecutor,
       WtOfficeTools.WT_SERVICE_NAME };
 
   private XComponentContext xContext;
-  private WtDocumentsHandler documents;
+  private static WtDocumentsHandler documents;
 
   public WritingTool(XComponentContext xCompContext) {
     changeContext(xCompContext);
     documents = new WtDocumentsHandler(xContext, this, this);
   }
+  
+  public static WtDocumentsHandler getDocumentsHandler() {
+    return documents;
+  }
+  
 
   /**
    * Changes the XComponentContext

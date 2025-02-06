@@ -1114,10 +1114,10 @@ public class WtCheckDialog extends Thread {
         ((Frame) dialog.getOwner()).setIconImage(ltImage);
         defaultForeground = dialog.getForeground() == null ? Color.BLACK : dialog.getForeground();
   
-        Font dialogFont = languageLabel.getFont();
-        languageLabel.setFont(dialogFont);
         languageLabel.createToolTip().updateUI();
         
+        Font dialogFont = languageLabel.getFont();
+        languageLabel.setFont(dialogFont);
   
         language.setFont(dialogFont);
         language.setToolTipText(formatToolTipText(languageHelp));
