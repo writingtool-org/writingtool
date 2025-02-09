@@ -25,11 +25,9 @@ import java.util.ResourceBundle;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.swing.SwingUtilities;
-
 import com.sun.star.accessibility.XAccessible;
-import com.sun.star.awt.ActionEvent;
 import com.sun.star.awt.ImagePosition;
+import com.sun.star.awt.PosSize;
 import com.sun.star.awt.Rectangle;
 import com.sun.star.awt.WindowEvent;
 import com.sun.star.awt.XButton;
@@ -40,13 +38,10 @@ import com.sun.star.awt.XTextComponent;
 import com.sun.star.awt.XToolkit;
 import com.sun.star.awt.XWindow;
 import com.sun.star.awt.XWindowPeer;
-import com.sun.star.awt.tab.XTabPageContainer;
-import com.sun.star.awt.tab.XTabPageContainerModel;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lib.uno.helper.ComponentBase;
-import com.sun.star.text.XTextDocument;
 import com.sun.star.ui.LayoutSize;
 import com.sun.star.ui.XSidebarPanel;
 import com.sun.star.ui.XToolPanel;
@@ -54,11 +49,9 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
 import org.libreoffice.ext.unohelper.common.UNO;
-import org.libreoffice.ext.unohelper.common.UnoHelperException;
 import org.libreoffice.ext.unohelper.dialog.adapter.AbstractActionListener;
 import org.libreoffice.ext.unohelper.dialog.adapter.AbstractWindowListener;
 import org.libreoffice.ext.unohelper.ui.GuiFactory;
-import org.libreoffice.ext.unohelper.ui.layout.ControlLayout;
 import org.libreoffice.ext.unohelper.ui.layout.HorizontalLayout;
 import org.libreoffice.ext.unohelper.ui.layout.Layout;
 import org.libreoffice.ext.unohelper.ui.layout.VerticalLayout;
@@ -69,7 +62,6 @@ import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtProofreadingError;
-import org.writingtool.WtResultCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -85,112 +77,170 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   
-  private static String OpeningFormatSign = "[";
-  private static String ClosingFormatSign = "]";
+  private final static String OPENING_FORMAT_SIGN = "[";
+  private final static String CLOSING_FORMAT_SIGN = "]";
+  private final static String LINE_BREAK = "\n";
+  
+  private final static int LINE_MAX_CHAR = 40;
+  
+  private final static int MINIMAL_WIDTH = 300;
+
+  private final static int BUTTON_MARGIN_TOP = 5;
+  private final static int BUTTON_MARGIN_BOTTOM = 5;
+  private final static int BUTTON_MARGIN_LEFT = 5;
+  private final static int BUTTON_MARGIN_RIGHT = 5;
+  private final static int BUTTON_MARGIN_BETWEEN = 5;
+
+  private final static int BUTTON_WIDTH = 32;
+  private final static int BUTTON_CONTAINER_WIDTH = MINIMAL_WIDTH - BUTTON_MARGIN_LEFT - BUTTON_MARGIN_RIGHT;
+  private final static int BUTTON_CONTAINER_HEIGHT = BUTTON_WIDTH + BUTTON_MARGIN_LEFT + BUTTON_MARGIN_RIGHT;
+
+  private final static int CONTAINER_MARGIN_TOP = 5;
+  private final static int CONTAINER_MARGIN_BOTTOM = 5;
+  private final static int CONTAINER_MARGIN_LEFT = 5;
+  private final static int CONTAINER_MARGIN_RIGHT = 5;
+  private final static int CONTAINER_MARGIN_BETWEEN = 5;
+
 
   private XComponentContext xContext;           //  the component context
+  
+  private XWindow parentWindow;                 //  the parent window
+  private XWindow contentWindow;                //  the window of the control container
+  private XWindow buttonContainerWindow;        //  the window of the button container
+  private XWindow paragraphBoxWindow;           //  the window of the paragraph box container
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
-  private Layout layout;                        //  The layout of the controls
+//  private Layout layout;                        //  The layout of the controls
   private Layout buttonContainerlayout;         //  The layout of the buttons
-  private XTextComponent paragraphBox;          //  Box to show text
+  private XFixedText paragraphBox;              //  Box to show text
 
   public WtSidebarContent(XComponentContext context, XWindow parentWindow) {
     xContext = context;
-    AbstractWindowListener windowAdapter = new AbstractWindowListener() {
-      @Override
-      public void windowResized(WindowEvent e) {
-        layout.layout(parentWindow.getPosSize());
+    this.parentWindow = parentWindow;
+    try {
+      AbstractWindowListener windowAdapter = new AbstractWindowListener() {
+        @Override
+        public void windowResized(WindowEvent e) {
+          Rectangle rect = parentWindow.getPosSize();
+//          layout.layout(rect);
+          contentWindow.setPosSize(rect.X, rect.Y, rect.Width, rect.Height, PosSize.POSSIZE);
+          buttonContainerWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, 
+              BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+          int paraBoxX = CONTAINER_MARGIN_LEFT;
+          int paraBoxY = CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN;
+          int paraBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+          int paraBoxHeight = rect.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
+          paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
+        }
+      };
+      parentWindow.addWindowListener(windowAdapter);
+//      layout = new VerticalLayout(5, 5, 5, 5, 5);
+  
+      xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class, context.getServiceManager());
+      XWindowPeer parentWindowPeer = UNO.XWindowPeer(parentWindow);
+  
+      if (parentWindowPeer == null) {
+          return;
       }
-    };
-    parentWindow.addWindowListener(windowAdapter);
-    layout = new VerticalLayout(5, 5, 5, 5, 5);
+  
+      XToolkit parentToolkit = parentWindowPeer.getToolkit();
+//      Rectangle parentWindowSize = parentWindow.getPosSize();
+//      controlContainer = UNO
+//          .XControlContainer(GuiFactory.createControlContainer(xMCF, context, parentWindowSize, null));
+      controlContainer = UNO
+          .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
+      XControl xContainer = UNO.XControl(controlContainer);
+      xContainer.createPeer(parentToolkit, parentWindowPeer);
+  /*    
+      XControl tabControl = GuiFactory.createTabPageContainer(xMCF, context);
+      XTabPageContainer tabContainer = UNO.XTabPageContainer(tabControl);
+      XTabPageContainerModel tabModel = UNO.XTabPageContainerModel(tabControl.getModel());
+      GuiFactory.createTab(xMCF, context, tabModel, "Test1", (short) 1, 100);
+      controlContainer.addControl("tabs", UNO.XControl(tabContainer));
+      layout.addControl(UNO.XControl(tabContainer));
+  */
+      // Add button container
+      XControl xButtonContainer = GuiFactory.createControlContainer(xMCF, context, 
+          new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), null);
+      XControlContainer buttonContainer = UNO.XControlContainer(xButtonContainer);
+      contentWindow = UNO.XWindow(xContainer);
+      buttonContainerlayout = new HorizontalLayout(5, 5, 5, 10, 5);
+      AbstractWindowListener buttonContainerAdapter = new AbstractWindowListener() {
+        @Override
+        public void windowResized(WindowEvent e) {
+          buttonContainerlayout.layout(contentWindow.getPosSize());
+        }
+      };
+      contentWindow.addWindowListener(buttonContainerAdapter);
+      controlContainer.addControl("buttonContainer", xButtonContainer);
+      buttonContainerWindow = UNO.XWindow(xButtonContainer);
+      buttonContainerWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+//      layout.addControl(xButtonContainer);
+      
+      // Add buttons to container
+      int num = 0;
+      addButtonToContainer(num, "nextError", "WTNextSmall.png", "loContextMenuNextError", buttonContainer, buttonContainerlayout);
+      num++;
+      addButtonToContainer(num, "checkDialog", "WTCheckSmall.png", "loContextMenuGrammarCheck", buttonContainer, buttonContainerlayout);
+      num++;
+      addButtonToContainer(num, "checkAgainDialog", "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer, buttonContainerlayout);
+      num++;
+      addButtonToContainer(num, "refreshCheck", "WTRefreshSmall.png", "loContextMenuRefreshCheck", buttonContainer, buttonContainerlayout);
+      num++;
+      addButtonToContainer(num, "configure", "WTOptionsSmall.png", "loContextMenuOptions", buttonContainer, buttonContainerlayout);
+      num++;
+      addButtonToContainer(num, "about", "WTAboutSmall.png", "loContextMenuAbout", buttonContainer, buttonContainerlayout);
 
-    xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class, context.getServiceManager());
-    XWindowPeer parentWindowPeer = UNO.XWindowPeer(parentWindow);
-
-    if (parentWindowPeer == null) {
-        return;
+      // Add text field
+      SortedMap<String, Object> props = new TreeMap<>();
+      props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
+      props.put("Autocomplete", false);
+      props.put("HideInactiveSelection", true);
+      props.put("MultiLine", true);
+      props.put("VScroll", true);
+      props.put("HScroll", true);
+      Rectangle containerSize = contentWindow.getPosSize();
+      int paraBoxX = CONTAINER_MARGIN_LEFT;
+      int paraBoxY = CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN;
+      int paraBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+      int paraBoxHeight = containerSize.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
+      
+      XControl xParagraphBox = GuiFactory.createLabel(xMCF, context, WtOfficeTools.getFormatedTextVersionInformation(), 
+          new Rectangle(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight), props); 
+      paragraphBox = UNO.XFixedText(xParagraphBox);
+  //    paragraphBox = UNO.XTextComponent(
+  //            GuiFactory.createTextfield(xMCF, context, "", new Rectangle(0, 0, 80, 32), props, null));
+      controlContainer.addControl("paragraphBox", UNO.XControl(paragraphBox));
+  
+//      layout.addControl(UNO.XControl(paragraphBox));
+      paragraphBoxWindow = UNO.XWindow(xParagraphBox);
+      paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
+      setTextToBox();
+  /*
+      // Add button
+      XControl button = GuiFactory.createButton(xMCF, context, "Insert", null, new Rectangle(0, 0, 100, 32), null);
+      XButton xbutton = UNO.XButton(button);
+      AbstractActionListener xButtonAction = event -> {
+        String text = paragraphBox.getText();
+        try {
+          UNO.init(xMCF);
+          XTextDocument doc = UNO.getCurrentTextDocument();
+          doc.getText().setString(text);
+        } catch (UnoHelperException e1) {
+          WtMessageHandler.printException(e1);
+        }
+      };
+      xbutton.addActionListener(xButtonAction);
+      controlContainer.addControl("button0", button);
+      layout.addControl(button);
+  */
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
     }
-
-    XToolkit parentToolkit = parentWindowPeer.getToolkit();
-    controlContainer = UNO
-            .XControlContainer(GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 0, 0), null));
-    XControl xContainer = UNO.XControl(controlContainer);
-    xContainer.createPeer(parentToolkit, parentWindowPeer);
-/*    
-    XControl tabControl = GuiFactory.createTabPageContainer(xMCF, context);
-    XTabPageContainer tabContainer = UNO.XTabPageContainer(tabControl);
-    XTabPageContainerModel tabModel = UNO.XTabPageContainerModel(tabControl.getModel());
-    GuiFactory.createTab(xMCF, context, tabModel, "Test1", (short) 1, 100);
-    controlContainer.addControl("tabs", UNO.XControl(tabContainer));
-    layout.addControl(UNO.XControl(tabContainer));
-*/
-    // Add button container
-    XControl xButtonContainer = GuiFactory.createControlContainer(xMCF, context, new Rectangle(0, 0, 80, 40), null);
-    XControlContainer buttonContainer = UNO.XControlContainer(xButtonContainer);
-    XWindow containerWindow = UNO.XWindow(xContainer);
-    buttonContainerlayout = new HorizontalLayout(5, 5, 5, 10, 5);
-    AbstractWindowListener buttonContainerAdapter = new AbstractWindowListener() {
-      @Override
-      public void windowResized(WindowEvent e) {
-        buttonContainerlayout.layout(containerWindow.getPosSize());
-      }
-    };
-    containerWindow.addWindowListener(buttonContainerAdapter);
-    controlContainer.addControl("buttonContainer", xButtonContainer);
-    layout.addControl(xButtonContainer);
-    
-    // Add buttons to container
-    
-    addButtonToContainer("nextError", "WTNextSmall.png", "loContextMenuNextError", buttonContainer, buttonContainerlayout);
-    
-    addButtonToContainer("checkDialog", "WTCheckSmall.png", "loContextMenuGrammarCheck", buttonContainer, buttonContainerlayout);
-    
-    addButtonToContainer("checkAgainDialog", "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer, buttonContainerlayout);
-    
-    addButtonToContainer("refreshCheck", "WTRefreshSmall.png", "loContextMenuRefreshCheck", buttonContainer, buttonContainerlayout);
-    
-    addButtonToContainer("configure", "WTOptionsSmall.png", "loContextMenuOptions", buttonContainer, buttonContainerlayout);
-    
-    addButtonToContainer("about", "WTAboutSmall.png", "loContextMenuAbout", buttonContainer, buttonContainerlayout);
-    
-    // Add text field
-    SortedMap<String, Object> props = new TreeMap<>();
-    props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
-    props.put("Autocomplete", false);
-    props.put("HideInactiveSelection", true);
-    props.put("MultiLine", true);
-    props.put("VScroll", true);
-    props.put("HScroll", true);
-//    XFixedText searchBox = UNO.XFixedText(
-//        GuiFactory.createLabel(xMCF, context, WtOfficeTools.getFormatedTextVersionInformation(), new Rectangle(0, 0, 100, 32), props));
-    paragraphBox = UNO.XTextComponent(
-            GuiFactory.createTextfield(xMCF, context, "", new Rectangle(0, 0, 100, 32), props, null));
-    controlContainer.addControl("paragraphBox", UNO.XControl(paragraphBox));
-    layout.addControl(UNO.XControl(paragraphBox));
-    setTestToBox();
-/*
-    // Add button
-    XControl button = GuiFactory.createButton(xMCF, context, "Insert", null, new Rectangle(0, 0, 100, 32), null);
-    XButton xbutton = UNO.XButton(button);
-    AbstractActionListener xButtonAction = event -> {
-      String text = paragraphBox.getText();
-      try {
-        UNO.init(xMCF);
-        XTextDocument doc = UNO.getCurrentTextDocument();
-        doc.getText().setString(text);
-      } catch (UnoHelperException e1) {
-        WtMessageHandler.printException(e1);
-      }
-    };
-    xbutton.addActionListener(xButtonAction);
-    controlContainer.addControl("button0", button);
-    layout.addControl(button);
-*/
+      
   }
   
-  private void addButtonToContainer(String cmd, String imageFile, String helpText, 
+  private void addButtonToContainer(int num, String cmd, String imageFile, String helpText, 
       XControlContainer buttonContainer, Layout containerLayout) {
     SortedMap<String, Object> bProps = new TreeMap<>();
     bProps.put(UnoProperty.IMAGE_URL, "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/" + imageFile);
@@ -201,14 +251,17 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     AbstractActionListener xButtonOptionsAction = event -> {
       try {
         WtOfficeTools.dispatchCmd("service:org.writingtool.WritingTool?" + cmd, xContext);
-        setTestToBox();
+        setTextToBox();
       } catch (Throwable e1) {
         WtMessageHandler.showError(e1);
       }
     };
     xButton.addActionListener(xButtonOptionsAction);
     buttonContainer.addControl(cmd, button);
-    containerLayout.addControl(button);
+    XWindow xWindow = UNO.XWindow(button);
+    xWindow.setPosSize(BUTTON_MARGIN_LEFT + num * (BUTTON_WIDTH + BUTTON_MARGIN_BETWEEN), 
+        BUTTON_MARGIN_TOP, BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);
+//    containerLayout.addControl(button);
   }
   
   private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara) {
@@ -250,7 +303,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
           formatedText += orgText.substring(lastChar, error.nErrorStart);
         }
         lastChar = error.nErrorStart + error.nErrorLength;
-        formatedText += OpeningFormatSign + orgText.substring(error.nErrorStart, lastChar) + ClosingFormatSign;
+        formatedText += OPENING_FORMAT_SIGN + orgText.substring(error.nErrorStart, lastChar) + CLOSING_FORMAT_SIGN;
       }
     }
     if (lastChar < orgText.length()) {
@@ -259,7 +312,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return formatedText;
   }
   
-  private void setTestToBox() {
+  private void setTextToBox() {
     try {
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
@@ -270,10 +323,37 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       if (formatedText == null) {
         formatedText = "";
       }
-      paragraphBox.setText(formatedText);
+      paragraphBox.setText(addLineBreaks(formatedText));
+//      layout.layout(parentWindow.getPosSize());
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
     }
+  }
+  
+  private String addLineBreaks(String inpText) {
+    if (inpText.length() <= LINE_MAX_CHAR) {
+      return inpText;
+    }
+    String outpText = "";
+    int lastChar = 0;
+    while (lastChar < inpText.length()) {
+      if (lastChar + LINE_MAX_CHAR >= inpText.length()) {
+        outpText += inpText.substring(lastChar);
+        lastChar = inpText.length();
+      } else {
+        int i;
+        for (i = lastChar + LINE_MAX_CHAR; i > lastChar && !Character.isWhitespace(inpText.charAt(i)) && inpText.charAt(i) != '-'; i--);
+//        WtMessageHandler.printToLogFile("lastChar = " + ", i = " + i);
+        if (i == 0) {
+          outpText += inpText.substring(lastChar, lastChar + LINE_MAX_CHAR) + LINE_BREAK;
+          lastChar += LINE_MAX_CHAR;
+        } else {
+          outpText += inpText.substring(lastChar, i + 1) + LINE_BREAK;
+          lastChar = i + 1;
+        }
+      }
+    }
+    return outpText;
   }
 
   @Override
@@ -291,13 +371,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
   @Override
   public LayoutSize getHeightForWidth(int width) {
-    int height = layout.getHeightForWidth(width);
-    return new LayoutSize(height, height, height);
+//    int height = layout.getHeightForWidth(width);
+//    return new LayoutSize(height, height, height);
+    int max = parentWindow.getPosSize().Height;
+    return new LayoutSize(300, max, max);
   }
 
   @Override
   public int getMinimalWidth() {
-    return 300;
+    return MINIMAL_WIDTH;
   }
   
   
