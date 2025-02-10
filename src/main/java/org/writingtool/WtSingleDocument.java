@@ -541,7 +541,7 @@ public class WtSingleDocument {
   /**
    * set menu ID to MultiDocumentsHandler
    */
-  void setMenuDocId() {
+  public void setMenuDocId() {
     mDocHandler.setMenuDocId(getDocID());
   }
   

@@ -186,6 +186,19 @@
                     </prop>
                 </node>
             </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiGeneralCommand</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiGeneralSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiGeneralBig.png</value>
+                    </prop>
+                </node>
+            </node>
         </node>
         <node oor:name="OfficeToolBar">
             <node oor:name="org.writingtool.WritingTool.toolbar" oor:op="replace">
