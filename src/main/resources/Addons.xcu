@@ -199,6 +199,71 @@
                     </prop>
                 </node>
             </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiTranslateText</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiTranslateTextSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiTranslateTextBig.png</value>
+                    </prop>
+                </node>
+            </node>
+             <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiTextToSpeech</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiTextToSpeechSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiTextToSpeechBig.png</value>
+                    </prop>
+                </node>
+            </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiBetterStyle</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiBetterStyleSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiBetterStyleBig.png</value>
+                    </prop>
+                </node>
+            </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiReformulateText</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiReformulateSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiReformulateBig.png</value>
+                    </prop>
+                </node>
+            </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiAdvanceText</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiExpandSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiExpandBig.png</value>
+                    </prop>
+                </node>
+            </node>
         </node>
         <node oor:name="OfficeToolBar">
             <node oor:name="org.writingtool.WritingTool.toolbar" oor:op="replace">

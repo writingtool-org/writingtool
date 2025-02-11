@@ -106,6 +106,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private final static int CONTAINER_MARGIN_RIGHT = 5;
   private final static int CONTAINER_MARGIN_BETWEEN = 5;
   private final static int CONTAINER_TOP = CONTAINER_MARGIN_TOP + LABEL_TOP + LABEL_HEIGHT;
+  private final static int CONTAINER_HEIGHT = 200;
   
 
 
@@ -116,12 +117,17 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow contentWindow;                //  the window of the control container
   private XWindow buttonContainer1Window;       //  the window of the first row button container
   private XWindow buttonContainer2Window;       //  the window of the second row button container
+  private XWindow buttonContainerAiWindow;      //  the window of the button container for AI action
   private XWindow paragraphLabelWindow;         //  the window of the paragraph label
   private XWindow paragraphBoxWindow;           //  the window of the paragraph box
+  private XWindow aiLabelWindow;                //  the window of the AI label
+  private XWindow aiResultBoxWindow = null;     //  the window of the AI result box
   private XWindow buttonAutoOnWindow;           //  the window of button for auto check on
   private XWindow buttonAutoOffWindow;          //  the window of button for auto check off
   private XWindow buttonStatAnWindow;           //  the window of button for statistical Analysis
   private XWindow buttonAiGeneralWindow;        //  the window of button for AI general
+  private XWindow buttonAiTranslateTextWindow;  //  the window of button for AI text to speech
+  private XWindow buttonAiTextToSpeechWindow;   //  the window of button for AI text to speech
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
   private XFixedText paragraphBox;              //  Box to show text
@@ -133,33 +139,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       XWindowListener windowAdapter = new XWindowListener() {
         @Override
         public void windowResized(WindowEvent e) {
-          Rectangle rect = parentWindow.getPosSize();
-          contentWindow.setPosSize(rect.X, rect.Y, rect.Width, rect.Height, PosSize.POSSIZE);
-          buttonContainer1Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, 
-              BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
-          buttonContainer2Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
-              BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
-          paragraphLabelWindow.setPosSize(LABEL_LEFT, LABEL_TOP, LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
-          int paraBoxX = CONTAINER_MARGIN_LEFT;
-          int paraBoxY = CONTAINER_TOP;
-          int paraBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
-          int paraBoxHeight = rect.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
-          paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
-          buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
-          buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
-          buttonStatAnWindow.setEnable(hasStatAn());
-          buttonAiGeneralWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+          resizeContainer();
         }
-        
         @Override
         public void disposing(EventObject arg0) { }
-
         @Override
         public void windowHidden(EventObject arg0) { }
-
         @Override
         public void windowMoved(WindowEvent arg0) { }
-
         @Override
         public void windowShown(EventObject arg0) { }
       };
@@ -189,7 +176,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
           new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
       XControlContainer buttonContainer = UNO.XControlContainer(xButtonContainer);
 
-      controlContainer.addControl("buttonContainer", xButtonContainer);
+      controlContainer.addControl("buttonContainer1", xButtonContainer);
       buttonContainer1Window = UNO.XWindow(xButtonContainer);
       buttonContainer1Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
       
@@ -212,14 +199,16 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       documents = WritingTool.getDocumentsHandler();
       buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
+      
+      boolean isAiSupport = documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport();
+//      boolean isAiSupport = true;
 
       // Add second row button container
       xButtonContainer = GuiFactory.createControlContainer(xMCF, context, 
           new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
               BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
       buttonContainer = UNO.XControlContainer(xButtonContainer);
-
-      controlContainer.addControl("buttonContainer", xButtonContainer);
+      controlContainer.addControl("buttonContainer2", xButtonContainer);
       buttonContainer2Window = UNO.XWindow(xButtonContainer);
       buttonContainer2Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
           BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
@@ -230,11 +219,17 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonStatAnWindow.setEnable(hasStatAn());
       num++;
       buttonAiGeneralWindow = addButtonToContainer(num, "aiGeneralCommand", "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
-      buttonAiGeneralWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+      buttonAiGeneralWindow.setEnable(isAiSupport);
+      num++;
+      buttonAiTranslateTextWindow = addButtonToContainer(num, "aiTranslateText", "WTAiTranslateTextSmall.png", "loMenuAiTranslateCommand", buttonContainer);
+      buttonAiTranslateTextWindow.setEnable(isAiSupport);
+      num++;
+      buttonAiTextToSpeechWindow = addButtonToContainer(num, "aiTextToSpeech", "WTAiTextToSpeechSmall.png", "loMenuAiTextToSpeechCommand", buttonContainer);
+      buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
       
       // Add Label
       props.put("FontStyleName", "Bold");
-      XControl xParagraphLabel = GuiFactory.createLabel(xMCF, context, "Current Paragraph (Matches in []):", 
+      XControl xParagraphLabel = GuiFactory.createLabel(xMCF, context, messages.getString("loSidebarParagraphLabel") + ":", 
           new Rectangle(LABEL_LEFT, LABEL_TOP, LABEL_WIDTH, LABEL_HEIGHT), props); 
       controlContainer.addControl("paragraphBoxLabel", xParagraphLabel);
       paragraphLabelWindow = UNO.XWindow(xParagraphLabel);
@@ -252,7 +247,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int paraBoxX = CONTAINER_MARGIN_LEFT;
       int paraBoxY = CONTAINER_TOP;
       int paraBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
-      int paraBoxHeight = containerSize.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
+      int paraBoxHeight = isAiSupport ? CONTAINER_HEIGHT : containerSize.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
       
       XControl xParagraphBox = GuiFactory.createLabel(xMCF, context, "", 
           new Rectangle(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight), props); 
@@ -261,10 +256,63 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   //            GuiFactory.createTextfield(xMCF, context, "", new Rectangle(0, 0, 80, 32), props, null));
       controlContainer.addControl("paragraphBox", xParagraphBox);
   
-//      layout.addControl(UNO.XControl(paragraphBox));
       paragraphBoxWindow = UNO.XWindow(xParagraphBox);
       paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
       setTextToBox();
+      
+      if (isAiSupport) {
+        // Add AI Button container
+        props = new TreeMap<>();
+        props.put("BackgroundColor", SystemColor.menu.getRGB() & ~0xFF000000);
+        xButtonContainer = GuiFactory.createControlContainer(xMCF, context, 
+            new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
+                BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
+        buttonContainer = UNO.XControlContainer(xButtonContainer);
+        controlContainer.addControl("buttonContainerAi", xButtonContainer);
+        buttonContainerAiWindow = UNO.XWindow(xButtonContainer);
+        buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
+            BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+
+        // Add AI buttons
+        num = 0;
+        addButtonToContainer(num, "aiBetterStyle", "WTAiBetterStyleSmall.png", "loMenuAiStyleCommand", buttonContainer);
+        num++;
+        addButtonToContainer(num, "aiReformulateText", "WTAiReformulateSmall.png", "loMenuAiReformulateCommand", buttonContainer);
+        num++;
+        addButtonToContainer(num, "aiAdvanceText", "WTAiExpandSmall.png", "loMenuAiExpandCommand", buttonContainer);
+
+        // Add AI Label
+        props.put("FontStyleName", "Bold");
+        int labelTop = CONTAINER_TOP + CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT;
+        XControl xAiLabel = GuiFactory.createLabel(xMCF, context, messages.getString("loAiDialogResultLabel") + ":", 
+            new Rectangle(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT), props); 
+        controlContainer.addControl("aiLabel", xAiLabel);
+        aiLabelWindow = UNO.XWindow(xAiLabel);
+        
+        // Add text field
+        props = new TreeMap<>();
+        props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
+        props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+        props.put("Autocomplete", false);
+        props.put("HideInactiveSelection", true);
+        props.put("MultiLine", true);
+        props.put("VScroll", true);
+        props.put("HScroll", true);
+        int aiBoxX = CONTAINER_MARGIN_LEFT;
+        int aiBoxY = CONTAINER_TOP + CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
+        int aiBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+        int aiBoxHeight = CONTAINER_HEIGHT;
+        XControl xAiBox = GuiFactory.createLabel(xMCF, context, "", 
+            new Rectangle(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight), props); 
+        controlContainer.addControl("aiBox", xAiBox);
+        aiResultBoxWindow = UNO.XWindow(xAiBox);
+        aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
+        
+      }
+      
+      
+      
+      
   /*
       // Add button
       XControl button = GuiFactory.createButton(xMCF, context, "Insert", null, new Rectangle(0, 0, 100, 32), null);
@@ -336,6 +384,38 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return WtOfficeTools.hasStatisticalStyleRules(lang);
   }
   
+  private void resizeContainer() {
+    Rectangle rect = parentWindow.getPosSize();
+    contentWindow.setPosSize(rect.X, rect.Y, rect.Width, rect.Height, PosSize.POSSIZE);
+    buttonContainer1Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP, 
+        BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+    buttonContainer2Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
+        BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+    paragraphLabelWindow.setPosSize(LABEL_LEFT, LABEL_TOP, LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
+    int paraBoxX = CONTAINER_MARGIN_LEFT;
+    int paraBoxY = CONTAINER_TOP;
+    int paraBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+    int paraBoxHeight = aiResultBoxWindow != null ? CONTAINER_HEIGHT : rect.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
+    paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
+    buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
+    buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
+    buttonStatAnWindow.setEnable(hasStatAn());
+    buttonAiGeneralWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+    buttonAiTranslateTextWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+    buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
+    if (aiResultBoxWindow != null) {
+      buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
+          BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+      aiLabelWindow.setPosSize(LABEL_LEFT, CONTAINER_TOP + CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT, 
+          LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
+      int aiBoxX = CONTAINER_MARGIN_LEFT;
+      int aiBoxY = CONTAINER_TOP + CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
+      int aiBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+      int aiBoxHeight = CONTAINER_HEIGHT;
+      aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
+    }
+  }
+  
   private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara) {
     WtLanguageTool lt = documents.getLanguageTool();
     WtSingleDocument document = documents.getCurrentDocument();
@@ -389,6 +469,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
       buttonStatAnWindow.setEnable(hasStatAn());
       buttonAiGeneralWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+      resizeContainer();
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
       String orgText = vCursor.getViewCursorParagraphText();

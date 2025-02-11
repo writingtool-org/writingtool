@@ -32,7 +32,7 @@
 		<node oor:name="DeckList">
 			<node oor:name="ToolsDeck" oor:op="replace">
 	    	    <prop oor:name="Title" oor:type="xs:string">
-            	   	<value xml:lang="en-US">Tools</value>
+            	   	<value xml:lang="en-US">WritingTool</value>
 	            </prop>
 	            <prop oor:name="Id" oor:type="xs:string">
 	               	<value>ToolsDeck</value>
@@ -50,7 +50,7 @@
     	<node oor:name="PanelList">
         	<node oor:name="MySidebarPanel" oor:op="replace">
 	        	<prop oor:name="Title" oor:type="xs:string">
-                	<value xml:lang="en-US">Wt Sidebar Panel</value>
+                	<value xml:lang="en-US">WritingTool</value>
             	</prop>
             	<prop oor:name="Id" oor:type="xs:string">
                 	<value>WtSidebarPanel</value>
