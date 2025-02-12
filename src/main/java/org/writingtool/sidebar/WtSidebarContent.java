@@ -666,11 +666,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   public LayoutSize getHeightForWidth(int width) {
 //    int height = layout.getHeightForWidth(width);
 //    return new LayoutSize(height, height, height);
-    int max = parentWindow.getPosSize().Height;
-    return new LayoutSize(300, max, max);
+//    int height = parentWindow.getPosSize().Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
+    int height = OVERRIDE_BUTTON_TOP + BUTTON_WIDTH + CONTAINER_MARGIN_BOTTOM;
+    return new LayoutSize(height, height, height);
   }
 
-  @Override
+//  @Override
   public int getMinimalWidth() {
     return MINIMAL_WIDTH;
   }

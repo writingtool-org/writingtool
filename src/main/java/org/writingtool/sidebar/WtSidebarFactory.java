@@ -29,9 +29,6 @@ import com.sun.star.ui.XUIElementFactory;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-// import org.libreoffice.ext.unohelper.dialog.adapter.AbstractSidebarFactory;
-// import org.libreoffice.ext.unohelper.common.UNO;
-
 /**
  * Factory for the the WritingTool sidebar.
  * 
