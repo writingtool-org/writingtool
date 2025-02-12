@@ -20,20 +20,55 @@
 package org.writingtool.sidebar;
 
 import com.sun.star.awt.XWindow;
+import com.sun.star.frame.XFrame;
+import com.sun.star.lang.XComponent;
+import com.sun.star.lib.uno.helper.ComponentBase;
+import com.sun.star.ui.UIElementType;
+import com.sun.star.ui.XToolPanel;
+import com.sun.star.ui.XUIElement;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
-
-import org.libreoffice.ext.unohelper.dialog.adapter.AbstractSidebarPanel;
 
 /**
  *  WT sidebar panel
  * @since 1.3
  * @author Fred Kruse
  */
-public class WtSidebarPanel extends AbstractSidebarPanel {
+public class WtSidebarPanel extends ComponentBase implements XUIElement {
 
-    public WtSidebarPanel(XComponentContext context, XWindow parentWindow, String resourceUrl)
-    {
-        super(resourceUrl);
-        panel = new WtSidebarContent(context, parentWindow);
-    }
+  private final String resourceUrl;
+  private XToolPanel panel;
+
+  public WtSidebarPanel(XComponentContext context, XWindow parentWindow, String resourceUrl) {
+    this.resourceUrl = resourceUrl;
+    panel = new WtSidebarContent(context, parentWindow);
+  }
+
+  @Override
+  public XFrame getFrame() {
+    return null;
+  }
+
+  @Override
+  public Object getRealInterface() {
+    return panel;
+  }
+
+  @Override
+  public String getResourceURL() {
+    return resourceUrl;
+  }
+
+  @Override
+  public short getType() {
+    return UIElementType.TOOLPANEL;
+  }
+  
+  @Override
+  public void dispose()
+  {
+    XComponent xPanelComponent = UnoRuntime.queryInterface(XComponent.class, panel);
+    xPanelComponent.dispose();
+  }
+
 }

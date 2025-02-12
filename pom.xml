@@ -86,6 +86,7 @@
             <artifactId>flatlaf</artifactId>
             <version>${flatlaf.version}</version>
         </dependency>
+<!--        
 		<dependency>
 		    <groupId>org.libreoffice.ext</groupId>
 		    <artifactId>unohelper</artifactId>
@@ -96,6 +97,7 @@
 		    <artifactId>jsoup</artifactId>
 		    <version>${jsoup.version}</version>
 		</dependency>
+-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

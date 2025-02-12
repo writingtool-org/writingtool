@@ -22,11 +22,15 @@ package org.writingtool.sidebar;
 import com.sun.star.awt.XWindow;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
+import com.sun.star.lang.XServiceInfo;
+import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ui.XUIElement;
+import com.sun.star.ui.XUIElementFactory;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import org.libreoffice.ext.unohelper.dialog.adapter.AbstractSidebarFactory;
-import org.libreoffice.ext.unohelper.common.UNO;
+// import org.libreoffice.ext.unohelper.dialog.adapter.AbstractSidebarFactory;
+// import org.libreoffice.ext.unohelper.common.UNO;
 
 /**
  * Factory for the the WritingTool sidebar.
@@ -34,36 +38,54 @@ import org.libreoffice.ext.unohelper.common.UNO;
  * @since 1.3
  * @author Fred Kruse
  */
-public class WtSidebarFactory extends AbstractSidebarFactory {
+public class WtSidebarFactory extends WeakBase implements XUIElementFactory, XServiceInfo {
 
-    public static final String SERVICE_NAME = "org.writingtool.sidebar.WtSidebarFactory";
+  public static final String SERVICE_NAME = "org.writingtool.sidebar.WtSidebarFactory";
+  
+  private XComponentContext xContext;
 
-    public WtSidebarFactory(XComponentContext context) {
-      super(SERVICE_NAME, context);
-      System.err.println("Construct SidebarFactory");
+  public WtSidebarFactory(XComponentContext context) {
+    xContext = context;
+  }
+  
+  public static String[] getServiceNames() {
+    return new String[] { SERVICE_NAME };
+  }
+
+  @Override
+  public XUIElement createUIElement(String resourceUrl, PropertyValue[] arguments) throws NoSuchElementException {
+    if (!resourceUrl.startsWith("private:resource/toolpanel/WtSidebarFactory")) {
+      throw new NoSuchElementException(resourceUrl, this);
     }
-    
-    public static String[] getServiceNames() {
-      return new String[] { SERVICE_NAME };
+
+    XWindow parentWindow = null;
+    for (int i = 0; i < arguments.length; i++) {
+      if (arguments[i].Name.equals("ParentWindow")) {
+        parentWindow = UnoRuntime.queryInterface(XWindow.class, arguments[i].Value);
+        break;
+      }
     }
 
-    @Override
-    public XUIElement createUIElement(String resourceUrl, PropertyValue[] arguments) throws NoSuchElementException {
-        if (!resourceUrl.startsWith("private:resource/toolpanel/WtSidebarFactory"))
-        {
-            throw new NoSuchElementException(resourceUrl, this);
-        }
+    return new WtSidebarPanel(xContext, parentWindow, resourceUrl);
+  }
 
-        XWindow parentWindow = null;
-        for (int i = 0; i < arguments.length; i++)
-        {
-            if (arguments[i].Name.equals("ParentWindow"))
-            {
-                parentWindow = UNO.XWindow(arguments[i].Value);
-                break;
-            }
-        }
+  @Override
+  public String getImplementationName() {
+    return this.getClass().getName();
+  }
 
-        return new WtSidebarPanel(context, parentWindow, resourceUrl);
+  @Override
+  public String[] getSupportedServiceNames() {
+    return new String[] { SERVICE_NAME };
+  }
+
+  @Override
+  public boolean supportsService(String serviceName) {
+    for (final String supportedServiceName : getSupportedServiceNames()) {
+      if (supportedServiceName.equals(serviceName)) {
+        return true;
+      }
     }
+    return false;
+  }
 }
