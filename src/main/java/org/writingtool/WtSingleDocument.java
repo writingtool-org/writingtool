@@ -43,8 +43,11 @@ import org.writingtool.tools.WtViewCursorTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 
+import com.sun.star.awt.Key;
+import com.sun.star.awt.KeyEvent;
 import com.sun.star.awt.MouseButton;
 import com.sun.star.awt.MouseEvent;
+import com.sun.star.awt.XKeyHandler;
 import com.sun.star.awt.XMouseClickHandler;
 import com.sun.star.awt.XUserInputInterception;
 import com.sun.star.beans.PropertyValue;
@@ -1850,7 +1853,7 @@ public class WtSingleDocument {
           return;
         }
         xUserInputInterception.addMouseClickHandler(eventListener);
-//        xUserInputInterception.addKeyHandler(eventListener);
+        xUserInputInterception.addKeyHandler(eventListener);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
@@ -1907,8 +1910,8 @@ public class WtSingleDocument {
   }
   
   
-//  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler, XKeyHandler {
-  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler {
+  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler, XKeyHandler {
+//  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler {
 
     @Override
     public void disposing(EventObject event) {
@@ -1958,21 +1961,25 @@ public class WtSingleDocument {
 
     @Override
     public boolean mouseReleased(MouseEvent event) {
-      return false;
-    }
-/*
-    @Override
-    public boolean keyPressed(KeyEvent arg0) {
+      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
       return false;
     }
 
     @Override
-    public boolean keyReleased(KeyEvent arg0) {
-      MessageHandler.printToLogFile("SingleDocument: setDokumentListener: Set Timestamp");
-      OfficeTools.setKeyReleaseTime(System.currentTimeMillis());
+    public boolean keyPressed(KeyEvent event) {
       return false;
     }
-*/
+
+    @Override
+    public boolean keyReleased(KeyEvent event) {
+      if (event.KeyCode == Key.UP || event.KeyCode == Key.DOWN || event.KeyCode == Key.LEFT 
+          || event.KeyCode == Key.RIGHT || event.KeyCode == Key.PAGEUP || event.KeyCode == Key.PAGEDOWN
+          || event.KeyCode == Key.MOVE_TO_BEGIN_OF_DOCUMENT || event.KeyCode == Key.MOVE_TO_END_OF_DOCUMENT) {
+        mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
+      }
+      return false;
+    }
+
   }
 
 }

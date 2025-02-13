@@ -348,6 +348,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         overrideButtonWindow = UnoRuntime.queryInterface(XWindow.class, overrideButton);
         overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OVERRIDE_BUTTON_TOP, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);;
       }
+      documents.setSidebarContent(this);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
@@ -601,12 +602,22 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Set the paragraph Text under the Cursor to the sidebar text box
    */
   public void setCursorTextToBox() {
-    setCursorTextToBox(false);
+    setCursorTextToBox(null, false);
   }
 
-  private void setCursorTextToBox(boolean force) {
+  public void setCursorTextToBox(boolean force) {
+    setCursorTextToBox(null, force);
+  }
+
+  public void setCursorTextToBox(XComponent xComponent) {
+    setCursorTextToBox(xComponent, false);
+  }
+
+  private void setCursorTextToBox(XComponent xComponent, boolean force) {
     try {
-      XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
+      if (xComponent == null) {
+        xComponent = WtOfficeTools.getCurrentComponent(xContext);
+      }
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
       String pText = vCursor.getViewCursorParagraphText();
       if (pText == null || (!force && pText.equals(paragraphText))) {

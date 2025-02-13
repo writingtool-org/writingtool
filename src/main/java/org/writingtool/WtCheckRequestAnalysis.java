@@ -862,6 +862,7 @@ class WtCheckRequestAnalysis {
       changeFrom = nPara - numParasToChange;
       changeTo = nPara + numParasToChange + 1;
       singleDocument.removeIgnoredMatch(nPara, false);
+      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
     }
   }
   

@@ -65,6 +65,7 @@ import org.writingtool.dialogs.WtStatAnDialog;
 import org.writingtool.dialogs.WtCheckDialog.LtCheckDialog;
 import org.writingtool.languagedetectors.WtKhmerDetector;
 import org.writingtool.languagedetectors.WtTamilDetector;
+import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.config.WtConfigThread;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
@@ -129,6 +130,7 @@ public class WtDocumentsHandler {
   private static String configFile;
   private static WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
+  private WtSidebarContent sidebarContent;
   private static Map<String, Set<String>> disabledRulesUI; //  Rules disabled by context menu or spell dialog
   private final List<Rule> extraRemoteRules;        //  store of rules supported by remote server but not locally
   private LtCheckDialog ltDialog = null;            //  WT spelling and grammar check dialog
@@ -421,6 +423,20 @@ public class WtDocumentsHandler {
    */
   public void setCheckImpressDocument(boolean checkImpressDocument) {
     this.checkImpressDocument = checkImpressDocument;
+  }
+  
+  /**
+   * set sidebar content
+   */
+  public void setSidebarContent(WtSidebarContent sidebarContent) {
+    this.sidebarContent = sidebarContent;
+  }
+  
+  /**
+   * get sidebar content
+   */
+  public WtSidebarContent getSidebarContent() {
+    return sidebarContent;
   }
   
   /**
