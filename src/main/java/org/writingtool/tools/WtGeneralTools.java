@@ -281,8 +281,8 @@ public final class WtGeneralTools {
 
   public static void showRuleInfoDialog(Component parent, String title, String message, Rule rule, URL matchUrl, ResourceBundle messages, String lang) {
     try {
-      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+//      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+//      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
 
       int dialogWidth = 320;
       JTextPane textPane = new JTextPane();
@@ -314,7 +314,7 @@ public final class WtGeneralTools {
       JOptionPane.showMessageDialog(parent, scrollPane, cleanTitle,
               WtOptionPane.INFORMATION_MESSAGE);
 
-      WtGeneralTools.setJavaLookAndFeel(theme);
+//      WtGeneralTools.setJavaLookAndFeel(theme);
     } catch (Exception ex) {
       WtGeneralTools.showErrorMessage(ex);
     }

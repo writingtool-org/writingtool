@@ -33,6 +33,10 @@
 	            <updatePolicy>daily</updatePolicy>
 	        </releases>
         </repository>
+        <repository>
+            <id>com.formdev</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -224,9 +228,7 @@
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <dependency-check-maven.pluging.version>7.4.4</dependency-check-maven.pluging.version>
         <flatten.version>1.4.1</flatten.version>
-        <flatlaf.version>3.5.4</flatlaf.version>
-        <unohelper.version>5.0.3</unohelper.version>
-        <jsoup.version>1.18.3</jsoup.version>
+        <flatlaf.version>3.6-SNAPSHOT</flatlaf.version>
         <office.id>org.openoffice</office.id>
         <office.version>4.1.2</office.version>
 <!--
