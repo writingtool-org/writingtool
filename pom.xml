@@ -33,6 +33,10 @@
 	            <updatePolicy>daily</updatePolicy>
 	        </releases>
         </repository>
+        <repository>
+            <id>com.formdev</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -212,7 +216,7 @@
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <dependency-check-maven.pluging.version>7.4.4</dependency-check-maven.pluging.version>
         <flatten.version>1.4.1</flatten.version>
-        <flatlaf.version>3.5.4</flatlaf.version>
+        <flatlaf.version>3.6-SNAPSHOT</flatlaf.version>
         <sortpom-maven.plugin.version>3.2.1</sortpom-maven.plugin.version>
     </properties>
 

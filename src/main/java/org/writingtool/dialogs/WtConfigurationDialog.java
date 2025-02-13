@@ -627,8 +627,8 @@ public class WtConfigurationDialog implements ActionListener {
       changeButtons[i].setVerticalAlignment(SwingConstants.CENTER);
       changeButtons[i].addActionListener(e -> {
         try {
-          int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-          WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+//          int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+//          WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
           Color oldColor = underlineLabels[n].getForeground();
           Color newColor = JColorChooser.showDialog(dialog, messages.getString("guiUColorDialogHeader"), oldColor);
           if(newColor != null && !newColor.equals(oldColor)) {
@@ -636,7 +636,7 @@ public class WtConfigurationDialog implements ActionListener {
             defaultColors.set(n, newColor);
             config.setUnderlineDefaultColor(defaultColors);
           }
-          WtGeneralTools.setJavaLookAndFeel(theme);
+//          WtGeneralTools.setJavaLookAndFeel(theme);
         } catch (Exception e1) {
           WtMessageHandler.printException(e1);
         }
@@ -1416,8 +1416,8 @@ public class WtConfigurationDialog implements ActionListener {
           }
           if (node.isLeaf()) {
             try {
-              int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-              WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+//              int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+//              WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
   
               JPopupMenu popup = new JPopupMenu();
               JMenuItem aboutRuleMenuItem = new JMenuItem(messages.getString("guiAboutRuleMenu"));
@@ -1434,7 +1434,7 @@ public class WtConfigurationDialog implements ActionListener {
               });
               popup.add(aboutRuleMenuItem);
               popup.show(tree, e.getX(), e.getY());
-              WtGeneralTools.setJavaLookAndFeel(theme);
+//              WtGeneralTools.setJavaLookAndFeel(theme);
             } catch (Exception ex) {
               WtGeneralTools.showErrorMessage(ex);
             }
@@ -2259,8 +2259,8 @@ public class WtConfigurationDialog implements ActionListener {
       Color oldColor = underlineLabel.getForeground();
       dialog.setAlwaysOnTop(false);
       try {
-        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+//        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+//        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
         JColorChooser colorChooser = new JColorChooser(oldColor);
         ActionListener okActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
@@ -2287,7 +2287,7 @@ public class WtConfigurationDialog implements ActionListener {
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
         colorDialog.setVisible(true);
-        WtGeneralTools.setJavaLookAndFeel(theme);
+//        WtGeneralTools.setJavaLookAndFeel(theme);
       } catch (Exception e1) {
         WtMessageHandler.printException(e1);
       }
@@ -2546,8 +2546,8 @@ public class WtConfigurationDialog implements ActionListener {
       Color oldColor = underlineLabel.getForeground();
       dialog.setAlwaysOnTop(false);
       try {
-        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
+//        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
+//        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
         JColorChooser colorChooser = new JColorChooser(oldColor);
         ActionListener okActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
@@ -2574,7 +2574,7 @@ public class WtConfigurationDialog implements ActionListener {
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
         colorDialog.setVisible(true);
-        WtGeneralTools.setJavaLookAndFeel(theme);
+//        WtGeneralTools.setJavaLookAndFeel(theme);
       } catch (Exception e1) {
         WtMessageHandler.printException(e1);
       }
