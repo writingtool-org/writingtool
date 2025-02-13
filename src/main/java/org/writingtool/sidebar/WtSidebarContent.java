@@ -259,6 +259,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       props.put("MultiLine", true);
       props.put("VScroll", true);
       props.put("HScroll", true);
+      props.put("Border", (short) 1);
       Rectangle containerSize = contentWindow.getPosSize();
       int paraBoxX = CONTAINER_MARGIN_LEFT;
       int paraBoxY = CONTAINER_TOP;
@@ -314,6 +315,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         props.put("MultiLine", true);
         props.put("VScroll", true);
         props.put("HScroll", true);
+        props.put("Border", (short) 1);
         int aiBoxX = CONTAINER_MARGIN_LEFT;
         int aiBoxY = CONTAINER_TOP + CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
         int aiBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
