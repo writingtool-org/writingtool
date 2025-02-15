@@ -35,6 +35,8 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.ColorUIResource;
+
 import java.awt.*;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -369,9 +371,11 @@ public final class WtGeneralTools {
     switch (theme) {
     case THEME_FLATDARK:
       FlatDarkLaf.setup();
+      UIManager.put("ToolTip.background", ColorUIResource.GRAY);
       break;
     case THEME_FLATLIGHT:
       FlatLightLaf.setup();
+      UIManager.put("ToolTip.background", ColorUIResource.WHITE);
       break;
     default:
       // System dependent
