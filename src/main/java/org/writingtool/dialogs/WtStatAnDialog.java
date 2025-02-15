@@ -920,8 +920,6 @@ public class WtStatAnDialog extends Thread  {
     }
     lastSinglePara = -1;
     
-//    UIManager.put("ToolTip.foreground", Color.black);
-//    UIManager.put("ToolTip.background", Color.yellow);
     hierarchy = chapter == null ? 0 : chapter.hierarchy;
     setChapterPanel(chapter);
     if (chapter == null) {
@@ -1214,23 +1212,6 @@ public class WtStatAnDialog extends Thread  {
     return -1;
   }
   
-  /** 
-   * Set Look and Feel for Java Swing Components
-   *//*
-  public static void setJavaLookAndFeel() {
-    try {
-      if (!System.getProperty("os.name").contains("OS X")) {
-         if (System.getProperty("os.name").contains("Linux")) {
-           UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-         }
-         else {
-           UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-         }
-      }
-    } catch (Exception | AWTError ignored) {
-    }
-  }
-*/
   class Chapter {
     String name;
     int from;
