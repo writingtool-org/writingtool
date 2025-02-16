@@ -584,7 +584,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private void resizeContainer() {
     Rectangle rect = contentWindow.getPosSize();
     containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BOTTOM;
-    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
+//    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
     if (aiResultBoxWindow != null) {
       containerHeight = (containerHeight - 2 * BUTTON_CONTAINER_HEIGHT - 4 * CONTAINER_MARGIN_BETWEEN - LABEL_HEIGHT) / 2;
     }
