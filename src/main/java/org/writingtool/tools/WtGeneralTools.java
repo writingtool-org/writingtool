@@ -371,11 +371,11 @@ public final class WtGeneralTools {
     switch (theme) {
     case THEME_FLATDARK:
       FlatDarkLaf.setup();
-      UIManager.put("ToolTip.background", ColorUIResource.GRAY);
+//      UIManager.put("ToolTip.background", ColorUIResource.GRAY);
       break;
     case THEME_FLATLIGHT:
       FlatLightLaf.setup();
-      UIManager.put("ToolTip.background", ColorUIResource.WHITE);
+//      UIManager.put("ToolTip.background", ColorUIResource.WHITE);
       break;
     default:
       // System dependent

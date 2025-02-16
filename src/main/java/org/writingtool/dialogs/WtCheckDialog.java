@@ -2163,11 +2163,14 @@ public class WtCheckDialog extends Thread {
         }
       }
       if (isNum == 0) {
-        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</p></html>";
+//        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</p></html>";
+        toolTipText = "<html><p width=\"" + toolTipWidth + "\">" + toolTipText + "</p></html>";
       } else if (isNum == 1) {
-        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ul></html>";
+//        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ul></html>";
+        toolTipText = "<html><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ul></html>";
       } else {
-        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ol></html>";
+//        toolTipText = "<html><div style='color:black;'><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ol></html>";
+        toolTipText = "<html><p width=\"" + toolTipWidth + "\">" + toolTipText + "</ol></html>";
       }
       return toolTipText;
     }
