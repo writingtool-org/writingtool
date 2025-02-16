@@ -1096,7 +1096,8 @@ public class WtStatAnDialog extends Thread  {
     if (txt == null) {
       txt = MESSAGES.getString("loStatisticalAnalysisNotAnalyzed");
     }
-    return "<html><div style='color:black;'>" + txt + "</html>";
+//    return "<html><div style='color:black;'>" + txt + "</html>";
+    return "<html>" + txt + "</html>";
   }
   
   private List<Chapter> getChaptersOfHierarchy(int from, int to, int hierarchy, Chapter parent) throws Throwable {
