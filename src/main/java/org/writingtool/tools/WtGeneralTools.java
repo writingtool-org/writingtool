@@ -23,7 +23,6 @@ import org.languagetool.JLanguageTool;
 import org.languagetool.rules.*;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
-import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
 
@@ -35,7 +34,6 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.plaf.ColorUIResource;
 
 import java.awt.*;
 import java.io.File;

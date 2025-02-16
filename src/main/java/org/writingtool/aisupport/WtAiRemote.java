@@ -162,13 +162,13 @@ public class WtAiRemote {
   }
 
   
-  private String runInstruction_intern(String instruction, String text, float temperature, 
+  private String runInstruction_intern(String instruction, String orgText, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
-    if (instruction == null || text == null) {
+    if (instruction == null || orgText == null) {
       return null;
     }
     instruction = instruction.trim();
-    text = text.trim();
+    String text = orgText.trim();
     if (onlyOneParagraph && (instruction.isEmpty() || text.isEmpty())) {
       return "";
     }
@@ -256,6 +256,7 @@ public class WtAiRemote {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
+            documents.getSidebarContent().setTextToAiResultBox(orgText, out);
             return out;
           }
         } else {
