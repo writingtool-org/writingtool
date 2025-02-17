@@ -1820,6 +1820,7 @@ public class WtDocumentsHandler {
     linguServices = null;
     if (config != null) {
       noBackgroundCheck = config.noBackgroundCheck();
+      sidebarContent.setAiSupport(config.useAiSupport());
     }
     javaLookAndFeelSet = -1;
     resetIgnoredMatches();

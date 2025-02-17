@@ -129,7 +129,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XComponentContext xContext;           //  the component context
   private WtDocumentsHandler documents;
   
-  private XWindow parentWindow;                 //  the parent window
+//  private XWindow parentWindow;                 //  the parent window
   private XWindow contentWindow;                //  the window of the control container
   private XWindow buttonContainer1Window;       //  the window of the first row button container
   private XWindow buttonContainer2Window;       //  the window of the second row button container
@@ -154,9 +154,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private String aiResultText;                  //  result Text of AI operation
   private TextParagraph tPara;                  //  Number and type of the current paragraph
   
+  boolean isAiSupport = false;
+  
   public WtSidebarContent(XComponentContext context, XWindow parentWindow) {
     xContext = context;
-    this.parentWindow = parentWindow;
+//    this.parentWindow = parentWindow;
     try {
       XWindowListener windowAdapter = new XWindowListener() {
         @Override
@@ -222,8 +224,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
       
-      boolean isAiSupport = documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport();
-//      boolean isAiSupport = true;
+      isAiSupport = documents.getConfiguration().useAiSupport();
 
       // Add second row button container
       xButtonContainer = createControlContainer(xMCF, context, 
@@ -279,79 +280,81 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
       paragraphBoxWindow = UnoRuntime.queryInterface(XWindow.class, xParagraphBox);
       paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
-      setTextToBox();
       
-      if (isAiSupport) {
-        // Add AI Button container
-        props = new TreeMap<>();
-        props.put("BackgroundColor", SystemColor.menu.getRGB() & ~0xFF000000);
-        xButtonContainer = createControlContainer(xMCF, context, 
-            new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
-                BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
-        buttonContainer = UnoRuntime.queryInterface(XControlContainer.class, xButtonContainer);
-        controlContainer.addControl("buttonContainerAi", xButtonContainer);
-        buttonContainerAiWindow = UnoRuntime.queryInterface(XWindow.class, xButtonContainer);
-        buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
-            BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+      // Add AI Button container
+      props = new TreeMap<>();
+      props.put("BackgroundColor", SystemColor.menu.getRGB() & ~0xFF000000);
+      xButtonContainer = createControlContainer(xMCF, context, 
+          new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
+              BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
+      buttonContainer = UnoRuntime.queryInterface(XControlContainer.class, xButtonContainer);
+      controlContainer.addControl("buttonContainerAi", xButtonContainer);
+      buttonContainerAiWindow = UnoRuntime.queryInterface(XWindow.class, xButtonContainer);
+      buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
+          BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
 
-        // Add AI buttons
-        num = 0;
-        addButtonToContainer(num, "aiBetterStyle", "WTAiBetterStyleSmall.png", "loMenuAiStyleCommand", buttonContainer, true);
-        num++;
-        addButtonToContainer(num, "aiReformulateText", "WTAiReformulateSmall.png", "loMenuAiReformulateCommand", buttonContainer, true);
-        num++;
-        addButtonToContainer(num, "aiAdvanceText", "WTAiExpandSmall.png", "loMenuAiExpandCommand", buttonContainer, true);
+      // Add AI buttons
+      num = 0;
+      addButtonToContainer(num, "aiBetterStyle", "WTAiBetterStyleSmall.png", "loMenuAiStyleCommand", buttonContainer, true);
+      num++;
+      addButtonToContainer(num, "aiReformulateText", "WTAiReformulateSmall.png", "loMenuAiReformulateCommand", buttonContainer, true);
+      num++;
+      addButtonToContainer(num, "aiAdvanceText", "WTAiExpandSmall.png", "loMenuAiExpandCommand", buttonContainer, true);
 
-        // Add AI Label
-        props.put("FontStyleName", "Bold");
-        int labelTop = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT;
-        XControl xAiLabel = createLabel(xMCF, context, messages.getString("loAiDialogResultLabel") + ":", 
-            new Rectangle(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT), props); 
-        controlContainer.addControl("aiLabel", xAiLabel);
-        aiLabelWindow = UnoRuntime.queryInterface(XWindow.class, xAiLabel);
-        
-        // Add text field
-        props = new TreeMap<>();
-        props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
-        props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
-        props.put("Autocomplete", false);
-        props.put("HideInactiveSelection", true);
-        props.put("MultiLine", true);
-        props.put("VScroll", true);
-        props.put("Border", (short) 1);
-        int aiBoxX = CONTAINER_MARGIN_LEFT;
-        int aiBoxY = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
-        int aiBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
-        int aiBoxHeight = containerHeight;
-        XControl xAiBox = createTextfield(xMCF, context, "", 
-            new Rectangle(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight), props, null);
-        aiResultBox = UnoRuntime.queryInterface(XTextComponent.class, xAiBox);
-        controlContainer.addControl("aiBox", xAiBox);
-        aiResultBoxWindow = UnoRuntime.queryInterface(XWindow.class, xAiBox);
-        aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
-        
-        // Add override button
-        XControl overrideButton = createButton(xMCF, context, messages.getString("loAiDialogOverrideButton"), null, 
-            new Rectangle(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH), null);
-        XButton xOverrideButton = UnoRuntime.queryInterface(XButton.class, overrideButton);
-        XActionListener xoverrideButtonAction = new XActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent event) {
-            try {
-            WtAiParagraphChanging.insertText(aiResultText, documents.getCurrentDocument().getXComponent(), true);
-            } catch (Throwable e1) {
-              WtMessageHandler.printException(e1);
-            }
+      // Add AI Label
+      props.put("FontStyleName", "Bold");
+      int labelTop = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT;
+      XControl xAiLabel = createLabel(xMCF, context, messages.getString("loAiDialogResultLabel") + ":", 
+          new Rectangle(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT), props); 
+      controlContainer.addControl("aiLabel", xAiLabel);
+      aiLabelWindow = UnoRuntime.queryInterface(XWindow.class, xAiLabel);
+      
+      // Add text field
+      props = new TreeMap<>();
+      props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
+      props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+      props.put("Autocomplete", false);
+      props.put("HideInactiveSelection", true);
+      props.put("MultiLine", true);
+      props.put("VScroll", true);
+      props.put("Border", (short) 1);
+      int aiBoxX = CONTAINER_MARGIN_LEFT;
+      int aiBoxY = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
+      int aiBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
+      int aiBoxHeight = containerHeight;
+      XControl xAiBox = createTextfield(xMCF, context, "", 
+          new Rectangle(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight), props, null);
+      aiResultBox = UnoRuntime.queryInterface(XTextComponent.class, xAiBox);
+      controlContainer.addControl("aiBox", xAiBox);
+      aiResultBoxWindow = UnoRuntime.queryInterface(XWindow.class, xAiBox);
+      aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
+      
+      // Add override button
+      XControl overrideButton = createButton(xMCF, context, messages.getString("loAiDialogOverrideButton"), null, 
+          new Rectangle(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH), null);
+      XButton xOverrideButton = UnoRuntime.queryInterface(XButton.class, overrideButton);
+      XActionListener xoverrideButtonAction = new XActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent event) {
+          try {
+          WtAiParagraphChanging.insertText(aiResultText, documents.getCurrentDocument().getXComponent(), true);
+          } catch (Throwable e1) {
+            WtMessageHandler.printException(e1);
           }
-          @Override
-          public void disposing(EventObject arg0) { }
-        };
-        xOverrideButton.addActionListener(xoverrideButtonAction);
-        controlContainer.addControl("overrideButton", overrideButton);
-        overrideButtonWindow = UnoRuntime.queryInterface(XWindow.class, overrideButton);
-        overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);;
-      }
+        }
+        @Override
+        public void disposing(EventObject arg0) { }
+      };
+      xOverrideButton.addActionListener(xoverrideButtonAction);
+      controlContainer.addControl("overrideButton", overrideButton);
+      overrideButtonWindow = UnoRuntime.queryInterface(XWindow.class, overrideButton);
+      overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);;
+      buttonContainerAiWindow.setVisible(isAiSupport);
+      aiLabelWindow.setVisible(isAiSupport);
+      aiResultBoxWindow.setVisible(isAiSupport);
+      overrideButtonWindow.setVisible(isAiSupport);
       documents.setSidebarContent(this);
+      setTextToBox();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
@@ -363,6 +366,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    */
   public WtSidebarContent getWTSidebar() {
     return this;
+  }
+  
+  /**
+   * set AI support
+   */
+  public void setAiSupport(boolean isAiSupport) {
+    this.isAiSupport = isAiSupport;
+    resizeContainer();
   }
   
   /**
@@ -585,7 +596,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     Rectangle rect = contentWindow.getPosSize();
     containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BOTTOM;
 //    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
-    if (aiResultBoxWindow != null) {
+    if (isAiSupport) {
       containerHeight = (containerHeight - 2 * BUTTON_CONTAINER_HEIGHT - 4 * CONTAINER_MARGIN_BETWEEN - LABEL_HEIGHT) / 2;
     }
     if (containerHeight < 0) {
@@ -605,10 +616,10 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
     buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
     buttonStatAnWindow.setEnable(hasStatAn());
-    buttonAiGeneralWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
-    buttonAiTranslateTextWindow.setEnable(documents.getConfiguration().useAiSupport() || documents.getConfiguration().useAiTtsSupport());
+    buttonAiGeneralWindow.setEnable(isAiSupport);
+    buttonAiTranslateTextWindow.setEnable(isAiSupport);
     buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
-    if (aiResultBoxWindow != null) {
+    if (isAiSupport) {
       OverrideButtonTop = CONTAINER_TOP + 2* containerHeight + 
           3 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
       buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
@@ -622,6 +633,10 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
       overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);;
     }
+    buttonContainerAiWindow.setVisible(isAiSupport);
+    aiLabelWindow.setVisible(isAiSupport);
+    aiResultBoxWindow.setVisible(isAiSupport);
+    overrideButtonWindow.setVisible(isAiSupport);
   }
   
   private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara) {
