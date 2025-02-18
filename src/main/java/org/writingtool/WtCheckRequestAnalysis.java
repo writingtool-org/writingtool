@@ -715,6 +715,7 @@ class WtCheckRequestAnalysis {
           mDocHandler.getTextLevelCheckQueue().wakeupQueue(docID);;
         }
       }
+      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
     }
     return true;
   }
