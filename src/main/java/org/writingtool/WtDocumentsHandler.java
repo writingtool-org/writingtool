@@ -796,7 +796,7 @@ public class WtDocumentsHandler {
    * if there is no supported language use en-US as default
    */
   public Language getCurrentLanguage() {
-    Locale locale = getDocumentLocale();
+    Locale locale = getCursorLocale();
     if (locale == null || locale.Language.equals(WtOfficeTools.IGNORE_LANGUAGE) || !hasLocale(locale)) {
       WtSingleDocument document = getCurrentDocument();
       if (document != null) {
@@ -815,7 +815,7 @@ public class WtDocumentsHandler {
    * @return the locale under the visible cursor
    */
   @Nullable
-  public Locale getDocumentLocale() {
+  public Locale getCursorLocale() {
     if (xContext == null) {
       return null;
     }
@@ -2055,7 +2055,7 @@ public class WtDocumentsHandler {
         } else if (docType == DocumentType.CALC) {
           locale = WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
         } else {
-          locale = getDocumentLocale();
+          locale = getCursorLocale();
         }
         try {
           int n = 0;
@@ -2069,7 +2069,7 @@ public class WtDocumentsHandler {
             } else if (docType == DocumentType.CALC) {
               locale = WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
             } else {
-              locale = getDocumentLocale();
+              locale = getCursorLocale();
             }
             n++;
           }

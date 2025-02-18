@@ -49,6 +49,7 @@ import org.languagetool.rules.AbstractStyleTooOftenUsedWordRule;
 import org.languagetool.rules.ReadabilityRule;
 import org.languagetool.rules.Rule;
 import org.writingtool.WtDictionary;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtProofreadingError;
 
 import com.sun.star.awt.XMenuBar;
@@ -281,6 +282,37 @@ public class WtOfficeTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
+    }
+  }
+  
+  /**
+   * returns the default language of the text document
+   */
+  public static Language getDefaultLanguage(XComponentContext xContext) {
+    Locale locale = getDefaultLocale(xContext);
+    if (locale == null) {
+      return null;
+    }
+    return WtDocumentsHandler.getLanguage(locale);
+  }
+
+  /**
+   * returns the default locale of the text document
+   */
+  public static Locale getDefaultLocale(XComponentContext xContext) {
+    XTextDocument curDoc = getCurrentDocument(xContext);
+    if (curDoc == null) {
+      return null;
+    }
+    XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, curDoc);
+    if (xPropertySet == null) {
+      return null;
+    }
+    try {
+      return (Locale) xPropertySet.getPropertyValue("CharLocale");
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      return null;
     }
   }
   
@@ -916,6 +948,17 @@ public class WtOfficeTools {
     }
   }
   
+/**
+ * Are statistical rules defined for this language?
+ */
+  public static boolean hasStatisticalStyleRules(XComponentContext xContext) {
+    Language lang = getDefaultLanguage(xContext);
+    if (lang == null) {
+      return false;
+    }
+    return hasStatisticalStyleRules(lang);
+  }
+
   public static boolean hasStatisticalStyleRules(Language lang) {
     try {
       for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, new ArrayList<>())) {

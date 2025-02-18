@@ -410,7 +410,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         formatedText = "";
       }
       paragraphBox.setText(formatedText);
-      if (aiResultBox != null && !isSameText) {
+      if (isAiSupport && aiResultBox != null && !isSameText) {
         aiResultBox.setText("");
       }
     } catch (Throwable e1) {
@@ -578,18 +578,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   }
 
   private boolean hasStatAn() {
-    WtSingleDocument document = documents.getCurrentDocument();
-    if (document == null) {
-      return false;
-    }
-    if (document.getDocumentType() != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
-      return false;
-    }
-    Language lang = document.getLanguage();
-    if (lang == null) {
-      return false;
-    }
-    return WtOfficeTools.hasStatisticalStyleRules(lang);
+    return WtOfficeTools.hasStatisticalStyleRules(xContext);
   }
   
   private void resizeContainer() {
