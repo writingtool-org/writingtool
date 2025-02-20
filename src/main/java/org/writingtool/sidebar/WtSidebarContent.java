@@ -662,7 +662,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     int lastChar = 0;
     for (WtProofreadingError error : errors) {
       if (lastChar <= error.nErrorStart && error.nErrorStart + error.nErrorLength <= orgText.length()) {
-        if (error.nErrorStart > 0) {
+        if (error.nErrorStart > 0 &&  error.nErrorStart <= orgText.length()) {
           formatedText += orgText.substring(lastChar, error.nErrorStart);
         }
         lastChar = error.nErrorStart + error.nErrorLength;
