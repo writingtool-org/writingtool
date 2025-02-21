@@ -327,8 +327,10 @@ public class WtAiErrorDetection {
       return (WtAiDetectionRule) clazz.getDeclaredConstructor(cArgs).newInstance(aiResultText, 
           analyzedAiResult, paraText, linguServices, locale, messages, showStylisticHints);
     } catch (Throwable e) {
-      WtMessageHandler.printException(e);
-      WtMessageHandler.printToLogFile("Use general detection rule");
+      if (debugMode > 1) {
+        WtMessageHandler.printException(e);
+        WtMessageHandler.printToLogFile("Use general detection rule");
+      }
       return new WtAiDetectionRule(aiResultText, analyzedAiResult, paraText, linguServices, locale, messages, showStylisticHints);
     }
     
