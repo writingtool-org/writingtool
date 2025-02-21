@@ -65,6 +65,7 @@ import com.sun.star.frame.XDispatchProvider;
 import com.sun.star.frame.XFrame;
 import com.sun.star.frame.XLayoutManager;
 import com.sun.star.frame.XModel;
+import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
@@ -381,6 +382,8 @@ public class WtOfficeTools {
       XUIElement oMenuBar = layoutManager.getElement(MENU_BAR); 
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, oMenuBar); 
       return UnoRuntime.queryInterface(XMenuBar.class,  props.getPropertyValue("XMenuBar"));
+    } catch (DisposedException e) {
+      WtMessageHandler.printToLogFile("WtOfficeTools: Document is disposed");
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }

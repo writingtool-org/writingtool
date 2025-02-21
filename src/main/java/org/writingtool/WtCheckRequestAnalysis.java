@@ -562,6 +562,9 @@ class WtCheckRequestAnalysis {
    *  Get view cursor tools
    */
   WtViewCursorTools getViewCursorTools() {
+    if (isDisposed()) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     return new WtViewCursorTools(xComponent);
   }

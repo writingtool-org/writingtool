@@ -47,6 +47,7 @@ import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XIndexContainer;
 import com.sun.star.frame.XController;
 import com.sun.star.frame.XModel;
+import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiServiceFactory;
@@ -632,6 +633,8 @@ public class WtMenus {
           return;
         }
         xContextMenuInterception.registerContextMenuInterceptor(xContextMenuInterceptor);
+      } catch (DisposedException e) {
+        WtMessageHandler.printToLogFile("WtMenus: Document is disposed");
       } catch (Throwable t) {
         WtMessageHandler.printException(t);
       }

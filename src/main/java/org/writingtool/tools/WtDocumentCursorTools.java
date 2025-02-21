@@ -830,11 +830,11 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all footnotes of a document
    */
   public DocumentText getTextOfAllFootnotes(boolean withDeleted) {
+    isBusy++;
     List<String> sText = new ArrayList<String>();
     Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
     List<Integer> sortedTextIds = null;
     List<List<Integer>> deletedCharacters = new ArrayList<List<Integer>>();
-    isBusy++;
     try {
       if (curDoc != null) {
         // Get the XFootnotesSupplier interface of the document
@@ -888,11 +888,11 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all endnotes of a document
    */
   public DocumentText getTextOfAllEndnotes(boolean withDeleted) {
+    isBusy++;
     List<String> sText = new ArrayList<String>();
     Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
     List<Integer> sortedTextIds = null;
     List<List<Integer>> deletedCharacters = new ArrayList<List<Integer>>();
-    isBusy++;
     try {
       if (curDoc != null) {
         // Get the XEndnotesSupplier interface of the document

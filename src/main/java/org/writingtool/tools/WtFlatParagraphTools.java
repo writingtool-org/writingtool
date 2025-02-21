@@ -79,6 +79,13 @@ public class WtFlatParagraphTools {
     lastFlatPara = null;
     xComponent = null;
   }
+  
+  /**
+   * document is disposed
+   */
+  public boolean isDisposed() {
+    return xComponent == null;
+  }
 
   /**
    * is valid initialization of FlatParagraphTools
@@ -179,6 +186,9 @@ public class WtFlatParagraphTools {
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
   public XFlatParagraph getFlatParagraphAt(int nPara) {
+    if (isDisposed()) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -268,6 +278,9 @@ public class WtFlatParagraphTools {
    */
   @Nullable
   public FlatParagraphContainer getAllFlatParagraphs(Locale fixedLocale) {
+    if (isDisposed()) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -330,6 +343,9 @@ public class WtFlatParagraphTools {
    */
   @Nullable
   public List<String> getFlatParagraphs(List<Integer> nParas) {
+    if (isDisposed()) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -512,6 +528,9 @@ public class WtFlatParagraphTools {
    * Returns negative value if it fails
    */
   public int getNumberOfAllFlatPara() {
+    if (isDisposed()) {
+      return -1;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -658,6 +677,9 @@ public class WtFlatParagraphTools {
    * Marks all paragraphs as checked with exception of the paragraphs "from" to "to"
    */
   public void setFlatParasAsChecked(int from, int to, List<Boolean> isChecked) {
+    if (isDisposed()) {
+      return;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -718,6 +740,9 @@ public class WtFlatParagraphTools {
    * Marks all paragraphs as checked
    */
   public void setFlatParasAsChecked() {
+    if (isDisposed()) {
+      return;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -749,6 +774,9 @@ public class WtFlatParagraphTools {
    * Get information of checked status of all paragraphs
    */
   public List<Boolean> isChecked(List<Integer> changedParas, int nDiv) {
+    if (isDisposed()) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     List<Boolean> isChecked = new ArrayList<>();
@@ -912,6 +940,9 @@ public class WtFlatParagraphTools {
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
   public void changeTextOfParagraph (int nPara, int nStart, int nLen, String newText) {
+    if (isDisposed()) {
+      return;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -950,6 +981,9 @@ public class WtFlatParagraphTools {
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
   public void setLanguageOfParagraph (int nPara, int nStart, int nLen, Locale locale) {
+    if (isDisposed()) {
+      return;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
@@ -989,6 +1023,9 @@ public class WtFlatParagraphTools {
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
   public void changeTextAndLocaleOfParagraph (int nPara, int nStart, int nLen, String newText, Locale locale) {
+    if (isDisposed()) {
+      return;
+    }
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
