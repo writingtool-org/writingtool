@@ -100,7 +100,7 @@ public class WtSingleDocument {
   private String docID;                           //  docID of the document
   private XComponent xComponent;                  //  XComponent of the open document
   private final WtDocumentsHandler mDocHandler;      //  handles the different documents loaded in LO/OO
-  private LTDokumentEventListener eventListener = null; //  listens for save of document 
+  private WTDokumentEventListener eventListener = null; //  listens for save of document 
   
   private final WtDocumentCache docCache;           //  cache of paragraphs (only readable by parallel thread)
   private final List<WtResultCache> paragraphsCache;//  Cache for matches of text rules
@@ -654,6 +654,9 @@ public class WtSingleDocument {
    *  Get document cursor tools
    */
   public WtDocumentCursorTools getDocumentCursorTools() {
+    if (disposed) {
+      return null;
+    }
     WtOfficeTools.waitForLO();
     if (docCursor == null) {
       docCursor = new WtDocumentCursorTools(xComponent);
@@ -829,6 +832,9 @@ public class WtSingleDocument {
         flatPara = null;
         return flatPara;
   	  }
+  	  if (disposed) {
+  	    return null;
+  	  }
       WtOfficeTools.waitForLO();
   	  if (flatPara == null) {
         flatPara = new WtFlatParagraphTools(xComponent);
@@ -996,6 +1002,9 @@ public class WtSingleDocument {
           }
         }
         for (int nPara : nParas) {
+          if (disposed) {
+            return null;
+          }
           WtOfficeTools.waitForLO();
           XFlatParagraph xFlatParagraph = flatPara.getFlatParagraphAt(nPara);
           if (xFlatParagraph != null) {
@@ -1830,7 +1839,7 @@ public class WtSingleDocument {
   private void setDokumentListener(XComponent xComponent) {
     try {
       if (!disposed && xComponent != null && eventListener == null) {
-        eventListener = new LTDokumentEventListener();
+        eventListener = new WTDokumentEventListener();
         XDocumentEventBroadcaster broadcaster = UnoRuntime.queryInterface(XDocumentEventBroadcaster.class, xComponent);
         if (!disposed && broadcaster != null) {
           broadcaster.addDocumentEventListener(eventListener);
@@ -1910,8 +1919,8 @@ public class WtSingleDocument {
   }
   
   
-  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler, XKeyHandler {
-//  private class LTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler {
+  private class WTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler, XKeyHandler {
+//  private class WTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler {
 
     @Override
     public void disposing(EventObject event) {
@@ -1923,7 +1932,8 @@ public class WtSingleDocument {
       if(event.EventName.equals("OnPrepareUnload")) {
         try {
           isOnUnload = true;
-          mDocHandler.prepareUnload();
+          mDocHandler.prepareUnload(docID);
+//          dispose(true);
           writeCaches();
         } catch (Throwable t) {
           WtMessageHandler.printException(t);;

@@ -677,7 +677,8 @@ public class WtCheckDialog extends Thread {
     if (text == null || text.isEmpty() || x >= text.length() || !WtDocumentsHandler.hasLocale(locale)) {
       return null;
     }
-    if (document.getDocumentType() == DocumentType.WRITER && documents.getTextLevelCheckQueue() != null && !documents.noLtSpeller()) {
+    if (document.getDocumentType() == DocumentType.WRITER && documents.getTextLevelCheckQueue() != null
+        && !documents.noLtSpeller() && !documents.isBackgroundCheckOff()) {
       WtProofreadingError[] errors = getErrorsFromCache(nFPara);
       if (errors == null) {
         return null;

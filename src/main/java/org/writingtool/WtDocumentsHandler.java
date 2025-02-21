@@ -143,7 +143,7 @@ public class WtDocumentsHandler {
   
   private static XComponentContext xContext;               //  The context of the document
   private final List<WtSingleDocument> documents;   //  The List of LO documents to be checked
-  private boolean isDisposed = false;
+  private final List<String> disposedIds; //  The List of IDs of disposed documents
   private boolean recheck = true;                   //  if true: recheck the whole document at next iteration
   private int docNum;                               //  number of the current document
   
@@ -189,6 +189,7 @@ public class WtDocumentsHandler {
     configDir = WtOfficeTools.getWtConfigDir(xContext);
     WtMessageHandler.init(xContext, false);
     documents = new ArrayList<>();
+    disposedIds = new ArrayList<>();
     disabledRulesUI = new HashMap<>();
     extraRemoteRules = new ArrayList<>();
     if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
@@ -253,7 +254,7 @@ public class WtDocumentsHandler {
       if (!isSameLanguage || recheck || checkImpressDocument) {
         boolean initDocs = (lt == null || recheck || checkImpressDocument);
         if (debugMode && initDocs) {
-          WtMessageHandler.showMessage("initDocs: lt " + (lt == null ? "=" : "!") + "= null, recheck: " + recheck 
+          WtMessageHandler.printToLogFile("initDocs: lt " + (lt == null ? "=" : "!") + "= null, recheck: " + recheck 
               + ", Impress: " + checkImpressDocument);
         }
         checkImpressDocument = false;
@@ -529,8 +530,9 @@ public class WtDocumentsHandler {
         if (xComponent.equals(document.getXComponent())) {
           found = true;
           document.dispose(true);
-          isDisposed = true;
+          disposedIds.add(document.getDocID());
           if (documents.size() < 2) {
+ /*
             if (textLevelQueue != null) {
               textLevelQueue.setStop();
               textLevelQueue = null;
@@ -539,10 +541,11 @@ public class WtDocumentsHandler {
               aiQueue.setStop();
               aiQueue = null;
             }
+*/            
             isHelperDisposed = true;
           }
-          document.removeDokumentListener(xComponent);
-          document.setXComponent(xContext, null);
+//          document.removeDokumentListener(xComponent);
+//          document.setXComponent(xContext, null);
           if (document.getDocumentCache().hasNoContent(false)) {
             //  The delay seems to be necessary as workaround for a GDK bug (Linux) to stabilizes
             //  the load of a document from an empty document 
@@ -566,8 +569,11 @@ public class WtDocumentsHandler {
   /**
    *  stop all queues before unload LO
    */
-  public void prepareUnload() {
+  public void prepareUnload(String docId) {
     try {
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareUnload for docId: " + docId);
+      }
       if (documents.size() < 2) {
         isHelperDisposed = true;
         if (textLevelQueue != null) {
@@ -581,6 +587,13 @@ public class WtDocumentsHandler {
         if (shapeChangeCheck != null) {
           shapeChangeCheck.stopLoop();
           shapeChangeCheck = null;
+        }
+      } else if (documents.size() > 1) {
+        if (textLevelQueue != null) {
+          textLevelQueue.interruptCheck(docId, false);
+        }
+        if (aiQueue != null) {
+          aiQueue.interruptCheck(docId, false);
         }
       }
     } catch (Throwable t) {
@@ -969,12 +982,13 @@ public class WtDocumentsHandler {
             }
           }
         }
-        if (isDisposed) {
-          int n = removeDoc(docID);
+        for (String id : disposedIds) {
+          int n = removeDoc(id);
           if (n >= 0 && n < i) {
-            return i - 1;
+            i--;
           }
         }
+        disposedIds.clear();
         return i;
       }
     }
@@ -1019,13 +1033,8 @@ public class WtDocumentsHandler {
     }
     WtSingleDocument newDocument = new WtSingleDocument(xContext, config, docID, xComponent, this, docLanguage);
     documents.add(newDocument);
-/*
-    if (!testMode) {              //  xComponent == null for test cases 
-      newDocument.setLanguage(docLanguage);
-    }
-*/
-    if (isDisposed) {
-      removeDoc(docID);
+    for (String id : disposedIds) {
+      removeDoc(id);
     }
     WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Document " + (documents.size() - 1) + " created; docID = " + docID);
     return documents.size() - 1;
@@ -1036,30 +1045,22 @@ public class WtDocumentsHandler {
    */
   private int removeDoc(String docID) {
     try {
-      if (isDisposed) {
-        isDisposed = false;
-        for (int i = documents.size() - 1; i >= 0; i--) {
-          if (!docID.equals(documents.get(i).getDocID())) {
-            if (documents.get(i).isDisposed()) {
-              if (useQueue && textLevelQueue != null) {
-                WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt text level queue for document " + documents.get(i).getDocID());
-                textLevelQueue.interruptCheck(documents.get(i).getDocID(), true);
-                WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt done");
-              }
-              if (aiQueue != null) {
-                WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt ai queue for document " + documents.get(i).getDocID());
-                aiQueue.interruptCheck(documents.get(i).getDocID(), true);
-                WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: AI Interrupt done");
-              }
-              WtMessageHandler.printToLogFile("Disposed document " + documents.get(i).getDocID() + " removed");
-              documents.remove(i);
-              for (int j = 0; j < documents.size(); j++) {
-                if (documents.get(j).isDisposed()) {
-                  isDisposed = true;
-                }
-              }
-              return (i);
+      for (int i = documents.size() - 1; i >= 0; i--) {
+        if (!docID.equals(documents.get(i).getDocID())) {
+          if (documents.get(i).isDisposed()) {
+            if (useQueue && textLevelQueue != null) {
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt text level queue for document " + documents.get(i).getDocID());
+              textLevelQueue.interruptCheck(documents.get(i).getDocID(), true);
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt done");
             }
+            if (aiQueue != null) {
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: Interrupt ai queue for document " + documents.get(i).getDocID());
+              aiQueue.interruptCheck(documents.get(i).getDocID(), true);
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: removeDoc: AI Interrupt done");
+            }
+            WtMessageHandler.printToLogFile("Disposed document " + documents.get(i).getDocID() + " removed");
+            documents.remove(i);
+            return (i);
           }
         }
       }
