@@ -26,7 +26,6 @@ import org.languagetool.Languages;
 import org.languagetool.languagemodel.LuceneLanguageModel;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
-import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtCategoryNode;
 import org.writingtool.config.WtCheckBoxTreeCellRenderer;
 import org.writingtool.config.WtConfiguration;

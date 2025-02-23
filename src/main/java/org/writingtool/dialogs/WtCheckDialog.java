@@ -758,18 +758,22 @@ public class WtCheckDialog extends Thread {
           paRes = document.getCheckResults(text, locale, paRes, propertyValues, false, lt, nFPara, errType);
           WtProofreadingError[] spellErrors = null;
           WtProofreadingError[] allErrors = null;
+/* LT tests also spell
           if (checkType != 3 && errType != LoErrorType.GRAMMAR) {
             spellErrors = getSpellErrors(nFPara, text, locale, document);
           }
+*/
           if (paRes == null || paRes.aErrors == null || paRes.aErrors.length == 0) {
             allErrors = spellErrors;
           } else if (spellErrors == null || spellErrors.length == 0) {
             allErrors = WtOfficeTools.proofreadingToWtErrors(paRes.aErrors);
+/*
           } else {
             List<WtProofreadingError[]> errorList = new ArrayList<>();
             errorList.add(spellErrors);
             errorList.add(WtOfficeTools.proofreadingToWtErrors(paRes.aErrors));
             allErrors = document.mergeErrors(errorList, nFPara);
+*/
           }
           if (allErrors != null) {
             if (debugMode) {
@@ -2518,7 +2522,7 @@ public class WtCheckDialog extends Thread {
      * @throws Throwable 
      */
     private CheckError getNextError(boolean startAtBegin) throws Throwable {
-      if (docType != DocumentType.WRITER) {
+      if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
         currentDocument = getCurrentDocument(false);
       }
       if (currentDocument == null) {
