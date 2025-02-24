@@ -47,12 +47,9 @@ import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XServiceDisplayName;
 import com.sun.star.lang.XServiceInfo;
-import com.sun.star.lang.XSingleComponentFactory;
-import com.sun.star.lib.uno.helper.Factory;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.linguistic2.XSpellAlternatives;
 import com.sun.star.linguistic2.XSpellChecker;
-import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.XComponentContext;
 
 /**
@@ -125,26 +122,6 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     }
   }
 
-  /**
-   * Get XSingleComponentFactory
-   * Default method called by LO/OO extensions
-   *//*
-  public static XSingleComponentFactory __getComponentFactory(String sImplName) {
-    WtSingletonFactory xFactory = null;
-    if (sImplName.equals(WtSpellChecker.class.getName())) {
-      xFactory = new WtSingletonFactory(true);
-    }
-    return xFactory;
-  }
-*/
-  /**
-   * Write keys to registry
-   * Default method called by LO/OO extensions
-   *//*
-  public static boolean __writeRegistryServiceInfo(XRegistryKey regKey) {
-    return Factory.writeRegistryServiceInfo(WtSpellChecker.class.getName(), WtSpellChecker.getServiceNames(), regKey);
-  }
-*/
   @Override
   public Locale[] getLocales() {
     if (noLtSpeller) {

@@ -58,7 +58,6 @@ import com.sun.star.ui.XToolPanel;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
-import org.languagetool.Language;
 import org.writingtool.WritingTool;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentCache.TextParagraph;
@@ -71,7 +70,6 @@ import org.writingtool.WtSingleDocument;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
-import org.writingtool.tools.WtOfficeTools.DocumentType;
 
 /**
  * Create the window for the WT sidebar panel
