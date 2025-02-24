@@ -281,19 +281,21 @@ public class WtDocumentsHandler {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start getNumDoc!");
     }
     docNum = getNumDoc(paRes.aDocumentIdentifier, propertyValues);
-    if (noBackgroundCheck) {
-      return paRes;
-    }
+//    if (noBackgroundCheck) {
+//      return paRes;
+//    }
     if (debugMode) {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start testHeapSpace!");
     }
-    testHeapSpace();
+    if (!noBackgroundCheck) {
+      testHeapSpace();
+    }
     if (debugMode) {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start getCheckResults at single document: " + paraText);
     }
 //    handleLtDictionary(paraText);
     paRes = documents.get(docNum).getCheckResults(paraText, locale, paRes, propertyValues, docReset, lt, LoErrorType.GRAMMAR);
-    if (lt.doReset()) {
+    if (!noBackgroundCheck && lt.doReset()) {
       // langTool.doReset() == true: if server connection is broken ==> switch to internal check
       WtMessageHandler.showMessage(messages.getString("loRemoteSwitchToLocal"));
       config.setRemoteCheck(false);
