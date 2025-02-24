@@ -31,6 +31,8 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -238,7 +240,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     imageLabel = new JLabel(messages.getString("loAiDialogImgImageLabel") + ":");
     imageFrame = new JLabel();
     imageFrame.setSize(imageWidth, imageWidth);
-    imageFrame.setBorder(BorderFactory.createLineBorder(Color.gray));
+    imageFrame.setBackground(Color.LIGHT_GRAY);
+    imageFrame.setOpaque(true);
+//    imageFrame.setBorder(BorderFactory.createLineBorder(Color.gray));
 //    imageFrame = new JFrame();
 //    imageFrame.setSize(imageWidth, imageHeight);
 //    imageFrame.add(image);
@@ -601,6 +605,20 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
       });
       
+      dialog.addComponentListener(new ComponentListener() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          setImageSize();
+        }
+        @Override
+        public void componentMoved(ComponentEvent e) {}
+        @Override
+        public void componentShown(ComponentEvent e) {}
+        @Override
+        public void componentHidden(ComponentEvent e) {}
+        
+      });
+      
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
           WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Buttons: " + runTime);
@@ -838,7 +856,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.insets = new Insets(4, 4, 4, 4);
       cons1.gridy++;
       cons1.weighty = 2.0f;
-      mainImagePanel.add(new JScrollPane(imageFrame), cons1);
+//      mainImagePanel.add(new JScrollPane(imageFrame), cons1);
+      mainImagePanel.add(imageFrame, cons1);
       cons1.gridx++;
       cons1.weightx = 0.0f;
       cons1.weighty = 0.0f;
@@ -1150,7 +1169,8 @@ public class WtAiDialog extends Thread implements ActionListener {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
         }
         image = getImageFromUrl(urlString);
-        imageFrame.setIcon(new ImageIcon(image));
+        imageFrame.setBackground(null);
+        setImageSize();
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -1158,6 +1178,17 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
     setAtWorkState(false);
     setButtonState(true);
+  }
+  
+/**
+ * Set the size of the image  
+ */
+  private void setImageSize() {
+    ImageIcon imageIcon = new ImageIcon(image);
+    int size = imageFrame.getHeight() < imageFrame.getWidth() ? imageFrame.getHeight() : imageFrame.getWidth();
+    imageIcon.setImage(imageIcon.getImage().getScaledInstance(size, size,Image.SCALE_DEFAULT));
+    imageFrame.setIcon(imageIcon);
+    imageFrame.setMaximumSize(new Dimension(size, size));
   }
 
   /**
@@ -1424,6 +1455,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private void removeImage() {
     image = null;
     imageFrame.setIcon(null);
+    imageFrame.setBackground(Color.LIGHT_GRAY);
     setButtonState(true);
   }
   
