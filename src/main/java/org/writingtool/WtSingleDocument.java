@@ -355,9 +355,6 @@ public class WtSingleDocument {
             proofInfo, numParasToCheck, fixedLanguage, docLanguage, this, paragraphsCache, changedParas, runningParas);
         paraNum = requestAnalysis.getNumberOfParagraph(nPara, paraText, locale, paRes.nStartOfSentencePosition, footnotePositions);
       }
-      if (docCache.isAutomaticGenerated(paraNum, true)) {
-        return paRes;
-      }
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
         if (runTime > WtOfficeTools.TIME_TOLERANCE) {
@@ -366,6 +363,12 @@ public class WtSingleDocument {
       }
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("Single document: getCheckResults: paraNum = " + paraNum + ", nPara = " + nPara);
+      }
+      if ((!isIntern && mDocHandler.isBackgroundCheckOff()) || docCache.isAutomaticGenerated(paraNum, true)) {
+        if (ltMenus == null && !mDocHandler.isOpenOffice) {
+          ltMenus = new WtMenus(xContext, this, config);
+        }
+        return paRes;
       }
       if (paraNum == -2) {
         paraNum = isLastIntern ? this.paraNum : -1;

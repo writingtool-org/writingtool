@@ -336,7 +336,7 @@ public class WtCheckDialog extends Thread {
     if (currentDocument != null) {
       docType = currentDocument.getDocumentType();
       docCache = currentDocument.getDocumentCache();
-      if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
+      if (docType != DocumentType.WRITER) {
         actualizeNonWriterDocumentCache(currentDocument);
       }
     }
@@ -450,6 +450,11 @@ public class WtCheckDialog extends Thread {
       }
     }
   }
+  
+  private boolean isRealWordInPara(int start, int length, String para) {
+    return (start >= 0 && (start == 0 || !Character.isLetterOrDigit(para.charAt(start - 1))) &&
+        (start + length == para.length() || !Character.isLetterOrDigit(para.charAt(start + length))));
+  }
 
   /**
    * change the text of a paragraph independent of the type of document
@@ -462,30 +467,53 @@ public class WtCheckDialog extends Thread {
     }
     Map<Integer, List<Integer>> replacePoints = new HashMap<Integer, List<Integer>>();
     int nLength = word.length();
-    for (int n = 0; n < docCache.size(); n++) {
-      List<WtProofreadingError[]> pErrors = new ArrayList<>();
-      for (WtResultCache resultCache : document.getParagraphsCache()) {
-        pErrors.add(resultCache.getSafeMatches(n));
-      }
-      WtProofreadingError[] errors = document.mergeErrors(pErrors, n);
-      if (errors != null) {
+    if (documents.isBackgroundCheckOff()) {
+      int rLength = replace.length();
+      for (int n = 0; n < docCache.size(); n++) {
         List<Integer> startPoints = null;
-        for (int i = errors.length - 1; i >= 0; i--) {
-          WtProofreadingError error = errors[i];
-          if (nLength == error.nErrorLength && ruleID.equals(error.aRuleIdentifier)) {
-            String sPara = docCache.getFlatParagraph(n);
-            String errWord = sPara.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
-            if (word.equals(errWord)) {
-              if (startPoints == null) {
-                startPoints = new ArrayList<>();
-              }
-              startPoints.add(error.nErrorStart);
-              changeTextOfParagraph(n, error.nErrorStart, error.nErrorLength, replace, document, viewCursor);
+        String para = docCache.getFlatParagraph(n);
+        int wStart = -rLength;
+        do {
+          wStart = para.indexOf(word, wStart + rLength); 
+          if (isRealWordInPara(wStart, nLength, para)) {
+            if (startPoints == null) {
+              startPoints = new ArrayList<>();
             }
+            startPoints.add(wStart);
+            changeTextOfParagraph(n, wStart, nLength, replace, document, viewCursor);
+            para = docCache.getFlatParagraph(n);
           }
-        }
+        } while (wStart >= 0 && wStart + rLength < para.length());
         if (startPoints != null) {
           replacePoints.put(n, startPoints);
+        }
+      }
+    } else {
+      for (int n = 0; n < docCache.size(); n++) {
+        List<WtProofreadingError[]> pErrors = new ArrayList<>();
+        for (WtResultCache resultCache : document.getParagraphsCache()) {
+          pErrors.add(resultCache.getSafeMatches(n));
+        }
+        WtProofreadingError[] errors = document.mergeErrors(pErrors, n);
+        if (errors != null) {
+          List<Integer> startPoints = null;
+          for (int i = errors.length - 1; i >= 0; i--) {
+            WtProofreadingError error = errors[i];
+            if (nLength == error.nErrorLength && ruleID.equals(error.aRuleIdentifier)) {
+              String sPara = docCache.getFlatParagraph(n);
+              String errWord = sPara.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
+              if (word.equals(errWord)) {
+                if (startPoints == null) {
+                  startPoints = new ArrayList<>();
+                }
+                startPoints.add(error.nErrorStart);
+                changeTextOfParagraph(n, error.nErrorStart, error.nErrorLength, replace, document, viewCursor);
+              }
+            }
+          }
+          if (startPoints != null) {
+            replacePoints.put(n, startPoints);
+          }
         }
       }
     }
@@ -756,20 +784,28 @@ public class WtCheckDialog extends Thread {
             }
           }
           paRes = document.getCheckResults(text, locale, paRes, propertyValues, false, lt, nFPara, errType);
+          if (debugMode) {
+              WtMessageHandler.printToLogFile("CheckDialog: getNextGrammatikErrorInParagraph: docCache.size: " 
+                 + document.getDocumentCache().size() + ", error.number: " + paRes.aErrors.length);
+          }
           WtProofreadingError[] spellErrors = null;
           WtProofreadingError[] allErrors = null;
+/* LT tests also spell
           if (checkType != 3 && errType != LoErrorType.GRAMMAR) {
             spellErrors = getSpellErrors(nFPara, text, locale, document);
           }
+*/
           if (paRes == null || paRes.aErrors == null || paRes.aErrors.length == 0) {
             allErrors = spellErrors;
           } else if (spellErrors == null || spellErrors.length == 0) {
             allErrors = WtOfficeTools.proofreadingToWtErrors(paRes.aErrors);
+/*
           } else {
             List<WtProofreadingError[]> errorList = new ArrayList<>();
             errorList.add(spellErrors);
             errorList.add(WtOfficeTools.proofreadingToWtErrors(paRes.aErrors));
             allErrors = document.mergeErrors(errorList, nFPara);
+*/
           }
           if (allErrors != null) {
             if (debugMode) {
@@ -2294,7 +2330,7 @@ public class WtCheckDialog extends Thread {
             suggestions.setSelectedIndex(0);
             suggestions.setBackground(Color.white);
             change.setEnabled(true);
-            changeAll.setEnabled(true);
+            changeAll.setEnabled(!documents.isBackgroundCheckOff() || isSpellError);
             autoCorrect.setEnabled(true);
           } else {
             suggestions.setEnabled(true);
@@ -2365,7 +2401,7 @@ public class WtCheckDialog extends Thread {
           } else {
             ignoreAll.setText(ignoreRuleButtonName);
             addToDictionary.setVisible(false);
-            changeAll.setEnabled(true);
+            changeAll.setEnabled(!documents.isBackgroundCheckOff());
             deactivateRule.setVisible(true);
             deactivateRule.setEnabled(true);
             autoCorrect.setEnabled(false);
