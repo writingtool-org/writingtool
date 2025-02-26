@@ -355,7 +355,6 @@ public class WtAiDialog extends Thread implements ActionListener {
       temperatureSlider.setMinorTickSpacing(5);
       temperatureSlider.setPaintTicks(true);
       temperatureSlider.setSnapToTicks(true);
-      temperatureSlider.setPaintLabels(true);
       temperatureSlider.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
@@ -368,7 +367,6 @@ public class WtAiDialog extends Thread implements ActionListener {
       stepSlider.setMajorTickSpacing(10);
       stepSlider.setMinorTickSpacing(5);
       stepSlider.setPaintTicks(true);
-      stepSlider.setPaintLabels(true);
       stepSlider.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
@@ -390,6 +388,10 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
       });
       
+      if (WtDocumentsHandler.getJavaLookAndFeelSet() != WtGeneralTools.THEME_SYSTEM) {
+        temperatureSlider.setPaintLabels(true);
+        stepSlider.setPaintLabels(true);
+      }
 
       JScrollPane resultPane = new JScrollPane(result);
       resultPane.setMinimumSize(new Dimension(0, 30));

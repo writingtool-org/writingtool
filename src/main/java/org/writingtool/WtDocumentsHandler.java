@@ -58,6 +58,7 @@ import org.writingtool.aisupport.WtAiTextToSpeech;
 import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAboutDialog;
+import org.writingtool.dialogs.WtAiDialog;
 import org.writingtool.dialogs.WtCheckDialog;
 import org.writingtool.dialogs.WtConfigurationDialog;
 import org.writingtool.dialogs.WtMoreInfoDialog;
@@ -504,6 +505,10 @@ public class WtDocumentsHandler {
       cfgDialog.close();
       cfgDialog = null;
     }
+    WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
+    if (aiDialog != null) {
+      aiDialog.closeDialog();
+    } 
   }
   
   /**
