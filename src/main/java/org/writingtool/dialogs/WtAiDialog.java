@@ -117,8 +117,6 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final ResourceBundle messages;
   private final JDialog dialog;
   private final Container contentPane;
-  private final JButton help; 
-  private final JButton close;
   private JProgressBar checkProgress;
   private final Image ltImage;
   
@@ -142,6 +140,10 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JButton createImage;
   private final JButton overrideParagraph; 
   private final JButton addToParagraph;
+  private final JButton help; 
+  private final JButton close;
+  private final JButton helpImg; 
+  private final JButton closeImg;
   
   private final JTextField imgInstruction;
   private final JLabel excludeLabel;
@@ -232,6 +234,8 @@ public class WtAiDialog extends Thread implements ActionListener {
     addToParagraph = new JButton (messages.getString("loAiDialogaddToButton")); 
     help = new JButton (messages.getString("loAiDialogHelpButton")); 
     close = new JButton (messages.getString("loAiDialogCloseButton")); 
+    helpImg = new JButton (messages.getString("loAiDialogHelpButton")); 
+    closeImg = new JButton (messages.getString("loAiDialogCloseButton")); 
     
     imgInstructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
     imgInstruction = new JTextField();
@@ -351,6 +355,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       temperatureSlider.setMinorTickSpacing(5);
       temperatureSlider.setPaintTicks(true);
       temperatureSlider.setSnapToTicks(true);
+      temperatureSlider.setPaintLabels(true);
       temperatureSlider.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
@@ -363,6 +368,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       stepSlider.setMajorTickSpacing(10);
       stepSlider.setMinorTickSpacing(5);
       stepSlider.setPaintTicks(true);
+      stepSlider.setPaintLabels(true);
       stepSlider.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
@@ -515,6 +521,14 @@ public class WtAiDialog extends Thread implements ActionListener {
       close.addActionListener(this);
       close.setActionCommand("close");
 
+      helpImg.setFont(dialogFont);
+      helpImg.addActionListener(this);
+      helpImg.setActionCommand("help");
+      
+      closeImg.setFont(dialogFont);
+      closeImg.addActionListener(this);
+      closeImg.setActionCommand("close");
+
       changeImage.setFont(dialogFont);
       changeImage.addActionListener(this);
       changeImage.setActionCommand("changeImage");
@@ -631,8 +645,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       //  Define Text panels
 
       //  Define 1. right panel
-      JPanel rightPanel1 = new JPanel();
-      rightPanel1.setLayout(new GridBagLayout());
+      JPanel rightPanel21 = new JPanel();
+      rightPanel21.setLayout(new GridBagLayout());
       GridBagConstraints cons21 = new GridBagConstraints();
       cons21.insets = new Insets(2, 0, 2, 0);
       cons21.gridx = 0;
@@ -642,19 +656,19 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons21.weightx = 1.0f;
       cons21.weighty = 0.0f;
       cons21.gridy++;
-      rightPanel1.add(execute, cons21);
+      rightPanel21.add(execute, cons21);
       cons21.gridy++;
-      rightPanel1.add(createImage, cons21);
+      rightPanel21.add(createImage, cons21);
       cons21.gridy++;
-      rightPanel1.add(reset, cons21);
+      rightPanel21.add(reset, cons21);
       cons21.gridy++;
-      rightPanel1.add(clear, cons21);
+      rightPanel21.add(clear, cons21);
       cons21.gridy++;
-      rightPanel1.add(copyResult, cons21);
+      rightPanel21.add(copyResult, cons21);
 
       //  Define 2. right panel
-      JPanel rightPanel2 = new JPanel();
-      rightPanel2.setLayout(new GridBagLayout());
+      JPanel rightPanel22 = new JPanel();
+      rightPanel22.setLayout(new GridBagLayout());
       GridBagConstraints cons22 = new GridBagConstraints();
       cons22.insets = new Insets(2, 0, 2, 0);
       cons22.gridx = 0;
@@ -665,13 +679,28 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons22.weighty = 0.0f;
       cons22.gridy++;
       cons22.gridy++;
-      rightPanel2.add(undo, cons22);
+      rightPanel22.add(undo, cons22);
 //      cons22.gridy++;
 //      rightPanel2.add(createImage, cons22);
       cons22.gridy++;
-      rightPanel2.add(addToParagraph, cons22);
+      rightPanel22.add(addToParagraph, cons22);
       cons22.gridy++;
-      rightPanel2.add(overrideParagraph, cons22);
+      rightPanel22.add(overrideParagraph, cons22);
+
+      //  Define 3. right panel
+      JPanel rightPanel23 = new JPanel();
+      rightPanel23.setLayout(new GridBagLayout());
+      GridBagConstraints cons23 = new GridBagConstraints();
+      cons23.insets = new Insets(2, 0, 2, 0);
+      cons23.gridx = 0;
+      cons23.gridy = 0;
+      cons23.anchor = GridBagConstraints.NORTHWEST;
+      cons23.fill = GridBagConstraints.BOTH;
+      cons23.weightx = 1.0f;
+      cons23.weighty = 0.0f;
+      rightPanel23.add(help, cons23);
+      cons23.gridy++;
+      rightPanel23.add(close, cons23);
       
       //  Define 1. left panel
       JPanel leftPanel12 = new JPanel();
@@ -715,9 +744,26 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons13.weighty = 2.0f;
       leftPanel13.add(directInstruction, cons13);
 
+      //  Define 3. left panel
+      JPanel leftPanel14 = new JPanel();
+      leftPanel14.setLayout(new GridBagLayout());
+      GridBagConstraints cons14 = new GridBagConstraints();
+      cons14.gridx = 0;
+      cons14.gridy = 0;
+      cons14.anchor = GridBagConstraints.NORTHWEST;
+      cons14.fill = GridBagConstraints.BOTH;
+      cons14.weightx = 1.0f;
+      cons14.weighty = 0.0f;
+      cons14.insets = new Insets(SHIFT1, 0, 4, 0);
+      leftPanel14.add(temperatureLabel, cons14);
+      cons14.insets = new Insets(0, 0, 0, 0);
+      cons14.gridy++;
+      leftPanel14.add(temperatureSlider, cons14);
+
       instructionPanel.add(messages.getString("loAiDialogTabParagraph"), leftPanel12);
       instructionPanel.add(messages.getString("loAiDialogTabInstruction"), leftPanel13);
       
+
       //  Define main text panel
       mainTextPanel.setLayout(new GridBagLayout());
       GridBagConstraints cons1 = new GridBagConstraints();
@@ -729,29 +775,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.weightx = 1.0f;
       cons1.weighty = 2.0f;
       mainTextPanel.add(instructionPanel, cons1);
-/*      
-      mainTextPanel.add(instructionLabel, cons1);
-      cons1.insets = new Insets(4, 4, 4, 4);
-      cons1.gridy++;
-      mainTextPanel.add(instruction, cons1);
-      cons1.weightx = 0.0f;
-      cons1.gridx++;
-      mainTextPanel.add(execute, cons1);
-      cons1.insets = new Insets(SHIFT1, 4, 4, 4);
-      cons1.gridx = 0;
-      cons1.gridy++;
-      cons1.weightx = 1.0f;
-      cons1.weighty = 0.0f;
-      mainTextPanel.add(paragraphLabel, cons1);
-      cons1.insets = new Insets(4, 4, 4, 4);
-      cons1.gridy++;
-      cons1.weighty = 2.0f;
-      mainTextPanel.add(paragraphPane, cons1);
-*/
       cons1.gridx++;
       cons1.weightx = 0.0f;
       cons1.weighty = 0.0f;
-      mainTextPanel.add(rightPanel1, cons1);
+      mainTextPanel.add(rightPanel21, cons1);
       cons1.insets = new Insets(SHIFT1, 4, 4, 4);
       cons1.gridx = 0;
       cons1.gridy++;
@@ -764,14 +791,16 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.gridx++;
       cons1.weightx = 0.0f;
       cons1.weighty = 0.0f;
-      mainTextPanel.add(rightPanel2, cons1);
-      cons1.insets = new Insets(SHIFT1, 4, 4, 4);
+      mainTextPanel.add(rightPanel22, cons1);
+      cons1.insets = new Insets(4, 4, 4, 4);
       cons1.gridx = 0;
       cons1.gridy++;
-      mainTextPanel.add(temperatureLabel, cons1);
-      cons1.insets = new Insets(4, 4, 4, 4);
-      cons1.gridy++;
-      mainTextPanel.add(temperatureSlider, cons1);
+      cons1.weighty = 2.0f;
+      mainTextPanel.add(leftPanel14, cons1);
+      cons1.gridx++;
+      cons1.weightx = 0.0f;
+      cons1.weighty = 0.0f;
+      mainTextPanel.add(rightPanel23, cons1);
       
       //  Define Image panels
 
@@ -798,8 +827,25 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons11.gridy++;
       leftPanel1.add(exclude, cons11);
 
+      //  Define 2. left panel
+      JPanel leftPanel2 = new JPanel();
+      leftPanel2.setLayout(new GridBagLayout());
+      cons12 = new GridBagConstraints();
+      cons12.gridx = 0;
+      cons12.gridy = 0;
+      cons12.anchor = GridBagConstraints.NORTHWEST;
+      cons12.fill = GridBagConstraints.BOTH;
+      cons12.weightx = 1.0f;
+      cons12.weighty = 0.0f;
+      cons12.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons12.gridy++;
+      leftPanel2.add(stepLabel, cons12);
+      cons12.insets = new Insets(0, 0, 0, 0);
+      cons12.gridy++;
+      leftPanel2.add(stepSlider, cons12);
+
       //  Define 1. right panel
-      rightPanel1 = new JPanel();
+      JPanel rightPanel1 = new JPanel();
       rightPanel1.setLayout(new GridBagLayout());
       cons21 = new GridBagConstraints();
       cons21.insets = new Insets(2, 0, 2, 0);
@@ -815,7 +861,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       rightPanel1.add(newImage, cons21);
 
       //  Define 2. right panel
-      rightPanel2 = new JPanel();
+      JPanel rightPanel2 = new JPanel();
       rightPanel2.setLayout(new GridBagLayout());
       cons22 = new GridBagConstraints();
       cons22.insets = new Insets(2, 0, 2, 0);
@@ -832,7 +878,22 @@ public class WtAiDialog extends Thread implements ActionListener {
       rightPanel2.add(saveImage, cons22);
       cons22.gridy++;
       rightPanel2.add(insertImage, cons22);
-      
+
+      //  Define 3. right panel
+      JPanel rightPanel3 = new JPanel();
+      rightPanel3.setLayout(new GridBagLayout());
+      cons23 = new GridBagConstraints();
+      cons23.insets = new Insets(2, 0, 2, 0);
+      cons23.gridx = 0;
+      cons23.gridy = 0;
+      cons23.anchor = GridBagConstraints.NORTHWEST;
+      cons23.fill = GridBagConstraints.BOTH;
+      cons23.weightx = 1.0f;
+      cons23.weighty = 0.0f;
+      rightPanel3.add(helpImg, cons23);
+      cons23.gridy++;
+      rightPanel3.add(closeImg, cons23);
+
       //  Define main panel
       mainImagePanel.setLayout(new GridBagLayout());
       cons1 = new GridBagConstraints();
@@ -856,19 +917,19 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons1.insets = new Insets(4, 4, 4, 4);
       cons1.gridy++;
       cons1.weighty = 2.0f;
-//      mainImagePanel.add(new JScrollPane(imageFrame), cons1);
       mainImagePanel.add(imageFrame, cons1);
       cons1.gridx++;
       cons1.weightx = 0.0f;
       cons1.weighty = 0.0f;
       mainImagePanel.add(rightPanel2, cons1);
-      cons1.insets = new Insets(SHIFT1, 4, 4, 4);
+      cons1.insets = new Insets(4, 4, 4, 4);
       cons1.gridx = 0;
       cons1.gridy++;
-      mainImagePanel.add(stepLabel, cons1);
-      cons1.insets = new Insets(4, 4, 4, 4);
-      cons1.gridy++;
-      mainImagePanel.add(stepSlider, cons1);
+      mainImagePanel.add(leftPanel2, cons1);
+      cons1.gridx++;
+      cons1.weightx = 0.0f;
+      cons1.weighty = 0.0f;
+      mainImagePanel.add(rightPanel3, cons1);
       
       //  Define tabbed main pane
       if (config.useAiSupport()) {
@@ -877,7 +938,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (config.useAiImgSupport()) {
         mainPanel.add(messages.getString("guiAiImages"), mainImagePanel);
       }
-
+/*
       //  Define general button panel
       JPanel generalButtonPanel = new JPanel();
       generalButtonPanel.setLayout(new GridBagLayout());
@@ -893,7 +954,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons3.anchor = GridBagConstraints.EAST;
       cons3.gridx++;
       generalButtonPanel.add(close, cons3);
-      
+*/     
       //  Define check progress panel
       JPanel checkProgressPanel = new JPanel();
       checkProgressPanel.setLayout(new GridBagLayout());
@@ -919,8 +980,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       contentPane.add(mainPanel, cons);
       cons.gridy++;
       cons.weighty = 0.0f;
-      contentPane.add(generalButtonPanel, cons);
-      cons.gridy++;
+//      contentPane.add(generalButtonPanel, cons);
+//      cons.gridy++;
       contentPane.add(checkProgressPanel, cons);
 
       if (debugModeTm) {
@@ -1062,6 +1123,8 @@ public class WtAiDialog extends Thread implements ActionListener {
     addToParagraph.setEnabled(noResultText ? false : enabled);
     help.setEnabled(enabled);
     close.setEnabled(true);
+    helpImg.setEnabled(enabled);
+    closeImg.setEnabled(true);
 
     String instructionText = imgInstruction.getText();
     boolean noImgInst = instructionText == null || instructionText.isEmpty();
