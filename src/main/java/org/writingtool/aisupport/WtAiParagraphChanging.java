@@ -77,7 +77,11 @@ public class WtAiParagraphChanging extends Thread {
     runAiChangeOnParagraph();
   }
   
-  public void setCloseAiDialog() {
+  public static WtAiDialog getAiDialog() {
+    return aiDialog;
+  }
+  
+  public static void setCloseAiDialog() {
     aiDialog = null;
   }
   
