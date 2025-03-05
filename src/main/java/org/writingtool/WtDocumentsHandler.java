@@ -246,7 +246,7 @@ public class WtDocumentsHandler {
       return paRes;
     }
 //    LinguisticServices.setLtAsSpellService(xContext, true);
-    if (!noBackgroundCheck) {
+    if (!isBackgroundCheckOff()) {
       boolean isSameLanguage = true;
       if (fixedLanguage == null || langForShortName == null) {
         langForShortName = getLanguage(locale);
@@ -284,13 +284,13 @@ public class WtDocumentsHandler {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start getNumDoc!");
     }
     docNum = getNumDoc(paRes.aDocumentIdentifier, propertyValues);
-//    if (noBackgroundCheck) {
-//      return paRes;
-//    }
+    if (isBackgroundCheckOff()) {
+      return paRes;
+    }
     if (debugMode) {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start testHeapSpace!");
     }
-    if (!noBackgroundCheck) {
+    if (!isBackgroundCheckOff()) {
       testHeapSpace();
     }
     if (debugMode) {
@@ -298,7 +298,7 @@ public class WtDocumentsHandler {
     }
 //    handleLtDictionary(paraText);
     paRes = documents.get(docNum).getCheckResults(paraText, locale, paRes, propertyValues, docReset, lt, LoErrorType.GRAMMAR);
-    if (!noBackgroundCheck && lt.doReset()) {
+    if (!isBackgroundCheckOff() && lt.doReset()) {
       // langTool.doReset() == true: if server connection is broken ==> switch to internal check
       WtMessageHandler.showMessage(messages.getString("loRemoteSwitchToLocal"));
       config.setRemoteCheck(false);
@@ -935,7 +935,7 @@ public class WtDocumentsHandler {
       aiQueue.setStop();
       aiQueue = null;
     }
-    useQueue = noBackgroundCheck || heapLimitReached || testMode || config.getNumParasToCheck() == 0 ? false : config.useTextLevelQueue();
+    useQueue = isBackgroundCheckOff() || heapLimitReached || testMode || config.getNumParasToCheck() == 0 ? false : config.useTextLevelQueue();
     for (WtSingleDocument document : documents) {
       if (!document.isDisposed()) {
         document.setConfigValues(config);
@@ -1159,14 +1159,14 @@ public class WtDocumentsHandler {
       startTime = System.currentTimeMillis();
     }
     setConfigValues(config, lt);
-    if (useQueue && !noBackgroundCheck) {
+    if (useQueue && !isBackgroundCheckOff()) {
       if (textLevelQueue == null) {
         textLevelQueue = new WtTextLevelCheckQueue(this);
       } else {
         textLevelQueue.setReset();
       }
     }
-    if (config.useAiSupport() && config.aiAutoCorrect() && !noBackgroundCheck) {
+    if (config.useAiSupport() && config.aiAutoCorrect() && !isBackgroundCheckOff()) {
       if (aiQueue == null) {
         aiQueue = new WtAiCheckQueue(this);
       } else {
@@ -1289,7 +1289,7 @@ public class WtDocumentsHandler {
       config = new WtConfiguration(configDir, configFile, docLanguage, true);
     }
     noBackgroundCheck = !noBackgroundCheck;
-    if (!noBackgroundCheck) {
+    if (!isBackgroundCheckOff()) {
       if (textLevelQueue != null) {
         textLevelQueue.setStop();
         textLevelQueue = null;
@@ -1304,7 +1304,7 @@ public class WtDocumentsHandler {
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
-    if (noBackgroundCheck) {
+    if (isBackgroundCheckOff()) {
       resetResultCaches(true);
     }
     return true;
@@ -1932,6 +1932,9 @@ public class WtDocumentsHandler {
         }
         if (waitDialog == null || waitDialog.canceled()) {
           return;
+        }
+        if (noBackgroundCheck && toggleNoBackgroundCheck()) {
+          resetCheck();
         }
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
