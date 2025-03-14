@@ -745,6 +745,7 @@ public class WtSingleCheck {
     if (ruleMatch.getRule() instanceof WtAiDetectionRule) {
       if (ruleMatch.getType() == Type.UnknownWord) {
         aError.nErrorType = TextMarkupType.SPELLCHECK;
+        ruleId = WtOfficeTools.AI_UNKNOWN_WORD_RULE_ID;
       } else if (ruleMatch.getType() == Type.Hint) {
         category = WtOfficeTools.AI_GRAMMAR_CATEGORY;
         ruleId = WtOfficeTools.AI_GRAMMAR_HINT_RULE_ID;
