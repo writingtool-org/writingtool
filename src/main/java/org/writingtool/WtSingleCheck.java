@@ -743,7 +743,9 @@ public class WtSingleCheck {
     aError.bPunctuationRule = ruleMatch.getRule().getCategory().getId().toString().equals("PUNCTUATION") ? true : false;
     String ruleId = ruleMatch.getRule().getId();
     if (ruleMatch.getRule() instanceof WtAiDetectionRule) {
-      if (ruleMatch.getType() == Type.Hint) {
+      if (ruleMatch.getType() == Type.UnknownWord) {
+        aError.nErrorType = TextMarkupType.SPELLCHECK;
+      } else if (ruleMatch.getType() == Type.Hint) {
         category = WtOfficeTools.AI_GRAMMAR_CATEGORY;
         ruleId = WtOfficeTools.AI_GRAMMAR_HINT_RULE_ID;
       } else {
@@ -751,8 +753,10 @@ public class WtSingleCheck {
         ruleId = WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID;
       }
     }
-    Color underlineColor = config.getUnderlineColor(category, ruleId);
-    short underlineType = config.getUnderlineType(category, ruleId);
+    Color underlineColor = aError.nErrorType != TextMarkupType.SPELLCHECK 
+                            ? config.getUnderlineColor(category, ruleId) : Color.red;
+    short underlineType = aError.nErrorType != TextMarkupType.SPELLCHECK 
+                            ? config.getUnderlineType(category, ruleId) : WtConfiguration.UNDERLINE_WAVE;
     URL url = ruleMatch.getUrl();
     if (url == null) {                      // match URL overrides rule URL 
       url = ruleMatch.getRule().getUrl();
@@ -761,7 +765,7 @@ public class WtSingleCheck {
     if (url != null) {
       nDim++;
     }
-    if (underlineColor != Color.blue || ruleMatch.getRule().isDictionaryBasedSpellingRule()) {
+    if (underlineColor != Color.blue || aError.nErrorType == TextMarkupType.SPELLCHECK) {
       nDim++;
     }
     if (underlineType != WtConfiguration.UNDERLINE_WAVE || (config.markSingleCharBold() && aError.nErrorLength == 1)) {
@@ -778,7 +782,7 @@ public class WtSingleCheck {
         propertyValues[n] = new WtPropertyValue("FullCommentURL", url.toString());
         n++;
       }
-      if (ruleMatch.getRule().isDictionaryBasedSpellingRule()) {
+      if (aError.nErrorType == TextMarkupType.SPELLCHECK) {
         int ucolor = Color.red.getRGB() & 0xFFFFFF;
         propertyValues[n] = new WtPropertyValue("LineColor", ucolor);
         n++;

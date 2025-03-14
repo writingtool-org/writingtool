@@ -34,6 +34,7 @@ import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtStatAnDialog;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtViewCursorTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 
 import com.sun.star.awt.MenuEvent;
@@ -51,6 +52,7 @@ import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiServiceFactory;
+import com.sun.star.text.TextMarkupType;
 import com.sun.star.text.XTextRange;
 import com.sun.star.ui.ActionTriggerSeparatorType;
 import com.sun.star.ui.ContextMenuExecuteEvent;
@@ -105,6 +107,7 @@ public class WtMenus {
   public static final String LT_AI_TRANSLATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTranslateText";
   public static final String LT_AI_TEXT_TO_SPEECH = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTextToSpeech";
   public static final String LT_AI_GENERAL_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiGeneralCommand";
+  public static final String LT_AI_REPLACE_WORD = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiReplaceWord_";
   
 //  public static final String LT_MENU_REPLACE_COLON = "__|__";
   public static final String LT_MENU_REPLACE_COLON = ":";
@@ -749,6 +752,29 @@ public class WtMenus {
                     xContextMenu.removeByIndex(n);
                     xContextMenu.insertByIndex(n, xNewMenuEntry);
                   }
+                  // add AI suggestion to the top of context menu (if there is any)
+                  String aiSuggestion = getAiSuggestion();
+                  if (aiSuggestion != null) {
+                    for (int k = 0; k < count; k++) {
+                      Any aa = (Any) xContextMenu.getByIndex(k);
+                      XPropertySet ttProps = (XPropertySet) aa.getObject();
+                      if (!ttProps.getPropertySetInfo().hasPropertyByName("Text")) {
+                        break;
+                      }
+                      String suggestion = ttProps.getPropertyValue("Text").toString();
+//                      WtMessageHandler.printToLogFile("WtMenus: suggestion: " + (suggestion == null ? "null" : suggestion)
+//                          + ", CommandURL: " + ttProps.getPropertyValue("CommandURL").toString());
+                      if (aiSuggestion.equals(suggestion)) {
+                        xContextMenu.removeByIndex(k);
+                        break;
+                      }
+                    }
+                    XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+                        xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+                    xNewMenuEntry.setPropertyValue("Text", aiSuggestion);
+                    xNewMenuEntry.setPropertyValue( "CommandURL", LT_AI_REPLACE_WORD + aiSuggestion);
+                    xContextMenu.insertByIndex(0, xNewMenuEntry);
+                  }
                 }
               } else if (SPEll_DIALOG_URL.equals(str)) {
                 XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
@@ -1176,6 +1202,29 @@ public class WtMenus {
           return null;
         }
         return xTextRange.getString();
+      } catch (Throwable t) {
+        WtMessageHandler.printException(t);
+      }
+      return null;
+    }
+
+    /**
+     * get AI suggestion
+     */
+    private String getAiSuggestion() {
+      try {
+        if (config.useAiSupport() && config.aiAutoCorrect() && !document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
+          WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+          int y = document.getDocumentCache().getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+          int x = viewCursor.getViewCursorCharacter();
+          List<WtProofreadingError> errors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getErrorsAtPosition(y, x);
+          for (WtProofreadingError error : errors) {
+            if (error.nErrorType == TextMarkupType.SPELLCHECK 
+                && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
+                return error.aSuggestions[0];
+            }
+          }
+        }
       } catch (Throwable t) {
         WtMessageHandler.printException(t);
       }
