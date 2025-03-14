@@ -588,6 +588,7 @@ public class WtCheckDialog extends Thread {
         }
       }
       if (noNull) {
+        mergeSpellingErrors(errors);
         return document.mergeErrors(errors, nFPara);
       }
       try {
@@ -602,7 +603,48 @@ public class WtCheckDialog extends Thread {
         document.addQueueEntry(nFPara, cacheNum, lt.getNumMinToCheckParas().get(cacheNum), document.getDocID(), false);
       }
     }
+    mergeSpellingErrors(errors);
     return document.mergeErrors(errors, nFPara);
+  }
+  
+  /** merge spelling errors
+   * 
+   */
+  private List<WtProofreadingError[]> mergeSpellingErrors(List<WtProofreadingError[]> errors) {
+    if(errors == null || errors.size() < 2 || errors.get(0) == null || errors.get(errors.size() - 1) == null) {
+      return errors;
+    }
+    for (WtProofreadingError error : errors.get(0)) {
+      if (error.nErrorType == TextMarkupType.SPELLCHECK) {
+        int i;
+        for (i = 0; i < errors.get(errors.size() - 1).length; i++) {
+          WtProofreadingError err = errors.get(errors.size() - 1)[i];
+          if (err.nErrorType == TextMarkupType.SPELLCHECK && error.nErrorStart == err.nErrorStart) {
+            if (err.aSuggestions.length > 0 && !err.aSuggestions[0].isBlank()) {
+              List<String> suggestionList = new ArrayList<>();
+              suggestionList.add(err.aSuggestions[0]);
+              for (String suggestion : error.aSuggestions) {
+                if (!err.aSuggestions[0].equals(suggestion)) {
+                  suggestionList.add(suggestion);
+                }
+              }
+              error.aSuggestions = suggestionList.toArray(new String[0]);
+              break;
+            }
+          }
+        }
+        if (i <= errors.get(errors.size() - 1).length) {
+          List<WtProofreadingError> errorList = new ArrayList<>();
+          for (int j = 0; j < errors.get(errors.size() - 1).length; j++) {
+            if (i != j) {
+              errorList.add(errors.get(errors.size() - 1)[j]);
+            }
+          }
+          errors.set(errors.size() - 1, errorList.toArray(new WtProofreadingError[0]));
+        }
+      }
+    }
+    return errors;
   }
   
   /**
@@ -747,6 +789,17 @@ public class WtCheckDialog extends Thread {
                   }
                 }
               }
+/*              
+              for (WtProofreadingError err : errors) {
+                if (err.nErrorType == TextMarkupType.SPELLCHECK && !err.aRuleIdentifier.equals(error.aRuleIdentifier)
+                    && err.aSuggestions.length > 0 && !err.aSuggestions[0].isBlank()) {
+                  if (!suggestionList.contains(err.aSuggestions[0])) {
+                    suggestionList.remove(err.aSuggestions[0]);
+                  }
+                  suggestionList.add(err.aSuggestions[0]);
+                }
+              }
+*/              
               error.aSuggestions = suggestionList.toArray(new String[0]);
             }
             return error;
