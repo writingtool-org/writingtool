@@ -1170,6 +1170,40 @@ public class WtSingleDocument {
   }
   
   /**
+   * get AI Spell error
+   */
+  public WtProofreadingError getAiError(int type) throws Throwable {
+    WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+    int y = getDocumentCache().getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+    int x = viewCursor.getViewCursorCharacter();
+    List<WtProofreadingError> errors = paragraphsCache.get(WtOfficeTools.CACHE_AI).getErrorsAtPosition(y, x);
+    for (WtProofreadingError error : errors) {
+      if (error.nErrorType == type && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
+          return error;
+      }
+    }
+    return null;
+  }
+  /**
+   * replace ai error
+   */
+  public void replaceAiError(String suggestion) {
+    if (disposed) {
+      return;
+    }
+    WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+    int y = getDocumentCache().getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+    int x = viewCursor.getViewCursorCharacter();
+    List<WtProofreadingError> errors = paragraphsCache.get(WtOfficeTools.CACHE_AI).getErrorsAtPosition(y, x);
+    for (WtProofreadingError error : errors) {
+      if (error.nErrorType == TextMarkupType.SPELLCHECK && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
+        getFlatParagraphTools().changeTextOfParagraph(y, error.nErrorStart, error.nErrorLength, suggestion);
+        break;
+      }
+    }
+  }
+  
+  /**
    * is a ignore once entry in cache
    */
   public boolean isIgnoreOnce(int xFrom, int xTo, int y, String ruleId) {

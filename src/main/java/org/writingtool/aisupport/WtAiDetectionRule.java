@@ -448,6 +448,8 @@ public class WtAiDetectionRule extends TextLevelRule {
     if (nParaTokenStart == nParaTokenEnd && nResultTokenStart == nResultTokenEnd) {
       if (PUNCTUATION.matcher(paraTokens.get(nParaTokenStart).getToken()).matches()) {
         ruleMatch.setType(Type.Hint);
+      } else if (!linguServices.isCorrectSpell(paraTokens.get(nParaTokenStart).getToken(), locale)) {
+        ruleMatch.setType(Type.UnknownWord);
       } else if (shareLemma(paraTokens.get(nParaTokenStart), resultTokens.get(nResultTokenStart))) {
         ruleMatch.setType(Type.Hint);
       } else if (isSimilarWord(paraTokens.get(nParaTokenStart).getToken(), resultTokens.get(nResultTokenStart).getToken())) {

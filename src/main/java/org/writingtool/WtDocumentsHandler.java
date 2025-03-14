@@ -1388,6 +1388,18 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * Call method replace ai spelling error
+   */
+  public void aiReplaceError(String suggestion) {
+    for (WtSingleDocument document : documents) {
+      if (menuDocId.equals(document.getDocID())) {
+        document.replaceAiError(suggestion);
+        return;
+      }
+    }
+  }
+  
+  /**
    * Call method ignorePermanent for concerned document 
    */
   public String ignorePermanent() {
@@ -1906,6 +1918,9 @@ public class WtDocumentsHandler {
         resetIgnorePermanent();
       } else if ("deactivateRule".equals(sEvent)) {
         deactivateRule();
+      } else if (sEvent.startsWith("aiReplaceWord_")) {
+        String suggestion = sEvent.substring(14);
+        this.aiReplaceError(suggestion);
       } else if (sEvent.startsWith("activateRule_")) {
         String ruleId = sEvent.substring(13);
         activateRule(ruleId);
