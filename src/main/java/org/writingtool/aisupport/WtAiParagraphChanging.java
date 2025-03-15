@@ -90,7 +90,7 @@ public class WtAiParagraphChanging extends Thread {
       if (commandId == AiCommand.GeneralAi) {
         if (aiDialog == null) {
           waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
-          aiDialog = new WtAiDialog(document, waitDialog, messages, this);
+          aiDialog = new WtAiDialog(document, waitDialog, messages);
           aiDialog.start();
         } else {
           aiDialog.toFront();

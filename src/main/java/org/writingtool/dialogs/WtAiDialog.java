@@ -164,7 +164,6 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JPanel mainImagePanel;
   private final JPanel mainTextPanel;
 
-  private final WtAiParagraphChanging aiParent;
   private WtSingleDocument currentDocument;
   private WtDocumentsHandler documents;
   private WtConfiguration config;
@@ -192,10 +191,8 @@ public class WtAiDialog extends Thread implements ActionListener {
   /**
    * the constructor of the class creates all elements of the dialog
    */
-  public WtAiDialog(WtSingleDocument document, WaitDialogThread inf, 
-      ResourceBundle messages, WtAiParagraphChanging aiParent) {
+  public WtAiDialog(WtSingleDocument document, WaitDialogThread inf, ResourceBundle messages) {
     this.messages = messages;
-    this.aiParent = aiParent;
     documents = document.getMultiDocumentsHandler();
     config = documents.getConfiguration();
     long startTime = 0;
@@ -1449,7 +1446,7 @@ public class WtAiDialog extends Thread implements ActionListener {
    */
   public void closeDialog() {
     dialog.setVisible(false);
-    aiParent.setCloseAiDialog();
+    WtAiParagraphChanging.setCloseAiDialog();
     if (debugMode) {
       WtMessageHandler.printToLogFile("AiDialog: closeDialog: Close AI Dialog");
     }

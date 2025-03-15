@@ -402,14 +402,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       boolean isSameText = pText.equals(paragraphText);
       paragraphText = pText;
       tPara = vCursor.getViewCursorParagraph();
-      WtProofreadingError[] errors = getErrorsOfParagraph(tPara);
+      WtSingleDocument document = documents.getCurrentDocument();
+      WtProofreadingError[] errors = getErrorsOfParagraph(tPara, document);
       String formatedText = formatText(paragraphText, errors);
       if (formatedText == null) {
         formatedText = "";
       }
       paragraphBox.setText(formatedText);
       if (isAiSupport && aiResultBox != null && !isSameText) {
-        aiResultBox.setText("");
+        aiResultBox.setText(reconstructAiTextFromCache(tPara, document));
       }
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
@@ -626,9 +627,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     overrideButtonWindow.setVisible(isAiSupport);
   }
   
-  private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara) {
+  private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara, WtSingleDocument document) {
     WtLanguageTool lt = documents.getLanguageTool();
-    WtSingleDocument document = documents.getCurrentDocument();
     if (document == null) {
       return new WtProofreadingError[0];
     }
@@ -681,6 +681,29 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       WtMessageHandler.showError(e1);
     }
   }
+  
+  private String reconstructAiTextFromCache(TextParagraph tPara, WtSingleDocument document) {
+    if (document == null) {
+      return "";
+    }
+    WtDocumentCache docCache = document.getDocumentCache();
+    if (docCache == null) {
+      return "";
+    }
+    int nFPara = docCache.getFlatParagraphNumber(tPara);
+    String sPara = docCache.getFlatParagraph(nFPara);
+    WtProofreadingError[] pErrors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getSafeMatches(nFPara);
+    if(pErrors != null && pErrors.length > 0) {
+      for (int i = pErrors.length - 1; i >= 0; i--) {
+        WtProofreadingError error = pErrors[i];
+        String sEnd = error.nErrorStart + error.nErrorLength > sPara.length() - 2 ? "" : sPara.substring(error.nErrorStart + error.nErrorLength);
+        sPara = sPara.substring(0, error.nErrorStart) + sEnd;
+      }
+    }
+    return sPara;
+  }
+  
+
 /*  
   private String addLineBreaks(String inpText) {
     if (inpText.length() <= LINE_MAX_CHAR) {
