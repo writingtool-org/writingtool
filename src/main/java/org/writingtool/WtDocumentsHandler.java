@@ -444,6 +444,15 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * set sidebar content
+   */
+  public void setTextToSidebarBox(XComponent xComponent) {
+    if (sidebarContent != null) {
+      sidebarContent.setCursorTextToBox(xComponent);
+    }
+  }
+  
+  /**
    *  Set all documents to be checked again
    */
   void setRecheck() {

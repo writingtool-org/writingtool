@@ -718,7 +718,7 @@ class WtCheckRequestAnalysis {
           mDocHandler.getTextLevelCheckQueue().wakeupQueue(docID);;
         }
       }
-      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
+      mDocHandler.setTextToSidebarBox(xComponent);
     }
     return true;
   }
@@ -866,7 +866,7 @@ class WtCheckRequestAnalysis {
       changeFrom = nPara - numParasToChange;
       changeTo = nPara + numParasToChange + 1;
       singleDocument.removeIgnoredMatch(nPara, false);
-      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
+      mDocHandler.setTextToSidebarBox(xComponent);
     }
   }
   
