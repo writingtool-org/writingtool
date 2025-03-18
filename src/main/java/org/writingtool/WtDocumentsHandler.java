@@ -56,6 +56,7 @@ import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.aisupport.WtAiTextToSpeech;
 import org.writingtool.aisupport.WtAiTranslateDocument;
+import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAboutDialog;
 import org.writingtool.dialogs.WtAiDialog;
@@ -1234,6 +1235,16 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * Is AI used?
+   */
+  public boolean useAiSuggestion() {
+    if (config == null) {
+      config = getConfiguration();
+    }
+    return config.aiAutoSuggestion();
+  }
+  
+  /**
    * Get current locale language
    */
   public Locale getLocale() {
@@ -1427,7 +1438,7 @@ public class WtDocumentsHandler {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         WtAiErrorDetection aiError = new WtAiErrorDetection(document, config, lt);
-        aiError.addAiRuleMatchesForParagraph();
+        aiError.addAiRuleMatchesForParagraph(DetectionType.GRAMMAR);
         return;
       }
     }

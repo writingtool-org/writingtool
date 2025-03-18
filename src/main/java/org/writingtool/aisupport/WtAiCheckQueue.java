@@ -28,6 +28,7 @@ import org.writingtool.WtSingleDocument;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtLinguisticServices;
 import org.writingtool.WtTextLevelCheckQueue;
+import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
@@ -181,7 +182,10 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
                 + ", nFPara = " + nFPara);
           }
           WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
-          aiError.addAiRuleMatchesForParagraph(nFPara);
+          aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
+          if (multiDocHandler.useAiSuggestion()) {
+            aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
+          }
         }
       }
     } catch (Throwable t) {

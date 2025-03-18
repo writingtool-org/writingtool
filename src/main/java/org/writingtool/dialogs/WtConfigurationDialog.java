@@ -2746,6 +2746,11 @@ public class WtConfigurationDialog implements ActionListener {
       showStylisticChangesGroup.add(radioButtons[i]);
     }
     
+    JCheckBox aiAutoSuggestionBox = new JCheckBox(messages.getString("guiAiShowStylisticSuggestion"));
+    aiAutoSuggestionBox.setSelected(config.aiAutoSuggestion());
+    aiAutoSuggestionBox.addItemListener(e -> {
+      config.setAiAutoSuggestion(aiAutoSuggestionBox.isSelected());
+    });
 
     JCheckBox autoCorrectBox = new JCheckBox(messages.getString("guiAiAutoCorrect"));
     autoCorrectBox.setSelected(config.aiAutoCorrect());
@@ -2754,6 +2759,7 @@ public class WtConfigurationDialog implements ActionListener {
       for (JRadioButton rButton : radioButtons) {
         rButton.setEnabled(autoCorrectBox.isSelected());
       }
+      aiAutoSuggestionBox.setEnabled(autoCorrectBox.isSelected());
     });
 
     JCheckBox useAiSupportBox = new JCheckBox(messages.getString("guiUseAiSupport"));
@@ -2767,6 +2773,7 @@ public class WtConfigurationDialog implements ActionListener {
       for (JRadioButton rButton : radioButtons) {
         rButton.setEnabled(useAiSupportBox.isSelected() && autoCorrectBox.isSelected());
       }
+      aiAutoSuggestionBox.setEnabled(useAiSupportBox.isSelected() && autoCorrectBox.isSelected());
     });
     
     aiUrlField.setEnabled(config.useAiSupport());
@@ -2835,6 +2842,9 @@ public class WtConfigurationDialog implements ActionListener {
       cons.gridy++;
       aiOptionPanel.add(rButton, cons);
     }
+    
+    cons.gridy++;
+    aiOptionPanel.add(aiAutoSuggestionBox, cons);
 
     cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridy++;

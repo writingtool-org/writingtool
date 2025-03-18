@@ -104,8 +104,9 @@ public class WtSingleDocument {
   
   private final WtDocumentCache docCache;           //  cache of paragraphs (only readable by parallel thread)
   private final List<WtResultCache> paragraphsCache;//  Cache for matches of text rules
-  private final Map<Integer, String> changedParas;//  Map of last changed paragraphs;
-  private final Set<Integer> runningParas;         //  List of running checks for paragraphs;
+  private final WtResultCache aiSuggestionCache;    //  Cache for AI results for other formulation of paragraph
+  private final Map<Integer, String> changedParas;  //  Map of last changed paragraphs;
+  private final Set<Integer> runningParas;          //  List of running checks for paragraphs;
   private WtDocumentCursorTools docCursor = null;   //  Save document cursor for the single document
 //  private ViewCursorTools viewCursor = null;      //  Get the view cursor for desktop
   private WtFlatParagraphTools flatPara = null;     //  Save information for flat paragraphs (including iterator and iterator provider) for the single document
@@ -169,6 +170,7 @@ public class WtSingleDocument {
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paraCache.add(new WtResultCache());
     }
+    aiSuggestionCache = new WtResultCache();
     paragraphsCache = Collections.unmodifiableList(paraCache);
     if (config != null) {
       setConfigValues(config);
@@ -675,6 +677,13 @@ public class WtSingleDocument {
   }
   
   /**
+   *  Get AI suggestion cache of the document
+   */
+  public WtResultCache getAiSuggestionCache() {
+    return aiSuggestionCache;
+  }
+  
+  /**
    *  Get document cache of the document
    */
   public WtDocumentCache getDocumentCache() {
@@ -732,6 +741,7 @@ public class WtSingleDocument {
   //        }
             paragraphsCache.get(i).replace(cacheIO.getParagraphsCache().get(i));
           }
+          aiSuggestionCache.replace(cacheIO.getAiSuggestionCache());
           permanentIgnoredMatches = new WtIgnoredMatches(cacheIO.getIgnoredMatches());
           if (docType == DocumentType.WRITER && mDocHandler != null) {
             mDocHandler.runShapeCheck(docCache.hasUnsupportedText(), 9);
@@ -767,7 +777,7 @@ public class WtSingleDocument {
         }
         if (cacheIO != null) {
           WtMessageHandler.printToLogFile("SingleDocument: writeCaches: Save Caches ...");
-          cacheIO.saveCaches(docCache, paragraphsCache, permanentIgnoredMatches, config, mDocHandler);
+          cacheIO.saveCaches(docCache, paragraphsCache, aiSuggestionCache, permanentIgnoredMatches, config, mDocHandler);
           SpellCache sc = cacheIO.new SpellCache();
           sc.write(WtSpellChecker.getWrongWords(), WtSpellChecker.getSuggestions());
         } else {
@@ -786,6 +796,7 @@ public class WtSingleDocument {
     for (int i = withSingleParagraph ? 0 : 1; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paragraphsCache.get(i).removeAll();
     }
+    aiSuggestionCache.removeAll();
   }
   
   /**
@@ -802,6 +813,7 @@ public class WtSingleDocument {
           paragraphsCache.get(i).remove(nPara);
         }
       }
+      aiSuggestionCache.remove(nPara);
     }
   }
   

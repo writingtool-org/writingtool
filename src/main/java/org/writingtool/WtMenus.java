@@ -29,6 +29,7 @@ import org.writingtool.aisupport.WtAiErrorDetection;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiTextToSpeech;
 import org.writingtool.aisupport.WtAiTranslateDocument;
+import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtStatAnDialog;
@@ -557,7 +558,7 @@ public class WtMenus {
           if (event.MenuId == SUBMENU_ID_AI + 1) {
             WtAiErrorDetection aiError = new WtAiErrorDetection(document, config, 
                 document.getMultiDocumentsHandler().getLanguageTool());
-            aiError.addAiRuleMatchesForParagraph();
+            aiError.addAiRuleMatchesForParagraph(DetectionType.GRAMMAR);
           } else if (event.MenuId == SUBMENU_ID_AI + 2) {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ImproveStyle);
             aiChange.start();

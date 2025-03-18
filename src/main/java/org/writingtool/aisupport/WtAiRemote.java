@@ -55,7 +55,7 @@ public class WtAiRemote {
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text";
   public final static String STYLE_INSTRUCTION = "Output the stylistically improved text";
-  public final static String REFORMULATE_INSTRUCTION = "Output the reformulated text";
+  public final static String REFORMULATE_INSTRUCTION = "Output the stylistic reformulated text";
   public final static String EXPAND_INSTRUCTION = "Output the expanded text";
   
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, GeneralAi };

@@ -182,13 +182,14 @@ public class WtCacheIO implements Serializable {
   /**
    * save all caches if the document exceeds the defined minimum of paragraphs
    */
-  public void saveCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache,
+  public void saveCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
       WtIgnoredMatches ignoredMatches, WtConfiguration config, WtDocumentsHandler mDocHandler) {
     String cachePath = getCachePath(true);
     if (cachePath != null) {
       try {
         if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
-          allCaches = new AllCaches(docCache, paragraphsCache, mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
+          allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
+              mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
               config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion());
           saveAllCaches(cachePath);
         } else {
@@ -319,6 +320,13 @@ public class WtCacheIO implements Serializable {
   }
   
   /**
+   * get paragraph caches (results for check of paragraphes)
+   */
+  public WtResultCache getAiSuggestionCache() {
+    return allCaches.aiSuggestionCache;
+  }
+  
+  /**
    * get ignored matches
    */
   public WtIgnoredMatches getIgnoredMatches() {
@@ -393,20 +401,23 @@ public class WtCacheIO implements Serializable {
 
     private static final long serialVersionUID = 6L;
 
-    WtDocumentCache docCache;                 //  cache of paragraphs
-    List<WtResultCache> paragraphsCache;      //  Cache for matches of text rules
-    Map<String, List<String>> disabledRulesUI;
-    List<String> disabledRuleIds;
-    List<String> disabledCategories;
-    List<String> enabledRuleIds;
-    Map<Integer, Map<String, Set<Integer>>> ignoredMatches;          //  Map of matches (number of paragraph, number of character) that should be ignored after ignoreOnce was called
-    Map<Integer, List<LocaleSerialEntry>> spellLocales;
-    String ltVersion;
+    private final WtDocumentCache docCache;                               //  cache of paragraphs
+    private final List<WtResultCache> paragraphsCache;                    //  Cache for matches of text rules
+    private final WtResultCache aiSuggestionCache;                        //  Cache for AI results for other formulation of paragraph
+    private final Map<String, List<String>> disabledRulesUI;              //  Disabled rules (per language)  
+    private final List<String> disabledRuleIds;                           //  Disabled rules by configuration
+    private final List<String> disabledCategories;                        //  Disabled categories
+    private final List<String> enabledRuleIds;                            //  enabled rules by configuration
+    private final Map<Integer, Map<String, Set<Integer>>> ignoredMatches; //  Map of matches (number of paragraph, number of character) that should be ignored after ignoreOnce was called
+    private final Map<Integer, List<LocaleSerialEntry>> spellLocales;     //  Map of locales for ignored matches
+    private final String ltVersion;                                       //  LT version
     
-    AllCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, Map<String, Set<String>> disabledRulesUI, Set<String> disabledRuleIds, 
+    AllCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
+        Map<String, Set<String>> disabledRulesUI, Set<String> disabledRuleIds, 
         Set<String> disabledCategories, Set<String> enabledRuleIds, WtIgnoredMatches ignoredMatches, String ltVersion) {
       this.docCache = docCache;
       this.paragraphsCache = paragraphsCache;
+      this.aiSuggestionCache = aiSuggestionCache;
       this.disabledRulesUI = new HashMap<String, List<String>>();
       for (String langCode : disabledRulesUI.keySet()) {
         List <String >ruleIDs = new ArrayList<String>();

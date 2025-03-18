@@ -692,15 +692,18 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
     int nFPara = docCache.getFlatParagraphNumber(tPara);
     String sPara = docCache.getFlatParagraph(nFPara);
-    WtProofreadingError[] pErrors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getSafeMatches(nFPara);
+    WtProofreadingError[] pErrors = document.getAiSuggestionCache().getSafeMatches(nFPara);
+    if (pErrors == null) {
+      pErrors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getSafeMatches(nFPara);
+    }
     if(pErrors != null && pErrors.length > 0) {
       for (int i = pErrors.length - 1; i >= 0; i--) {
         WtProofreadingError error = pErrors[i];
         String sEnd = error.nErrorStart + error.nErrorLength > sPara.length() - 2 ? "" : sPara.substring(error.nErrorStart + error.nErrorLength);
-        sPara = sPara.substring(0, error.nErrorStart) + sEnd;
+        sPara = sPara.substring(0, error.nErrorStart) + error.aSuggestions[0] + sEnd;
       }
     }
-    return sPara;
+    return sPara == null ? "" : sPara;
   }
   
 
