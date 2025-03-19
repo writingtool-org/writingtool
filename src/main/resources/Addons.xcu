@@ -186,7 +186,7 @@
                     </prop>
                 </node>
             </node>
-            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+            <node oor:name="org.writingtool.WritingTool.imageLtAiGeneralCommand" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiGeneralCommand</value>
                 </prop>
@@ -199,7 +199,7 @@
                     </prop>
                 </node>
             </node>
-            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+            <node oor:name="org.writingtool.WritingTool.imageLtAiTranslateText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiTranslateText</value>
                 </prop>
@@ -212,7 +212,7 @@
                     </prop>
                 </node>
             </node>
-             <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+             <node oor:name="org.writingtool.WritingTool.imageLtAiTextToSpeech" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiTextToSpeech</value>
                 </prop>
@@ -225,7 +225,7 @@
                     </prop>
                 </node>
             </node>
-            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+            <node oor:name="org.writingtool.WritingTool.imageLtAiBetterStyle" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiBetterStyle</value>
                 </prop>
@@ -238,7 +238,7 @@
                     </prop>
                 </node>
             </node>
-            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+            <node oor:name="org.writingtool.WritingTool.imageLtAiReformulateText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiReformulateText</value>
                 </prop>
@@ -251,7 +251,7 @@
                     </prop>
                 </node>
             </node>
-            <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
+            <node oor:name="org.writingtool.WritingTool.imageLtAiAdvanceText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiAdvanceText</value>
                 </prop>
