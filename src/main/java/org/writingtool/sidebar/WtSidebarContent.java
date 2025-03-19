@@ -564,6 +564,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       WtMessageHandler.showMessage("Unknown command: " + cmd);
     }
     aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
+    if (aiResultText == null) {
+      aiResultText = "";
+    }
     aiResultBox.setText(aiResultText);
   }
   

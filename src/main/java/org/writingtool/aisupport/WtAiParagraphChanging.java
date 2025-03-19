@@ -112,6 +112,7 @@ public class WtAiParagraphChanging extends Thread {
       }
       String instruction = null;
       boolean onlyPara = false;
+      float temp = WtAiRemote.CORRECT_TEMPERATURE;
       if (commandId == AiCommand.CorrectGrammar) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.CORRECT_INSTRUCTION, locale);
         onlyPara = true;
@@ -121,11 +122,14 @@ public class WtAiParagraphChanging extends Thread {
       } else if (commandId == AiCommand.ReformulateText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
         onlyPara = true;
+        temp = WtAiRemote.REFORMULATE_TEMPERATURE;
       } else if (commandId == AiCommand.ExpandText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
+        temp = WtAiRemote.EXPAND_TEMPERATURE;
       } else {
         instruction = WtOptionPane.showInputDialog(null, messages.getString("loMenuAiGeneralCommandMessage"), 
           messages.getString("loMenuAiGeneralCommandTitle"), WtOptionPane.QUESTION_MESSAGE);
+        temp = WtAiRemote.EXPAND_TEMPERATURE;
       }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
@@ -133,7 +137,6 @@ public class WtAiParagraphChanging extends Thread {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " + text);
       }
-      float temp = (commandId == AiCommand.CorrectGrammar || commandId == AiCommand.ImproveStyle) ? 0.0f : 0.7f;
       String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara);
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);

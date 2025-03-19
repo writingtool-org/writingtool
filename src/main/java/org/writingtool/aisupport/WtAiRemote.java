@@ -58,6 +58,10 @@ public class WtAiRemote {
   public final static String REFORMULATE_INSTRUCTION = "Output the stylistic reformulated text";
   public final static String EXPAND_INSTRUCTION = "Output the expanded text";
   
+  public final static float CORRECT_TEMPERATURE = 0.0f;
+  public final static float REFORMULATE_TEMPERATURE = 0.3f;
+  public final static float EXPAND_TEMPERATURE = 0.7f;
+  
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, GeneralAi };
   
   private static boolean isRunning = false;
