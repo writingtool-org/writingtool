@@ -271,8 +271,8 @@ public class WtAiErrorDetection {
     if (type == DetectionType.GRAMMAR) {
       command = WtAiRemote.getInstruction(WtAiRemote.CORRECT_INSTRUCTION, locale);
     } else if (type == DetectionType.REWRITE) {
-      command = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
-      temp = WtAiRemote.REFORMULATE_TEMPERATURE;
+      command = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
+//      temp = WtAiRemote.REFORMULATE_TEMPERATURE;
     }
     WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(),config);
     String output = aiRemote.runInstruction(command, para, temp, 1, locale, true);

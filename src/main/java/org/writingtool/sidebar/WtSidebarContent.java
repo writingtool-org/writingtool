@@ -703,7 +703,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       for (int i = pErrors.length - 1; i >= 0; i--) {
         WtProofreadingError error = pErrors[i];
         String sEnd = error.nErrorStart + error.nErrorLength > sPara.length() - 2 ? "" : sPara.substring(error.nErrorStart + error.nErrorLength);
-        sPara = sPara.substring(0, error.nErrorStart) + error.aSuggestions[0] + sEnd;
+        if (error.nErrorStart <= sPara.length()) {
+          sPara = sPara.substring(0, error.nErrorStart) + error.aSuggestions[0] + sEnd;
+        }
       }
     }
     return sPara == null ? "" : sPara;
