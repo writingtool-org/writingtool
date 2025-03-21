@@ -1246,11 +1246,13 @@ public class WtAiDialog extends Thread implements ActionListener {
  * Set the size of the image  
  */
   private void setImageSize() {
-    ImageIcon imageIcon = new ImageIcon(image);
-    int size = imageFrame.getHeight() < imageFrame.getWidth() ? imageFrame.getHeight() : imageFrame.getWidth();
-    imageIcon.setImage(imageIcon.getImage().getScaledInstance(size, size,Image.SCALE_DEFAULT));
-    imageFrame.setIcon(imageIcon);
-    imageFrame.setMaximumSize(new Dimension(size, size));
+    if (image != null) {
+      ImageIcon imageIcon = new ImageIcon(image);
+      int size = imageFrame.getHeight() < imageFrame.getWidth() ? imageFrame.getHeight() : imageFrame.getWidth();
+      imageIcon.setImage(imageIcon.getImage().getScaledInstance(size, size,Image.SCALE_DEFAULT));
+      imageFrame.setIcon(imageIcon);
+      imageFrame.setMaximumSize(new Dimension(size, size));
+    }
   }
 
   /**
