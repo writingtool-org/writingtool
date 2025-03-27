@@ -431,11 +431,22 @@ public class WtFlatParagraphTools {
       if (fixedLocale != null) {
         return fixedLocale;
       }
-      if (len == 0 && lastLocale != null) {
-        return lastLocale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL) ? 
-            getSaveLocale(lastLocale.Language, lastLocale.Country, lastLocale.Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length())) : lastLocale;
+      int lenPara = flatPara.getText().length();
+      if (start + len > lenPara) {
+        len = lenPara - start;
       }
-      if (len < 2) {
+      if (len <= 0) {
+        if (lastLocale != null) {
+          return lastLocale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL) 
+              ? getSaveLocale(lastLocale.Language, lastLocale.Country, lastLocale.Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length())) 
+              : lastLocale;
+        } else if (lenPara > 0) {
+          return getParagraphLanguage(flatPara, 0, 1);
+        } else {
+          getSaveLocale(WtOfficeTools.IGNORE_LANGUAGE, "", "");
+        }
+      }
+      if (len == 1) {
         return getParagraphLanguage(flatPara, start, len);
       }
       Map<Locale, Integer> locales = new HashMap<Locale, Integer>();
@@ -454,6 +465,9 @@ public class WtFlatParagraphTools {
         }
       }
       if (locales.keySet().size() == 0) {
+        if (lastLocale == null) {
+          return getSaveLocale(WtOfficeTools.IGNORE_LANGUAGE, "", "");
+        }
         return lastLocale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL) ? 
             getSaveLocale(lastLocale.Language, lastLocale.Country, lastLocale.Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length())) : lastLocale;
       }
@@ -510,7 +524,7 @@ public class WtFlatParagraphTools {
     try {
       XFlatParagraph flatPara = getFlatParagraphAt(nPara);
       isBusy++;
-      if (flatPara == null) {
+      if (flatPara == null || start + len > flatPara.getText().length()) {
         return paragraphLocale;
       }
       Locale locale = flatPara.getLanguageOfText(start, len);
@@ -574,9 +588,10 @@ public class WtFlatParagraphTools {
    */
   private Object getPropertyValueAsObject(String propName, XFlatParagraph xFlatPara) {
     try {
-      if (xFlatPara == null) {
+      if (xFlatPara == null || propName == null) {
         if (debugMode) {
-          WtMessageHandler.printToLogFile("FlatParagraphTools: getPropertyValueAsObject: FlatParagraph == null");
+          WtMessageHandler.printToLogFile("FlatParagraphTools: getPropertyValueAsObject: " 
+              + (xFlatPara == null ? "FlatParagraph" : "propName") + " == null");
         }
         return  null;
       }
@@ -920,8 +935,10 @@ public class WtFlatParagraphTools {
             if (errLen + pError.nErrorStart >= paraLen) {
               errLen = paraLen - pError.nErrorStart;
             }
-            flatPara.commitStringMarkup(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
-              pError.nErrorStart, errLen, props);
+            if (errLen > 0) {
+              flatPara.commitStringMarkup(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
+                pError.nErrorStart, errLen, props);
+            }
           }
         }
   //      props = flatPara.getMarkupInfoContainer();
@@ -939,9 +956,12 @@ public class WtFlatParagraphTools {
    * Change text of flat paragraph nPara 
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
-  public void changeTextOfParagraph (int nPara, int nStart, int nLen, String newText) {
+  public void changeTextOfParagraph(int nPara, int nStart, int nLen, String newText) throws RuntimeException {
     if (isDisposed()) {
       return;
+    }
+    if (newText == null) {
+      throw new RuntimeException("Text is null");
     }
     WtOfficeTools.waitForLO();
     isBusy++;
@@ -967,6 +987,13 @@ public class WtFlatParagraphTools {
         WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextOfParagraph: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
         return;
       }
+      int paraLen = xFlatPara.getText().length();
+      if (nStart > paraLen) {
+        nStart = paraLen;
+      }
+      if (nStart + nLen > paraLen) {
+        nLen = 0;
+      }
       xFlatPara.changeText(nStart, nLen, newText, new PropertyValue[0]);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
@@ -980,9 +1007,12 @@ public class WtFlatParagraphTools {
    * Change text of flat paragraph nPara 
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
-  public void setLanguageOfParagraph (int nPara, int nStart, int nLen, Locale locale) {
+  public void setLanguageOfParagraph(int nPara, int nStart, int nLen, Locale locale) throws RuntimeException {
     if (isDisposed()) {
       return;
+    }
+    if (locale == null) {
+      throw new RuntimeException("Locale is null");
     }
     WtOfficeTools.waitForLO();
     isBusy++;
@@ -1008,8 +1038,15 @@ public class WtFlatParagraphTools {
         WtMessageHandler.printToLogFile("FlatParagraphTools: setLanguageOfParagraph: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
         return;
       }
-      PropertyValue[] propertyValues = { new PropertyValue("CharLocale", -1, locale, PropertyState.DIRECT_VALUE) };
-      xFlatPara.changeAttributes(nStart, nLen, propertyValues);
+      
+      int paraLen = xFlatPara.getText().length();
+      if (nStart < paraLen) {
+        if (nStart + nLen > paraLen) {
+          nLen = paraLen - nStart;
+        }
+        PropertyValue[] propertyValues = { new PropertyValue("CharLocale", -1, locale, PropertyState.DIRECT_VALUE) };
+        xFlatPara.changeAttributes(nStart, nLen, propertyValues);
+      }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return;             // Return -1 as method failed
@@ -1022,9 +1059,15 @@ public class WtFlatParagraphTools {
    * Change text and locale of flat paragraph nPara 
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
-  public void changeTextAndLocaleOfParagraph (int nPara, int nStart, int nLen, String newText, Locale locale) {
+  public void changeTextAndLocaleOfParagraph (int nPara, int nStart, int nLen, String newText, Locale locale) throws RuntimeException {
     if (isDisposed()) {
       return;
+    }
+    if (newText == null) {
+      throw new RuntimeException("Text is null");
+    }
+    if (locale == null) {
+      throw new RuntimeException("Locale is null");
     }
     WtOfficeTools.waitForLO();
     isBusy++;
@@ -1050,9 +1093,15 @@ public class WtFlatParagraphTools {
         WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextAndLocaleOfParagraph: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
         return;
       }
-      xFlatPara.changeText(nStart, nLen, newText, new PropertyValue[0]);
-      PropertyValue[] propertyValues = { new PropertyValue("CharLocale", -1, locale, PropertyState.DIRECT_VALUE) };
-      xFlatPara.changeAttributes(nStart, nLen, propertyValues);
+      int paraLen = xFlatPara.getText().length();
+      if (nStart < paraLen) {
+        if (nStart + nLen > paraLen) {
+          nLen = paraLen - nStart;
+        }
+        xFlatPara.changeText(nStart, nLen, newText, new PropertyValue[0]);
+        PropertyValue[] propertyValues = { new PropertyValue("CharLocale", -1, locale, PropertyState.DIRECT_VALUE) };
+        xFlatPara.changeAttributes(nStart, nLen, propertyValues);
+      }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return;             // Return -1 as method failed
