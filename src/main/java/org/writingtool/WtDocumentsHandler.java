@@ -2660,7 +2660,9 @@ public class WtDocumentsHandler {
 //        }
         isCanceled = true;
         if (dialog != null) {
-          dialog.setVisible(false);
+          if (dialog.isVisible()) {
+            dialog.setVisible(false);
+          }
           dialog.dispose();
         }
       } catch (Throwable t) {
