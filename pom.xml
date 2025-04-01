@@ -18,11 +18,9 @@
     </licenses>
 
     <repositories>
+        <!-- repository for snapshot -->
         <repository>
             <id>repo.languagetool.org</id>
-            <!-- URL for release  -->
-<!--            <url>https://repo.languagetool.org/artifactory/languagetool-os-release/</url>  -->
-            <!-- URL for snapshot  -->
             <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>
 	        <snapshots>
 	            <enabled>true</enabled>
@@ -33,6 +31,7 @@
 	            <updatePolicy>daily</updatePolicy>
 	        </releases>
         </repository>
+	  	
         <repository>
             <id>com.formdev</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -60,6 +59,7 @@
             <groupId>org.languagetool</groupId>
             <artifactId>languagetool-http-client</artifactId>
             <version>${lt-revision}</version>
+<!--            <version>${lt-revision}-SNAPSHOT</version>   -->
         </dependency>
         <dependency>
             <groupId>${office.id}</groupId>
@@ -201,13 +201,13 @@
     </build>
 
     <properties>
-		<!-- snapshot revision --> 
-        <revision>1.2-SNAPSHOT</revision>
-        <lt-revision>6.6-SNAPSHOT</lt-revision>
+		<!-- snapshot revision -->
+        <revision>1.3-SNAPSHOT</revision>
+        <lt-revision>6.7-SNAPSHOT</lt-revision>
         
 		<!-- release revision
-        <revision>1.1</revision>
-        <lt-revision>6.5</lt-revision>
+        <revision>1.2</revision>
+        <lt-revision>6.6</lt-revision>
          -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
