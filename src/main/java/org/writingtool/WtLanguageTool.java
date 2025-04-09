@@ -45,6 +45,7 @@ import org.languagetool.rules.RuleMatch;
 import org.writingtool.WtDocumentCache.AnalysedText;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.remote.WtRemoteLanguageTool;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.RemoteCheck;

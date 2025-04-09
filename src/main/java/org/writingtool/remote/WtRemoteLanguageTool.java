@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
  * USA
  */
-package org.writingtool;
+package org.writingtool.remote;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -35,12 +35,6 @@ import org.languagetool.Language;
 import org.languagetool.LinguServices;
 import org.languagetool.UserConfig;
 import org.languagetool.JLanguageTool.ParagraphHandling;
-import org.languagetool.remote.CheckConfiguration;
-import org.languagetool.remote.CheckConfigurationBuilder;
-import org.languagetool.remote.RemoteConfigurationInfo;
-import org.languagetool.remote.RemoteLanguageTool;
-import org.languagetool.remote.RemoteResult;
-import org.languagetool.remote.RemoteRuleMatch;
 import org.languagetool.rules.Category;
 import org.languagetool.rules.CategoryId;
 import org.languagetool.rules.ITSIssueType;
@@ -58,7 +52,7 @@ import org.writingtool.tools.WtOfficeTools.RemoteCheck;
  * @since 1.0
  * @author Fred Kruse
  */
-class WtRemoteLanguageTool {
+public class WtRemoteLanguageTool {
 
   private static final String BLANK = " ";
   private static final String SERVER_URL = "https://api.languagetool.org";
@@ -86,7 +80,7 @@ class WtRemoteLanguageTool {
   private int maxTextLength = MAX_LIMIT;
   private boolean remoteRun;
   
-  WtRemoteLanguageTool(Language language, Language motherTongue, WtConfiguration config,
+  public WtRemoteLanguageTool(Language language, Language motherTongue, WtConfiguration config,
                        List<Rule> extraRemoteRules, UserConfig userConfig) throws MalformedURLException {
     this.language = language;
     this.motherTongue = motherTongue;
@@ -120,7 +114,7 @@ class WtRemoteLanguageTool {
   /**
    * check a text by a remote LT server
    */
-  List<RuleMatch> check(String text, ParagraphHandling paraMode, RemoteCheck checkMode) throws IOException {
+  public List<RuleMatch> check(String text, ParagraphHandling paraMode, RemoteCheck checkMode) throws IOException {
     if (!remoteRun) {
       return null;
     }
@@ -211,21 +205,21 @@ class WtRemoteLanguageTool {
   /**
    * Get the language the check will done for
    */
-  Language getLanguage() {
+  public Language getLanguage() {
     return language;
   }
   
   /**
    * Get all rules 
    */
-  List<Rule> getAllRules() {
+  public List<Rule> getAllRules() {
     return allRules;
   }
   
   /**
    * true if the check should be done by a remote server
    */
-  boolean remoteRun() {
+  public boolean remoteRun() {
     return remoteRun;
   }
   
@@ -288,7 +282,7 @@ class WtRemoteLanguageTool {
   /**
    * Enable the rule
    */
-  void enableRule (String ruleId) {
+  public void enableRule (String ruleId) {
     disabledRules.remove(ruleId);
     enabledRules.add(ruleId);
   }
@@ -296,7 +290,7 @@ class WtRemoteLanguageTool {
   /**
    * Disable the rule
    */
-  void disableRule (String ruleId) {
+  public void disableRule (String ruleId) {
     disabledRules.add(ruleId);
     enabledRules.remove(ruleId);
   }
@@ -461,7 +455,7 @@ class WtRemoteLanguageTool {
     }
   }
   
-  static RuleOption[] getRuleOptionsFromMap(Map<String,String> ruleMap) {
+  public static RuleOption[] getRuleOptionsFromMap(Map<String,String> ruleMap) {
     if (ruleMap.containsKey("ruleOptions")) {
       Object o = ruleMap.get("ruleOptions");
       @SuppressWarnings("unchecked")

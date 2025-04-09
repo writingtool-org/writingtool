@@ -55,12 +55,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+<!--
         <dependency>
             <groupId>org.languagetool</groupId>
             <artifactId>languagetool-http-client</artifactId>
             <version>${lt-revision}</version>
-<!--            <version>${lt-revision}-SNAPSHOT</version>   -->
         </dependency>
+-->
         <dependency>
             <groupId>${office.id}</groupId>
             <artifactId>juh</artifactId>

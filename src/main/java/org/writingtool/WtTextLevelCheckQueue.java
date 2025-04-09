@@ -267,7 +267,8 @@ public class WtTextLevelCheckQueue {
         if (docCache.isAutomaticGenerated(docCache.getFlatParagraphNumber(nStart), true)) {
           return null;
         }
-        Locale locale = docCache.getTextParagraphLocale(nStart);
+        Locale locale = nStart.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN && nStart.number >= 0 ? 
+                docCache.getFlatParagraphLocale(nStart.number) : docCache.getTextParagraphLocale(nStart);
         if (locale != null && WtDocumentsHandler.hasLocale(locale)) {
           return WtDocumentsHandler.getLanguage(locale);
         }

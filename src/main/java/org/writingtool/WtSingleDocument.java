@@ -968,6 +968,9 @@ public class WtSingleDocument {
    */
   QueueEntry createAiQueueEntry(int nFPara) {
     TextParagraph nPara = docCache.getNumberOfTextParagraph(nFPara);
+    if (nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
+      nPara.number = nFPara;
+    }
     return mDocHandler.getTextLevelCheckQueue().createQueueEntry(nPara, nPara, WtOfficeTools.CACHE_AI, 0, docID, false);
   }
   /**
@@ -975,7 +978,8 @@ public class WtSingleDocument {
    */
   public QueueEntry getNextAiQueueEntry(TextParagraph nPara) {
     if (!disposed && docCache != null) {
-      int nFPara = nPara == null ? 0 : docCache.getFlatParagraphNumber(nPara);
+      int nFPara = nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
+                    nPara == null ? 0 : docCache.getFlatParagraphNumber(nPara);
       for (int i = nFPara; i < docCache.size(); i++) {
         if (docCache.isFinished() && i >= 0 && paragraphsCache.get(WtOfficeTools.CACHE_AI).getCacheEntry(i) == null) {
           return createAiQueueEntry(i);
@@ -997,6 +1001,9 @@ public class WtSingleDocument {
     if (!disposed && mDocHandler.getAiCheckQueue() != null && docCache != null) {
       TextParagraph nTPara = docCache.getNumberOfTextParagraph(nFPara);
       if (nTPara != null) {
+        if (nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
+          nTPara.number = nFPara;
+        }
         mDocHandler.getAiCheckQueue().addQueueEntry(nTPara, docID, next); 
       }
     }
