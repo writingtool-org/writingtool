@@ -1901,6 +1901,7 @@ public class WtSingleDocument {
           broadcaster.addDocumentEventListener(eventListener);
         } else {
           WtMessageHandler.printToLogFile("SingleDocument: setDokumentListener: Could not add document event listener!");
+          return;
         }
         XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
         if (disposed || xModel == null) {

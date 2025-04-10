@@ -661,6 +661,9 @@ public class WtMenus {
           WtMessageHandler.printToLogFile("Generate context menu started");
         }
         XIndexContainer xContextMenu = aEvent.ActionTriggerContainer;
+        if (xContextMenu == null) {
+          return ContextMenuInterceptorAction.IGNORED;
+        }
         if (debugMode) {
           WtMessageHandler.printToLogFile("LanguageToolMenus: notifyContextMenuExecute: get xContextMenu");
         }

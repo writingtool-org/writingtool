@@ -184,6 +184,10 @@ public class WtVersionInfo {
       }
       Object oConfigProvider = xMSF.createInstance("com.sun.star.configuration.ConfigurationProvider");
       XMultiServiceFactory confMsf = UnoRuntime.queryInterface(XMultiServiceFactory.class, oConfigProvider);
+      if (oConfigProvider == null) {
+        WtMessageHandler.printToLogFile("oConfigProvider == null");
+        return;
+      }
 
       final String sView = "com.sun.star.configuration.ConfigurationAccess";
 
@@ -197,13 +201,16 @@ public class WtVersionInfo {
       
       aPathArgument.Value = "org.openoffice.Setup/L10N";
       Object oConfigAccess1 =  confMsf.createInstanceWithArguments(sView, args);
-      
       XNameAccess xName1 = UnoRuntime.queryInterface(XNameAccess.class, oConfigAccess1);
-      ooName = (String) xName.getByName("ooName");
-      ooVersion = (String) xName.getByName("ooSetupVersion");
-      ooExtension = (String) xName.getByName("ooSetupExtension");
-      ooVendor = (String) xName.getByName("ooVendor");
-      ooLocale = (String) xName1.getByName("ooLocale");
+      if (xName != null) {
+        ooName = (String) xName.getByName("ooName");
+        ooVersion = (String) xName.getByName("ooSetupVersion");
+        ooExtension = (String) xName.getByName("ooSetupExtension");
+        ooVendor = (String) xName.getByName("ooVendor");
+      }
+      if (xName1 != null) {
+        ooLocale = (String) xName1.getByName("ooLocale");
+      }
       osArch = System.getProperty("os.arch");
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught

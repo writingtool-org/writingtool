@@ -158,6 +158,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     xContext = context;
 //    this.parentWindow = parentWindow;
     try {
+      if (parentWindow == null) {
+        WtMessageHandler.printToLogFile("parent window == null");;
+        return;
+      }
+      if (context == null) {
+        WtMessageHandler.printToLogFile("XComponentContext == null");;
+        return;
+      }
+      
       XWindowListener windowAdapter = new XWindowListener() {
         @Override
         public void windowResized(WindowEvent e) {
@@ -179,7 +188,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       XWindowPeer parentWindowPeer = UnoRuntime.queryInterface(XWindowPeer.class, parentWindow);
   
       if (parentWindowPeer == null) {
-          return;
+        WtMessageHandler.printToLogFile("XWindowPeer == null");;
+        return;
       }
   
       XToolkit parentToolkit = parentWindowPeer.getToolkit();
@@ -466,8 +476,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 //    props.put("VScroll", false);
     XControl buttonCtrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_EDIT, props, size);
     XTextComponent txt = UnoRuntime.queryInterface(XTextComponent.class, buttonCtrl);
-    if (textListener != null)
+    if (textListener != null) {
       txt.addTextListener(textListener);
+    }
     txt.setText(text);
     return buttonCtrl;
   }

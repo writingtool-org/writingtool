@@ -229,7 +229,7 @@ class WtCheckRequestAnalysis {
         singleDocument.removeIgnoredMatch(nPara, isIntern);
       }
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      WtMessageHandler.printException(t);     // all Exceptions thrown are printed
     }
     if (debugModeTm) {
       long runTime = System.currentTimeMillis() - startTime;

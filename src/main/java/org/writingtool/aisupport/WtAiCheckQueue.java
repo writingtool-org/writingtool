@@ -175,7 +175,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
       if (document != null && !document.isDisposed() && nTPara != null) {
         WtDocumentCache docCache = document.getDocumentCache();
         if (docCache != null) {
-          int nFPara = docCache.getFlatParagraphNumber(nTPara);
+          int nFPara = nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nTPara.number : docCache.getFlatParagraphNumber(nTPara);
           if (debugMode > 1) {
             WtMessageHandler.printToLogFile("Run AI Queue Entry for " 
                 + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId

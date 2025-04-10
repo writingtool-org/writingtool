@@ -68,7 +68,9 @@ public class WtSidebarPanel extends ComponentBase implements XUIElement {
   public void dispose()
   {
     XComponent xPanelComponent = UnoRuntime.queryInterface(XComponent.class, panel);
-    xPanelComponent.dispose();
+    if (xPanelComponent != null) {
+      xPanelComponent.dispose();
+    }
   }
 
 }

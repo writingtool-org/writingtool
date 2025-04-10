@@ -51,6 +51,8 @@ import org.languagetool.rules.Rule;
 import org.writingtool.WtDictionary;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtProofreadingError;
+import org.writingtool.languagedetectors.WtKhmerDetector;
+import org.writingtool.languagedetectors.WtTamilDetector;
 
 import com.sun.star.awt.XMenuBar;
 import com.sun.star.awt.XPopupMenu;
@@ -74,6 +76,8 @@ import com.sun.star.linguistic2.SingleProofreadingError;
 import com.sun.star.linguistic2.XProofreadingIterator;
 import com.sun.star.linguistic2.XSearchableDictionaryList;
 import com.sun.star.text.XTextDocument;
+import com.sun.star.text.XTextViewCursor;
+import com.sun.star.text.XTextViewCursorSupplier;
 import com.sun.star.ui.XUIElement;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
@@ -318,6 +322,76 @@ public class WtOfficeTools {
     }
   }
   
+  /**
+   * Checks the locale under the cursor. Used for opening the configuration dialog.
+   * @return the locale under the visible cursor
+   */
+  @Nullable
+  public static Locale getCursorLocale(XComponentContext xContext) {
+    if (xContext == null) {
+      return null;
+    }
+    XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
+    if (xComponent == null) {
+      return null;
+    }
+    Locale charLocale;
+    XPropertySet xCursorProps;
+    try {
+      //  Test for Impress or Calc document
+      if (WtOfficeDrawTools.isImpressDocument(xComponent)) {
+        return WtOfficeDrawTools.getDocumentLocale(xComponent);
+      } else if (WtOfficeSpreadsheetTools.isSpreadsheetDocument(xComponent)) {
+        return WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
+      }
+      XModel model = UnoRuntime.queryInterface(XModel.class, xComponent);
+      if (model == null) {
+        return null;
+      }
+      XTextViewCursorSupplier xViewCursorSupplier =
+          UnoRuntime.queryInterface(XTextViewCursorSupplier.class, model.getCurrentController());
+      if (xViewCursorSupplier == null) {
+        return null;
+      }
+      XTextViewCursor xCursor = xViewCursorSupplier.getViewCursor();
+      if (xCursor == null) {
+        return null;
+      }
+      if (xCursor.isCollapsed()) { // no text selection
+        xCursorProps = UnoRuntime.queryInterface(XPropertySet.class, xCursor);
+      } else { // text is selected, need to create another cursor
+        // as multiple languages can occur here - we care only
+        // about character under the cursor, which might be wrong
+        // but it applies only to the checking dialog to be removed
+        xCursorProps = UnoRuntime.queryInterface(
+            XPropertySet.class,
+            xCursor.getText().createTextCursorByRange(xCursor.getStart()));
+      }
+
+      // The CharLocale and CharLocaleComplex properties may both be set, so we still cannot know
+      // whether the text is e.g. Khmer or Tamil (the only "complex text layout (CTL)" languages we support so far).
+      // Thus we check the text itself:
+      if (new WtKhmerDetector().isThisLanguage(xCursor.getText().getString())) {
+        return new Locale("km", "", "");
+      }
+      if (new WtTamilDetector().isThisLanguage(xCursor.getText().getString())) {
+        return new Locale("ta","","");
+      }
+      if (xCursorProps == null) {
+        return null;
+      }
+      Object obj = xCursorProps.getPropertyValue("CharLocale");
+      if (obj == null) {
+        return null;
+      }
+      charLocale = (Locale) obj;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
+    }
+    return charLocale;
+  }
+
   static void printPropertySet (Object o) {
     XPropertySet propSet = UnoRuntime.queryInterface(XPropertySet.class, o);
     if (propSet == null) {

@@ -137,8 +137,7 @@ public class WtLinguisticServices extends LinguServices {
     if (xContext == null) {
       return null;
     }
-    XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
-            xContext.getServiceManager());
+    XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class, xContext.getServiceManager());
     if (xMCF == null) {
       return null;
     }

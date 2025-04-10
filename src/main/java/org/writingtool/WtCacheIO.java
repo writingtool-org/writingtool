@@ -106,7 +106,7 @@ public class WtCacheIO implements Serializable {
       URI uri = new URI(url);
       return uri.getPath();
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       return null;           // Return null as method failed
     }
   }
@@ -160,7 +160,7 @@ public class WtCacheIO implements Serializable {
         printCacheInfo();
       }
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      WtMessageHandler.printException(t);     // all Exceptions thrown are printed
     }
   }
   
@@ -201,7 +201,7 @@ public class WtCacheIO implements Serializable {
       } catch (Throwable t) {
         WtMessageHandler.printToLogFile("CacheIO: saveCaches: " + t.getMessage());
         if (DEBUG_MODE) {
-          WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+          WtMessageHandler.printException(t);     // all Exceptions thrown are printed
         }
       }
     }
@@ -239,7 +239,7 @@ public class WtCacheIO implements Serializable {
       WtMessageHandler.printToLogFile("Old cache Version: Cache not read");
       return false;
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      WtMessageHandler.printException(t);     // all Exceptions thrown are printed
     }
     return false;
   }
@@ -529,7 +529,7 @@ public class WtCacheIO implements Serializable {
         fileIn.close();
         return true;
       } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
         return false;
       }
     }
@@ -548,7 +548,7 @@ public class WtCacheIO implements Serializable {
         out.close();
         fileOut.close();
       } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
     }
     
@@ -729,7 +729,7 @@ public class WtCacheIO implements Serializable {
             }
           }
         } catch (Throwable t) {
-          WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+          WtMessageHandler.printException(t);     // all Exceptions thrown are printed
         }
       }
     }
@@ -772,7 +772,7 @@ public class WtCacheIO implements Serializable {
           WtMessageHandler.printToLogFile("Spell Cache saved to: " + cachePath);
         }
       } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
     }
     
@@ -804,7 +804,7 @@ public class WtCacheIO implements Serializable {
         WtMessageHandler.printToLogFile("Old cache Version: Spell Cache not read");
         return false;
       } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
       return false;
     }
