@@ -42,7 +42,6 @@ import javax.swing.JProgressBar;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.languagetool.Language;
 import org.languagetool.Languages;
 import org.languagetool.UserConfig;
@@ -65,8 +64,6 @@ import org.writingtool.dialogs.WtConfigurationDialog;
 import org.writingtool.dialogs.WtMoreInfoDialog;
 import org.writingtool.dialogs.WtStatAnDialog;
 import org.writingtool.dialogs.WtCheckDialog.LtCheckDialog;
-import org.writingtool.languagedetectors.WtKhmerDetector;
-import org.writingtool.languagedetectors.WtTamilDetector;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.config.WtConfigThread;
 import org.writingtool.tools.WtGeneralTools;
@@ -80,8 +77,6 @@ import org.writingtool.tools.WtOfficeTools.LoErrorType;
 import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.frame.XModel;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
@@ -92,8 +87,6 @@ import com.sun.star.linguistic2.ProofreadingResult;
 import com.sun.star.linguistic2.XLinguServiceEventListener;
 import com.sun.star.linguistic2.XProofreader;
 import com.sun.star.text.XTextDocument;
-import com.sun.star.text.XTextViewCursor;
-import com.sun.star.text.XTextViewCursorSupplier;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 
@@ -1790,7 +1783,9 @@ public class WtDocumentsHandler {
     linguServices = null;
     if (config != null) {
       noBackgroundCheck = config.noBackgroundCheck();
-      sidebarContent.setAiSupport(config.useAiSupport());
+      if (sidebarContent != null) {
+        sidebarContent.setAiSupport(config.useAiSupport());
+      }
     }
     javaLookAndFeelSet = -1;
     resetIgnoredMatches();

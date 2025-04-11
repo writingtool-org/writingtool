@@ -1568,7 +1568,8 @@ public class WtDocumentCache implements Serializable {
   public Locale getTextParagraphLocale(TextParagraph textParagraph) {
     rwLock.readLock().lock();
     try {
-      if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
+      if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0 ||
+          textParagraph.type >= toParaMapping.size() || textParagraph.number >= toParaMapping.get(textParagraph.type).size()) {
         return null;
       }
       int nFPara = toParaMapping.get(textParagraph.type).get(textParagraph.number);

@@ -53,9 +53,9 @@ public class WtAiRemote {
   private final static int BUFFER_SIZE = 20000;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
-  public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text";
-  public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text";
-  public final static String REFORMULATE_INSTRUCTION = "Output the stylistic reformulated text";
+  public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";
+  public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text without comments";
+  public final static String REFORMULATE_INSTRUCTION = "Output the stylistic reformulated text without comments";
   public final static String EXPAND_INSTRUCTION = "Output the expanded text";
   
   public final static float CORRECT_TEMPERATURE = 0.0f;

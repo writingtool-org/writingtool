@@ -978,8 +978,8 @@ public class WtSingleDocument {
    */
   public QueueEntry getNextAiQueueEntry(TextParagraph nPara) {
     if (!disposed && docCache != null) {
-      int nFPara = nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
-                    nPara == null ? 0 : docCache.getFlatParagraphNumber(nPara);
+      int nFPara = nPara == null ? 0 : nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
+                    docCache.getFlatParagraphNumber(nPara);
       for (int i = nFPara; i < docCache.size(); i++) {
         if (docCache.isFinished() && i >= 0 && paragraphsCache.get(WtOfficeTools.CACHE_AI).getCacheEntry(i) == null) {
           return createAiQueueEntry(i);

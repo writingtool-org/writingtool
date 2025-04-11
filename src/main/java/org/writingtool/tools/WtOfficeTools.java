@@ -1274,7 +1274,8 @@ public class WtOfficeTools {
     if (logLevel != null) {
       String[] levels = logLevel.split(LOG_DELIMITER);
       for (String level : levels) {
-        if (level.equals("1") || level.equals("2") || level.equals("3") || level.startsWith("all:")) {
+        if (level.equals("1") || level.equals("2") || level.equals("3") || level.equals("4") || 
+            level.equals("5") || level.equals("6") || level.startsWith("all:")) {
           int numLevel;
           if (level.startsWith("all:")) {
             String[] levelAll = level.split(":");
@@ -1296,6 +1297,9 @@ public class WtOfficeTools {
             }
             if (DEBUG_MODE_CR == 0) {
               DEBUG_MODE_CR = numLevel;
+            }
+            if (DEBUG_MODE_AI == 0) {
+              DEBUG_MODE_AI = numLevel;
             }
           }
           if (numLevel > 1) {
