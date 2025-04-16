@@ -93,8 +93,8 @@ public class WtConfiguration {
   static final boolean DEFAULT_USE_AI_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_IMG_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
-  static final boolean DEFAULT_AI_AUTO_CORRECT = false;
-  static final boolean DEFAULT_AI_AUTO_SUGGESTION = true;
+  static final boolean DEFAULT_AI_AUTO_CORRECT = true;
+  static final boolean DEFAULT_AI_AUTO_SUGGESTION = false;
   static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
   
   static final String DEFAULT_AI_MODEL = "gpt-4";
