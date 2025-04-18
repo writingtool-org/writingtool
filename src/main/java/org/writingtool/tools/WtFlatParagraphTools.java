@@ -913,7 +913,7 @@ public class WtFlatParagraphTools {
       for (SentenceErrors errors : errorList) {
         XStringKeyMap props;
         for (WtProofreadingError pError : errors.sentenceErrors) {
-          if (pError.nErrorStart < paraLen - 1) {
+          if (pError.nErrorStart < paraLen) {
             props = flatPara.getMarkupInfoContainer();
             WtPropertyValue[] properties = pError.aProperties;
             int color = -1;
