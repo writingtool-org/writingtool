@@ -51,16 +51,23 @@ public class WtAiDetectionRule extends TextLevelRule {
   
   private static final Pattern QUOTES = Pattern.compile("[\"“”“„»«]");
   private static final Pattern SINGLE_QUOTES = Pattern.compile("[‚‘’'›‹]");
-  private static final Pattern PUNCTUATION = Pattern.compile("[,.!?:]");
+  private static final Pattern PUNCTUATION = Pattern.compile("[,\\.!\\?:]");
   private static final Pattern OPENING_BRACKETS = Pattern.compile("[\\{\\(\\[]");
 
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
 
+  protected final String ruleMessage;
+  protected final String ruleMessageOtherPunctuation;
+  protected final String ruleMessageMissingPunctuation;
+  protected final String ruleMessageUnnecessaryPunctuation;
+  protected final String ruleMessageGrammar;
+  protected final String ruleMessageWordConfusion;
+  protected final String ruleMessageMisspelling;
+  
   private final ResourceBundle messages;
   private final String aiResultText;
   private final String paraText;
   private final List<AnalyzedSentence> analyzedAiResult;
-  private final String ruleMessage;
   private final int showStylisticHints;
   private final WtLinguisticServices linguServices;
   private final Locale locale;
@@ -76,6 +83,12 @@ public class WtAiDetectionRule extends TextLevelRule {
     this.linguServices = linguServices;
     this.locale = locale;
     ruleMessage = messages.getString("loAiRuleMessage");
+    ruleMessageOtherPunctuation = messages.getString("loAiRuleMessageOtherPunctuation");
+    ruleMessageMissingPunctuation = messages.getString("loAiRuleMessageMissingPunctuation");
+    ruleMessageUnnecessaryPunctuation = messages.getString("loAiRuleMessageUnnecessaryPunctuation");
+    ruleMessageGrammar = messages.getString("loAiRuleMessageGrammar");
+    ruleMessageWordConfusion = messages.getString("loAiRuleMessageWordConfusion");
+    ruleMessageMisspelling = messages.getString("loAiRuleMessageMisspelling");
     
     setCategory(Categories.STYLE.getCategory(messages));
     setLocQualityIssueType(ITSIssueType.Grammar);
@@ -123,6 +136,8 @@ public class WtAiDetectionRule extends TextLevelRule {
       int sEnd = 0;
       int sugStart = 0;
       int sugEnd = 0;
+      int nResultTokenStart = 0;
+      int nResultTokenEnd = 0;
       boolean mergeSentences = false;
       for (AnalyzedSentence sentence : sentences) {
         AnalyzedTokenReadings[] tokens = sentence.getTokensWithoutWhitespace();
@@ -159,8 +174,8 @@ public class WtAiDetectionRule extends TextLevelRule {
           int posStart = paraTokens.get(i).getStartPos();
           int nParaTokenStart = i;
           int nParaTokenEnd = 0;
-          int nResultTokenStart = 0;
-          int nResultTokenEnd = 0;
+          nResultTokenStart = 0;
+          nResultTokenEnd = 0;
           AnalyzedSentence sentence = paraTokens.get(i).getSentence();
           int posEnd = 0;
           String suggestion = null;
@@ -272,6 +287,7 @@ public class WtAiDetectionRule extends TextLevelRule {
             if (debugMode > 1) {
               WtMessageHandler.printToLogFile("AiDetectionRule: match: found: start: " + posStart + ", end: " + posEnd
                   + ", suggestion: " + suggestion);
+              WtMessageHandler.printToLogFile("AiDetectionRule: match: Message: " + ruleMatch.getMessage());
             }
           } else if (debugMode > 1) {
             WtMessageHandler.printToLogFile("AiDetectionRule: match: not correct spell: locale: " + WtOfficeTools.localeToString(locale)
@@ -280,7 +296,12 @@ public class WtAiDetectionRule extends TextLevelRule {
         }
         j++;
         if (i >= sentenceEnds.get(nSentence)) {
-          mergeSentences = true;
+//          WtMessageHandler.printToLogFile("AiDetectionRule: match: resultTokens.get(j - 1).getToken(): " 
+//                + resultTokens.get(nResultTokenStart).getToken());          
+          if (i > sentenceEnds.get(nSentence) || !PUNCTUATION.matcher(resultTokens.get(nResultTokenEnd).getToken()).matches()) {
+            //  merge sentence only if there is no punctuation change
+            mergeSentences = true;
+          }
           while (i >= sentenceEnds.get(nSentence)) {
             nSentence++;
           }
@@ -300,14 +321,16 @@ public class WtAiDetectionRule extends TextLevelRule {
                 ruleMatch.setType(Type.Other);
                 matches.add(ruleMatch);
                 if (debugMode > 1) {
-                  WtMessageHandler.printToLogFile("AiDetectionRule: match: Stylistic hint: suggestion: " + suggestion);
+                  WtMessageHandler.printToLogFile("AiDetectionRule: match(1): Stylistic hint: suggestion: " + suggestion);
+                  WtMessageHandler.printToLogFile("AiDetectionRule: match: mergeSentences: " + mergeSentences 
+                      + ", styleHintAssumed: " + styleHintAssumed(nRuleTokens, nSenTokens, tmpMatches, paraTokens, resultTokens));
                 }
               }
               mergeSentences = false;
             } else {
               addAllRuleMatches(matches, tmpMatches, resultTokens);
               if (debugMode > 1) {
-                WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches: " + tmpMatches.size()
+                WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches(1): " + tmpMatches.size()
                 + ", total: " + matches.size());
               }
             }
@@ -393,13 +416,13 @@ public class WtAiDetectionRule extends TextLevelRule {
             ruleMatch.setType(Type.Other);
             matches.add(ruleMatch);
             if (debugMode > 1) {
-              WtMessageHandler.printToLogFile("AiDetectionRule: match: Stylistic hint: suggestion: " + suggestion);
+              WtMessageHandler.printToLogFile("AiDetectionRule: match: Stylistic hint: suggestion(2): " + suggestion);
             }
           }
         } else {
           addAllRuleMatches(matches, tmpMatches, resultTokens);
           if (debugMode > 1) {
-            WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches: " + tmpMatches.size()
+            WtMessageHandler.printToLogFile("AiDetectionRule: match: add matches(2): " + tmpMatches.size()
             + ", total: " + matches.size());
           }
         }
@@ -427,32 +450,54 @@ public class WtAiDetectionRule extends TextLevelRule {
   private void setType(int nParaTokenStart, int nParaTokenEnd, int nResultTokenStart, int nResultTokenEnd,
       List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
     if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("nParaTokenStart: " + nParaTokenStart
+          +", nParaTokenEnd: " + nParaTokenEnd
+          + ", nResultTokenStart: " + nResultTokenStart
+          +", nResultTokenEnd: " + nResultTokenEnd);
       WtMessageHandler.printToLogFile("ParaTokenStart: " + paraTokens.get(nParaTokenStart).getToken()
           +", ParaTokenEnd: " + paraTokens.get(nParaTokenEnd).getToken()
           + ", ResultTokenStart: " + resultTokens.get(nResultTokenStart).getToken()
           +", ResultTokenEnd: " + resultTokens.get(nResultTokenEnd).getToken());
+      WtMessageHandler.printToLogFile("ParaTokenStart is Punctuation: " + PUNCTUATION.matcher(paraTokens.get(nParaTokenStart).getToken()).matches()
+          + ", ResultTokenStart is Punctuation: " + PUNCTUATION.matcher(resultTokens.get(nResultTokenStart).getToken()).matches());
     }
-    if (isNoneHintException(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd, paraTokens, resultTokens)) {
+    if (nParaTokenStart == nParaTokenEnd && nResultTokenStart == nResultTokenEnd
+        && PUNCTUATION.matcher(paraTokens.get(nParaTokenStart).getToken()).matches()
+        && PUNCTUATION.matcher(resultTokens.get(nResultTokenStart).getToken()).matches()) {
+      //  other punctuation (e.g.: . --> ?
+      ruleMatch.setMessage(ruleMessageOtherPunctuation);
+      ruleMatch.setType(Type.Hint);
+//      WtMessageHandler.printToLogFile("setType: ruleMessageOtherPunctuation set");
+      return;
+    }
+    if (isNoneHintException(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd,
+        paraTokens, resultTokens, ruleMatch)) {
+      //  NOTE: the type of message has to be set by the extended rule
       ruleMatch.setType(Type.Other);
       return;
     }
-    if (isHintException(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd, paraTokens, resultTokens)) {
+    if (isHintException(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd, 
+        paraTokens, resultTokens, ruleMatch)) {
+      //  NOTE: the type of message has to be set by the extended rule
       ruleMatch.setType(Type.Hint);
       return;
     }
     if (nParaTokenStart == nParaTokenEnd && nResultTokenStart >= nResultTokenEnd
         && PUNCTUATION.matcher(paraTokens.get(nParaTokenStart).getToken()).matches()) {
+      //  unnecessary punctuation
+      ruleMatch.setMessage(ruleMessageUnnecessaryPunctuation);
       ruleMatch.setType(Type.Hint);
       return;
     }
     if (nParaTokenStart == nParaTokenEnd && nResultTokenStart == nResultTokenEnd) {
-      if (PUNCTUATION.matcher(paraTokens.get(nParaTokenStart).getToken()).matches()) {
-        ruleMatch.setType(Type.Hint);
-      } else if (!linguServices.isCorrectSpell(paraTokens.get(nParaTokenStart).getToken(), locale)) {
+      if (!linguServices.isCorrectSpell(paraTokens.get(nParaTokenStart).getToken(), locale)) {
+        ruleMatch.setMessage(ruleMessageMisspelling);
         ruleMatch.setType(Type.UnknownWord);
       } else if (shareLemma(paraTokens.get(nParaTokenStart), resultTokens.get(nResultTokenStart))) {
+        ruleMatch.setMessage(ruleMessageGrammar);
         ruleMatch.setType(Type.Hint);
       } else if (isSimilarWord(paraTokens.get(nParaTokenStart).getToken(), resultTokens.get(nResultTokenStart).getToken())) {
+        ruleMatch.setMessage(ruleMessageWordConfusion);
         ruleMatch.setType(Type.Hint);
       } else {
         ruleMatch.setType(Type.Other);
@@ -462,12 +507,14 @@ public class WtAiDetectionRule extends TextLevelRule {
               && paraTokens.get(nParaTokenEnd).getToken().equals(resultTokens.get(nResultTokenStart).getToken()))
             || (PUNCTUATION.matcher(paraTokens.get(nParaTokenEnd).getToken()).matches()
               && paraTokens.get(nParaTokenStart).getToken().equals(resultTokens.get(nResultTokenStart).getToken())))) {
+      ruleMatch.setMessage(ruleMessageUnnecessaryPunctuation);
       ruleMatch.setType(Type.Hint);
     } else if (nParaTokenStart == nParaTokenEnd && nResultTokenStart + 1 == nResultTokenEnd
         && ((PUNCTUATION.matcher(resultTokens.get(nResultTokenStart).getToken()).matches() 
               && resultTokens.get(nResultTokenEnd).getToken().equals(paraTokens.get(nParaTokenStart).getToken()))
             || (PUNCTUATION.matcher(resultTokens.get(nResultTokenEnd).getToken()).matches()
               && resultTokens.get(nResultTokenStart).getToken().equals(paraTokens.get(nParaTokenStart).getToken())))) {
+      ruleMatch.setMessage(ruleMessageMissingPunctuation);
       ruleMatch.setType(Type.Hint);
     } else {
       ruleMatch.setType(Type.Other);
@@ -618,16 +665,16 @@ public class WtAiDetectionRule extends TextLevelRule {
   /**
    * Set language specific exceptions to set Color for specific Languages
    */
-  public boolean isNoneHintException(int nParaStart, int nParaEnd, 
-      int nResultStart, int nResultEnd, List<WtAiToken> paraTokens, List<WtAiToken> resultTokens) throws Throwable {
+  public boolean isNoneHintException(int nParaStart, int nParaEnd, int nResultStart, int nResultEnd, 
+      List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
     return false;   
   }
 
   /**
    * Set language specific exceptions to set Color for specific Languages
    */
-  public boolean isHintException(int nParaStart, int nParaEnd, 
-      int nResultStart, int nResultEnd, List<WtAiToken> paraTokens, List<WtAiToken> resultTokens) throws Throwable {
+  public boolean isHintException(int nParaStart, int nParaEnd, int nResultStart, int nResultEnd, 
+      List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
     return false;   
   }
 

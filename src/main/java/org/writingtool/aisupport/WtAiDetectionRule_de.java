@@ -25,6 +25,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.languagetool.AnalyzedSentence;
+import org.languagetool.rules.RuleMatch;
 import org.writingtool.WtLinguisticServices;
 import com.sun.star.lang.Locale;
 
@@ -35,6 +36,9 @@ import com.sun.star.lang.Locale;
  * @author Fred Kruse
  */
 public class WtAiDetectionRule_de extends WtAiDetectionRule {
+  
+  private static final String CAPITALIZATION_MSG = "KI: Groß-/Kleinschreibung";
+  private static final String COMBINE_MSG = "KI: Zusammen-/Getrenntschreibung";
   
   private static final String CONFUSION_FILE_1 = "confusion_set_candidates.txt";
   private static final String CONFUSION_FILE_2 = "confusion_sets.txt";
@@ -72,8 +76,8 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
    * Set Exceptions to set Color for specific Languages
    */
   @Override
-  public boolean isNoneHintException(int nParaStart, int nParaEnd, 
-      int nResultStart, int nResultEnd, List<WtAiToken> paraTokens, List<WtAiToken> resultTokens) throws Throwable {
+  public boolean isNoneHintException(int nParaStart, int nParaEnd, int nResultStart, int nResultEnd, 
+      List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
 //    WtMessageHandler.printToLogFile("isHintException in: de" 
 //        + ", paraToken: " + paraToken.getToken() + ", resultToken: " + resultToken.getToken());
     if (nParaStart == nParaEnd && nResultStart == nResultEnd) {
@@ -94,8 +98,8 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
    * Set Exceptions to set Color for specific Languages
    */
   @Override
-  public boolean isHintException(int nParaStart, int nParaEnd, 
-      int nResultStart, int nResultEnd, List<WtAiToken> paraTokens, List<WtAiToken> resultTokens) throws Throwable {
+  public boolean isHintException(int nParaStart, int nParaEnd, int nResultStart, int nResultEnd, 
+      List<WtAiToken> paraTokens, List<WtAiToken> resultTokens, RuleMatch ruleMatch) throws Throwable {
 //    WtMessageHandler.printToLogFile("isHintException in: de" 
 //        + ", paraToken: " + paraToken.getToken() + ", resultToken: " + resultToken.getToken());
     if (nParaStart == nParaEnd) {
@@ -103,16 +107,22 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
       if (nResultStart == nResultEnd) {
         String rToken = resultTokens.get(nResultStart).getToken();
         if ("dass".equals(pToken)  || "dass".equals(rToken)) {
+          ruleMatch.setMessage(ruleMessageWordConfusion);
           return true;
         } else if (pToken.equalsIgnoreCase(rToken)) {
+          ruleMatch.setMessage(CAPITALIZATION_MSG);
           return true;
         } else if (isConfusionPair(pToken, rToken)) {
+          ruleMatch.setMessage(ruleMessageWordConfusion);
           return true;
         }
       } else if (nResultStart == nResultEnd - 1) {
-        if ((",".equals(resultTokens.get(nResultStart).getToken()) 
-                && (pToken.equals(resultTokens.get(nResultEnd).getToken()) || "dass".equals(resultTokens.get(nResultEnd).getToken())))
-            || pToken.equals(resultTokens.get(nResultStart).getToken() + resultTokens.get(nResultEnd).getToken())) {
+        if (",".equals(resultTokens.get(nResultStart).getToken()) 
+                && (pToken.equals(resultTokens.get(nResultEnd).getToken()) || "dass".equals(resultTokens.get(nResultEnd).getToken()))) {
+          ruleMatch.setMessage(ruleMessageMissingPunctuation);
+          return true;
+        } else if (pToken.equals(resultTokens.get(nResultStart).getToken() + resultTokens.get(nResultEnd).getToken())) {
+          ruleMatch.setMessage(COMBINE_MSG);
           return true;
         }
       }
@@ -120,6 +130,7 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
       if (nParaStart == nParaEnd - 1) {
         String rToken = resultTokens.get(nResultStart).getToken();
         if (rToken.equals(paraTokens.get(nParaStart).getToken() + paraTokens.get(nParaEnd).getToken())) {
+          ruleMatch.setMessage(COMBINE_MSG);
           return true;
         }
       }
