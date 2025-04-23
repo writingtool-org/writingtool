@@ -50,8 +50,8 @@ public class WtSortedTextRules {
     minToCheckParagraph.add(3,-2);
     for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
       textLevelRules.add(i, new ArrayList<>());
-      debugMode = WtOfficeTools.DEBUG_MODE_SR;
     }
+    debugMode = WtOfficeTools.DEBUG_MODE_SR;
     List<Rule> rules = checkImpressDocument ? lt.getAllActiveRules() : lt.getAllActiveOfficeRules();
     int numParasToCheck = config.getNumParasToCheck();
     for (Rule rule : rules) {
@@ -74,7 +74,7 @@ public class WtSortedTextRules {
   /**
    * Insert a rule to list of text level rules
    */
-  private void insertRule (int minPara, int numParasToCheck, String ruleId) {
+  private void insertRule(int minPara, int numParasToCheck, String ruleId) {
     if (minPara == 0) {
         textLevelRules.get(0).add(ruleId);
     } else {

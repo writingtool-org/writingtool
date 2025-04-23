@@ -165,6 +165,7 @@ public class WtOfficeTools {
   public static boolean DEBUG_MODE_LD = false;    //  Activate Debug Mode for LtDictionary
   public static boolean DEBUG_MODE_LM = false;    //  Activate Debug Mode for LanguageToolMenus
   public static boolean DEBUG_MODE_MD = false;    //  Activate Debug Mode for MultiDocumentsHandler
+  public static boolean DEBUG_MODE_RM = false;    //  Activate Debug Mode for RemoteLanguageTool
   public static boolean DEBUG_MODE_SP = false;    //  Activate Debug Mode for LtSpellChecker
   public static boolean DEBUG_MODE_SR = false;    //  Activate Debug Mode for SortedTextRules
   public static boolean DEBUG_MODE_TA = false;    //  Activate Debug Mode for time measurements (only AI)
@@ -1343,6 +1344,8 @@ public class WtOfficeTools {
           DEBUG_MODE_CD = true;
         } else if (level.equals("io")) {
           DEBUG_MODE_IO = true;
+        } else if (level.equals("rm")) {
+          DEBUG_MODE_RM = true;
         } else if (level.equals("sr")) {
           DEBUG_MODE_SR = true;
         } else if (level.equals("sp")) {

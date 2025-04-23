@@ -90,7 +90,7 @@ public class WtLanguageTool {
     isRemote = config.doRemoteCheck() && !testMode;
     doReset = false;
     if (isRemote) {
-      lt = null;
+      lt = new JLanguageToolLo(language, motherTongue, null, userConfig);  // is needed to initialize synonym check
       mlt = null;
       rlt = new WtRemoteLanguageTool(language, motherTongue, config, extraRemoteRules, userConfig);
       //  TODO: CleanOverlappingMatches
@@ -98,7 +98,8 @@ public class WtLanguageTool {
         WtMessageHandler.showMessage(MESSAGES.getString("loRemoteSwitchToLocal"));
         isRemote = false;
         isMultiThread = false;
-        lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+      } else {
+        lt = null;
       }
     } else if (isMultiThread) {
       lt = null;

@@ -76,7 +76,7 @@ public class WtLinguisticServices extends LinguServices {
   }
 
   /**
-   * Set Parameter to generate no synonyms (makes some rules faster, but results in no suggestions)
+   * Set Parameter to generate no synonyms (makes some rules faster, but results have no suggestions)
    */
   public void setNoSynonymsAsSuggestions (boolean noSynonymsAsSuggestions) {
     this.noSynonymsAsSuggestions = noSynonymsAsSuggestions;

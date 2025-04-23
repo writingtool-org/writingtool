@@ -213,7 +213,7 @@ public class RemoteLanguageTool {
     try {
       if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
         try (InputStream inputStream = conn.getInputStream()) {
-          StringBuilder sb = new StringBuilder();
+//          StringBuilder sb = new StringBuilder();
           try (InputStreamReader isr = new InputStreamReader(inputStream, "utf-8");
                BufferedReader br = new BufferedReader(isr)) {
             String line = br.readLine();
@@ -266,11 +266,11 @@ public class RemoteLanguageTool {
   }
 
   private RemoteResult parseJson(InputStream inputStream) throws XMLStreamException, IOException {
-    Map map = mapper.readValue(inputStream, Map.class);
+    Map<?, ?> map = mapper.readValue(inputStream, Map.class);
     Map<String, String> languageObj = (Map<String, String>) map.get("language");
     String language = languageObj.get("name");
     String languageCode = languageObj.get("code");
-    Map<String, String> detectedLanguageObj = (Map<String, String>) ((Map) languageObj).get("detectedLanguage");
+    Map<String, String> detectedLanguageObj = (Map<String, String>) ((Map<?, ?>) languageObj).get("detectedLanguage");
     String languageDetectedCode = null, languageDetectedName = null;
     if (detectedLanguageObj != null) {
       languageDetectedCode = detectedLanguageObj.get("code");
@@ -278,13 +278,13 @@ public class RemoteLanguageTool {
     }
     Map<String, String> software = (Map<String, String>) map.get("software");
     RemoteServer remoteServer = new RemoteServer(software.get("name"), software.get("version"), software.get("buildDate"));
-    List matches = (ArrayList) map.get("matches");
+    List<?> matches = (ArrayList<?>) map.get("matches");
     List<RemoteRuleMatch> result = new ArrayList<>();
     for (Object match : matches) {
       RemoteRuleMatch remoteMatch = getMatch((Map<String, Object>) match);
       result.add(remoteMatch);
     }
-    List ignoreRanges = (ArrayList) map.get("ignoreRanges");
+    List<?> ignoreRanges = (ArrayList<?>) map.get("ignoreRanges");
     List<RemoteIgnoreRange> remoteIgnoreRanges = new ArrayList<>();
     if (ignoreRanges != null) {
       for (Object range : ignoreRanges) {

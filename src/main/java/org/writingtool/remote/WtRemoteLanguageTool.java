@@ -28,11 +28,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.languagetool.AnalyzedSentence;
-import org.languagetool.AnalyzedToken;
-import org.languagetool.AnalyzedTokenReadings;
-import org.languagetool.JLanguageTool;
+// import org.languagetool.AnalyzedToken;
+// import org.languagetool.AnalyzedTokenReadings;
+// import org.languagetool.JLanguageTool;
 import org.languagetool.Language;
-import org.languagetool.LinguServices;
+// import org.languagetool.LinguServices;
 import org.languagetool.UserConfig;
 import org.languagetool.JLanguageTool.ParagraphHandling;
 import org.languagetool.rules.Category;
@@ -53,6 +53,8 @@ import org.writingtool.tools.WtOfficeTools.RemoteCheck;
  * @author Fred Kruse
  */
 public class WtRemoteLanguageTool {
+  
+  private static boolean debugMode = false;   //  should be false except for testing
 
   private static final String BLANK = " ";
   private static final String SERVER_URL = "https://api.languagetool.org";
@@ -70,22 +72,23 @@ public class WtRemoteLanguageTool {
   private final Language language;
   private final Language motherTongue;
   private final RemoteLanguageTool remoteLanguageTool;
-  private final UserConfig userConfig;
-  private final boolean addSynonyms;
+//  private final UserConfig userConfig;
+//  private final boolean addSynonyms;
   private final boolean isPremium;
   private final String username;
   private final String apiKey;
-  private JLanguageTool lt = null;
+//  private JLanguageTool lt = null;
 
   private int maxTextLength = MAX_LIMIT;
   private boolean remoteRun;
   
   public WtRemoteLanguageTool(Language language, Language motherTongue, WtConfiguration config,
                        List<Rule> extraRemoteRules, UserConfig userConfig) throws MalformedURLException {
+    debugMode = WtOfficeTools.DEBUG_MODE_RM;
     this.language = language;
     this.motherTongue = motherTongue;
-    this.userConfig = userConfig;
-    addSynonyms = userConfig != null && userConfig.getLinguServices() != null && !config.noSynonymsAsSuggestions();
+//    this.userConfig = userConfig;
+//    addSynonyms = userConfig != null && userConfig.getLinguServices() != null && !config.noSynonymsAsSuggestions();
     String serverUrl = config.getServerUrl();
     setRuleValues(config.getConfigurableValues());
     username = config.getRemoteUsername();
@@ -121,6 +124,9 @@ public class WtRemoteLanguageTool {
     List<RuleMatch> ruleMatches = new ArrayList<>();
     if (text == null || text.trim().isEmpty()) {
       return ruleMatches;
+    }
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("WtRemoteLanguageTool: check: check text: " + text);
     }
     CheckConfigurationBuilder configBuilder = new CheckConfigurationBuilder(language.getShortCodeWithCountryAndVariant());
     if (isPremium) {
@@ -198,6 +204,9 @@ public class WtRemoteLanguageTool {
         return null;
       }
       ruleMatches.addAll(toRuleMatches(text, remoteResult.getMatches(), nStart));
+    }
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("WtRemoteLanguageTool: check: number rule matches found: " + ruleMatches.size());
     }
     return ruleMatches;
   }
@@ -324,8 +333,8 @@ public class WtRemoteLanguageTool {
   
   /**
    * get synonyms for a word
-   */
-  public List<String> getSynonymsForWord(String word, LinguServices linguServices) {
+   *//*
+  private List<String> getSynonymsForWord(String word, LinguServices linguServices) {
     List<String> synonyms = new ArrayList<String>();
     List<String> rawSynonyms = linguServices.getSynonyms(word, language);
     for (String synonym : rawSynonyms) {
@@ -339,8 +348,8 @@ public class WtRemoteLanguageTool {
 
   /**
    * get synonyms for a repeated word
-   */
-  public List<String> getSynonymsForToken(AnalyzedTokenReadings token, LinguServices linguServices) {
+   *//*
+  private List<String> getSynonymsForToken(AnalyzedTokenReadings token, LinguServices linguServices) {
     List<String> synonyms = new ArrayList<String>();
     if(linguServices == null || token == null) {
       return synonyms;
@@ -364,7 +373,7 @@ public class WtRemoteLanguageTool {
   }
   /**
    * get synonyms of a word
-   */
+   *//*
   private List<String> getSynonyms(String word) {
     if (!addSynonyms) {
       return null;
@@ -410,12 +419,14 @@ public class WtRemoteLanguageTool {
     }
     if (replacements != null && !replacements.isEmpty()) {
       ruleMatch.setSuggestedReplacements(remoteMatch.getReplacements().get());
+/*      
     } else if (addSynonyms && remoteMatch.getRuleId().startsWith("STYLE_REPEATED_WORD_RULE")) {
       String word = text.substring(ruleMatch.getFromPos(), ruleMatch.getToPos());
       List<String> synonyms = getSynonyms(word);
       if (synonyms != null && !synonyms.isEmpty()) {
         ruleMatch.setSuggestedReplacements(synonyms);
       }
+*/
     }
     return ruleMatch;
   }
