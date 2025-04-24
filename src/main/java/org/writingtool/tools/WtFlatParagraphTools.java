@@ -37,10 +37,12 @@ import com.sun.star.container.XStringKeyMap;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
+import com.sun.star.text.TextMarkupDescriptor;
 import com.sun.star.text.TextMarkupType;
 import com.sun.star.text.XFlatParagraph;
 import com.sun.star.text.XFlatParagraphIterator;
 import com.sun.star.text.XFlatParagraphIteratorProvider;
+import com.sun.star.text.XMultiTextMarkup;
 import com.sun.star.uno.UnoRuntime;
 
 /**
@@ -902,7 +904,8 @@ public class WtFlatParagraphTools {
   /**
    * add marks to existing marks of a paragraph
    * if override: existing marks will be overridden
-   */
+   * on base of string commit
+   *//*
   private void addMarksToOneParagraph(XFlatParagraph flatPara, List<SentenceErrors> errorList) throws Throwable {
     try {
       boolean isChecked = flatPara.isChecked(TextMarkupType.PROOFREADING);
@@ -943,6 +946,71 @@ public class WtFlatParagraphTools {
         }
   //      props = flatPara.getMarkupInfoContainer();
   //      flatPara.commitStringMarkup(TextMarkupType.SENTENCE, "Sentence", errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
+      }
+      if (isChecked) {
+        flatPara.setChecked(TextMarkupType.PROOFREADING, true);
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
+    }
+  }
+*/
+  /**
+   * add marks to existing marks of a paragraph
+   * if override: existing marks will be overridden
+   * on base of XMultiTextMarkup
+   */
+  private void addMarksToOneParagraph(XFlatParagraph flatPara, List<SentenceErrors> errorList) throws Throwable {
+    try {
+      boolean isChecked = flatPara.isChecked(TextMarkupType.PROOFREADING);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: xMarkingAccess: isChecked = " + isChecked);
+      }
+      int paraLen = flatPara.getText().length();
+      XMultiTextMarkup xMultiTextMarkup = UnoRuntime.queryInterface(XMultiTextMarkup.class, flatPara);
+      for (SentenceErrors errors : errorList) {
+        XStringKeyMap props;
+        TextMarkupDescriptor[] markupDescriptor = new TextMarkupDescriptor[errors.sentenceErrors.length + 1];
+        int i = 0;
+        for (; i < errors.sentenceErrors.length; i++) {
+          WtProofreadingError pError = errors.sentenceErrors[i];
+          if (pError.nErrorStart >= paraLen) {
+            WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: pError.nErrorStart >= paraLen: (" + 
+                pError.nErrorStart + "/" + paraLen + ") : paragraph: " + flatPara.getText());
+            break;
+          }
+          props = flatPara.getMarkupInfoContainer();
+          WtPropertyValue[] properties = pError.aProperties;
+          int color = -1;
+          short type = -1;
+          for (WtPropertyValue property : properties) {
+            if ("LineColor".equals(property.name)) {
+              color = (int) property.value;
+            } else if ("LineType".equals(property.name)) {
+              type = (short) property.value;
+            }
+          }
+          if (color >= 0) {
+            props.insertValue("LineColor", color);
+          }
+          if (type > 0) {
+            props.insertValue("LineType", type);
+          }
+          int errLen = pError.nErrorLength;
+          if (errLen + pError.nErrorStart >= paraLen) {
+            errLen = paraLen - pError.nErrorStart;
+          }
+          if (errLen > 0) {
+            markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
+                pError.nErrorStart, errLen, props);
+          }
+        }
+        if (i == errors.sentenceErrors.length) {
+          props = flatPara.getMarkupInfoContainer();
+          markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
+              errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
+          xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor);
+        }
       }
       if (isChecked) {
         flatPara.setChecked(TextMarkupType.PROOFREADING, true);
