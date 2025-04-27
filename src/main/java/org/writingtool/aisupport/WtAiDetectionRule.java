@@ -342,7 +342,22 @@ public class WtAiDetectionRule extends TextLevelRule {
           lastResultStart = j;
         }
       }
-      if (j < resultTokens.size() 
+//      WtMessageHandler.printToLogFile("i = " + i + ", j = " + j + ", resultTokens.size() = " + resultTokens.size() 
+//        + ", resultTokens(resultTokens.size() - 2): " + resultTokens.get(resultTokens.size() - 2).getToken()
+//        + ", resultTokens(resultTokens.size() - 1): " + resultTokens.get(resultTokens.size() - 1).getToken()
+//        + ", paraTokens.get(paraTokens.size() - 1): " + paraTokens.get(paraTokens.size() - 1).getToken()); 
+      if (PUNCTUATION.matcher(resultTokens.get(resultTokens.size() - 1).getToken()).matches()
+          && !PUNCTUATION.matcher(paraTokens.get(paraTokens.size() - 1).getToken()).matches()
+          && paraTokens.get(paraTokens.size() - 1).getToken().equals(resultTokens.get(resultTokens.size() - 2).getToken())) {
+        //  missing punctuation at paragraph end
+        RuleMatch ruleMatch = new RuleMatch(this, null, paraTokens.get(paraTokens.size() - 1).getStartPos(), 
+            paraTokens.get(paraTokens.size() - 1).getEndPos(), ruleMessage);
+        String suggestion = resultTokens.get(resultTokens.size() - 2).getToken() + resultTokens.get(resultTokens.size() - 1).getToken();
+        ruleMatch.addSuggestedReplacement(suggestion);
+        setType(paraTokens.size() - 1, paraTokens.size() - 1, resultTokens.size() - 2, resultTokens.size() - 1, paraTokens, resultTokens, ruleMatch);
+        tmpMatches.add(new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
+            paraTokens.size() - 1, paraTokens.size() - 1, resultTokens.size() - 2, resultTokens.size() - 1));
+      } else if (j < resultTokens.size() 
               && (!paraTokens.get(i - 1).getToken().equals(resultTokens.get(j - 1).getToken())
                   || (resultTokens.get(j).isNonWord() && !PUNCTUATION.matcher(resultTokens.get(j).getToken()).matches())
               && ((j + 2 > resultTokens.size()) 
@@ -387,7 +402,7 @@ public class WtAiDetectionRule extends TextLevelRule {
       }
       if (tmpMatches.size() > 0) {
         boolean overSentenceEnd = j < resultTokens.size() && PUNCTUATION.matcher(resultTokens.get(j - 1).getToken()).matches();
-        int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : 
+        int nSenTokens = nSentence == 0 || sentenceEnds.size() == 1 ? sentenceEnds.get(0) : 
           sentenceEnds.get(sentenceEnds.size() - 1) - sentenceEnds.get(sentenceEnds.size() - 2);
         if (debugMode > 1) {
           WtMessageHandler.printToLogFile("AiDetectionRule: match: j < resultTokens.size(): mergeSentences: " + mergeSentences
