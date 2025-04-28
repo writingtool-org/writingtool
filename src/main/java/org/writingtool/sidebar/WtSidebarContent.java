@@ -18,6 +18,7 @@
  */
 package org.writingtool.sidebar;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
@@ -46,6 +47,7 @@ import com.sun.star.awt.XWindow;
 import com.sun.star.awt.XWindowListener;
 import com.sun.star.awt.XWindowPeer;
 import com.sun.star.beans.XMultiPropertySet;
+import com.sun.star.beans.XPropertySet;
 import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.Locale;
@@ -87,6 +89,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   
+  private final static String WAIT_TEXT = ">>> Please wait <<<";
   private final static String OPENING_FORMAT_SIGN = "[";
   private final static String CLOSING_FORMAT_SIGN = "]";
 //  private final static String LINE_BREAK = "\n";
@@ -146,7 +149,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
   private XTextComponent paragraphBox;          //  Box to show paragraph text
-  private XTextComponent aiResultBox;           //  Box to show AI result text
+  private XControl xAiBox;                      //  Box to show AI result text
+  private XTextComponent aiResultBox;           //  Text component of box to show AI result text
+  private XFixedText aiLabelText;               //  Text of Label for AI result text
   
   private String paragraphText;                 //  Text of the current paragraph
   private String aiResultText;                  //  result Text of AI operation
@@ -316,6 +321,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
           new Rectangle(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT), props); 
       controlContainer.addControl("aiLabel", xAiLabel);
       aiLabelWindow = UnoRuntime.queryInterface(XWindow.class, xAiLabel);
+      aiLabelText = UnoRuntime.queryInterface(XFixedText.class, xAiLabel);
       
       // Add text field
       props = new TreeMap<>();
@@ -330,7 +336,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int aiBoxY = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
       int aiBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
       int aiBoxHeight = containerHeight;
-      XControl xAiBox = createTextfield(xMCF, context, "", 
+      xAiBox = createTextfield(xMCF, context, "", 
           new Rectangle(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight), props, null);
       aiResultBox = UnoRuntime.queryInterface(XTextComponent.class, xAiBox);
       controlContainer.addControl("aiBox", xAiBox);
@@ -420,7 +426,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
       paragraphBox.setText(formatedText);
       if (isAiSupport && aiResultBox != null && !isSameText) {
-        aiResultBox.setText(reconstructAiTextFromCache(tPara, document));
+        String aiResultText = reconstructAiTextFromCache(tPara, document);
+        aiResultBox.setText(aiResultText);
+        setColorOfAiBox(paragraphText, aiResultText);
       }
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
@@ -430,9 +438,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 /**
  * set a AI result to the AI result box
  */
-  public void setTextToAiResultBox(String paraText, String resultText) {
+  public void setTextToAiResultBox(String paraText, String resultText, String instruction) {
     if (paraText.equals(paragraphText)) {
       aiResultText = resultText;
+      setAiLabelText(instruction);
+      setColorOfAiBox(paraText, resultText);
       aiResultBox.setText(aiResultText);
     }
   }
@@ -566,18 +576,23 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       instruction = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
       onlyPara = true;
       temp = 0.0f;
+      setAiLabelText(WtAiRemote.STYLE_INSTRUCTION);
     } else if (cmd.equals("aiReformulateText")) {
       instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
       onlyPara = true;
+      setAiLabelText(WtAiRemote.REFORMULATE_INSTRUCTION);
     } else if (cmd.equals("aiAdvanceText")) {
       instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
+      setAiLabelText(WtAiRemote.EXPAND_INSTRUCTION);
     } else {
       WtMessageHandler.showMessage("Unknown command: " + cmd);
     }
+    aiResultBox.setText(WAIT_TEXT);
     aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
     if (aiResultText == null) {
       aiResultText = "";
     }
+    setColorOfAiBox(paragraphText, aiResultText);
     aiResultBox.setText(aiResultText);
   }
   
@@ -696,6 +711,40 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
+  private void setColorOfAiBox(String sPara, String sAiResult) {
+    try {
+      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xAiBox.getModel());
+      if (sPara.equals(sAiResult)) {
+        props.setPropertyValue("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
+      } else {
+        props.setPropertyValue("TextColor", Color.BLUE.getRGB() & ~0xFF000000);
+      }
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
+    }
+  }
+  
+  private void setAiLabelText(String instruction) {
+    try {
+      if (instruction == null) {
+        instruction = "";
+      }
+      if (instruction.startsWith(WtAiRemote.CORRECT_INSTRUCTION)) {
+        aiLabelText.setText(messages.getString("loAiDialogResultLabelGrammar"));
+      } else if (instruction.startsWith(WtAiRemote.STYLE_INSTRUCTION)) {
+        aiLabelText.setText(messages.getString("loAiDialogResultLabelStyle"));
+      } else if (instruction.startsWith(WtAiRemote.REFORMULATE_INSTRUCTION)) {
+        aiLabelText.setText(messages.getString("loAiDialogResultLabelRephrase"));
+      } else if (instruction.startsWith(WtAiRemote.EXPAND_INSTRUCTION)) {
+        aiLabelText.setText(messages.getString("loAiDialogResultLabelExpand"));
+      } else {
+        aiLabelText.setText(messages.getString("loAiDialogResultLabel"));
+      }
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
+    }
+  }
+  
   private String reconstructAiTextFromCache(TextParagraph tPara, WtSingleDocument document) {
     if (document == null) {
       return "";
@@ -706,11 +755,19 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
     int nFPara = docCache.getFlatParagraphNumber(tPara);
     String sPara = docCache.getFlatParagraph(nFPara);
+    if (sPara == null || sPara.isBlank()) {
+      return "";
+    }
     WtProofreadingError[] pErrors = document.getAiSuggestionCache().getSafeMatches(nFPara);
     if (pErrors == null) {
       pErrors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getSafeMatches(nFPara);
+      if (pErrors != null) {
+        setAiLabelText(WtAiRemote.CORRECT_INSTRUCTION);
+      }
+    } else {
+      setAiLabelText(WtAiRemote.REFORMULATE_INSTRUCTION);
     }
-    if(pErrors != null && pErrors.length > 0) {
+    if(pErrors != null) {
       for (int i = pErrors.length - 1; i >= 0; i--) {
         WtProofreadingError error = pErrors[i];
         String sEnd = error.nErrorStart + error.nErrorLength > sPara.length() - 2 ? "" : sPara.substring(error.nErrorStart + error.nErrorLength);
@@ -718,8 +775,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
           sPara = sPara.substring(0, error.nErrorStart) + error.aSuggestions[0] + sEnd;
         }
       }
+      return sPara;
+    } else {
+      setAiLabelText("");
+      return WAIT_TEXT;
     }
-    return sPara == null ? "" : sPara;
   }
   
 

@@ -260,7 +260,7 @@ public class WtAiRemote {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
-            documents.getSidebarContent().setTextToAiResultBox(orgText, out);
+            documents.getSidebarContent().setTextToAiResultBox(orgText, out, instruction);
             return out;
           }
         } else {
