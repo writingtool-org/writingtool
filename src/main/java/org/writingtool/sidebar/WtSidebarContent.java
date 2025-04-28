@@ -587,6 +587,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     } else {
       WtMessageHandler.showMessage("Unknown command: " + cmd);
     }
+    setColorOfAiBox("", "");
     aiResultBox.setText(WAIT_TEXT);
     aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
     if (aiResultText == null) {
@@ -714,7 +715,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private void setColorOfAiBox(String sPara, String sAiResult) {
     try {
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xAiBox.getModel());
-      if (sPara.equals(sAiResult)) {
+      if (sPara.equals(sAiResult) || WAIT_TEXT.equals(sAiResult)) {
         props.setPropertyValue("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
       } else {
         props.setPropertyValue("TextColor", Color.BLUE.getRGB() & ~0xFF000000);
