@@ -35,6 +35,7 @@ import org.writingtool.WtCacheIO.SpellCache;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtTextLevelCheckQueue.QueueEntry;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtFlatParagraphTools;
 import org.writingtool.tools.WtMessageHandler;
@@ -2020,15 +2021,26 @@ public class WtSingleDocument {
 
     @Override
     public boolean mousePressed(MouseEvent event) {
-      if (event.Buttons == MouseButton.RIGHT) {
-        isRightButtonPressed = true;
+      try {
+        if (event.Buttons == MouseButton.RIGHT) {
+          isRightButtonPressed = true;
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
       return false;
     }
 
     @Override
     public boolean mouseReleased(MouseEvent event) {
-      mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
+      try {
+        WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+        if (sidebarContent != null) {
+          sidebarContent.setCursorTextToBox(xComponent);
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
+      }
       return false;
     }
 
@@ -2039,10 +2051,17 @@ public class WtSingleDocument {
 
     @Override
     public boolean keyReleased(KeyEvent event) {
-      if (event.KeyCode == Key.UP || event.KeyCode == Key.DOWN || event.KeyCode == Key.LEFT 
-          || event.KeyCode == Key.RIGHT || event.KeyCode == Key.PAGEUP || event.KeyCode == Key.PAGEDOWN
-          || event.KeyCode == Key.MOVE_TO_BEGIN_OF_DOCUMENT || event.KeyCode == Key.MOVE_TO_END_OF_DOCUMENT) {
-        mDocHandler.getSidebarContent().setCursorTextToBox(xComponent);
+      try {
+        if (event.KeyCode == Key.UP || event.KeyCode == Key.DOWN || event.KeyCode == Key.LEFT 
+            || event.KeyCode == Key.RIGHT || event.KeyCode == Key.PAGEUP || event.KeyCode == Key.PAGEDOWN
+            || event.KeyCode == Key.MOVE_TO_BEGIN_OF_DOCUMENT || event.KeyCode == Key.MOVE_TO_END_OF_DOCUMENT) {
+          WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+          if (sidebarContent != null) {
+            sidebarContent.setCursorTextToBox(xComponent);
+          }
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
       return false;
     }
