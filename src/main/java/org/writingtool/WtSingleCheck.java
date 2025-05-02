@@ -357,58 +357,61 @@ public class WtSingleCheck {
   public void remarkChangedParagraphs(List<Integer> changedParas, List<Integer> toRemarkParas, 
                                                   WtLanguageTool lt) throws Throwable {
     if (!isDisposed() && !mDocHandler.isBackgroundCheckOff() && (!isDialogRequest || isIntern)) {
-      
-      Map <Integer, List<SentenceErrors>> changedParasMap = new HashMap<>();
-      List <TextParagraph> toRemarkTextParas = new ArrayList<>();
-      for (int i = 0; i < changedParas.size(); i++) {
-        if (!singleDocument.isRunning(i)) {
-          List<SentenceErrors> sentencesErrors = getSentencesErrosAsList(changedParas.get(i), 
-              lt, LoErrorType.GRAMMAR, config.filterOverlappingMatches());
-          changedParasMap.put(changedParas.get(i), sentencesErrors);
-          if (debugMode > 1) {
-            String message = "SingleCheck: remarkChangedParagraphs: Mark errors: Paragraph: " + changedParas.get(i) 
-            + "; Number of sentences: " + sentencesErrors.size();
-            for (int j = 0; j < sentencesErrors.size(); j++) {
-              message += "; Sentence " + j + ": Start = " + sentencesErrors.get(j).sentenceStart + "; End = " + sentencesErrors.get(j).sentenceEnd 
-                          + ", Number of Errors = " + sentencesErrors.get(j).sentenceErrors.length;
-            }
-            WtMessageHandler.printToLogFile(message);
-            message = "SingleCheck: remarkChangedParagraphs: Errors of Sentence 0: ";
-            for (int j = 0; j < sentencesErrors.get(0).sentenceErrors.length; j++) {
-              message += "Error " + j + ": Start = " + sentencesErrors.get(0).sentenceErrors[j].nErrorStart 
-                  + ", Length = " + sentencesErrors.get(0).sentenceErrors[j].nErrorLength 
-                  + "; ErrorID = " + sentencesErrors.get(0).sentenceErrors[j].aRuleIdentifier + "; ";
-            }
-            WtMessageHandler.printToLogFile(message);
-            for (int j = 0; j < paragraphsCache.size(); j++) {
-              WtMessageHandler.printToLogFile("SingleCheck: remarkChangedParagraphs: Paragraph " + changedParas.get(i) + ": Cache " + j 
-                      + ": Number of Errors = " 
-                      + (paragraphsCache.get(j).getMatches(changedParas.get(i), LoErrorType.GRAMMAR) == null ? "null" 
-                          : paragraphsCache.get(j).getMatches(changedParas.get(i), LoErrorType.GRAMMAR).length));
+      try {
+        Map <Integer, List<SentenceErrors>> changedParasMap = new HashMap<>();
+        List <TextParagraph> toRemarkTextParas = new ArrayList<>();
+        for (int i = 0; i < changedParas.size(); i++) {
+          if (!singleDocument.isRunning(i)) {
+            List<SentenceErrors> sentencesErrors = getSentencesErrosAsList(changedParas.get(i), 
+                lt, LoErrorType.GRAMMAR, config.filterOverlappingMatches());
+            changedParasMap.put(changedParas.get(i), sentencesErrors);
+            if (debugMode > 1) {
+              String message = "SingleCheck: remarkChangedParagraphs: Mark errors: Paragraph: " + changedParas.get(i) 
+              + "; Number of sentences: " + sentencesErrors.size();
+              for (int j = 0; j < sentencesErrors.size(); j++) {
+                message += "; Sentence " + j + ": Start = " + sentencesErrors.get(j).sentenceStart + "; End = " + sentencesErrors.get(j).sentenceEnd 
+                            + ", Number of Errors = " + sentencesErrors.get(j).sentenceErrors.length;
+              }
+              WtMessageHandler.printToLogFile(message);
+              message = "SingleCheck: remarkChangedParagraphs: Errors of Sentence 0: ";
+              for (int j = 0; j < sentencesErrors.get(0).sentenceErrors.length; j++) {
+                message += "Error " + j + ": Start = " + sentencesErrors.get(0).sentenceErrors[j].nErrorStart 
+                    + ", Length = " + sentencesErrors.get(0).sentenceErrors[j].nErrorLength 
+                    + "; ErrorID = " + sentencesErrors.get(0).sentenceErrors[j].aRuleIdentifier + "; ";
+              }
+              WtMessageHandler.printToLogFile(message);
+              for (int j = 0; j < paragraphsCache.size(); j++) {
+                WtMessageHandler.printToLogFile("SingleCheck: remarkChangedParagraphs: Paragraph " + changedParas.get(i) + ": Cache " + j 
+                        + ": Number of Errors = " 
+                        + (paragraphsCache.get(j).getMatches(changedParas.get(i), LoErrorType.GRAMMAR) == null ? "null" 
+                            : paragraphsCache.get(j).getMatches(changedParas.get(i), LoErrorType.GRAMMAR).length));
+              }
             }
           }
         }
-      }
-      for (int i = 0; i < toRemarkParas.size(); i++) {
-        if (!(singleDocument).isRunning(i)) {
-          toRemarkTextParas.add(docCache.getNumberOfTextParagraph(toRemarkParas.get(i)));
-          if (debugMode > 1) {
-            String message = "SingleCheck: remarkChangedParagraphs: Remark: Paragraph: " + toRemarkParas.get(i);
-            WtMessageHandler.printToLogFile(message);
+        for (int i = 0; i < toRemarkParas.size(); i++) {
+          if (!(singleDocument).isRunning(i)) {
+            toRemarkTextParas.add(docCache.getNumberOfTextParagraph(toRemarkParas.get(i)));
+            if (debugMode > 1) {
+              String message = "SingleCheck: remarkChangedParagraphs: Remark: Paragraph: " + toRemarkParas.get(i);
+              WtMessageHandler.printToLogFile(message);
+            }
           }
         }
-      }
-      if (!isDisposed() && !toRemarkTextParas.isEmpty()) {
-        WtDocumentCursorTools docCursor = singleDocument.getDocumentCursorTools();
-        if (docCursor != null) {
-          docCursor.removeMarks(toRemarkTextParas);
+        if (!isDisposed() && !toRemarkTextParas.isEmpty()) {
+          WtDocumentCursorTools docCursor = singleDocument.getDocumentCursorTools();
+          if (docCursor != null) {
+            docCursor.removeMarks(toRemarkTextParas);
+          }
         }
-      }
-      if (!isDisposed()) {
-        WtFlatParagraphTools flatPara = singleDocument.getFlatParagraphTools();
-        if (flatPara != null) {
-          flatPara.markParagraphs(changedParasMap);
+        if (!isDisposed()) {
+          WtFlatParagraphTools flatPara = singleDocument.getFlatParagraphTools();
+          if (flatPara != null) {
+            flatPara.markParagraphs(changedParasMap);
+          }
         }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     }
   }
@@ -433,7 +436,7 @@ public class WtSingleCheck {
    * (for different kinds of text level rules)
    */
   private List<WtProofreadingError[]> checkTextRules( String paraText, Locale locale, int[] footnotePos, int paraNum, 
-      int startSentencePos, WtLanguageTool lt, boolean textIsChanged, boolean isIntern, LoErrorType errType) throws Throwable{
+      int startSentencePos, WtLanguageTool lt, boolean textIsChanged, boolean isIntern, LoErrorType errType) throws Throwable {
     List<WtProofreadingError[]> pErrors = new ArrayList<>();
     if (isDisposed()) {
       return pErrors;
@@ -518,8 +521,8 @@ public class WtSingleCheck {
    */
   @Nullable
   public WtProofreadingError[] checkParaRules(String paraText, Locale locale, int[] footnotePos, int nFPara, int sentencePos, 
-          WtLanguageTool lt, int cacheNum, int parasToCheck, boolean textIsChanged, boolean isIntern, LoErrorType errType) {
-
+          WtLanguageTool lt, int cacheNum, int parasToCheck, boolean textIsChanged, 
+          boolean isIntern, LoErrorType errType)  throws Throwable {
     List<RuleMatch> paragraphMatches;
     WtProofreadingError[] pErrors = null;
     int startSentencePos = 0;
@@ -636,7 +639,7 @@ public class WtSingleCheck {
   /**
    * is a grammar error or a correct spell error
    */
-  private boolean isCorrectRuleMatch(RuleMatch ruleMatch, String text, Language lang) {
+  private boolean isCorrectRuleMatch(RuleMatch ruleMatch, String text, Language lang) throws Throwable {
     if (!ruleMatch.getRule().isDictionaryBasedSpellingRule()) {
       return true;
     }
@@ -855,7 +858,7 @@ public class WtSingleCheck {
    * Remove footnotes from paraText
    * run cleanFootnotes if information about footnotes are not supported
    */
-  public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars) {
+  public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars) throws Throwable {
     if (paraText == null) {
       return null;
     }

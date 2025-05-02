@@ -435,67 +435,72 @@ public class WtDocumentCache implements Serializable {
     }
     //  NOTE: flat paragraphs contain footnotes and endnotes as zero space characters
     //        text paragraphs contain footnotes and endnotes as digits or Roman characters
-    if (footnotes[footnotes.length - 1] >= flatPara.length()) {
-      WtMessageHandler.printToLogFile("DocumentCache: isEqualWithoutFootnotes: footnotes[footnotes.length - 1] >= flatPara.length()");
-      return false;
-    }
-    int tParaBeg;
-    String fPara;
-    String tPara;
-    textPara = removeZeroWidthSpace(textPara);
-    if (footnotes[0] > 0) {
-      fPara = flatPara.substring(0, footnotes[0]);
-      fPara = removeZeroWidthSpace(fPara);
-      if (!fPara.isEmpty()) {
-        if (textPara.length() < fPara.length()) {
-          return false;
-        }
-        tPara = textPara.substring(0, fPara.length());
-        if (!tPara.equals(fPara)) {
-          return false;
+    try {
+      if (footnotes[footnotes.length - 1] >= flatPara.length()) {
+        WtMessageHandler.printToLogFile("DocumentCache: isEqualWithoutFootnotes: footnotes[footnotes.length - 1] >= flatPara.length()");
+        return false;
+      }
+      int tParaBeg;
+      String fPara;
+      String tPara;
+      textPara = removeZeroWidthSpace(textPara);
+      if (footnotes[0] > 0) {
+        fPara = flatPara.substring(0, footnotes[0]);
+        fPara = removeZeroWidthSpace(fPara);
+        if (!fPara.isEmpty()) {
+          if (textPara.length() < fPara.length()) {
+            return false;
+          }
+          tPara = textPara.substring(0, fPara.length());
+          if (!tPara.equals(fPara)) {
+            return false;
+          }
         }
       }
-    }
-    if (footnotes[footnotes.length - 1] < flatPara.length() - 1) {
-      fPara = flatPara.substring(footnotes[footnotes.length - 1] + 1);
-      fPara = removeZeroWidthSpace(fPara);
-      if (!fPara.isEmpty()) {
-        tParaBeg = textPara.length() - fPara.length();
-        if (tParaBeg < 0) {
-          return false;
-        }
-        tPara = textPara.substring(tParaBeg);
-        if (!tPara.equals(fPara)) {
-          return false;
+      if (footnotes[footnotes.length - 1] < flatPara.length() - 1) {
+        fPara = flatPara.substring(footnotes[footnotes.length - 1] + 1);
+        fPara = removeZeroWidthSpace(fPara);
+        if (!fPara.isEmpty()) {
+          tParaBeg = textPara.length() - fPara.length();
+          if (tParaBeg < 0) {
+            return false;
+          }
+          tPara = textPara.substring(tParaBeg);
+          if (!tPara.equals(fPara)) {
+            return false;
+          }
+        } else {
+          tParaBeg = textPara.length() - 1;
         }
       } else {
         tParaBeg = textPara.length() - 1;
       }
-    } else {
-      tParaBeg = textPara.length() - 1;
-    }
-    for (int i = footnotes.length - 2; i >= 0; i--) {
-      flatPara = flatPara.substring(0, footnotes[i + 1]);
-      textPara = textPara.substring(0, tParaBeg);
-      fPara = flatPara.substring(footnotes[i] + 1);
-      fPara = removeZeroWidthSpace(fPara);
-      tParaBeg = textPara.length() - fPara.length();
-      boolean isEqual = false; 
-      for (int j = 0; j <= MAX_NOTE_CHAR && !isEqual; j++) {
-        if (tParaBeg - j < 0) {
-          break;
+      for (int i = footnotes.length - 2; i >= 0; i--) {
+        flatPara = flatPara.substring(0, footnotes[i + 1]);
+        textPara = textPara.substring(0, tParaBeg);
+        fPara = flatPara.substring(footnotes[i] + 1);
+        fPara = removeZeroWidthSpace(fPara);
+        tParaBeg = textPara.length() - fPara.length();
+        boolean isEqual = false; 
+        for (int j = 0; j <= MAX_NOTE_CHAR && !isEqual; j++) {
+          if (tParaBeg - j < 0) {
+            break;
+          }
+          tPara = textPara.substring(tParaBeg - j, textPara.length() - j);
+          isEqual = tPara.equals(fPara);
+          if (isEqual) {
+            tParaBeg -= j;
+          }
         }
-        tPara = textPara.substring(tParaBeg - j, textPara.length() - j);
-        isEqual = tPara.equals(fPara);
-        if (isEqual) {
-          tParaBeg -= j;
+        if (!isEqual) {
+          return false;
         }
       }
-      if (!isEqual) {
-        return false;
-      }
+      return true;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return false;
     }
-    return true;
   }
   
   /**
@@ -1997,7 +2002,10 @@ public class WtDocumentCache implements Serializable {
         }
       }
       return docText.toString();
-    } finally {
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return "";
+   } finally {
       rwLock.readLock().unlock();
     }
   }
@@ -2061,6 +2069,9 @@ public class WtDocumentCache implements Serializable {
         }
       }
       return pos;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return -1;
     } finally {
       rwLock.readLock().unlock();
     }
@@ -2338,7 +2349,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Has analyzed paragraph same length as text
    */
-  public boolean isCorrectAnalyzedParagraphLength(int nFPara, String text) { 
+  public boolean isCorrectAnalyzedParagraphLength(int nFPara, String text) throws Throwable { 
     List<AnalyzedSentence> analyzedSentences = getAnalyzedParagraph(nFPara);
     if (analyzedSentences == null) {
       return false;
@@ -2417,14 +2428,19 @@ public class WtDocumentCache implements Serializable {
   /**
    * create an analyzed paragraph and store it in analyzed Cache
    */
-  public List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, WtLanguageTool lt) throws IOException {
-    String paraText = getFlatParagraph(nFPara);
-    if (paraText == null) {
+  public List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, WtLanguageTool lt) {
+    try {
+      String paraText = getFlatParagraph(nFPara);
+      if (paraText == null) {
+        return null;
+      }
+      paraText = WtSingleCheck.removeFootnotes(paraText, 
+          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara));
+      return createAnalyzedParagraph(nFPara, paraText, lt);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
       return null;
     }
-    paraText = WtSingleCheck.removeFootnotes(paraText, 
-        getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara));
-    return createAnalyzedParagraph(nFPara, paraText, lt);
   }
 
   private List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, String paraText, WtLanguageTool lt) throws IOException {
@@ -2437,41 +2453,46 @@ public class WtDocumentCache implements Serializable {
    * Get an analyzed paragraph from analyzed Cache
    * if the requested paragraph doesn't exist create it
    */
-  public AnalysedText getOrCreateAnalyzedParagraph(int nFPara, WtLanguageTool lt) throws IOException {
-    String paraText = getFlatParagraph(nFPara);
-    if (paraText == null) {
+  public AnalysedText getOrCreateAnalyzedParagraph(int nFPara, WtLanguageTool lt) {
+    try {
+      String paraText = getFlatParagraph(nFPara);
+      if (paraText == null) {
+        return null;
+      }
+      paraText = fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
+          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara)));
+      paraText = paraText.replace("\u00AD", "");
+      List<AnalyzedSentence> analyzedSentences = getAnalyzedParagraph(nFPara);
+      List<String> sentences = new ArrayList<>();
+      if (analyzedSentences == null) {
+        analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
+      }
+      int len = 0;
+      for (AnalyzedSentence analyzedSentence : analyzedSentences) {
+        String sentence = analyzedSentence.getText();
+        len += sentence.length();
+        sentences.add(sentence);
+      }
+      if (len != paraText.length()) {
+  /*
+        String anSenText = "";
+        for (String txt : sentences) {
+          anSenText += txt;
+        }
+        MessageHandler.printToLogFile("DocumentCache: getOrCreateAnalyzedParagraph: Different length: (" + len + "/" + paraText.length()
+            + "):\nparaText: '" + paraText + "'\nAnalysed: '" + anSenText + "'");
+  */
+        analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
+        sentences.clear();
+        for (AnalyzedSentence analyzedSentence : analyzedSentences) {
+          sentences.add(analyzedSentence.getText());
+        }
+      }
+      return new AnalysedText(analyzedSentences, sentences, paraText);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
       return null;
     }
-    paraText = fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
-        getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara)));
-    paraText = paraText.replace("\u00AD", "");
-    List<AnalyzedSentence> analyzedSentences = getAnalyzedParagraph(nFPara);
-    List<String> sentences = new ArrayList<>();
-    if (analyzedSentences == null) {
-      analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
-    }
-    int len = 0;
-    for (AnalyzedSentence analyzedSentence : analyzedSentences) {
-      String sentence = analyzedSentence.getText();
-      len += sentence.length();
-      sentences.add(sentence);
-    }
-    if (len != paraText.length()) {
-/*
-      String anSenText = "";
-      for (String txt : sentences) {
-        anSenText += txt;
-      }
-      MessageHandler.printToLogFile("DocumentCache: getOrCreateAnalyzedParagraph: Different length: (" + len + "/" + paraText.length()
-          + "):\nparaText: '" + paraText + "'\nAnalysed: '" + anSenText + "'");
-*/
-      analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
-      sentences.clear();
-      for (AnalyzedSentence analyzedSentence : analyzedSentences) {
-        sentences.add(analyzedSentence.getText());
-      }
-    }
-    return new AnalysedText(analyzedSentences, sentences, paraText);
   }
 
   /**
@@ -2590,14 +2611,18 @@ public class WtDocumentCache implements Serializable {
    * update information about opening and closing quotes
    */
   public void updateQuoteInfo(WtSingleDocument document, int nPara) {
-    boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
-        != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
-    if (needQuoteInfo) {
-      TextParagraph tPara = getNumberOfTextParagraph(nPara);
-      if (tPara.type == CURSOR_TYPE_TEXT) {
-        WtQuotesDetection quotesDetector = new WtQuotesDetection();
-        quotesDetector.updateTextParagraph(getFlatParagraph(nPara), nPara, openingQuotes, closingQuotes);
+    try {
+      boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
+          != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
+      if (needQuoteInfo) {
+        TextParagraph tPara = getNumberOfTextParagraph(nPara);
+        if (tPara.type == CURSOR_TYPE_TEXT) {
+          WtQuotesDetection quotesDetector = new WtQuotesDetection();
+          quotesDetector.updateTextParagraph(getFlatParagraph(nPara), nPara, openingQuotes, closingQuotes);
+        }
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 

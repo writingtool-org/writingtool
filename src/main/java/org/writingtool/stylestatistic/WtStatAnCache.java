@@ -94,12 +94,12 @@ public class WtStatAnCache {
         WtMessageHandler.showError(e);
       }
     }
-    if (waitdialog != null) {
-      SwingUtilities.invokeLater(() -> { waitdialog.initializeProgressBar(0, 100); });
-    }
-    int textSize = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
-    for (int i = 0; i < textSize; i++) {
-      try {
+    try {
+      if (waitdialog != null) {
+        SwingUtilities.invokeLater(() -> { waitdialog.initializeProgressBar(0, 100); });
+      }
+      int textSize = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
+      for (int i = 0; i < textSize; i++) {
         int nFPara = docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, i));
         Locale locale = docCache.getFlatParagraphLocale(nFPara);
         if (docCache.getAnalyzedParagraph(nFPara) == null && locale != null && langCode.equals(locale.Language)) {
@@ -115,20 +115,20 @@ public class WtStatAnCache {
             docCache.createAnalyzedParagraph(nFPara, tmpLt);
           }
         }
-      } catch (IOException e) {
-        WtMessageHandler.showError(e);
+  //      if (sentences == null) {
+  //        sentences = new ArrayList<>();
+  //      }
+  //      analyzedParagraphs.add(sentences);
+        if (waitdialog != null) {
+          int nValue = i;
+          SwingUtilities.invokeLater(() -> { waitdialog.setValueForProgressBar(90 * nValue / textSize, false); });
+        }
       }
-//      if (sentences == null) {
-//        sentences = new ArrayList<>();
-//      }
-//      analyzedParagraphs.add(sentences);
-      if (waitdialog != null) {
-        int nValue = i;
-        SwingUtilities.invokeLater(() -> { waitdialog.setValueForProgressBar(90 * nValue / textSize, false); });
-      }
+      setHeadings();
+      setParagraphs();
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
     }
-    setHeadings();
-    setParagraphs();
   }
   
   private void setHeadings() {

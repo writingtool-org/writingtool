@@ -439,11 +439,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
  * set a AI result to the AI result box
  */
   public void setTextToAiResultBox(String paraText, String resultText, String instruction) {
-    if (paraText.equals(paragraphText)) {
-      aiResultText = resultText;
-      setAiLabelText(instruction);
-      setColorOfAiBox(paraText, resultText);
-      aiResultBox.setText(aiResultText);
+    try {
+      if (paraText.equals(paragraphText)) {
+        aiResultText = resultText;
+        setAiLabelText(instruction);
+        setColorOfAiBox(paraText, resultText);
+        aiResultBox.setText(aiResultText);
+      }
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
     }
   }
   
@@ -565,36 +569,40 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return xWindow;
   }
   
-  private void runAICommand(String cmd) throws Throwable {
-    WtAiRemote aiRemote = new WtAiRemote(documents, documents.getConfiguration());
-    WtDocumentCache docCache = documents.getCurrentDocument().getDocumentCache();
-    Locale locale = docCache.getTextParagraphLocale(tPara);
-    String instruction = null;
-    boolean onlyPara = false;
-    float temp = 0.7f;
-    if (cmd.equals("aiBetterStyle")) {
-      instruction = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
-      onlyPara = true;
-      temp = 0.0f;
-      setAiLabelText(WtAiRemote.STYLE_INSTRUCTION);
-    } else if (cmd.equals("aiReformulateText")) {
-      instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
-      onlyPara = true;
-      setAiLabelText(WtAiRemote.REFORMULATE_INSTRUCTION);
-    } else if (cmd.equals("aiAdvanceText")) {
-      instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
-      setAiLabelText(WtAiRemote.EXPAND_INSTRUCTION);
-    } else {
-      WtMessageHandler.showMessage("Unknown command: " + cmd);
+  private void runAICommand(String cmd) {
+    try {
+      WtAiRemote aiRemote = new WtAiRemote(documents, documents.getConfiguration());
+      WtDocumentCache docCache = documents.getCurrentDocument().getDocumentCache();
+      Locale locale = docCache.getTextParagraphLocale(tPara);
+      String instruction = null;
+      boolean onlyPara = false;
+      float temp = 0.7f;
+      if (cmd.equals("aiBetterStyle")) {
+        instruction = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
+        onlyPara = true;
+        temp = 0.0f;
+        setAiLabelText(WtAiRemote.STYLE_INSTRUCTION);
+      } else if (cmd.equals("aiReformulateText")) {
+        instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
+        onlyPara = true;
+        setAiLabelText(WtAiRemote.REFORMULATE_INSTRUCTION);
+      } else if (cmd.equals("aiAdvanceText")) {
+        instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
+        setAiLabelText(WtAiRemote.EXPAND_INSTRUCTION);
+      } else {
+        WtMessageHandler.showMessage("Unknown command: " + cmd);
+      }
+      setColorOfAiBox("", "");
+      aiResultBox.setText(WAIT_TEXT);
+      aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
+      if (aiResultText == null) {
+        aiResultText = "";
+      }
+      setColorOfAiBox(paragraphText, aiResultText);
+      aiResultBox.setText(aiResultText);
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
     }
-    setColorOfAiBox("", "");
-    aiResultBox.setText(WAIT_TEXT);
-    aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
-    if (aiResultText == null) {
-      aiResultText = "";
-    }
-    setColorOfAiBox(paragraphText, aiResultText);
-    aiResultBox.setText(aiResultText);
   }
   
   private void runGeneralDispatchCmd(String cmd) throws Throwable {
@@ -746,7 +754,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
-  private String reconstructAiTextFromCache(TextParagraph tPara, WtSingleDocument document) {
+  private String reconstructAiTextFromCache(TextParagraph tPara, WtSingleDocument document) throws Throwable {
     if (document == null) {
       return "";
     }

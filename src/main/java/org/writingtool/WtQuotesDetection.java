@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.writingtool.tools.WtMessageHandler;
+
 public class WtQuotesDetection {
   
   private static final List<String> startSymbols = Arrays.asList("“", "„", "»", "«", "\"");
@@ -20,7 +22,7 @@ public class WtQuotesDetection {
   /**
    * Defines exceptions from quotes
    */
-  private boolean isNotQuote (String txt, int i, int j) {
+  private boolean isNotQuote (String txt, int i, int j) throws Throwable {
     if ((i == 0 || Character.isWhitespace(txt.charAt(i - 1)))
         && (i >= txt.length() - 1 || Character.isWhitespace(txt.charAt(i + 1)))) {
       return true;
@@ -44,7 +46,7 @@ public class WtQuotesDetection {
   /**
    * defines an opening quote
    */
-  private boolean isOpeningQuote(String txt, int i) {
+  private boolean isOpeningQuote(String txt, int i) throws Throwable {
     String tChar = txt.substring(i, i + 1);
     for (int j = 0; j < startSymbols.size(); j++) {
       if (startSymbols.get(j).equals(tChar)) {
@@ -68,7 +70,7 @@ public class WtQuotesDetection {
   /**
    * defines an closing quote
    */
-  private boolean isClosingQuote(String txt, int i) {
+  private boolean isClosingQuote(String txt, int i) throws Throwable {
     String tChar = txt.substring(i, i + 1);
     for (int j = 0; j < endSymbols.size(); j++) {
       if (endSymbols.get(j).equals(tChar)) {
@@ -84,7 +86,7 @@ public class WtQuotesDetection {
   /**
    * analyse one paragraph
    */
-  private boolean analyzeOneParagraph(String txt, boolean isQuoteBefore) {
+  private boolean analyzeOneParagraph(String txt, boolean isQuoteBefore) throws Throwable {
     openingQuotes = new ArrayList<>();
     closingQuotes = new ArrayList<>();
     if (isQuoteBefore) {
@@ -114,13 +116,17 @@ public class WtQuotesDetection {
    * NOTE: Quotes lists have to initialized
    */
   public void analyzeTextParagraphs(List<String> paragraphs, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) {
-    oQuotes.clear();
-    cQuotes.clear();
-    boolean isQuoteBefore = false;
-    for (int i = 0; i < paragraphs.size(); i++) {
-      isQuoteBefore = analyzeOneParagraph(paragraphs.get(i), isQuoteBefore);
-      oQuotes.add(openingQuotes);
-      cQuotes.add(closingQuotes);
+    try {
+      oQuotes.clear();
+      cQuotes.clear();
+      boolean isQuoteBefore = false;
+      for (int i = 0; i < paragraphs.size(); i++) {
+        isQuoteBefore = analyzeOneParagraph(paragraphs.get(i), isQuoteBefore);
+        oQuotes.add(openingQuotes);
+        cQuotes.add(closingQuotes);
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -163,7 +169,7 @@ public class WtQuotesDetection {
     }
   }
   
-  public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) {
+  public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) throws Throwable {
     boolean isQuoteBefore = oQuotes.get(nPara) != null && oQuotes.get(nPara).size() > 0 && oQuotes.get(nPara).get(0) < 0; 
     isQuoteBefore = analyzeOneParagraph(txt, isQuoteBefore);
     oQuotes.set(nPara, openingQuotes);
