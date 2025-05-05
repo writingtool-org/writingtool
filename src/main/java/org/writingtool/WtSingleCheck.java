@@ -662,7 +662,7 @@ public class WtSingleCheck {
    * Creates a SingleGrammarError object for use in LO/OO.
    */
   public static WtProofreadingError createOOoError(RuleMatch ruleMatch, int startIndex, int[] footnotes,
-      Language docLanguage, WtConfiguration config) {
+      Language docLanguage, WtConfiguration config) throws Throwable {
     WtProofreadingError aError = new WtProofreadingError();
     if (ruleMatch.getRule().isDictionaryBasedSpellingRule()) {
       aError.nErrorType = TextMarkupType.SPELLCHECK;

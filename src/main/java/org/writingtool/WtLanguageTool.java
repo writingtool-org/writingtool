@@ -362,12 +362,12 @@ public class WtLanguageTool {
    * remote: spell checking is used for LT check dialog (is needed because method getAnalyzedSentence is not supported by remote check)
    */
   public List<RuleMatch> check(TextParagraph from, TextParagraph to, String text, ParagraphHandling paraMode, 
-      WtSingleDocument document) throws IOException {
+      WtSingleDocument document) throws Throwable {
     return check(from, to, text, paraMode, document, RemoteCheck.ALL);
   }
 
   public List<RuleMatch> check(TextParagraph from, TextParagraph to, String text, ParagraphHandling paraMode, 
-      WtSingleDocument document, RemoteCheck checkMode) throws IOException {
+      WtSingleDocument document, RemoteCheck checkMode) throws Throwable {
     if (isRemote) {
       List<RuleMatch> ruleMatches = rlt.check(text, paraMode, checkMode);
       if (ruleMatches == null) {
@@ -396,12 +396,12 @@ public class WtLanguageTool {
   }
 
   public List<RuleMatch> check(String text, ParagraphHandling paraMode, 
-      int nFPara, WtSingleDocument document) throws IOException {
+      int nFPara, WtSingleDocument document) throws Throwable {
     return check(text, paraMode, nFPara, document, RemoteCheck.ALL);
   }
 
   public List<RuleMatch> check(String text, ParagraphHandling paraMode, 
-      int nFPara, WtSingleDocument document, RemoteCheck checkMode) throws IOException {
+      int nFPara, WtSingleDocument document, RemoteCheck checkMode) throws Throwable {
     if (isRemote) {
       List<RuleMatch> ruleMatches = rlt.check(text, paraMode, checkMode);
       if (ruleMatches == null) {
@@ -430,7 +430,7 @@ public class WtLanguageTool {
   }
 
   public List<RuleMatch> check(String text, List<AnalyzedSentence> analyzedSentences, 
-      ParagraphHandling paraMode, RemoteCheck checkMode) throws IOException {
+      ParagraphHandling paraMode, RemoteCheck checkMode) throws Throwable {
     if (isRemote) {
       List<RuleMatch> ruleMatches = rlt.check(text, paraMode, checkMode);
       if (ruleMatches == null) {

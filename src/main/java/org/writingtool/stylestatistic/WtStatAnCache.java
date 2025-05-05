@@ -20,7 +20,6 @@
 package org.writingtool.stylestatistic;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -399,7 +398,7 @@ public class WtStatAnCache {
   /**
    * create an array of WtProofreadingErrors from an array of rule matches
    */
-  public WtProofreadingError[] createLoErrors(RuleMatch[] ruleMatches) {
+  public WtProofreadingError[] createLoErrors(RuleMatch[] ruleMatches) throws Throwable {
     if (ruleMatches == null || ruleMatches.length == 0) {
       return new WtProofreadingError[0];
     }
@@ -410,7 +409,7 @@ public class WtStatAnCache {
     return errors;
   }
   
-  public WtProofreadingError[] createLoErrors(List<RuleMatch> ruleMatches) {
+  public WtProofreadingError[] createLoErrors(List<RuleMatch> ruleMatches) throws Throwable {
     if (ruleMatches == null || ruleMatches.size() == 0) {
       return new WtProofreadingError[0];
     }
@@ -444,7 +443,7 @@ public class WtStatAnCache {
   /**
    * create a WtProofreadingError from a rule match
    */
-  private WtProofreadingError createLoError(RuleMatch ruleMatch) {
+  private WtProofreadingError createLoError(RuleMatch ruleMatch) throws Throwable {
     WtProofreadingError aError = new WtProofreadingError();
     aError.nErrorType = TextMarkupType.PROOFREADING;
     // the API currently has no support for formatting text in comments
@@ -483,7 +482,8 @@ public class WtStatAnCache {
   /**
    * create a WtProofreadingError from necessary data
    */
-  public WtProofreadingError createLoError(int errorStart, int errorLength, String ruleId, String msg, String[] allSuggestions) {
+  public WtProofreadingError createLoError(int errorStart, int errorLength, String ruleId, String msg, 
+      String[] allSuggestions) throws Throwable {
     WtProofreadingError aError = new WtProofreadingError();
     aError.nErrorType = TextMarkupType.PROOFREADING;
     // the API currently has no support for formatting text in comments

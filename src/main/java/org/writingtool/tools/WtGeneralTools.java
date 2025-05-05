@@ -133,7 +133,7 @@ public final class WtGeneralTools {
    * LibO shortens menu items with more than ~100 characters by dropping text in the middle.
    * That isn't really sensible, so we shorten the text here in order to preserve the important parts.
    */
-  public static String shortenComment(String comment) {
+  public static String shortenComment(String comment) throws Throwable {
     int maxCommentLength = 100;
     String shortComment = comment;
     if (shortComment.length() > maxCommentLength) {

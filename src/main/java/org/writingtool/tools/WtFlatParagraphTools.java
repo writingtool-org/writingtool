@@ -977,7 +977,7 @@ public class WtFlatParagraphTools {
           if (pError.nErrorStart >= paraLen) {
             WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: pError.nErrorStart >= paraLen: (" + 
                 pError.nErrorStart + "/" + paraLen + ") : paragraph: " + flatPara.getText());
-            break;
+            return;
           }
           props = flatPara.getMarkupInfoContainer();
           WtPropertyValue[] properties = pError.aProperties;

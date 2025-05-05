@@ -506,7 +506,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get the list of different locales out of the list of all locales
    */
-  List<Locale> getDifferentLocalesOftext(List<Locale> locales) {
+  List<Locale> getDifferentLocalesOftext(List<Locale> locales) throws Throwable {
     List<Locale> differentLocales = new ArrayList<>();
     for (Locale locale : locales) {
       if (locale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL)) {

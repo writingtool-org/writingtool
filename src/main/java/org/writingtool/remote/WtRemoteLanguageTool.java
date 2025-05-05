@@ -18,7 +18,6 @@
  */
 package org.writingtool.remote;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -117,7 +116,7 @@ public class WtRemoteLanguageTool {
   /**
    * check a text by a remote LT server
    */
-  public List<RuleMatch> check(String text, ParagraphHandling paraMode, RemoteCheck checkMode) throws IOException {
+  public List<RuleMatch> check(String text, ParagraphHandling paraMode, RemoteCheck checkMode) throws Throwable {
     if (!remoteRun) {
       return null;
     }
@@ -185,16 +184,20 @@ public class WtRemoteLanguageTool {
         subText = text.substring(nStart);
         limit = maxTextLength;
       } else {
-        int nEnd = text.lastIndexOf(WtOfficeTools.END_OF_PARAGRAPH, nStart + SERVER_LIMIT) + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
+        int nEnd = text.lastIndexOf(WtOfficeTools.END_OF_PARAGRAPH, nStart + maxTextLength) + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
         if (nEnd <= nStart) {
-          nEnd = text.lastIndexOf(BLANK, nStart + SERVER_LIMIT) + 1;
+          nEnd = text.lastIndexOf(BLANK, nStart + maxTextLength) + 1;
           if (nEnd <= nStart) {
-            nEnd = nStart + SERVER_LIMIT;
+            nEnd = nStart + maxTextLength;
           }
         }
         subText = text.substring(nStart, nEnd);
         limit = nEnd;
-      }
+//        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtRemoteLanguageTool: check: split text (nStart/nEnd/text.length): (" 
+                  + nStart + "/" + nEnd + "/" + text.length() + ")");
+//        }
+     }
       RemoteResult remoteResult;
       try {
         remoteResult = remoteLanguageTool.check(subText, remoteConfig);

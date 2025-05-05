@@ -1562,7 +1562,7 @@ public class WtDocumentsHandler {
     }
   }
   
-  private void showMoreInfo(WtProofreadingError error, Rule rule) throws MalformedURLException {
+  private void showMoreInfo(WtProofreadingError error, Rule rule) throws Throwable {
     String tmp = error.aShortComment;
     if (StringUtils.isEmpty(tmp)) {
       tmp = error.aFullComment;
