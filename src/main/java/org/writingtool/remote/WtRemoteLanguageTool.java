@@ -193,10 +193,10 @@ public class WtRemoteLanguageTool {
         }
         subText = text.substring(nStart, nEnd);
         limit = nEnd;
-//        if (debugMode) {
+        if (debugMode) {
           WtMessageHandler.printToLogFile("WtRemoteLanguageTool: check: split text (nStart/nEnd/text.length): (" 
                   + nStart + "/" + nEnd + "/" + text.length() + ")");
-//        }
+        }
      }
       RemoteResult remoteResult;
       try {

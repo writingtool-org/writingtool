@@ -222,7 +222,7 @@ public class WtResultCache implements Serializable {
   }
 
   /**
-   * get cache entry of paragraph
+   * get number of errors of paragraph
    */
   public int getNumberofErrors() {
     rwLock.readLock().lock();
@@ -234,6 +234,26 @@ public class WtResultCache implements Serializable {
         }
       }
       return num;
+    } finally {
+      rwLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * exceeds error length paragraph length
+   */
+  public boolean errorLenthExceedsParagraphLength(int numberOfParagraph, int paragraphLength) {
+    rwLock.readLock().lock();
+    try {
+      SerialCacheEntry entry = entries.get(numberOfParagraph);
+      if (entry != null) {
+        for (WtProofreadingError error : entry.errorArray) {
+          if (error.nErrorStart > paragraphLength || error.nErrorStart + error.nErrorLength > paragraphLength) {
+            return true;
+          }
+        }
+      }
+      return false;
     } finally {
       rwLock.readLock().unlock();
     }

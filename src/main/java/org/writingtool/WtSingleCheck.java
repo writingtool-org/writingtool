@@ -23,8 +23,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.languagetool.JLanguageTool;
@@ -46,6 +48,7 @@ import org.writingtool.tools.WtOfficeTools.LoErrorType;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
 import com.sun.star.text.TextMarkupType;
+import com.sun.star.text.XParagraphCursor;
 
 /**
  * Class for processing one LO/OO check request
@@ -127,9 +130,7 @@ public class WtSingleCheck {
       return new WtProofreadingError[0];
     }
     if (docType == DocumentType.WRITER && !isIntern && lastChangedPara >= 0 && !useQueue) {
-//      if (docCursor == null) {
-//        docCursor = new DocumentCursorTools(xComponent);
-//      }
+//    only for expert mode (not text or paragraph mode)
       List<Integer> changedParas = singleDocument.getLastChangedParas();
       if (changedParas == null) {
         changedParas = new ArrayList<Integer>();
@@ -141,13 +142,7 @@ public class WtSingleCheck {
       remarkChangedParagraphs(changedParas, changedParas, lt);
     }
     this.lastSinglePara = lastSinglePara;
-/*
-    if (numParasToCheck != 0 && paraNum >= 0) {
-      //  test real flat paragraph rather then the one given by Proofreader - it could be changed meanwhile
-      //  Don't use Cache for check in single paragraph mode
-      paraText = docCache.getFlatParagraph(paraNum);
-    }
-*/
+
     List<WtProofreadingError[]> pErrors = checkTextRules(paraText, locale, footnotePositions, paraNum, 
                                                                       startOfSentence, lt, textIsChanged, isIntern, errType);
     if (config.useAiSupport() && config.aiAutoCorrect() && paraNum >= 0) {
@@ -350,6 +345,30 @@ public class WtSingleCheck {
     }
   }
   
+  /** 
+   * filter marks out of range
+   */
+  private Map <Integer, List<SentenceErrors>> filterChangedParasMap (Map <Integer, List<SentenceErrors>> changedParasMap, 
+      WtDocumentCursorTools docCursor) throws Throwable {
+    if (!isDisposed() && docCursor != null) {
+      Set<Integer> paras = new HashSet<>(changedParasMap.keySet());
+      for (int para : paras) {
+        TextParagraph tPara = docCache.getNumberOfTextParagraph(para);
+        XParagraphCursor xPara = tPara == null ? null : docCursor.getParagraphCursor(tPara);
+        if (xPara != null) {
+          int paraLen = xPara.getString().length();
+          for (WtResultCache cache : paragraphsCache) {
+            if (cache.errorLenthExceedsParagraphLength(para, paraLen)) {
+              changedParasMap.remove(para);
+              break;
+            }
+          }
+        }
+      }
+    }
+    return changedParasMap;
+  }
+  
   /**
    * remark changed paragraphs
    * override existing marks
@@ -398,16 +417,16 @@ public class WtSingleCheck {
             }
           }
         }
+        WtDocumentCursorTools docCursor = singleDocument.getDocumentCursorTools();
         if (!isDisposed() && !toRemarkTextParas.isEmpty()) {
-          WtDocumentCursorTools docCursor = singleDocument.getDocumentCursorTools();
           if (docCursor != null) {
             docCursor.removeMarks(toRemarkTextParas);
           }
         }
         if (!isDisposed()) {
           WtFlatParagraphTools flatPara = singleDocument.getFlatParagraphTools();
-          if (flatPara != null) {
-            flatPara.markParagraphs(changedParasMap);
+          if (flatPara != null && docCursor != null) {
+            flatPara.markParagraphs(filterChangedParasMap(changedParasMap, docCursor));
           }
         }
       } catch (Throwable t) {
