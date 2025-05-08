@@ -1222,10 +1222,12 @@ public class WtMenus {
           int y = document.getDocumentCache().getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
           int x = viewCursor.getViewCursorCharacter();
           List<WtProofreadingError> errors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getErrorsAtPosition(y, x);
-          for (WtProofreadingError error : errors) {
-            if (error.nErrorType == TextMarkupType.SPELLCHECK 
-                && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
-                return error.aSuggestions[0];
+          if (errors != null) {
+            for (WtProofreadingError error : errors) {
+              if (error.nErrorType == TextMarkupType.SPELLCHECK 
+                  && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
+                  return error.aSuggestions[0];
+              }
             }
           }
         }
