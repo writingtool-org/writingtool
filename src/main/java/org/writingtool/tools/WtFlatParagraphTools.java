@@ -579,7 +579,15 @@ public class WtFlatParagraphTools {
   }
 
   /** 
-   * Returns positions of properties by name 
+   * flatparagraph has footnote 
+   */
+  public boolean hasFootnotes(XFlatParagraph xFlatPara) {
+    int[] footnotes = getIntArrayPropertyValue("FootnotePositions", xFlatPara);
+    return footnotes != null && footnotes.length > 0;
+  }
+
+  /** 
+   * Returns positions of footnotes of flatparagraph
    */
   public int[] getFootnotePosition(XFlatParagraph xFlatPara) {
     return getIntArrayPropertyValue("FootnotePositions", xFlatPara);
@@ -969,47 +977,57 @@ public class WtFlatParagraphTools {
       int paraLen = flatPara.getText().length();
       XMultiTextMarkup xMultiTextMarkup = UnoRuntime.queryInterface(XMultiTextMarkup.class, flatPara);
       for (SentenceErrors errors : errorList) {
-        XStringKeyMap props;
-        TextMarkupDescriptor[] markupDescriptor = new TextMarkupDescriptor[errors.sentenceErrors.length + 1];
-        int i = 0;
-        for (; i < errors.sentenceErrors.length; i++) {
-          WtProofreadingError pError = errors.sentenceErrors[i];
-          if (pError.nErrorStart >= paraLen) {
-            WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: pError.nErrorStart >= paraLen: (" + 
-                pError.nErrorStart + "/" + paraLen + ") : paragraph: " + flatPara.getText());
-            return;
-          }
-          props = flatPara.getMarkupInfoContainer();
-          WtPropertyValue[] properties = pError.aProperties;
-          int color = -1;
-          short type = -1;
-          for (WtPropertyValue property : properties) {
-            if ("LineColor".equals(property.name)) {
-              color = (int) property.value;
-            } else if ("LineType".equals(property.name)) {
-              type = (short) property.value;
+        //  commit all errors of one sentence
+        if (errors.sentenceEnd <= paraLen) {
+          XStringKeyMap props;
+          TextMarkupDescriptor[] markupDescriptor = new TextMarkupDescriptor[errors.sentenceErrors.length + 1];
+          int i = 0;
+          for (; i < errors.sentenceErrors.length; i++) {
+            WtProofreadingError pError = errors.sentenceErrors[i];
+            if (pError.nErrorStart >= paraLen) {
+//              if (debugMode) {
+                WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: pError.nErrorStart >= paraLen: (" + 
+                    pError.nErrorStart + "/" + paraLen + ") : paragraph: " + flatPara.getText());
+//              }
+              return;
+            }
+            props = flatPara.getMarkupInfoContainer();
+            WtPropertyValue[] properties = pError.aProperties;
+            int color = -1;
+            short type = -1;
+            for (WtPropertyValue property : properties) {
+              if ("LineColor".equals(property.name)) {
+                color = (int) property.value;
+              } else if ("LineType".equals(property.name)) {
+                type = (short) property.value;
+              }
+            }
+            if (color >= 0) {
+              props.insertValue("LineColor", color);
+            }
+            if (type > 0) {
+              props.insertValue("LineType", type);
+            }
+            int errLen = pError.nErrorLength;
+            if (errLen + pError.nErrorStart >= paraLen) {
+              errLen = paraLen - pError.nErrorStart;
+            }
+            if (errLen > 0) {
+              markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
+                  pError.nErrorStart, errLen, props);
             }
           }
-          if (color >= 0) {
-            props.insertValue("LineColor", color);
+          if (i == errors.sentenceErrors.length) {
+            props = flatPara.getMarkupInfoContainer();
+            markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
+                errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
+            xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor);
           }
-          if (type > 0) {
-            props.insertValue("LineType", type);
-          }
-          int errLen = pError.nErrorLength;
-          if (errLen + pError.nErrorStart >= paraLen) {
-            errLen = paraLen - pError.nErrorStart;
-          }
-          if (errLen > 0) {
-            markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
-                pError.nErrorStart, errLen, props);
-          }
-        }
-        if (i == errors.sentenceErrors.length) {
-          props = flatPara.getMarkupInfoContainer();
-          markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
-              errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
-          xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor);
+        } else {
+//        if (debugMode) {
+            WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: errors.sentenceEnd > paraLen: (" + 
+                errors.sentenceEnd + "/" + paraLen + ") : paragraph: " + flatPara.getText());
+//        }
         }
       }
       if (isChecked) {

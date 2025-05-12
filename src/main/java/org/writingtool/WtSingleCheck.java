@@ -346,6 +346,25 @@ public class WtSingleCheck {
   }
   
   /** 
+   * filter one changed paragraph if sentence or error length exceeds paragraph length
+   */
+  private void filterOneChangedParasMap (int nPara, int paraLen,
+      Map <Integer, List<SentenceErrors>> changedParasMap) throws Throwable {
+    for (SentenceErrors errors : changedParasMap.get(nPara)) {
+      if (errors.sentenceEnd > paraLen) {
+        changedParasMap.remove(nPara);
+        return;
+      }
+    }
+    for (WtResultCache cache : paragraphsCache) {
+      if (cache.errorLenthExceedsParagraphLength(nPara, paraLen)) {
+        changedParasMap.remove(nPara);
+        return;
+      }
+    }
+  }
+  
+  /** 
    * filter marks out of range
    */
   private Map <Integer, List<SentenceErrors>> filterChangedParasMap (Map <Integer, List<SentenceErrors>> changedParasMap, 
@@ -357,12 +376,7 @@ public class WtSingleCheck {
         XParagraphCursor xPara = tPara == null ? null : docCursor.getParagraphCursor(tPara);
         if (xPara != null) {
           int paraLen = xPara.getString().length();
-          for (WtResultCache cache : paragraphsCache) {
-            if (cache.errorLenthExceedsParagraphLength(para, paraLen)) {
-              changedParasMap.remove(para);
-              break;
-            }
-          }
+          filterOneChangedParasMap (para, paraLen, changedParasMap);
         }
       }
     }
@@ -848,7 +862,8 @@ public class WtSingleCheck {
       nextSentencePositions.add(0);
       return nextSentencePositions;
     }
-    if (lt == null || lt.isRemote()) {
+//    if (lt == null || lt.isRemote()) {
+    if (lt == null) {
       nextSentencePositions.add(paraText.length());
     } else {
       List<String> tokenizedSentences = lt.sentenceTokenize(cleanFootnotes(paraText));
