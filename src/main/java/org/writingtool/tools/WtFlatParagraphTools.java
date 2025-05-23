@@ -452,7 +452,7 @@ public class WtFlatParagraphTools {
         return getParagraphLanguage(flatPara, start, len);
       }
       Map<Locale, Integer> locales = new HashMap<Locale, Integer>();
-      for (int i = start; i < len; i++) {
+      for (int i = start; i < len + 1; i++) {
         Locale locale = flatPara.getLanguageOfText(i, 1);
         boolean existingLocale = false;
         for (Locale loc : locales.keySet()) {
