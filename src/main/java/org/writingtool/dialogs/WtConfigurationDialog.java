@@ -924,6 +924,16 @@ public class WtConfigurationDialog implements ActionListener {
     cons.anchor = GridBagConstraints.WEST;
     cons.fill = GridBagConstraints.NONE;
     cons.weightx = 0.0f;
+    JPanel ngramPanel = new JPanel();
+    ngramPanel.setLayout(new GridBagLayout());
+    GridBagConstraints cons11 = new GridBagConstraints();
+    cons11.insets = new Insets(0, 0, 0, 0);
+    cons11.gridx = 0;
+    cons11.gridy = 0;
+    cons11.anchor = GridBagConstraints.WEST;
+    cons11.fill = GridBagConstraints.NONE;
+    cons11.weightx = 0.0f;
+    addNgramPanel(cons11, ngramPanel);
     JCheckBox saveCacheBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiSaveCacheToFile")));
     JTextField otherServerNameField = new JTextField(config.getServerUrl() ==  null ? "" : config.getServerUrl(), 25);
     otherServerNameField.setMinimumSize(new Dimension(100, 25));
@@ -1047,6 +1057,7 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       isPremiumBox.setEnabled(false);
+      ngramPanel.setVisible(true);
       config.setMultiThreadLO(false);
       config.setRemoteCheck(false);
     });
@@ -1059,6 +1070,7 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       isPremiumBox.setEnabled(false);
+      ngramPanel.setVisible(true);
       config.setMultiThreadLO(true);
       config.setRemoteCheck(false);
     });
@@ -1081,6 +1093,7 @@ public class WtConfigurationDialog implements ActionListener {
         apiKeyLabel.setEnabled(isPremiumBox.isSelected());
         apiKeyField.setEnabled(isPremiumBox.isSelected());
         isPremiumBox.setEnabled(true);
+        ngramPanel.setVisible(false);
         config.setMultiThreadLO(false);
         config.setRemoteCheck(true);
       } else {
@@ -1104,6 +1117,7 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(isPremiumBox.isSelected());
       apiKeyField.setEnabled(isPremiumBox.isSelected());
       isPremiumBox.setEnabled(true);
+      ngramPanel.setVisible(false);
       config.setMultiThreadLO(false);
       config.setRemoteCheck(true);
     } else if (config.isMultiThread()) {
@@ -1115,6 +1129,7 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       isPremiumBox.setEnabled(false);
+      ngramPanel.setVisible(true);
       config.setMultiThreadLO(true);
       config.setRemoteCheck(false);
     } else {
@@ -1126,6 +1141,7 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       isPremiumBox.setEnabled(false);
+      ngramPanel.setVisible(true);
       config.setMultiThreadLO(false);
       config.setRemoteCheck(false);
     }
@@ -1182,13 +1198,13 @@ public class WtConfigurationDialog implements ActionListener {
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
     });
-    cons.insets = new Insets(0, SHIFT2, 0, 0);
+    cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     panel.add(saveCacheBox, cons);
 
     cons.gridy++;
-    panel.add(getNgramPanel(), cons);
+    panel.add(ngramPanel, cons);
     return panel;
   }
   
@@ -1802,20 +1818,6 @@ public class WtConfigurationDialog implements ActionListener {
     });
     motherTonguePanel.add(motherTongueBox, cons);
     return motherTonguePanel;
-  }
-
-  private JPanel getNgramPanel() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new GridBagLayout());
-    GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, 0, 0, 0);
-    cons1.gridx = 0;
-    cons1.gridy = 0;
-    cons1.anchor = GridBagConstraints.WEST;
-    cons1.fill = GridBagConstraints.NONE;
-    cons1.weightx = 0.0f;
-    addNgramPanel(cons1, panel);
-    return panel;
   }
 
   private void addNgramPanel(GridBagConstraints cons, JPanel panel) {
