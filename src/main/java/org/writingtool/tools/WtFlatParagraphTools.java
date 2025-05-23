@@ -388,14 +388,15 @@ public class WtFlatParagraphTools {
    * Get a save Locale 
    */
   private static Locale getSaveLocale(String language, String country, String variant) {
-    return new Locale(new String(language), new String(country), new String(variant));
+    return new Locale(new String(language == null ? "" : language), new String(country == null ? "" : country), 
+        new String(variant == null ? "" : variant));
   }
   
   /**
    * Get the language of paragraph 
    * @throws IllegalArgumentException 
    */
-  private static Locale getParagraphLanguage(XFlatParagraph flatPara, int first, int len) throws IllegalArgumentException {
+  private static Locale getParagraphLanguage(XFlatParagraph flatPara, int first, int len) throws Throwable {
     Locale locale = flatPara.getLanguageOfText(first, len);
     if (locale == null || locale.Language.isEmpty()) {
       locale = flatPara.getPrimaryLanguageOfText(first, len);
@@ -452,7 +453,7 @@ public class WtFlatParagraphTools {
         return getParagraphLanguage(flatPara, start, len);
       }
       Map<Locale, Integer> locales = new HashMap<Locale, Integer>();
-      for (int i = start; i < len + 1; i++) {
+      for (int i = start; i < len; i++) {
         Locale locale = flatPara.getLanguageOfText(i, 1);
         boolean existingLocale = false;
         for (Locale loc : locales.keySet()) {
@@ -503,7 +504,7 @@ public class WtFlatParagraphTools {
 
   /**
    * Get the main language of paragraph 
-   * @throws IllegalArgumentException 
+   * @throws Throwable 
    */
   public Locale getPrimaryLanguageOfPartOfParagraph(int nPara, int start, int len, Locale lastLocale) throws Throwable {
     isBusy++;
