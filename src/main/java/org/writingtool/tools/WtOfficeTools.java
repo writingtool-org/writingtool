@@ -1027,9 +1027,20 @@ public class WtOfficeTools {
     }
   }
   
-/**
- * Are statistical rules defined for this language?
- */
+  /**
+   * sleep for n milliseconds
+   */
+  public static void sleep(int n) {
+    try {
+      Thread.sleep(n);
+    } catch (InterruptedException e) {
+      WtMessageHandler.printException(e);
+    }
+  }
+
+  /**
+   * Are statistical rules defined for this language?
+   */
   public static boolean hasStatisticalStyleRules(XComponentContext xContext) {
     Language lang = getDefaultLanguage(xContext);
     if (lang == null) {

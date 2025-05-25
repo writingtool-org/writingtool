@@ -68,6 +68,7 @@ public class WtDocumentCache implements Serializable {
   
   private static final int MAX_NOTE_CHAR = 7;       //  supports Roman numbers to 87
   private static final int MAX_PRINTED_PARAS = 3;   //  maximal printed paragraphs to log file
+  private static final int WAIT_TIME = 20;          //  time to wait before update of paragraph cache
 
   private static boolean debugMode;     // should be false except for testing
   private static boolean debugModeTm;   // time measurement should be false except for testing
@@ -115,7 +116,7 @@ public class WtDocumentCache implements Serializable {
     debugMode = WtOfficeTools.DEBUG_MODE_DC;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
     this.docType = docType;
-    refresh(document, fixedLocale, docLocale, xComponent, 0);
+    refresh(document, fixedLocale, docLocale, xComponent, false, 0);
   }
 
   public WtDocumentCache(WtDocumentCache in) {
@@ -174,7 +175,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Refresh the cache
    */
-  public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, int fromWhere) {
+  public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, boolean wait, int fromWhere) {
     if (isReset) {
       WtMessageHandler.printToLogFile("DocumentCache:refresh: isReset == true: return");
       return;
@@ -188,6 +189,9 @@ public class WtDocumentCache implements Serializable {
       if (docType != DocumentType.WRITER) {
         refreshImpressCalcCache(xComponent);
       } else {
+        if (wait) {
+          WtOfficeTools.sleep(WAIT_TIME);
+        }
         refreshWriterCache(document, fixedLocale, docLocale, fromWhere);
       }
       setSingleParagraphsCacheToNull(document.getParagraphsCache());
@@ -2145,7 +2149,7 @@ public class WtDocumentCache implements Serializable {
    */
   public ChangedRange refreshAndCompare(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, int fromWhere) {
     WtDocumentCache oldCache = new WtDocumentCache(this);
-    this.refresh(document, fixedLocale, docLocale, xComponent, fromWhere);
+    this.refresh(document, fixedLocale, docLocale, xComponent, true, fromWhere);
     rwLock.readLock().lock();
     try {
       if (paragraphs == null || paragraphs.isEmpty() || oldCache.paragraphs == null || oldCache.paragraphs.isEmpty()) {

@@ -181,7 +181,7 @@ class WtCheckRequestAnalysis {
       startTime = System.currentTimeMillis();
     }
     if (docCache.isEmpty()) {
-      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, 1);
+      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, true, 1);
       if (debugMode > 0) {
         WtMessageHandler.printToLogFile("CheckRequestAnalysis: actualizeDocumentCache: resetAllParas (docCache is empty): new docCache.size: " + docCache.size()
                 + ", docID: " + docID + WtOfficeTools.LOG_LINE_BREAK);
@@ -336,7 +336,7 @@ class WtCheckRequestAnalysis {
       if (debugMode > 0 && proofInfo == WtOfficeTools.PROOFINFO_GET_PROOFRESULT) {
         WtMessageHandler.printToLogFile("CheckRequestAnalysis: getParaPos: start docCache.refresh");
       }
-      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, 3);
+      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, true, 3);
     }
 
     if (nPara >= 0) {
@@ -359,7 +359,7 @@ class WtCheckRequestAnalysis {
       if (debugMode > 0 && proofInfo == WtOfficeTools.PROOFINFO_GET_PROOFRESULT) {
         WtMessageHandler.printToLogFile("CheckRequestAnalysis: getParaPos: get DocumentCursorTools");
       }
-      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, 4);
+      docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), WtLinguisticServices.getLocale(docLanguage), xComponent, true, 4);
       if (debugMode > 0 && proofInfo == WtOfficeTools.PROOFINFO_GET_PROOFRESULT) {
         WtMessageHandler.printToLogFile("CheckRequestAnalysis: getParaPos: start docCache.refresh");
       }

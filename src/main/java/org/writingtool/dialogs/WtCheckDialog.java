@@ -290,7 +290,7 @@ public class WtCheckDialog extends Thread {
   private void actualizeNonWriterDocumentCache(WtSingleDocument document) {
     if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
       WtDocumentCache oldCache = new WtDocumentCache(docCache);
-      docCache.refresh(document, null, null, document.getXComponent(), 7);
+      docCache.refresh(document, null, null, document.getXComponent(), false, 7);
       if (!oldCache.isEmpty()) {
         boolean isSame = true;
         if (oldCache.size() != docCache.size()) {

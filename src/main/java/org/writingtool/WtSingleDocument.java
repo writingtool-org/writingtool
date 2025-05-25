@@ -321,7 +321,7 @@ public class WtSingleDocument {
           WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: refresh docCache");
         }
         docCache.refresh(this, WtLinguisticServices.getLocale(fixedLanguage), 
-            WtLinguisticServices.getLocale(docLanguage),xComponent, 6);
+            WtLinguisticServices.getLocale(docLanguage),xComponent, true, 6);
         resetDocCache = false;
       }
       if (docLanguage == null) {
