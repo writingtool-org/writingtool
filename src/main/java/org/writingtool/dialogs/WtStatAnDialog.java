@@ -355,6 +355,7 @@ public class WtStatAnDialog extends Thread  {
           selectedRule = getRuleByName(selectedRuleName);
           method = this.getMethodByRule(selectedRuleName);
           isLevelRule = isLevelRule(selectedRule);
+          chapter = null;
           try {
             if(isLevelRule) {
               levelRule = new WtLevelRule(selectedRule, cache);
@@ -509,7 +510,7 @@ public class WtStatAnDialog extends Thread  {
           try {
             usedWordRule.setWord(usedWordRule.getMostUsedWord(selectedIndex));
             setChapterPanel(chapter);
-            subChapterPane.setViewportView(getSubChapterPanel(0, cache.size(), 1, null));
+            subChapterPane.setViewportView(getSubChapterPanel(from, to, hierarchy, chapter));
             dialog.repaint();
           } catch (Throwable e1) {
             WtMessageHandler.showError(e1);
@@ -661,7 +662,8 @@ public class WtStatAnDialog extends Thread  {
     showParagraphsWithoutMatch.addActionListener(e -> {
       config.setShowAllParagraphs(showParagraphsWithoutMatch.isSelected());
       try {
-        runLevelSubDialog(null);
+        chapter = null;
+        runLevelSubDialog(chapter);
       } catch (Throwable e1) {
         WtMessageHandler.printException(e1);
       }
@@ -695,7 +697,8 @@ public class WtStatAnDialog extends Thread  {
             config.saveConfiguration();
             levelRule.setWithDirectSpeach(!levelRule.getDefaultDirectSpeach(), cache);
             levelRule.setCurrentStep(levelRule.getDefaultStep());
-            runLevelSubDialog(null);
+            chapter = null;
+            runLevelSubDialog(chapter);
           } catch (Throwable t) {
             WtMessageHandler.showError(t);
           }
@@ -708,7 +711,8 @@ public class WtStatAnDialog extends Thread  {
           try {
             config.saveConfiguration();
             levelRule.setCurrentStep(levelStep);
-            runLevelSubDialog(null);
+            chapter = null;
+            runLevelSubDialog(chapter);
           } catch (Throwable t) {
             WtMessageHandler.showError(t);
           }
@@ -722,7 +726,8 @@ public class WtStatAnDialog extends Thread  {
         try {
           config.saveConfiguration();
           levelRule.setWithDirectSpeach(!withoutDirectSpeech.isSelected(), cache);
-          runLevelSubDialog(null);
+          chapter = null;
+          runLevelSubDialog(chapter);
         } catch (Throwable t) {
           WtMessageHandler.showError(t);
         }
@@ -766,7 +771,8 @@ public class WtStatAnDialog extends Thread  {
           config.saveConfiguration();
           usedWordRule.setWithDirectSpeach(!usedWordRule.getDefaultDirectSpeach(), cache);
           usedWordRule.setCurrentStep(usedWordRule.getDefaultStep());
-          runLevelSubDialog(null);
+          chapter = null;
+          runLevelSubDialog(chapter);
         } catch (Throwable t) {
           WtMessageHandler.showError(t);
         }
@@ -779,7 +785,8 @@ public class WtStatAnDialog extends Thread  {
         try {
           config.saveConfiguration();
           usedWordRule.setCurrentStep(levelStep);
-          runLevelSubDialog(null);
+          chapter = null;
+          runLevelSubDialog(chapter);
         } catch (Throwable t) {
           WtMessageHandler.showError(t);
         }
@@ -793,7 +800,8 @@ public class WtStatAnDialog extends Thread  {
       try {
         config.saveConfiguration();
         usedWordRule.setWithDirectSpeach(!withoutDirectSpeech.isSelected(), cache);
-        runLevelSubDialog(null);
+        chapter = null;
+        runLevelSubDialog(chapter);
       } catch (Throwable t) {
         WtMessageHandler.showError(t);
       }
@@ -921,18 +929,33 @@ public class WtStatAnDialog extends Thread  {
     lastSinglePara = -1;
     
     hierarchy = chapter == null ? 0 : chapter.hierarchy;
+    this.chapter = chapter;
     setChapterPanel(chapter);
     if (chapter == null) {
       from = 0;
       to = cache.size();
       hierarchy = 1;
+//      throw new RuntimeException("chapter == null");
     } else {
       from = chapter.from + 1;
       to = chapter.to;
       hierarchy = chapter.hierarchy + 1;
     }
+    if (!isLevelRule) {
+      refreshUsedWords(from, to);
+    }
     subChapterPane.setViewportView(getSubChapterPanel(from, to, hierarchy, chapter));
     dialog.repaint();
+  }
+  
+  private void refreshUsedWords(int from, int to) throws Throwable {
+    usedWordRule.refreshMostUsed(from, to);
+    String[] mostUsedWords = null;
+    mostUsedWords = usedWordRule.getMostUsedWords();
+    usedWords.removeAllItems();
+    for (String mostUsedWord : mostUsedWords) {
+      usedWords.addItem(mostUsedWord);
+    }
   }
   
   private Color getBackgroundColor(int weight) {

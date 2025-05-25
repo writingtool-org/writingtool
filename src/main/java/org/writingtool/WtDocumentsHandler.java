@@ -1945,8 +1945,11 @@ public class WtDocumentsHandler {
         WtSpellChecker.resetSpellCache();
         resetDocument();
       } else if ("statisticalAnalyses".equals(sEvent)) {
-        WtStatAnDialog statAnDialog = new WtStatAnDialog(getCurrentDocument());
-        statAnDialog.start();
+        if (!statAnDialogRunning) {
+          statAnDialogRunning = true;
+          WtStatAnDialog statAnDialog = new WtStatAnDialog(getCurrentDocument());
+          statAnDialog.start();
+        }
       } else if ("offStatisticalAnalyses".equals(sEvent)) {
         //  statistical analysis id not supported for this language --> do nothing
       } else if ("writeAnalyzedParagraphs".equals(sEvent)) {
