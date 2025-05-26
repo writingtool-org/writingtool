@@ -1037,6 +1037,15 @@ public class WtOfficeTools {
       WtMessageHandler.printException(e);
     }
   }
+  
+  /**
+   * get the LO locale from a language
+   */
+  public static Locale getLocalFromLanguage(Language lang) {
+    String[] countries = lang.getCountries();
+    String country = countries.length != 1 ? "" : countries[0];
+    return new Locale(lang.getShortCode(), country, lang.getVariant() == null ? "" : lang.getVariant());
+  }
 
   /**
    * Are statistical rules defined for this language?
@@ -1054,7 +1063,7 @@ public class WtOfficeTools {
       for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, new ArrayList<>())) {
         if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
             rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
-          return true;
+          return true; 
         }
       }
     } catch (IOException e) {

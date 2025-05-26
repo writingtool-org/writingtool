@@ -73,6 +73,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   private static JLanguageTool lt = null;
   private static Locale lastLocale = null;                //  locale for spell check
   private Language lang;
+  private static Language fixedLanguage;
   private static SpellingCheckRule spellingCheckRule = null;
   private static MorfologikSpellerRule mSpellRule = null;
   private static HunspellRule hSpellRule = null;
@@ -180,6 +181,9 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           + ", DEBUG_MODE: " + DEBUG_MODE);
     }
     try {
+      if (fixedLanguage != null) {
+        locale = WtOfficeTools.getLocalFromLanguage(fixedLanguage);
+      }
       if (noLtSpeller || locale == null || !hasLocale(locale)) {
         if (DEBUG_MODE) {
           WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: noLtSpeller || locale == null || !hasLocale(locale): return false");
@@ -277,6 +281,9 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
    */
   @Override
   public XSpellAlternatives spell(String word, Locale locale, PropertyValue[] properties) throws IllegalArgumentException {
+    if (fixedLanguage != null) {
+      locale = WtOfficeTools.getLocalFromLanguage(fixedLanguage);
+    }
     LTSpellAlternatives alternatives = new LTSpellAlternatives(word, locale);
     return alternatives;
   }
@@ -288,8 +295,12 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     try {
       if (lastLocale == null || lang == null || !WtOfficeTools.isEqualLocale(lastLocale, locale)) {
         lastLocale = locale;
-        lang = WtDocumentsHandler.getLanguage(locale);
-
+//        WtMessageHandler.printToSpellLogFile("LtSpellChecker: initSpellChecker: fixed language: " + (fixedLanguage == null ? "null" : fixedLanguage.getShortCodeWithCountryAndVariant()));
+        if(fixedLanguage != null) {
+          lang = fixedLanguage;
+        } else {
+          lang = WtDocumentsHandler.getLanguage(locale);
+        }
         lt = new JLanguageTool(lang);
         for (Rule rule : lt.getAllRules()) {
           if (rule.isDictionaryBasedSpellingRule()) {
@@ -480,6 +491,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     try {
       confg = new WtConfiguration(WtOfficeTools.getWtConfigDir(xContext), 
           WtOfficeTools.CONFIG_FILE, null, true);
+      fixedLanguage = confg.getDefaultLanguage();
       WtOfficeTools.setLogLevel(confg.getlogLevel());
       DEBUG_MODE = WtOfficeTools.DEBUG_MODE_SP;
       return confg.useLtSpellChecker();
