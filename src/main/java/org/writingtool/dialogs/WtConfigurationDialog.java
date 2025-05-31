@@ -961,7 +961,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
       }
     });
-
+/*
     JCheckBox useServerBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUseServer")) + " ");
     useServerBox.setSelected(config.useOtherServer());
     useServerBox.addItemListener(e -> {
@@ -982,7 +982,7 @@ public class WtConfigurationDialog implements ActionListener {
         firstSelection = true;
       }
     });
-
+*/
     JLabel usernameLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("guiPremiumUsername")));
 
     JTextField usernameField = new JTextField(config.getRemoteUsername() ==  null ? "" : config.getRemoteUsername(), 25);
@@ -1034,7 +1034,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
       }
     });
-
+/*
     JCheckBox isPremiumBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUsePremiumAccount")) + " ");
     isPremiumBox.setSelected(config.isPremium());
     isPremiumBox.addItemListener(e -> {
@@ -1045,113 +1045,244 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(selected);
       apiKeyField.setEnabled(selected);
     });
-    
-    JRadioButton[] typeOfCheckButtons = new JRadioButton[3];
-    ButtonGroup typeOfCheckGroup = new ButtonGroup();
-    typeOfCheckButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOneThread")));
-    typeOfCheckButtons[0].addActionListener(e -> {
+*/    
+    JRadioButton[] localeRemoteCheckButtons = new JRadioButton[2];
+    ButtonGroup localeRemoteCheckGroup = new ButtonGroup();
+
+    JRadioButton[] localeCheckButtons = new JRadioButton[2];
+    ButtonGroup localeCheckGroup = new ButtonGroup();
+    localeCheckButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOneThread")));
+    localeCheckButtons[0].addActionListener(e -> {
       otherServerNameField.setEnabled(false);
-      useServerBox.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
-      isPremiumBox.setEnabled(false);
-      ngramPanel.setVisible(true);
       config.setMultiThreadLO(false);
       config.setRemoteCheck(false);
     });
-    typeOfCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiIsMultiThread")));
-    typeOfCheckButtons[1].addActionListener(e -> {
+    localeCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiIsMultiThread")));
+    localeCheckButtons[1].addActionListener(e -> {
       otherServerNameField.setEnabled(false);
-      useServerBox.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
-      isPremiumBox.setEnabled(false);
-      ngramPanel.setVisible(true);
       config.setMultiThreadLO(true);
       config.setRemoteCheck(false);
     });
-    typeOfCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseRemoteServer")));
-    typeOfCheckButtons[2].addActionListener(e -> {
+    JRadioButton[] remoteCheckButtons = new JRadioButton[3];
+    ButtonGroup remoteCheckGroup = new ButtonGroup();
+    remoteCheckButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseLtServer")));
+    remoteCheckButtons[0].addActionListener(e -> {
+      otherServerNameField.setEnabled(false);
+      usernameLabel.setEnabled(false);
+      usernameField.setEnabled(false);
+      apiKeyLabel.setEnabled(false);
+      apiKeyField.setEnabled(false);
+      config.setMultiThreadLO(false);
+      config.setRemoteCheck(true);
+      config.setPremium(false);
+      config.setUseOtherServer(false);
+    });
+    remoteCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUsePremiumAccount")));
+    remoteCheckButtons[1].addActionListener(e -> {
+      otherServerNameField.setEnabled(false);
+      usernameLabel.setEnabled(true);
+      usernameField.setEnabled(true);
+      apiKeyLabel.setEnabled(true);
+      apiKeyField.setEnabled(true);
+      config.setMultiThreadLO(false);
+      config.setRemoteCheck(true);
+      config.setPremium(true);
+      config.setUseOtherServer(false);
+    });
+    remoteCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseOtherServer")));
+    remoteCheckButtons[2].addActionListener(e -> {
       int select = WtOptionPane.OK_OPTION;
-      boolean selected = typeOfCheckButtons[2].isSelected();
+      if(firstSelection) {
+        select = showRemoteServerHint(localeCheckButtons[2], true);
+        firstSelection = false;
+      } else {
+        firstSelection = true;
+      }
+      if(select == WtOptionPane.OK_OPTION) {
+        config.setUseOtherServer(true);
+        otherServerNameField.setEnabled(true);
+        usernameLabel.setEnabled(false);
+        usernameField.setEnabled(false);
+        apiKeyLabel.setEnabled(false);
+        apiKeyField.setEnabled(false);
+        config.setMultiThreadLO(false);
+        config.setRemoteCheck(true);
+        config.setPremium(false);
+        config.setUseOtherServer(true);
+      } else {
+        localeRemoteCheckButtons[0].setSelected(true);
+        firstSelection = true;
+      }
+    });
+    
+    localeRemoteCheckButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseLocaleComputer")));
+    localeRemoteCheckButtons[0].addActionListener(e -> {
+      otherServerNameField.setEnabled(false);
+      usernameLabel.setEnabled(false);
+      usernameField.setEnabled(false);
+      apiKeyLabel.setEnabled(false);
+      apiKeyField.setEnabled(false);
+      config.setMultiThreadLO(localeCheckButtons[1].isSelected());
+      config.setRemoteCheck(false);
+      for (int i = 0; i < 2; i++) {
+        localeCheckButtons[i].setEnabled(true);
+      }
+      for (int i = 0; i < 3; i++) {
+        remoteCheckButtons[i].setEnabled(false);
+      }
+    });
+    localeRemoteCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseRemoteServer")));
+    localeRemoteCheckButtons[1].addActionListener(e -> {
+      int select = WtOptionPane.OK_OPTION;
+      boolean selected = localeRemoteCheckButtons[1].isSelected();
       if(selected && firstSelection) {
-        select = showRemoteServerHint(typeOfCheckButtons[2], false);
+        select = showRemoteServerHint(localeRemoteCheckButtons[1], false);
         firstSelection = false;
       } else {
         firstSelection = true;
       }
       if(select == WtOptionPane.OK_OPTION) {
 //        typeOfCheckButtons[2].setSelected(selected);
-        otherServerNameField.setEnabled(useServerBox.isSelected());
-        useServerBox.setEnabled(true);
-        usernameLabel.setEnabled(isPremiumBox.isSelected());
-        usernameField.setEnabled(isPremiumBox.isSelected());
-        apiKeyLabel.setEnabled(isPremiumBox.isSelected());
-        apiKeyField.setEnabled(isPremiumBox.isSelected());
-        isPremiumBox.setEnabled(true);
-        ngramPanel.setVisible(false);
+        otherServerNameField.setEnabled(config.useOtherServer());
+        usernameLabel.setEnabled(config.isPremium());
+        usernameField.setEnabled(config.isPremium());
+        apiKeyLabel.setEnabled(config.isPremium());
+        apiKeyField.setEnabled(config.isPremium());
         config.setMultiThreadLO(false);
         config.setRemoteCheck(true);
-      } else {
-        if (config.isMultiThread()) {
-          typeOfCheckButtons[1].setSelected(true);
-        } else {
-          typeOfCheckButtons[0].setSelected(true);
+        for (int i = 0; i < 2; i++) {
+          localeCheckButtons[i].setEnabled(false);
         }
+        for (int i = 0; i < 3; i++) {
+          remoteCheckButtons[i].setEnabled(true);
+        }
+      } else {
+        localeRemoteCheckButtons[0].setSelected(true);
         firstSelection = true;
       }
     });
+    for (int i = 0; i < 2; i++) {
+      localeRemoteCheckGroup.add(localeRemoteCheckButtons[i]);
+    }
+    for (int i = 0; i < 2; i++) {
+      localeCheckGroup.add(localeCheckButtons[i]);
+    }
     for (int i = 0; i < 3; i++) {
-      typeOfCheckGroup.add(typeOfCheckButtons[i]);
+      remoteCheckGroup.add(remoteCheckButtons[i]);
+    }
+    if (config.useOtherServer()) {
+      remoteCheckButtons[2].setSelected(true);
+    } else if (config.isPremium()) {
+      remoteCheckButtons[1].setSelected(true);
+    } else {
+      remoteCheckButtons[0].setSelected(true);
+    }
+    if (config.isMultiThread()) {
+      localeCheckButtons[1].setSelected(true);
+    } else {
+      localeCheckButtons[0].setSelected(true);
     }
     if (config.doRemoteCheck()) {
-      typeOfCheckButtons[2].setSelected(true);
-      otherServerNameField.setEnabled(useServerBox.isSelected());
-      useServerBox.setEnabled(true);
-      usernameLabel.setEnabled(isPremiumBox.isSelected());
-      usernameField.setEnabled(isPremiumBox.isSelected());
-      apiKeyLabel.setEnabled(isPremiumBox.isSelected());
-      apiKeyField.setEnabled(isPremiumBox.isSelected());
-      isPremiumBox.setEnabled(true);
-      ngramPanel.setVisible(false);
+      localeRemoteCheckButtons[1].setSelected(true);
+      localeCheckButtons[0].setSelected(true);
+      otherServerNameField.setEnabled(config.useOtherServer());
+      usernameLabel.setEnabled(config.isPremium());
+      usernameField.setEnabled(config.isPremium());
+      apiKeyLabel.setEnabled(config.isPremium());
+      apiKeyField.setEnabled(config.isPremium());
       config.setMultiThreadLO(false);
       config.setRemoteCheck(true);
+      for (int i = 0; i < 2; i++) {
+        localeCheckButtons[i].setEnabled(false);
+      }
+      for (int i = 0; i < 3; i++) {
+        remoteCheckButtons[i].setEnabled(true);
+      }
     } else if (config.isMultiThread()) {
-      typeOfCheckButtons[1].setSelected(true);
+      localeRemoteCheckButtons[0].setSelected(true);
       otherServerNameField.setEnabled(false);
-      useServerBox.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
-      isPremiumBox.setEnabled(false);
       ngramPanel.setVisible(true);
       config.setMultiThreadLO(true);
       config.setRemoteCheck(false);
+      for (int i = 0; i < 2; i++) {
+        localeCheckButtons[i].setEnabled(true);
+      }
+      for (int i = 0; i < 3; i++) {
+        remoteCheckButtons[i].setEnabled(false);
+      }
     } else {
-      typeOfCheckButtons[0].setSelected(true);
+      localeRemoteCheckButtons[0].setSelected(true);
+      localeCheckButtons[0].setSelected(true);
       otherServerNameField.setEnabled(false);
-      useServerBox.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
-      isPremiumBox.setEnabled(false);
       ngramPanel.setVisible(true);
       config.setMultiThreadLO(false);
       config.setRemoteCheck(false);
+      for (int i = 0; i < 2; i++) {
+        localeCheckButtons[i].setEnabled(true);
+      }
+      for (int i = 0; i < 3; i++) {
+        remoteCheckButtons[i].setEnabled(false);
+      }
     }
-    cons.gridy++;
-    cons.insets = new Insets(0, SHIFT2, 0, 0);
-    for (int i = 0; i < 3; i++) {
-      panel.add(typeOfCheckButtons[i], cons);
-      if (i < 3) cons.gridy++;
+    cons.insets = new Insets(2, SHIFT1, 2, 0);
+    panel.add(localeRemoteCheckButtons[0], cons);
+    cons.insets = new Insets(2, SHIFT2, 2, 0);
+    for (int i = 0; i < 2; i++) {
+      cons.gridy++;
+      panel.add(localeCheckButtons[i], cons);
     }
 
+    cons.insets = new Insets(8, SHIFT3, 8, 0);
+    cons.gridy++;
+    panel.add(ngramPanel, cons);
+
+    cons.insets = new Insets(2, SHIFT1, 2, 0);
+    cons.gridy++;
+    panel.add(localeRemoteCheckButtons[1], cons);
+    cons.insets = new Insets(2, SHIFT2, 2, 0);
+    for (int i = 0; i < 2; i++) {
+      cons.gridy++;
+      panel.add(remoteCheckButtons[i], cons);
+    }
+    cons.insets = new Insets(0, SHIFT3, 0, 0);
+    cons.gridy++;
+    panel.add(usernameLabel, cons);
+    cons.gridy++;
+    panel.add(usernameField, cons);
+    cons.gridy++;
+    panel.add(apiKeyLabel, cons);
+    cons.gridy++;
+    panel.add(apiKeyField, cons);
+    
+    cons.insets = new Insets(2, SHIFT2, 2, 0);
+    cons.gridy++;
+    panel.add(remoteCheckButtons[2], cons);
+    cons.insets = new Insets(0, SHIFT3, 0, 0);
+    cons.gridy++;
+    panel.add(otherServerNameField, cons);
+    JLabel serverExampleLabel = new JLabel(" " + WtGeneralTools.getLabel(messages.getString("guiUseServerExample")));
+    serverExampleLabel.setEnabled(false);
+    cons.gridy++;
+    panel.add(serverExampleLabel, cons);
+    
+    
+/*
     JPanel serverPanel = new JPanel();
     serverPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
@@ -1171,7 +1302,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy++;
     panel.add(serverPanel, cons);
-
+*/
+/*
     JPanel premiumPanel = new JPanel();
     premiumPanel.setLayout(new GridBagLayout());
     cons1 = new GridBagConstraints();
@@ -1194,17 +1326,15 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy++;
     panel.add(premiumPanel, cons);
+*/
     saveCacheBox.setSelected(config.saveLoCache());
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
     });
-    cons.insets = new Insets(16, SHIFT2, 0, 0);
+    cons.insets = new Insets(20, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     panel.add(saveCacheBox, cons);
-
-    cons.gridy++;
-    panel.add(ngramPanel, cons);
     return panel;
   }
   
