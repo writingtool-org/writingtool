@@ -270,7 +270,7 @@ public class WtDocumentsHandler {
           textLevelQueue = new WtTextLevelCheckQueue(this);
         }
         if (aiQueue == null && config.getNumParasToCheck() != 0 && config.useAiSupport() && config.aiAutoCorrect()) {
-          aiQueue = new WtAiCheckQueue(this);
+          aiQueue = new WtAiCheckQueue(this, config.aiSingleParagraphMode());
         }
       }
     }
@@ -1101,8 +1101,9 @@ public class WtDocumentsHandler {
     }
     if (config.useAiSupport() && config.aiAutoCorrect() && !isBackgroundCheckOff()) {
       if (aiQueue == null) {
-        aiQueue = new WtAiCheckQueue(this);
+        aiQueue = new WtAiCheckQueue(this, config.aiSingleParagraphMode());
       } else {
+        aiQueue.setSingleParagraphMode(config.aiSingleParagraphMode());
         aiQueue.setReset();
       }
     } else if (aiQueue != null) {

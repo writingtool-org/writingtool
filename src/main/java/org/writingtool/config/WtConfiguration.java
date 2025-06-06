@@ -95,6 +95,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
   static final boolean DEFAULT_AI_AUTO_CORRECT = true;
   static final boolean DEFAULT_AI_AUTO_SUGGESTION = false;
+  static final boolean DEFAULT_AI_SINGLE_PARAGRAPH = false;
   static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
   
   static final String DEFAULT_AI_MODEL = "gpt-4";
@@ -181,6 +182,7 @@ public class WtConfiguration {
   private static final String AI_USE_AI_SUPPORT_KEY = "useAiSupport";
   private static final String AI_AUTO_CORRECT_KEY = "aiAutoCorrect";
   private static final String AI_AUTO_SUGGESTION_KEY = "aiAutoSuggestion";
+  private static final String AI_SINGLE_PARAGRAPH_KEY = "aiSingleParagraphMode";
   private static final String AI_SHOW_STYLISTIC_CHANGES_KEY = "aiShowStylisticChangesInt";
   private static final String AI_IMG_URL_KEY = "aiImgUrl";
   private static final String AI_IMG_APIKEY_KEY = "aiImgApiKey";
@@ -284,6 +286,7 @@ public class WtConfiguration {
   private boolean useAiSupport = DEFAULT_USE_AI_SUPPORT;
   private boolean aiAutoCorrect = DEFAULT_AI_AUTO_CORRECT;
   private boolean aiAutoSuggestion = DEFAULT_AI_AUTO_SUGGESTION;
+  private boolean aiSingleParagraphMode = DEFAULT_AI_SINGLE_PARAGRAPH;
   private int aiShowStylisticChanges = DEFAULT_AI_SHOW_STYLISTIC_CHANGES;
   private String aiImgUrl = DEFAULT_AI_IMG_URL;
   private String aiImgApiKey = DEFAULT_AI_IMG_APIKEY;
@@ -386,6 +389,7 @@ public class WtConfiguration {
     useAiSupport = DEFAULT_USE_AI_SUPPORT;
     aiAutoCorrect = DEFAULT_AI_AUTO_CORRECT;
     aiAutoSuggestion = DEFAULT_AI_AUTO_SUGGESTION;
+    aiSingleParagraphMode = DEFAULT_AI_SINGLE_PARAGRAPH;
     aiShowStylisticChanges = DEFAULT_AI_SHOW_STYLISTIC_CHANGES;
     aiImgUrl = DEFAULT_AI_IMG_URL;
     aiImgApiKey = DEFAULT_AI_IMG_APIKEY;
@@ -472,6 +476,7 @@ public class WtConfiguration {
     this.useAiSupport = configuration.useAiSupport;
     this.aiAutoCorrect = configuration.aiAutoCorrect;
     this.aiAutoSuggestion = configuration.aiAutoSuggestion;
+    this.aiSingleParagraphMode = configuration.aiSingleParagraphMode;
     this.aiShowStylisticChanges = configuration.aiShowStylisticChanges;
     this.aiImgUrl = configuration.aiImgUrl;
     this.aiImgApiKey = configuration.aiImgApiKey;
@@ -738,6 +743,14 @@ public class WtConfiguration {
 
   public void setAiAutoSuggestion(boolean aiAutoSuggestion) {
     this.aiAutoSuggestion = aiAutoSuggestion;
+  }
+
+  public boolean aiSingleParagraphMode() {
+    return aiSingleParagraphMode;
+  }
+
+  public void setAiSingleParagraphMode(boolean aiSingleParagraphMode) {
+    this.aiSingleParagraphMode = aiSingleParagraphMode;
   }
 
   public int aiShowStylisticChanges() {
@@ -1852,6 +1865,11 @@ public class WtConfiguration {
       aiAutoSuggestion = Boolean.parseBoolean(aiString);
     }
     
+    aiString = (String) props.get(prefix + AI_SINGLE_PARAGRAPH_KEY);
+    if (aiString != null) {
+      aiSingleParagraphMode = Boolean.parseBoolean(aiString);
+    }
+    
     aiString = (String) props.get(prefix + AI_SHOW_STYLISTIC_CHANGES_KEY);
     if (aiString != null) {
       aiShowStylisticChanges = Integer.parseInt(aiString);
@@ -2163,6 +2181,7 @@ public class WtConfiguration {
     allProfileKeys.add(AI_USE_AI_SUPPORT_KEY);
     allProfileKeys.add(AI_AUTO_CORRECT_KEY);
     allProfileKeys.add(AI_AUTO_SUGGESTION_KEY);
+    allProfileKeys.add(AI_SINGLE_PARAGRAPH_KEY);
     allProfileKeys.add(AI_SHOW_STYLISTIC_CHANGES_KEY);
     allProfileKeys.add(AI_IMG_URL_KEY);
     allProfileKeys.add(AI_IMG_APIKEY_KEY);
@@ -2332,6 +2351,9 @@ public class WtConfiguration {
     }
     if (aiAutoSuggestion != DEFAULT_AI_AUTO_SUGGESTION) {
       props.setProperty(prefix + AI_AUTO_SUGGESTION_KEY, Boolean.toString(aiAutoSuggestion));
+    }
+    if (aiSingleParagraphMode != DEFAULT_AI_SINGLE_PARAGRAPH) {
+      props.setProperty(prefix + AI_SINGLE_PARAGRAPH_KEY, Boolean.toString(aiSingleParagraphMode));
     }
     if (this.aiShowStylisticChanges != DEFAULT_AI_SHOW_STYLISTIC_CHANGES) {
       props.setProperty(prefix + AI_SHOW_STYLISTIC_CHANGES_KEY, Integer.toString(aiShowStylisticChanges));

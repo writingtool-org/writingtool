@@ -46,11 +46,16 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
   private final static int MIN_TEXT_LENGTH = 300;
 
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
-  private boolean multiParagraphMode = false;
+  private boolean singleParagraphMode = false;
 
-  public WtAiCheckQueue(WtDocumentsHandler multiDocumentsHandler) {
+  public WtAiCheckQueue(WtDocumentsHandler multiDocumentsHandler, boolean singleParagraphMode) {
     super(multiDocumentsHandler);
+    this.singleParagraphMode = singleParagraphMode;
     WtMessageHandler.printToLogFile("AI Queue started");
+  }
+  
+  public void setSingleParagraphMode(boolean singleParagraphMode) {
+    this.singleParagraphMode = singleParagraphMode;
   }
   
   /**
@@ -181,7 +186,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
         WtDocumentCache docCache = document.getDocumentCache();
         if (docCache != null) {
           WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
-          if (!multiParagraphMode || startPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
+          if (singleParagraphMode || startPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
             int nFPara = startPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? startPara.number : docCache.getFlatParagraphNumber(startPara);
             if (debugMode > 1) {
               WtMessageHandler.printToLogFile("Run AI Queue Entry for " 
@@ -212,8 +217,8 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
    * @throws Throwable 
    */
   public QueueEntry createAiQueueEntry(TextParagraph nTPara, int nCache, int nCheck, WtSingleDocument document, boolean overrideRunning) throws Throwable {
-    TextParagraph nStart = multiParagraphMode ? new TextParagraph(nTPara.type, getStartOfParaCheck(nTPara, document.getDocumentCache())) : nTPara;
-    TextParagraph nEnd = multiParagraphMode ? new TextParagraph(nTPara.type, getEndOfParaCheck(nTPara, document.getDocumentCache())) : nTPara;
+    TextParagraph nStart = !singleParagraphMode ? new TextParagraph(nTPara.type, getStartOfParaCheck(nTPara, document.getDocumentCache())) : nTPara;
+    TextParagraph nEnd = !singleParagraphMode ? new TextParagraph(nTPara.type, getEndOfParaCheck(nTPara, document.getDocumentCache())) : nTPara;
     return (new QueueEntry(nStart, nEnd, nCache, nCheck, document.getDocID(), overrideRunning));
   }
   
@@ -287,7 +292,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
       if (textParagraph.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
         return docCache.getFlatParagraph(textParagraph.number);
       }
-      if (!multiParagraphMode) {
+      if (singleParagraphMode) {
         return docCache.getTextParagraph(textParagraph);
       }
       int startPos = getStartOfParaCheck(textParagraph, docCache);

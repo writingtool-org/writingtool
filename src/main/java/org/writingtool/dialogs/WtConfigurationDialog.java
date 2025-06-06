@@ -2884,6 +2884,12 @@ public class WtConfigurationDialog implements ActionListener {
       config.setAiAutoSuggestion(aiAutoSuggestionBox.isSelected());
     });
 
+    JCheckBox aiSingleParagraphBox = new JCheckBox(messages.getString("guiAiCheckParagraphsIndividually"));
+    aiSingleParagraphBox.setSelected(config.aiSingleParagraphMode());
+    aiSingleParagraphBox.addItemListener(e -> {
+      config.setAiSingleParagraphMode(aiSingleParagraphBox.isSelected());
+    });
+
     JCheckBox autoCorrectBox = new JCheckBox(messages.getString("guiAiAutoCorrect"));
     autoCorrectBox.setSelected(config.aiAutoCorrect());
     autoCorrectBox.addItemListener(e -> {
@@ -2892,6 +2898,7 @@ public class WtConfigurationDialog implements ActionListener {
         rButton.setEnabled(autoCorrectBox.isSelected());
       }
       aiAutoSuggestionBox.setEnabled(autoCorrectBox.isSelected());
+      aiSingleParagraphBox.setEnabled(autoCorrectBox.isSelected());
     });
 
     JCheckBox useAiSupportBox = new JCheckBox(messages.getString("guiUseAiSupport"));
@@ -2906,6 +2913,7 @@ public class WtConfigurationDialog implements ActionListener {
         rButton.setEnabled(useAiSupportBox.isSelected() && autoCorrectBox.isSelected());
       }
       aiAutoSuggestionBox.setEnabled(useAiSupportBox.isSelected() && autoCorrectBox.isSelected());
+      aiSingleParagraphBox.setEnabled(useAiSupportBox.isSelected() && autoCorrectBox.isSelected());
     });
     
     aiUrlField.setEnabled(config.useAiSupport());
@@ -2977,6 +2985,9 @@ public class WtConfigurationDialog implements ActionListener {
     
     cons.gridy++;
     aiOptionPanel.add(aiAutoSuggestionBox, cons);
+
+    cons.gridy++;
+    aiOptionPanel.add(aiSingleParagraphBox, cons);
 
     cons.insets = new Insets(16, SHIFT2, 0, 0);
     cons.gridy++;
