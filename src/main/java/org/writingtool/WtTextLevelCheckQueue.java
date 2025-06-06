@@ -420,12 +420,12 @@ public class WtTextLevelCheckQueue {
    */
   protected static class QueueEntry {
     public TextParagraph nStart;
-    TextParagraph nEnd;
-    int nCache;
-    int nCheck;
+    public TextParagraph nEnd;
+    public int nCache;
+    public int nCheck;
     public String docId;
-    boolean overrideRunning;
-    int special = WtTextLevelCheckQueue.NO_FLAG;
+    public boolean overrideRunning;
+    public int special = WtTextLevelCheckQueue.NO_FLAG;
     
     public QueueEntry(TextParagraph nStart, TextParagraph nEnd, int nCache, int nCheck, String docId, boolean overrideRunning) {
       this.nStart = nStart;

@@ -28,11 +28,14 @@ import java.util.regex.Pattern;
 import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedToken;
 import org.languagetool.AnalyzedTokenReadings;
+import org.languagetool.Language;
 import org.languagetool.Tag;
 import org.languagetool.rules.Categories;
 import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.RuleMatch;
 import org.languagetool.rules.RuleMatch.Type;
+import org.languagetool.tools.Tools;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLinguisticServices;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -128,6 +131,7 @@ public class WtAiDetectionRule extends TextLevelRule {
       List<AiRuleMatch> tmpMatches = new ArrayList<>();
       List<WtAiToken> paraTokens = new ArrayList<>();
       List<Integer> sentenceEnds = new ArrayList<>();
+      List<Boolean> isParagraphEnd = new ArrayList<>();
       int nRuleTokens = 0;
       int nSentence = 0;
   //    int lastSentenceStart = 0;
@@ -139,6 +143,9 @@ public class WtAiDetectionRule extends TextLevelRule {
       int nResultTokenStart = 0;
       int nResultTokenEnd = 0;
       boolean mergeSentences = false;
+      int nParagraphEnd = -1;
+      int ne = 0;
+      Language lang = WtDocumentsHandler.getLanguage(locale);
       for (AnalyzedSentence sentence : sentences) {
         AnalyzedTokenReadings[] tokens = sentence.getTokensWithoutWhitespace();
         for (int i = 1; i < tokens.length; i++) {
@@ -147,6 +154,8 @@ public class WtAiDetectionRule extends TextLevelRule {
         }
         pos += sentence.getCorrectedTextLength();
         sentenceEnds.add(sEnd);
+        isParagraphEnd.add(Tools.isParagraphEnd(sentences, ne, lang));
+        ne++;
       }
       List<WtAiToken> resultTokens = new ArrayList<>();
       pos = 0;
@@ -301,6 +310,9 @@ public class WtAiDetectionRule extends TextLevelRule {
           if (i > sentenceEnds.get(nSentence) || !PUNCTUATION.matcher(resultTokens.get(nResultTokenEnd).getToken()).matches()) {
             //  merge sentence only if there is no punctuation change
             mergeSentences = true;
+            if (isParagraphEnd.get(nSentence)) {
+              nParagraphEnd = sentenceEnds.get(nSentence);
+            }
           }
           while (i >= sentenceEnds.get(nSentence)) {
             nSentence++;
@@ -309,7 +321,34 @@ public class WtAiDetectionRule extends TextLevelRule {
         if (i == sentenceEnds.get(nSentence) - 1) {
           if (nRuleTokens > 0) {
             int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : sentenceEnds.get(nSentence) - sentenceEnds.get(nSentence - 1);
-            if (mergeSentences || styleHintAssumed(nRuleTokens, nSenTokens, tmpMatches, paraTokens, resultTokens)) {
+            if (nParagraphEnd >= 0) {
+              if (showStylisticHints == 2 && !tmpMatches.isEmpty()) {
+                //  all changes to first paragraph
+                int startPos = tmpMatches.get(0).ruleMatch.getFromPos();
+                int endPos = nParagraphEnd;
+                RuleMatch ruleMatch = new RuleMatch(this, null, startPos, endPos, ruleMessage);
+                int suggestionStart = tmpMatches.get(0).suggestionStart;
+                int suggestionEnd = tmpMatches.get(tmpMatches.size() - 1).suggestionEnd;
+                String suggestion = aiResultText.substring(suggestionStart, suggestionEnd);
+                ruleMatch.addSuggestedReplacement(suggestion);
+                ruleMatch.setType(Type.Other);
+                matches.add(ruleMatch);
+                //  remove all changes from next paragraph
+                startPos = nParagraphEnd;
+                endPos = tmpMatches.get(tmpMatches.size() - 1).ruleMatch.getToPos();
+                ruleMatch = new RuleMatch(this, null, startPos, endPos, ruleMessage);
+                ruleMatch.addSuggestedReplacement("");
+                ruleMatch.setType(Type.Other);
+                matches.add(ruleMatch);
+                if (debugMode > 1) {
+                  WtMessageHandler.printToLogFile("AiDetectionRule: match(1): Stylistic hint: suggestion: " + suggestion);
+                  WtMessageHandler.printToLogFile("AiDetectionRule: match: mergeSentences: " + mergeSentences 
+                      + ", styleHintAssumed: " + styleHintAssumed(nRuleTokens, nSenTokens, tmpMatches, paraTokens, resultTokens));
+                }
+              }
+              mergeSentences = false;
+              nParagraphEnd = -1;
+            } else if (mergeSentences || styleHintAssumed(nRuleTokens, nSenTokens, tmpMatches, paraTokens, resultTokens)) {
               if (showStylisticHints == 2 && !tmpMatches.isEmpty()) {
                 int startPos = tmpMatches.get(0).ruleMatch.getFromPos();
                 int endPos = tmpMatches.get(tmpMatches.size() - 1).ruleMatch.getToPos();
@@ -342,6 +381,8 @@ public class WtAiDetectionRule extends TextLevelRule {
           lastResultStart = j;
         }
       }
+      // End of main loop
+      
 //      WtMessageHandler.printToLogFile("i = " + i + ", j = " + j + ", resultTokens.size() = " + resultTokens.size() 
 //        + ", resultTokens(resultTokens.size() - 2): " + resultTokens.get(resultTokens.size() - 2).getToken()
 //        + ", resultTokens(resultTokens.size() - 1): " + resultTokens.get(resultTokens.size() - 1).getToken()

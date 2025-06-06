@@ -32,6 +32,8 @@ import org.writingtool.WtProofreadingError;
 import org.writingtool.WtResultCache;
 import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
+import org.writingtool.WtDocumentCache.AnalysedText;
+import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtResultCache.CacheEntry;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.config.WtConfiguration;
@@ -118,6 +120,31 @@ public class WtAiErrorDetection {
     }
   }
 
+  public void addAiRuleMatchesForText(TextParagraph from, TextParagraph to, String textToCheck, DetectionType type) {
+    try {
+      if (docCache == null || from == null || to == null) {
+        return;
+      }
+      this.type = type;
+      if (textToCheck == null || textToCheck.trim().isEmpty() || lt == null) {
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: text " + textToCheck + " is empty: return");
+        }
+        addTextMatchesByAiRule(from, to, textToCheck, null);
+        return;
+      }
+      Locale locale = docCache.getTextParagraphLocale(from);
+      RuleMatch[] ruleMatches = getAiRuleMatchesForText(from, to, textToCheck, locale);
+      if (debugMode > 1 && ruleMatches != null) {
+        WtMessageHandler.printToLogFile("AiErrorDetection: addAiRuleMatchesForParagraph: from (Flatnumber): " 
+                + docCache.getFlatParagraphNumber(from) + ", rulematches: " + ruleMatches.length);
+      }
+      addTextMatchesByAiRule(from, to, textToCheck, ruleMatches);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+
   public void addAiRuleMatchesForParagraph(String paraText, Locale locale, int[] footnotePos, List<Integer> deletedChars) {
     try {
       RuleMatch[] ruleMatches = getAiRuleMatchesForParagraph(-1, paraText, locale, footnotePos, deletedChars);
@@ -126,7 +153,7 @@ public class WtAiErrorDetection {
       WtMessageHandler.showError(t);
     }
   }
-  
+/*  
   public List<RuleMatch> getListAiRuleMatchesForParagraph(int nFPara, String paraText, 
       Locale locale, int[] footnotePos, List<Integer> deletedChars) throws Throwable {
     List<RuleMatch> matchList = new ArrayList<>();
@@ -138,7 +165,7 @@ public class WtAiErrorDetection {
     }
     return matchList;
   }
-    
+*/    
   public RuleMatch[] getAiRuleMatchesForParagraph(int nFPara, String paraText, 
       Locale locale, int[] footnotePos, List<Integer> deletedChars) throws Throwable {
     if (docCache == null) {
@@ -185,11 +212,47 @@ public class WtAiErrorDetection {
       }
     }
     // ---
-    return getMatchesByAiRule(nFPara, paraText, analyzedSentences, locale, footnotePos, deletedChars);
+    return getMatchesByAiRule(nFPara, paraText, analyzedSentences, locale);
   }
     
-  private RuleMatch[] getMatchesByAiRule(int nFPara, String paraText, List<AnalyzedSentence> analyzedSentences,
-      Locale locale, int[] footnotePos, List<Integer> deletedChars) throws Throwable {
+  public RuleMatch[] getAiRuleMatchesForText(TextParagraph from, TextParagraph to, String paraText, Locale locale) throws Throwable {
+    if (docCache == null) {
+      return null;
+    }
+    if (paraText == null || paraText.trim().isEmpty()) {
+      if (debugMode > 1) {
+        WtMessageHandler.printToLogFile("AiErrorDetection: getAiRuleMatchesForParagraph: paraText: " + (paraText == null? "NULL" : "EMPTY"));
+      }
+      return null;
+    }
+    AnalysedText analysedText = docCache.getAnalyzedParagraphs(from, to, lt);
+    List<AnalyzedSentence> analyzedSentences = analysedText.analyzedSentences;
+    if (analyzedSentences == null) {
+      if (debugMode > 1) {
+        WtMessageHandler.printToLogFile("AiErrorDetection: getAiRuleMatchesForParagraph: analyzedSentences == null");
+      }
+      return null;
+    }
+    // Don't analyze a paragraph with less than MIN_WORD words
+    if (analyzedSentences.size() < 2) {
+      if (analyzedSentences.size() == 0) {
+        return new RuleMatch[0];
+      }
+      int n = 0;
+      for (AnalyzedTokenReadings token : analyzedSentences.get(0).getTokensWithoutWhitespace()) {
+        if (!token.isNonWord()) {
+          n++;
+        }
+      }
+      if (n <= MIN_WORD) {
+        return new RuleMatch[0];
+      }
+    }
+    // ---
+    return getMatchesByAiRule(-1, paraText, analyzedSentences, locale);
+  }
+    
+  private RuleMatch[] getMatchesByAiRule(int nFPara, String paraText, List<AnalyzedSentence> analyzedSentences, Locale locale) throws Throwable {
     long aiTime = 0;
     long startTime = 0;
     if (debugModeAiTm) {
@@ -259,6 +322,105 @@ public class WtAiErrorDetection {
       List<Integer> changedParas = new ArrayList<>();
       changedParas.add(nFPara);
       document.remarkChangedParagraphs(changedParas, changedParas, false);
+    }
+  }
+    
+  private void addTextMatchesByAiRule(TextParagraph from, TextParagraph to, String textToCheck, RuleMatch[] ruleMatches) throws Throwable {
+    WtResultCache aiCache =  type == DetectionType.GRAMMAR ? document.getParagraphsCache().get(WtOfficeTools.CACHE_AI) 
+                                                            : document.getAiSuggestionCache();
+    WtResultCache oldCache = new WtResultCache(aiCache);
+
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("WtAiErrorDetection: Para(from.number): "+ from.number + ", Matches: " 
+          + (ruleMatches == null ? "null" : ruleMatches.length));
+    }
+    int textType = from.type;
+    int startPara = from.number;
+    int endPara = to.number;
+    
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: from.type = " + from.type + "; from.number = " + from.number);
+      WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: startPara = " + startPara + "; endPara = " + endPara);
+    }
+    int startPos = WtAiCheckQueue.getStartOfParagraph(startPara, from, docCache);
+    int endPos;
+    for (int i = startPara; i < endPara; i++) {
+      TextParagraph textPara = docCache.createTextParagraph(textType, i);
+      int[] footnotePos = docCache.getTextParagraphFootnotes(textPara);
+      if (i < endPara - 1) {
+        endPos = WtAiCheckQueue.getStartOfParagraph(i + 1, from, docCache);
+      } else {
+        endPos = textToCheck.length();
+      }
+      if (ruleMatches == null || ruleMatches.length == 0 || lt == null) {
+        aiCache.put(docCache.getFlatParagraphNumber(textPara), null, new WtProofreadingError[0]);
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: Enter to ai cache(" + type + "): Paragraph(" 
+              + docCache.getFlatParagraphNumber(textPara) + "): " + docCache.getTextParagraph(textPara) + "; Error number: 0");
+        }
+      } else {
+        List<WtProofreadingError> errorList = new ArrayList<>();
+        int textPos = startPos;
+        if (textPos < 0) textPos = 0;
+        for (RuleMatch myRuleMatch : ruleMatches) {
+          int startErrPos = myRuleMatch.getFromPos();
+          if (debugMode > 2) {
+            WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: AI Cache type = " + type 
+                + ", startPos = " + startPos + ", endPos = " + endPos + ", startErrPos = " + startErrPos);
+          }
+          if (startErrPos >= startPos && startErrPos < endPos) {
+            int toPos = docCache.getTextParagraph(textPara).length();
+            if (toPos > 0) {
+              errorList.add(WtSingleCheck.correctRuleMatchWithFootnotes(
+                  WtSingleCheck.createOOoError(myRuleMatch, -textPos, footnotePos, null, config),
+                    footnotePos, docCache.getTextParagraphDeletedCharacters(textPara)));
+            }
+          }
+        }
+        if (!errorList.isEmpty()) {
+          aiCache.put(docCache.getFlatParagraphNumber(textPara), null, errorList.toArray(new WtProofreadingError[0]));
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: Enter to ai para cache(" + type + "): Paragraph(" 
+                + docCache.getFlatParagraphNumber(textPara) + "): " + docCache.getTextParagraph(textPara) 
+                + "; Error number: " + errorList.size());
+          }
+        } else {
+          aiCache.put(docCache.getFlatParagraphNumber(textPara), null, new WtProofreadingError[0]);
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: Enter to ai para cache(" + type + "): Paragraph(" 
+                + docCache.getFlatParagraphNumber(textPara) + "): " + docCache.getTextParagraph(textPara) + "; Error number: 0");
+          }
+        }
+      }
+      startPos = endPos;
+    }
+    if (type == DetectionType.GRAMMAR) {
+      List<Integer> changedParas = new ArrayList<>();
+      List<Integer> toRemarkParas = new ArrayList<>();
+      for (int nText = startPara; nText < endPara; nText++) {
+        int nFlat = docCache.getFlatParagraphNumber(docCache.createTextParagraph(textType, nText));
+        if (document.getParagraphsCache().get(0).getCacheEntry(nFlat) != null) {
+          if (WtResultCache.areDifferentEntries(aiCache.getSerialCacheEntry(nFlat), oldCache.getSerialCacheEntry(nFlat))) {
+            changedParas.add(nFlat);
+  //          if(!ResultCache.isEmptyEntry(oldCache.getSerialCacheEntry(nFlat))) {
+              toRemarkParas.add(nFlat);
+  //          }
+          }
+        }
+      }
+      if (!changedParas.isEmpty()) {
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: AI Cache(" + type + "): Mark paragraphs from " 
+              + startPara + " to " + endPara + ": " + changedParas.size() 
+              + " changes, tPara.type: " + from.type + ", tPara.number: " + from.number + ", nFPara: " + docCache.getFlatParagraphNumber(from));
+          String tmpText = "Changed Paras: ";
+          for (int n : changedParas) {
+            tmpText += n + " ";
+          }
+          WtMessageHandler.printToLogFile(tmpText);
+        }
+        document.remarkChangedParagraphs(changedParas, toRemarkParas, false);
+      }
     }
   }
     

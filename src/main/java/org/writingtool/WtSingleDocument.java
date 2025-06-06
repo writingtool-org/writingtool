@@ -966,18 +966,20 @@ public class WtSingleDocument {
 
   /**
    * create a queue entry for AI queue
+   * @throws Throwable 
    */
-  QueueEntry createAiQueueEntry(int nFPara) {
-    TextParagraph nPara = docCache.getNumberOfTextParagraph(nFPara);
-    if (nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
-      nPara.number = nFPara;
+  QueueEntry createAiQueueEntry(int nFPara) throws Throwable {
+    TextParagraph nTPara = docCache.getNumberOfTextParagraph(nFPara);
+    if (nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
+      nTPara.number = nFPara;
     }
-    return mDocHandler.getTextLevelCheckQueue().createQueueEntry(nPara, nPara, WtOfficeTools.CACHE_AI, 0, docID, false);
+    return mDocHandler.getAiCheckQueue().createAiQueueEntry(nTPara, WtOfficeTools.CACHE_AI, 0, this, false);
   }
   /**
    * get the next queue entry which is the next empty cache entry
+   * @throws Throwable 
    */
-  public QueueEntry getNextAiQueueEntry(TextParagraph nPara) {
+  public QueueEntry getNextAiQueueEntry(TextParagraph nPara) throws Throwable {
     if (!disposed && docCache != null) {
       int nFPara = nPara == null ? 0 : nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
                     docCache.getFlatParagraphNumber(nPara);
@@ -1005,7 +1007,7 @@ public class WtSingleDocument {
         if (nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
           nTPara.number = nFPara;
         }
-        mDocHandler.getAiCheckQueue().addQueueEntry(nTPara, docID, next); 
+        mDocHandler.getAiCheckQueue().addQueueEntry(nTPara, this, next); 
       }
     }
   }
