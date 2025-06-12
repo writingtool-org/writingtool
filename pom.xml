@@ -236,7 +236,7 @@
         <dependency-check-maven.pluging.version>7.4.4</dependency-check-maven.pluging.version>
         <org.jetbrains.annotations.version>26.0.2</org.jetbrains.annotations.version>
         <flatten.version>1.4.1</flatten.version>
-        <flatlaf.version>3.6-SNAPSHOT</flatlaf.version>
+        <flatlaf.version>3.6</flatlaf.version>
         <office.id>org.openoffice</office.id>
         <office.version>4.1.2</office.version>
 <!--
