@@ -344,7 +344,8 @@ public class WtAiErrorDetection {
     }
     int startPos = WtAiCheckQueue.getStartOfParagraph(startPara, from, docCache);
     int endPos;
-    for (int i = startPara; i < endPara; i++) {
+    int nParaBefore = 0;
+    for (int i = startPara; i < endPara; i++, nParaBefore++) {
       TextParagraph textPara = docCache.createTextParagraph(textType, i);
       int[] footnotePos = docCache.getTextParagraphFootnotes(textPara);
       if (i < endPara - 1) {
@@ -360,7 +361,7 @@ public class WtAiErrorDetection {
         }
       } else {
         List<WtProofreadingError> errorList = new ArrayList<>();
-        int textPos = startPos;
+        int textPos = startPos + nParaBefore;
         if (textPos < 0) textPos = 0;
         for (RuleMatch myRuleMatch : ruleMatches) {
           int startErrPos = myRuleMatch.getFromPos();
