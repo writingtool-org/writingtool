@@ -321,8 +321,8 @@ public class WtAiDetectionRule extends TextLevelRule {
         if (i == sentenceEnds.get(nSentence) - 1) {
           if (nRuleTokens > 0) {
             int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : sentenceEnds.get(nSentence) - sentenceEnds.get(nSentence - 1);
-            if (nParagraphEnd >= 0) {
-              if (showStylisticHints == 2 && !tmpMatches.isEmpty()) {
+            if (nParagraphEnd >= 0 && !tmpMatches.isEmpty() && tmpMatches.get(0).ruleMatch.getFromPos() < nParagraphEnd) {
+              if (showStylisticHints == 2) {
                 //  all changes to first paragraph
                 int startPos = tmpMatches.get(0).ruleMatch.getFromPos();
                 int endPos = nParagraphEnd;

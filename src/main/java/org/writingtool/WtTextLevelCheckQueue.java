@@ -165,7 +165,12 @@ public class WtTextLevelCheckQueue {
 //    }
       if (queueIterator == null) {
         queueIterator = new QueueIterator();
-        queueIterator.start();
+        if (queueIterator == null) {
+          queueIterator = new QueueIterator();
+        }
+        if (queueIterator != null) {
+          queueIterator.start();
+        }
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);

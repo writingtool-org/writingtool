@@ -1359,6 +1359,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       text = instructionPanel.getSelectedIndex() == 0 ? paragraph.getText() : directInstruction.getText();
     }
+    if (locale == null) {
+      locale = WtOfficeTools.getLocalFromLanguage(currentDocument.getLanguage());
+    }
     if (!locale.Language.equals("en")) {
       setAtWorkState(true);
       setButtonState(false);

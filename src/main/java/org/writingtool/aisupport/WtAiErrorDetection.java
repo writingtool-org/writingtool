@@ -342,6 +342,9 @@ public class WtAiErrorDetection {
       WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: from.type = " + from.type + "; from.number = " + from.number);
       WtMessageHandler.printToLogFile("SingleCheck: addParaErrorsToCache: startPara = " + startPara + "; endPara = " + endPara);
     }
+    if (!docCache.isFinished()) {
+      return;
+    }
     int startPos = WtAiCheckQueue.getStartOfParagraph(startPara, from, docCache);
     int endPos;
     int nParaBefore = 0;
