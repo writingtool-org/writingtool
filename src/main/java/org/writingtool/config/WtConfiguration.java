@@ -67,7 +67,7 @@ public class WtConfiguration {
   public final static int CHECK_DIRECT_SPEECH_NO = 2;
   
   static final int DEFAULT_SERVER_PORT = 8081;  // should be HTTPServerConfig.DEFAULT_PORT but we don't have that dependency
-  static final int DEFAULT_NUM_CHECK_PARAS = -1;  //  default number of parameters to be checked by TextLevelRules in LO/OO 
+  static final int DEFAULT_NUM_CHECK_PARAS = -2;  //  default number of parameters to be checked by TextLevelRules in LO/OO 
   static final int FONT_STYLE_INVALID = -1;
   static final int FONT_SIZE_INVALID = -1;
   static final int DEFAULT_COLOR_SELECTION = 0;
@@ -76,7 +76,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
-  static final boolean DEFAULT_USE_QUEUE = true;
+  static final boolean DEFAULT_USE_QUEUE = false;
   static final boolean DEFAULT_USE_DOC_LANGUAGE = true;
   static final boolean DEFAULT_DO_REMOTE_CHECK = false;
   static final boolean DEFAULT_USE_OTHER_SERVER = false;

@@ -798,7 +798,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(languagePanel, cons);
   }
-
+/*
   private void addOfficeTextruleElements(GridBagConstraints cons, JPanel portPanel) {
     int numParaCheck = config.getNumParasToCheck();
     boolean useTextLevelQueue = config.useTextLevelQueue();
@@ -912,7 +912,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(radioPanel, cons);
   }
-  
+*/  
   private JPanel getOfficeTechnicalElements() {
     // technical settings
     JPanel panel = new JPanel();
@@ -934,6 +934,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons11.fill = GridBagConstraints.NONE;
     cons11.weightx = 0.0f;
     addNgramPanel(cons11, ngramPanel);
+    JCheckBox paragraphModeBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiParagraphCheckMode")));
     JCheckBox saveCacheBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiSaveCacheToFile")));
     JTextField otherServerNameField = new JTextField(config.getServerUrl() ==  null ? "" : config.getServerUrl(), 25);
     otherServerNameField.setMinimumSize(new Dimension(100, 25));
@@ -1046,10 +1047,17 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyField.setEnabled(selected);
     });
 */    
+
+    if (config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode()) {
+      config.setMultiThreadLO(false);
+      config.setUseTextLevelQueue(false);
+      config.setNumParasToCheck(0);
+    }
+    
     JRadioButton[] localeRemoteCheckButtons = new JRadioButton[2];
     ButtonGroup localeRemoteCheckGroup = new ButtonGroup();
 
-    JRadioButton[] localeCheckButtons = new JRadioButton[2];
+    JRadioButton[] localeCheckButtons = new JRadioButton[3];
     ButtonGroup localeCheckGroup = new ButtonGroup();
     localeCheckButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOneThread")));
     localeCheckButtons[0].addActionListener(e -> {
@@ -1059,16 +1067,29 @@ public class WtConfigurationDialog implements ActionListener {
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       config.setMultiThreadLO(false);
+      config.setUseTextLevelQueue(false);
       config.setRemoteCheck(false);
     });
-    localeCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiIsMultiThread")));
+    localeCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiTwoThreads")));
     localeCheckButtons[1].addActionListener(e -> {
       otherServerNameField.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
+      config.setMultiThreadLO(false);
+      config.setUseTextLevelQueue(true);
+      config.setRemoteCheck(false);
+    });
+    localeCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiIsMultiThread")));
+    localeCheckButtons[2].addActionListener(e -> {
+      otherServerNameField.setEnabled(false);
+      usernameLabel.setEnabled(false);
+      usernameField.setEnabled(false);
+      apiKeyLabel.setEnabled(false);
+      apiKeyField.setEnabled(false);
       config.setMultiThreadLO(true);
+      config.setUseTextLevelQueue(true);
       config.setRemoteCheck(false);
     });
     JRadioButton[] remoteCheckButtons = new JRadioButton[3];
@@ -1101,7 +1122,7 @@ public class WtConfigurationDialog implements ActionListener {
     remoteCheckButtons[2].addActionListener(e -> {
       int select = WtOptionPane.OK_OPTION;
       if(firstSelection) {
-        select = showRemoteServerHint(localeCheckButtons[2], true);
+        select = showRemoteServerHint(remoteCheckButtons[2], true);
         firstSelection = false;
       } else {
         firstSelection = true;
@@ -1130,10 +1151,15 @@ public class WtConfigurationDialog implements ActionListener {
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
-      config.setMultiThreadLO(localeCheckButtons[1].isSelected());
+      config.setMultiThreadLO(localeCheckButtons[2].isSelected());
+      config.setUseTextLevelQueue(!localeCheckButtons[0].isSelected());
       config.setRemoteCheck(false);
-      for (int i = 0; i < 2; i++) {
-        localeCheckButtons[i].setEnabled(true);
+      if (config.getNumParasToCheck() == 0) {
+        localeCheckButtons[0].setEnabled(true);
+      } else {
+        for (int i = 0; i < 3; i++) {
+          localeCheckButtons[i].setEnabled(true);
+        }
       }
       for (int i = 0; i < 3; i++) {
         remoteCheckButtons[i].setEnabled(false);
@@ -1158,7 +1184,7 @@ public class WtConfigurationDialog implements ActionListener {
         apiKeyField.setEnabled(config.isPremium());
         config.setMultiThreadLO(false);
         config.setRemoteCheck(true);
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
           localeCheckButtons[i].setEnabled(false);
         }
         for (int i = 0; i < 3; i++) {
@@ -1172,7 +1198,7 @@ public class WtConfigurationDialog implements ActionListener {
     for (int i = 0; i < 2; i++) {
       localeRemoteCheckGroup.add(localeRemoteCheckButtons[i]);
     }
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
       localeCheckGroup.add(localeCheckButtons[i]);
     }
     for (int i = 0; i < 3; i++) {
@@ -1185,56 +1211,48 @@ public class WtConfigurationDialog implements ActionListener {
     } else {
       remoteCheckButtons[0].setSelected(true);
     }
-    if (config.isMultiThread()) {
-      localeCheckButtons[1].setSelected(true);
+    if (config.useTextLevelQueue()) {
+      if (config.isMultiThread()) {
+        localeCheckButtons[2].setSelected(true);
+      } else {
+        localeCheckButtons[1].setSelected(true);
+      }
     } else {
       localeCheckButtons[0].setSelected(true);
+      config.setMultiThreadLO(false);
     }
     if (config.doRemoteCheck()) {
       localeRemoteCheckButtons[1].setSelected(true);
-      localeCheckButtons[0].setSelected(true);
       otherServerNameField.setEnabled(config.useOtherServer());
       usernameLabel.setEnabled(config.isPremium());
       usernameField.setEnabled(config.isPremium());
       apiKeyLabel.setEnabled(config.isPremium());
       apiKeyField.setEnabled(config.isPremium());
       config.setMultiThreadLO(false);
-      config.setRemoteCheck(true);
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 3; i++) {
         localeCheckButtons[i].setEnabled(false);
       }
       for (int i = 0; i < 3; i++) {
         remoteCheckButtons[i].setEnabled(true);
       }
-    } else if (config.isMultiThread()) {
-      localeRemoteCheckButtons[0].setSelected(true);
-      otherServerNameField.setEnabled(false);
-      usernameLabel.setEnabled(false);
-      usernameField.setEnabled(false);
-      apiKeyLabel.setEnabled(false);
-      apiKeyField.setEnabled(false);
-      ngramPanel.setVisible(true);
-      config.setMultiThreadLO(true);
-      config.setRemoteCheck(false);
-      for (int i = 0; i < 2; i++) {
-        localeCheckButtons[i].setEnabled(true);
-      }
-      for (int i = 0; i < 3; i++) {
-        remoteCheckButtons[i].setEnabled(false);
-      }
     } else {
       localeRemoteCheckButtons[0].setSelected(true);
-      localeCheckButtons[0].setSelected(true);
       otherServerNameField.setEnabled(false);
       usernameLabel.setEnabled(false);
       usernameField.setEnabled(false);
       apiKeyLabel.setEnabled(false);
       apiKeyField.setEnabled(false);
       ngramPanel.setVisible(true);
-      config.setMultiThreadLO(false);
       config.setRemoteCheck(false);
-      for (int i = 0; i < 2; i++) {
-        localeCheckButtons[i].setEnabled(true);
+      if (config.getNumParasToCheck() == 0) {
+        localeCheckButtons[0].setEnabled(true);
+        for (int i = 1; i < 3; i++) {
+          localeCheckButtons[i].setEnabled(false);
+        }
+      } else {
+        for (int i = 0; i < 3; i++) {
+          localeCheckButtons[i].setEnabled(true);
+        }
       }
       for (int i = 0; i < 3; i++) {
         remoteCheckButtons[i].setEnabled(false);
@@ -1243,7 +1261,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(2, SHIFT1, 2, 0);
     panel.add(localeRemoteCheckButtons[0], cons);
     cons.insets = new Insets(2, SHIFT2, 2, 0);
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
       cons.gridy++;
       panel.add(localeCheckButtons[i], cons);
     }
@@ -1327,12 +1345,34 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     panel.add(premiumPanel, cons);
 */
+    paragraphModeBox.setSelected(config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode());
+    paragraphModeBox.addItemListener(e1 -> {
+      if (paragraphModeBox.isSelected()) {
+        config.setNumParasToCheck(0);
+        config.setUseTextLevelQueue(false);
+        config.setMultiThreadLO(false);
+        localeCheckButtons[0].setSelected(true);
+        for (int i = 1; i < 3; i++) {
+          localeCheckButtons[i].setEnabled(false);
+        }
+      } else {
+        config.setNumParasToCheck(-2);
+        config.setMultiThreadLO(false);
+        if (localeRemoteCheckButtons[0].isSelected()) {
+          for (int i = 0; i < 3; i++) {
+            localeCheckButtons[i].setEnabled(true);
+          }
+        }
+      }
+    });
     saveCacheBox.setSelected(config.saveLoCache());
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
     });
     cons.insets = new Insets(20, SHIFT1, 0, 0);
     cons.gridx = 0;
+    cons.gridy++;
+    panel.add(paragraphModeBox, cons);
     cons.gridy++;
     panel.add(saveCacheBox, cons);
     return panel;
@@ -1449,15 +1489,15 @@ public class WtConfigurationDialog implements ActionListener {
     noBackgroundCheckBox.addItemListener(e -> config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected()));
     cons.gridy++;
     portPanel.add(noBackgroundCheckBox, cons);
-
+/*
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
     
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
-    
+   
     addOfficeTextruleElements(cons, portPanel);
-    
+*/    
     cons.insets = new Insets(0, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;

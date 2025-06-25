@@ -216,8 +216,6 @@ public class WtDocumentCache implements Serializable {
       List<TextParagraph> toTextMapping = new ArrayList<>();
       List<List<Integer>> toParaMapping = new ArrayList<>();
       List<Integer> sortedTextIds;
-      List<List<Integer>> openingQuotes = new ArrayList<List<Integer>>();
-      List<List<Integer>> closingQuotes = new ArrayList<List<Integer>>();
       clear();
       boolean withDeleted = document.getMultiDocumentsHandler().getConfiguration().includeTrackedChanges();
       for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
@@ -349,8 +347,7 @@ public class WtDocumentCache implements Serializable {
       }
       addQuoteInfo(document, documentTexts.get(CURSOR_TYPE_TEXT).paragraphs);
       actualizeCache (paragraphs, chapterBegins, locales, footnotes, toTextMapping, toParaMapping, 
-          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds,
-          openingQuotes, closingQuotes);
+          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds);
 //      for (Locale locale : getDifferentLocalesOftext(paragraphContainer.locales)) {
 //        document.getMultiDocumentsHandler().handleLtDictionary(getDocAsString(), locale);
 //      }
@@ -368,8 +365,7 @@ public class WtDocumentCache implements Serializable {
    */
   private void actualizeCache (List<String> paragraphs, List<List<Integer>> chapterBegins, List<SerialLocale> locales, 
       List<int[]> footnotes, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping, 
-      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds,
-      List<List<Integer>> openingQuotes, List<List<Integer>> closingQuotes) {
+      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds) {
     rwLock.writeLock().lock();
     try {
       clearAnalyzedParagraphs();
@@ -386,9 +382,10 @@ public class WtDocumentCache implements Serializable {
       this.toParaMapping.addAll(toParaMapping);
       this.deletedCharacters.clear();
       this.deletedCharacters.addAll(deletedCharacters);
+      this.automaticParagraphs.clear();
       this.automaticParagraphs.addAll(automaticParagraphs);
-      this.openingQuotes.addAll(openingQuotes);
-      this.closingQuotes.addAll(closingQuotes);
+//      this.openingQuotes.addAll(openingQuotes);
+//      this.closingQuotes.addAll(closingQuotes);
       if (sortedTextIds != null) {
         if (this.sortedTextIds == null) {
           this.sortedTextIds = new ArrayList<>();
@@ -1449,6 +1446,9 @@ public class WtDocumentCache implements Serializable {
     toTextMapping.clear();
     toParaMapping.clear();
     deletedCharacters.clear();
+    automaticParagraphs.clear();
+    openingQuotes.clear();
+    closingQuotes.clear();
     if (sortedTextIds != null) {
       sortedTextIds.clear();
     }
