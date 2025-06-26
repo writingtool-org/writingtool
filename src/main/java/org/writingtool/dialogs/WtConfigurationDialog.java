@@ -1346,6 +1346,7 @@ public class WtConfigurationDialog implements ActionListener {
     panel.add(premiumPanel, cons);
 */
     paragraphModeBox.setSelected(config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode());
+    paragraphModeBox.setEnabled(!config.onlySingleParagraphMode());
     paragraphModeBox.addItemListener(e1 -> {
       if (paragraphModeBox.isSelected()) {
         config.setNumParasToCheck(0);
@@ -1365,7 +1366,8 @@ public class WtConfigurationDialog implements ActionListener {
         }
       }
     });
-    saveCacheBox.setSelected(config.saveLoCache());
+    saveCacheBox.setSelected(config.saveLoCache() && !config.onlySingleParagraphMode());
+    saveCacheBox.setEnabled(!config.onlySingleParagraphMode());
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
     });
