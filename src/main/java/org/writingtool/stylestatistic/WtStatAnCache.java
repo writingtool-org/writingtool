@@ -254,7 +254,7 @@ public class WtStatAnCache {
    */
   private WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, 
       WtProofreadingError[] statAnErrors, String statAnRuleId, int nPara) {
-    WtProofreadingError[] errorArray = document.mergeErrors(pErrors, nPara);
+    WtProofreadingError[] errorArray = document.mergeErrors(pErrors, nPara, false);
     if (debugMode) {
       WtMessageHandler.printToLogFile("StatAnCache: mergeErrors: nPara: " + nPara + ", statAnRuleId: " 
           + (statAnRuleId == null ? "null" : statAnRuleId));

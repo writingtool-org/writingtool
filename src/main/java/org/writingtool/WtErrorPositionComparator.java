@@ -55,22 +55,24 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
       if (error1len < error2len) {
         return -1;
       }
-      return Integer.compare(match2.aSuggestions.length, match1.aSuggestions.length);
-/*
-      if (match1.aSuggestions.length == 0 && match2.aSuggestions.length > 0) {
-        return 1;
-      }
-      if (match2.aSuggestions.length == 0 && match1.aSuggestions.length > 0) {
+      boolean isErr1Default = match1.bDefaultRule && !match1.bStyleRule && !WtSingleDocument.isAiRule(match1);
+      boolean isErr2Default = match2.bDefaultRule && !match2.bStyleRule && !WtSingleDocument.isAiRule(match1);
+      if(isErr1Default && !isErr2Default) {
         return -1;
+      } else if(isErr2Default && !isErr1Default) {
+        return 1;
+      } else {
+        if (match1.aSuggestions.length == 1 && match2.aSuggestions.length != 1) {
+          return -1;
+        } else if (match2.aSuggestions.length == 1 && match1.aSuggestions.length != 1) {
+          return 1;
+        } else if (match1.aSuggestions.length == 0 && match2.aSuggestions.length > 0) {
+          return 1;
+        } else {
+          return -1;
+        }
       }
-      if (match1.aSuggestions.length != 0 && match2.aSuggestions.length != 0
-          && match1.aSuggestions.length != match2.aSuggestions.length) {
-        return Integer.compare(match1.aSuggestions.length, match2.aSuggestions.length);
-      }
-*/      
     }
-//    return match1.aRuleIdentifier.compareTo(match2.aRuleIdentifier);
-//    return 0;
   }
 
 }

@@ -154,7 +154,7 @@ public class WtSingleCheck {
       }
       pErrors.add(aiErrors);
     }
-    WtProofreadingError[] errors = singleDocument.mergeErrors(pErrors, paraNum);
+    WtProofreadingError[] errors = singleDocument.mergeErrors(pErrors, paraNum, false);
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleCheck: getCheckResults: paRes.aErrors.length: " + errors.length 
           + "; docID: " + singleDocument.getDocID());
@@ -1017,16 +1017,14 @@ public class WtSingleCheck {
         for (WtResultCache cache : paragraphsCache) {
           errorList.add(cache.getMatches(numberOfParagraph, errType));
         }
-        sentenceErrors.add(new SentenceErrors(startPosition, nextSentencePositions.get(0), 
-              singleDocument.filterOverlappingErrors(singleDocument.mergeErrors(errorList, numberOfParagraph), filterOverlap)));
+        sentenceErrors.add(new SentenceErrors(startPosition, nextSentencePositions.get(0), singleDocument.mergeErrors(errorList, numberOfParagraph, false)));
       } else {
         for (int nextPosition : nextSentencePositions) {
           List<WtProofreadingError[]> errorList = new ArrayList<WtProofreadingError[]>();
           for (WtResultCache cache : paragraphsCache) {
             errorList.add(cache.getFromPara(numberOfParagraph, startPosition, nextPosition, errType));
           }
-          sentenceErrors.add(new SentenceErrors(startPosition, nextPosition, 
-              singleDocument.filterOverlappingErrors(singleDocument.mergeErrors(errorList, numberOfParagraph), filterOverlap)));
+          sentenceErrors.add(new SentenceErrors(startPosition, nextPosition, singleDocument.mergeErrors(errorList, numberOfParagraph, false)));
           startPosition = nextPosition;
         }
       }

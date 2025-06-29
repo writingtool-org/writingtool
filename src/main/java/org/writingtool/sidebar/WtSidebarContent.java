@@ -687,7 +687,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         errors.add(new WtProofreadingError[0]);
       }
     }
-    return document.mergeErrors(errors, nFPara);
+    return document.mergeErrors(errors, nFPara, false);
   }
   
   private String formatText(String orgText, WtProofreadingError[] errors) throws Throwable {

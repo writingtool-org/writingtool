@@ -494,7 +494,7 @@ public class WtCheckDialog extends Thread {
         for (WtResultCache resultCache : document.getParagraphsCache()) {
           pErrors.add(resultCache.getSafeMatches(n));
         }
-        WtProofreadingError[] errors = document.mergeErrors(pErrors, n);
+        WtProofreadingError[] errors = document.mergeErrors(pErrors, n, true);
         if (errors != null) {
           List<Integer> startPoints = null;
           for (int i = errors.length - 1; i >= 0; i--) {
@@ -589,7 +589,7 @@ public class WtCheckDialog extends Thread {
       }
       if (noNull) {
         mergeSpellingErrors(errors);
-        return document.mergeErrors(errors, nFPara);
+        return document.mergeErrors(errors, nFPara, true);
       }
       try {
         Thread.sleep(LOOP_WAIT_TIME);
@@ -604,7 +604,7 @@ public class WtCheckDialog extends Thread {
       }
     }
     mergeSpellingErrors(errors);
-    return document.mergeErrors(errors, nFPara);
+    return document.mergeErrors(errors, nFPara, true);
   }
   
   /** merge spelling errors

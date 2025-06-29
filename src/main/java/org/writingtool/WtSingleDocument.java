@@ -300,6 +300,9 @@ public class WtSingleDocument {
               docLanguage, numParasToCheck, true, isMouseRequest, false);
           paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(singleCheck.checkParaRules(paraText, locale, 
                             footnotePositions, -1, paRes.nStartOfSentencePosition, lt, 0, 0, false, false, errType));
+//          if (paRes.aErrors != null && paRes.aErrors.length > 0) {
+//            WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: errors[0]: " + paRes.aErrors[0].aRuleIdentifier);
+//          }
           closeDocumentCursor();
           return paRes;
         }
@@ -448,11 +451,12 @@ public class WtSingleDocument {
         ltToolbar.makeToolbar(getLanguage());
       }
 */
+/*
       if (proofInfo == WtOfficeTools.PROOFINFO_MARK_PARAGRAPH) {
         paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(
             filterOverlappingErrors(WtOfficeTools.proofreadingToWtErrors(paRes.aErrors), config.filterOverlappingMatches()));
       }
-
+*/
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     } finally {
@@ -1248,6 +1252,7 @@ public class WtSingleDocument {
     int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     WtProofreadingError error = getErrorFromCache(y, x);
+    WtMessageHandler.printToLogFile("SingleDocument: ignoreOnce: ruleIdentitier = " + error.aRuleIdentifier + "; x = " + x + "; y = " + y);
     setIgnoredMatch (x, y, error.aRuleIdentifier, false);
     return docID;
   }
@@ -1452,8 +1457,9 @@ public class WtSingleDocument {
           WtMessageHandler.printToLogFile("SingleDocument: getRuleIdFromCache: Error[" + i + "]: ruleID: " + errors[i].aRuleIdentifier + ", Start = " + errors[i].nErrorStart + ", Length = " + errors[i].nErrorLength);
         }
       }
-      errors = filterOverlappingErrors(errors, config.filterOverlappingMatches());
+      errors = filterIgnoredMatches(errors, nPara);
       errors = docCache.filterDirectSpeech(errors, nPara, config);
+      errors = filterOverlappingErrors(errors, config.filterOverlappingMatches());
       for (int i = 0; i < errors.length; i++) {
         if (nChar >= errors[i].nErrorStart && nChar < errors[i].nErrorStart + errors[i].nErrorLength) {
           return errors[i];
@@ -1469,7 +1475,7 @@ public class WtSingleDocument {
   /**
    * Merge errors from different checks (paragraphs and sentences)
    */
-  public WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, int nPara) {
+  public WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, int nPara, boolean ignoreOverlap) {
     int errorCount = 0;
     if (pErrors != null) {
       for (WtProofreadingError[] pError : pErrors) {
@@ -1492,8 +1498,12 @@ public class WtSingleDocument {
       }
     }
     Arrays.sort(errorArray, new WtErrorPositionComparator());
+    errorArray = filterIgnoredMatches(errorArray, nPara);
     errorArray = docCache.filterDirectSpeech (errorArray, nPara, config);
-    return filterIgnoredMatches(errorArray, nPara);
+    if (!ignoreOverlap) {
+      errorArray = filterOverlappingErrors(errorArray, config.filterOverlappingMatches());
+    }
+    return errorArray;
   }
   
   /**
@@ -1563,9 +1573,9 @@ public class WtSingleDocument {
   }
   
   /**
-   * change size of overlapping error1
+   * is rule a AI rule
    */
-  private boolean isAiRule(WtProofreadingError error) {
+  public static boolean isAiRule(WtProofreadingError error) {
     return error.aRuleIdentifier.equals(WtOfficeTools.AI_GRAMMAR_RULE_ID);
   }
   
@@ -1634,7 +1644,31 @@ public class WtSingleDocument {
             int l = overlaps.get(j);
             WtProofreadingError error2 = errors[l];
             if (k != l && isOverlappingError(error1, error2)) {
-              if (!error1.bDefaultRule && error2.bDefaultRule) {
+              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule && !isAiRule(error1);
+              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule && !isAiRule(error2);
+              if(isErr1Default && !isErr2Default) {
+                filtered.add(l);
+              } else if(isErr2Default && !isErr1Default) {
+                filtered.add(k);
+                error1 = error2;
+              } else {
+                if (error1.aSuggestions.length == 1 && error2.aSuggestions.length != 1) {
+                  filtered.add(l);
+                } else if (error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
+                  filtered.add(k);
+                  error1 = error2;
+                } else if (error2.aSuggestions.length == 0 && error1.aSuggestions.length > 0) {
+                  filtered.add(l);
+                } else {
+                  filtered.add(k);
+                  error1 = error2;
+                }
+              }
+/*
+              if (error2.bDefaultRule && error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
+                filtered.add(k);
+                error1 = error2;
+              } else if (!error1.bDefaultRule && error2.bDefaultRule) {
                 filtered.add(k);
                 error1 = error2;
               } else if (isAiRule(error1) && error2.bDefaultRule && error2.aSuggestions.length > 0) { 
@@ -1646,6 +1680,7 @@ public class WtSingleDocument {
               } else {
                 filtered.add(l);
               }
+ */
             }
           }
           filteredErrors.add(error1);
@@ -1662,7 +1697,11 @@ public class WtSingleDocument {
         filteredErrors.add(errors[i]);
       }
     }
-    return filteredErrors.toArray(new WtProofreadingError[0]);
+    WtProofreadingError[] fErrors = filteredErrors.toArray(new WtProofreadingError[0]);
+    if (!filterOverlap) {
+      Arrays.sort(fErrors, new WtErrorPositionComparator());
+    }
+    return fErrors;
   }
 
   /**
@@ -1844,7 +1883,8 @@ public class WtSingleDocument {
     for (int cacheNum = 0; cacheNum < WtOfficeTools.NUMBER_CACHE; cacheNum++) {
       errors.add(paragraphsCache.get(cacheNum).getMatches(nFPara, LoErrorType.GRAMMAR));
     }
-    paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(mergeErrors(errors, nFPara));
+    WtProofreadingError[] pErrors = mergeErrors(errors, nFPara, false);
+    paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(pErrors);
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleDocument: getErrorsFromCache: Sentence: start: " + paRes.nStartOfSentencePosition
           + ", end: " + paRes.nBehindEndOfSentencePosition + ", next: " + paRes.nStartOfNextSentencePosition 
