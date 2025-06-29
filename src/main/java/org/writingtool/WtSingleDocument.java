@@ -1252,7 +1252,7 @@ public class WtSingleDocument {
     int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     WtProofreadingError error = getErrorFromCache(y, x);
-    WtMessageHandler.printToLogFile("SingleDocument: ignoreOnce: ruleIdentitier = " + error.aRuleIdentifier + "; x = " + x + "; y = " + y);
+//    WtMessageHandler.printToLogFile("SingleDocument: ignoreOnce: ruleIdentitier = " + error.aRuleIdentifier + "; x = " + x + "; y = " + y);
     setIgnoredMatch (x, y, error.aRuleIdentifier, false);
     return docID;
   }
