@@ -146,7 +146,7 @@ public class WtDocumentsHandler {
   private boolean heapLimitReached = false;         //  heap limit is reached
 
   private boolean noBackgroundCheck = false;        //  is LT switched off by config
-  private boolean useQueue = true;                  //  will be overwritten by config
+  private boolean useQueue = false;                  //  will be overwritten by config
   private boolean noLtSpeller = false;              //  true if LT spell checker can't be used
 
   private String menuDocId = null;                    //  Id of document at which context menu was called 
@@ -868,7 +868,7 @@ public class WtDocumentsHandler {
       aiQueue.setStop();
       aiQueue = null;
     }
-    useQueue = isBackgroundCheckOff() || heapLimitReached || testMode || config.getNumParasToCheck() == 0 ? false : config.useTextLevelQueue();
+    useQueue = !isBackgroundCheckOff() && !heapLimitReached && !testMode && config.getNumParasToCheck() == 0 ? false : config.useTextLevelQueue();
     for (WtSingleDocument document : documents) {
       if (!document.isDisposed()) {
         document.setConfigValues(config);
