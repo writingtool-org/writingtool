@@ -976,7 +976,7 @@ public class WtSingleDocument {
     if (nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
       nPara.number = nFPara;
     }
-    return mDocHandler.getTextLevelCheckQueue().createQueueEntry(nPara, nPara, WtOfficeTools.CACHE_AI, 0, docID, false);
+    return mDocHandler.getAiCheckQueue().createQueueEntry(nPara, nPara, WtOfficeTools.CACHE_AI, 0, docID, false);
   }
   /**
    * get the next queue entry which is the next empty cache entry
