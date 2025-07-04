@@ -203,8 +203,8 @@
 
     <properties>
 		<!-- snapshot revision -->
-        <revision>25.7-SNAPSHOT</revision>
-        <lt-revision>6.7-SNAPSHOT</lt-revision>
+        <revision>25.7</revision>
+        <lt-revision>6.6</lt-revision>
         
 		<!-- release revision
         <revision>1.2</revision>
