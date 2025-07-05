@@ -336,7 +336,7 @@ public class WtCheckDialog extends Thread {
     if (currentDocument != null) {
       docType = currentDocument.getDocumentType();
       docCache = currentDocument.getDocumentCache();
-      if (docType != DocumentType.WRITER) {
+      if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
         actualizeNonWriterDocumentCache(currentDocument);
       }
     }

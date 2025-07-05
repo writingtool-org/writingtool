@@ -819,6 +819,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return outpText;
   }
 */
+  
+  public void toggleBackgroundCheckButton() {
+    buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
+    buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
+  }
+  
   @Override
   public XAccessible createAccessible(XAccessible a) {
     return UnoRuntime.queryInterface(XAccessible.class, getWindow());

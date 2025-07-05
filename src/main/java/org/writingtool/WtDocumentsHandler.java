@@ -1244,6 +1244,9 @@ public class WtDocumentsHandler {
     }
     setRecheck();
     config.saveNoBackgroundCheck(noBackgroundCheck, docLanguage);
+    if (sidebarContent != null) {
+      sidebarContent.toggleBackgroundCheckButton();
+    }
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
@@ -1893,9 +1896,12 @@ public class WtDocumentsHandler {
         if (waitDialog == null || waitDialog.canceled()) {
           return;
         }
+
+/*        boolean saveNoBackgroundCheck = noBackgroundCheck;
         if (noBackgroundCheck && toggleNoBackgroundCheck()) {
           resetCheck();
         }
+*/
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
         if ("checkAgainDialog".equals(sEvent)) {
@@ -1914,9 +1920,15 @@ public class WtDocumentsHandler {
             }
           }
           resetIgnoredMatches();
+/*
+          if (saveNoBackgroundCheck) {
+             toggleNoBackgroundCheck();
+          }
+*/
 //          resetCheck();
         }
         if (debugMode) {
+          
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Start Spell And Grammar Check Dialog");
         }
         checkDialog.start();
