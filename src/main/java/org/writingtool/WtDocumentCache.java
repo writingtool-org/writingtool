@@ -2119,7 +2119,7 @@ public class WtDocumentCache implements Serializable {
     if (locales.size() > 0) {
       SerialLocale lastLocale = locales.get(0);
       for (int i = 1; i < locales.size(); i++) {
-        if (locales != null && !locales.get(i).equalsLocale(lastLocale)) {
+        if (locales != null && !locales.get(i).equalWithoutLabel(lastLocale)) {
           TextParagraph nText = toTextMapping.get(i);
           if (nText.type == CURSOR_TYPE_TEXT && nText.number >= 0) {
             if (!prepChBegins.contains(nText.number)) {
@@ -2696,11 +2696,37 @@ public class WtDocumentCache implements Serializable {
       this.Variant = locale.Variant;
     }
 
+    SerialLocale(String country, String language, String variant) {
+      this.Country = country;
+      this.Language = language;
+      this.Variant = variant;
+    }
+
     /**
      *  Get a String from SerialLocale
      */
     public String toString() {
       return Language + (Country.isEmpty() ? "" : "-" + Country) + (Variant.isEmpty() ? "" : "-" + Variant);
+    }
+    
+    /**
+     *  Gives SerialLocale without multilingual label
+     */
+    public SerialLocale withoutLabel() {
+      if (Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL)) {
+        return new SerialLocale(Language, Country, Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length()));
+      }
+      return new SerialLocale(Language, Country, Variant);
+    }
+
+    /**
+     *  Gives SerialLocale without multilingual label
+     */
+    public boolean equalWithoutLabel(SerialLocale locale) {
+      String var = Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL) ? Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length()) : Variant;
+      String locVar = locale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL) ? 
+          locale.Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length()) : locale.Variant;
+      return Language.equals(locale.Language) && Country.equals(locale.Country) && var.equals(locVar);
     }
 
     /**
