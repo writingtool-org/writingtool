@@ -574,6 +574,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       WtAiRemote aiRemote = new WtAiRemote(documents, documents.getConfiguration());
       WtDocumentCache docCache = documents.getCurrentDocument().getDocumentCache();
       Locale locale = docCache.getTextParagraphLocale(tPara);
+      if (locale == null) {
+        locale = docCache.getDocumentLocale();
+        if (locale == null) {
+          locale = WtOfficeTools.getDefaultLocale(xContext);
+        }
+      }
       String instruction = null;
       boolean onlyPara = false;
       float temp = 0.7f;
