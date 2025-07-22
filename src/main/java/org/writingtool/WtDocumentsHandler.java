@@ -1428,6 +1428,13 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * Call method resetIgnorePermanent for concerned document 
+   */
+  public void permanentIgnoreParagraph() {
+    getCurrentDocument().permanentIgnoreParagraph();
+  }
+  
+  /**
    * Call method renewMarkups for concerned document 
    */
   public void renewMarkups() {
@@ -1862,6 +1869,8 @@ public class WtDocumentsHandler {
         ignoreAll();
       } else if ("ignorePermanent".equals(sEvent)) {
         ignorePermanent();
+      } else if ("permanentIgnoreParagraph".equals(sEvent)) {
+        permanentIgnoreParagraph();
       } else if ("resetIgnorePermanent".equals(sEvent)) {
         resetIgnorePermanent();
       } else if ("deactivateRule".equals(sEvent)) {

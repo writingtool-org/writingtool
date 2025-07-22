@@ -444,6 +444,7 @@ public class WtCheckDialog extends Thread {
     docCache.setFlatParagraph(nFPara, sPara);
     document.removeResultCache(nFPara, true);
     document.removeIgnoredMatch(nFPara, true);
+    document.removePermanentIgnoredMatch(nFPara, true);
     if (documents.getConfiguration().useTextLevelQueue() && !documents.getConfiguration().noBackgroundCheck()) {
       for (int i = 1; i < lt.getNumMinToCheckParas().size(); i++) {
         document.addQueueEntry(nFPara, i, lt.getNumMinToCheckParas().get(i), document.getDocID(), true);

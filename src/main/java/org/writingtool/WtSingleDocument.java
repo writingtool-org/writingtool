@@ -65,6 +65,7 @@ import com.sun.star.linguistic2.ProofreadingResult;
 import com.sun.star.linguistic2.SingleProofreadingError;
 import com.sun.star.text.TextMarkupType;
 import com.sun.star.text.XFlatParagraph;
+import com.sun.star.text.XTextCursor;
 import com.sun.star.text.XTextRange;
 import com.sun.star.ui.ContextMenuExecuteEvent;
 import com.sun.star.uno.UnoRuntime;
@@ -1318,7 +1319,7 @@ public class WtSingleDocument {
   }
   
   /**
-   * add a ignore once entry for point x, y to queue and remove the mark
+   * add a ignore permanent entry for point x, y and set the mark
    */
   public void setPermanentIgnoredMatch(int x, int y, int len, String ruleId, Locale locale, boolean isIntern) {
     permanentIgnoredMatches.setIgnoredMatch(x, y, len, ruleId, locale, getFlatParagraphTools());
@@ -1332,6 +1333,82 @@ public class WtSingleDocument {
     }
     if (debugMode > 0) {
       WtMessageHandler.printToLogFile("SingleDocument: setPermanentIgnoredMatch: Ignore Match added at: paragraph: " + y + "; character: " + x + "; ruleId: " + ruleId);
+    }
+  }
+  
+  /**
+   * add all matches in a paragraph to ignore permanent 
+   * remove the marks
+   */
+  public void permanentIgnoreParagraph() {
+    if (disposed) {
+      return;
+    }
+    WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+    XTextCursor tCursor = viewCursor.getTextCursorBeginn();
+    if (tCursor != null) {
+      tCursor.gotoStart(true);
+      int nBegin = tCursor.getString().length();
+      tCursor = viewCursor.getTextCursorEnd();
+      tCursor.gotoStart(true);
+      int rangeLen = tCursor.getString().length() - nBegin;
+      int fromX = -1;
+      int toX = -1;
+      if (rangeLen > 0) {
+        fromX = viewCursor.getViewCursorCharacter();
+        int fromY = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+        int y = fromY + 1;
+        int len;
+        for (len = docCache.getFlatParagraph(y - 1).length() - fromX; len < rangeLen; y++) {
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: y = " + y + ", len = " + len + ", rangeLen = " + rangeLen);
+          }
+          len += docCache.getFlatParagraph(y).length();
+        }
+        y--;
+        len -= docCache.getFlatParagraph(y).length();
+        int toY = y;
+        toX = rangeLen - len;
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: fromY = " + fromY + ", toY = " + toY);
+          WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: fromX = " + fromX + ", toX= " + toX);
+        }
+        if (fromY == toY) {
+          setPermanentIgnoredMatches(fromX, toX, fromY);
+        } else {
+          setPermanentIgnoredMatches(fromX, docCache.getFlatParagraph(fromY).length(), fromY);
+          for (y = fromY + 1; y < toY; y++) {
+            setPermanentIgnoredMatches(0, docCache.getFlatParagraph(y).length(), y);
+          }
+          setPermanentIgnoredMatches(0, toX, toY);
+        }
+      } else {
+        int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+        setPermanentIgnoredMatches(0, docCache.getFlatParagraph(y).length(), y);
+      }
+    }
+  }
+  
+  /**
+   * add all ignore permanent entries between fromX to toX for paragraph y and set the marks
+   */
+  public void setPermanentIgnoredMatches(int fromX, int toX, int y) {
+    WtProofreadingError[] errors = getAllParagraphErrorsFromCache(y);
+    for (WtProofreadingError error : errors) {
+      if (error.nErrorStart + error.nErrorLength > fromX && error.nErrorStart < toX) {
+        permanentIgnoredMatches.setIgnoredMatch(error.nErrorStart, y, 0, error.aRuleIdentifier, null, getFlatParagraphTools());
+      }
+    }
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("SingleDocument: setPermanentIgnoredMatch: DocumentType = " + docType + "; numParasToCheck = " + numParasToCheck);
+    }
+    if (docType == DocumentType.WRITER && numParasToCheck != 0) {
+      List<Integer> changedParas = new ArrayList<>();
+      changedParas.add(y);
+      remarkChangedParagraphs(changedParas, changedParas, false);
+    }
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("SingleDocument: setPermanentIgnoredMatch: Ignore Match added at: paragraph: " + y + "; number of errors: " + errors.length);
     }
   }
   
@@ -1415,6 +1492,21 @@ public class WtSingleDocument {
   }
   
   /**
+   * remove all permanent ignore entries for paragraph y from queue and set the mark
+   */
+  public void removePermanentIgnoredMatch(int y, boolean isIntern) {
+    permanentIgnoredMatches.removeIgnoredMatches(y, null);
+    if (numParasToCheck != 0 && flatPara != null) {
+      List<Integer> changedParas = new ArrayList<>();
+      changedParas.add(y);
+      remarkChangedParagraphs(changedParas, changedParas, isIntern);
+    }
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("SingleDocument: removeIgnoredMatch: All Ignored Matches removed at: paragraph: " + y);
+    }
+  }
+  
+  /**
    * remove a ignore Permanent entry for point x, y from queue and set the mark
    * if x &lt; 0 remove all ignore once entries for paragraph y
    */
@@ -1437,7 +1529,7 @@ public class WtSingleDocument {
   private WtProofreadingError getErrorFromCache(int nPara, int nChar) {
     List<WtProofreadingError> tmpErrors = new ArrayList<WtProofreadingError>();
     if (nPara < 0 || nPara >= docCache.size()) {
-      WtMessageHandler.printToLogFile("SingleDocument: getRuleIdFromCache(nPara = " + nPara + ", docCache.size() = " + docCache.size() + "): nPara out of range!");
+      WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache(nPara = " + nPara + ", docCache.size() = " + docCache.size() + "): nPara out of range!");
       return null;
     }
     for (WtResultCache paraCache : paragraphsCache) {
@@ -1454,7 +1546,7 @@ public class WtSingleDocument {
       Arrays.sort(errors, new WtErrorPositionComparator());
       if (debugMode > 0) {
         for (int i = 0; i < errors.length; i++) {
-          WtMessageHandler.printToLogFile("SingleDocument: getRuleIdFromCache: Error[" + i + "]: ruleID: " + errors[i].aRuleIdentifier + ", Start = " + errors[i].nErrorStart + ", Length = " + errors[i].nErrorLength);
+          WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache: Error[" + i + "]: ruleID: " + errors[i].aRuleIdentifier + ", Start = " + errors[i].nErrorStart + ", Length = " + errors[i].nErrorLength);
         }
       }
       errors = filterIgnoredMatches(errors, nPara);
@@ -1467,8 +1559,40 @@ public class WtSingleDocument {
       }
       return errors[0];
     } else {
-      WtMessageHandler.printToLogFile("SingleDocument: getRuleIdFromCache(nPara = " + nPara + ", nChar = " + nChar + "): No ruleId found!");
+      if (debugMode > 0) {
+        WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache(nPara = " + nPara + ", nChar = " + nChar + "): No ruleId found!");
+      }
+//      throw new RuntimeException("SingleDocument: getErrorFromCache(nPara = " + nPara + ", nChar = " + nChar + "): No ruleId found!");
       return null;
+    }
+  }
+  
+  /**
+   * get all errors of a paragraph out of the cache 
+   */
+  private WtProofreadingError[] getAllParagraphErrorsFromCache(int nPara) {
+    List<WtProofreadingError[]> tmpErrors = new ArrayList<WtProofreadingError[]>();
+    if (nPara < 0 || nPara >= docCache.size()) {
+      WtMessageHandler.printToLogFile("SingleDocument: getAllParagraphErrorsFromCache(nPara = " + nPara + ", docCache.size() = " + docCache.size() + "): nPara out of range!");
+      return null;
+    }
+    for (WtResultCache paraCache : paragraphsCache) {
+      WtProofreadingError[] tErrors = paraCache.getSafeMatches(nPara);
+      if (tErrors != null) {
+        tmpErrors.add(tErrors);
+      }
+    }
+    if (tmpErrors.size() > 0) {
+      WtProofreadingError[] errors = mergeErrors(tmpErrors, nPara, false);
+      if (debugMode > 1) {
+        for (int i = 0; i < errors.length; i++) {
+          WtMessageHandler.printToLogFile("SingleDocument: getAllParagraphErrorsFromCache: Error[" + i + "]: ruleID: " + errors[i].aRuleIdentifier + ", Start = " + errors[i].nErrorStart + ", Length = " + errors[i].nErrorLength);
+        }
+      }
+      return errors;
+    } else {
+      WtMessageHandler.printToLogFile("SingleDocument: getAllParagraphErrorsFromCache(nPara = " + nPara + "): No errors found!");
+      return new WtProofreadingError[0];
     }
   }
   

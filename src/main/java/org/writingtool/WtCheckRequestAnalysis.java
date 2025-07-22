@@ -227,6 +227,7 @@ class WtCheckRequestAnalysis {
         docCache.setFlatParagraph(nPara, chPara, locale);
         singleDocument.removeResultCache(nPara,true);
         singleDocument.removeIgnoredMatch(nPara, isIntern);
+        singleDocument.removePermanentIgnoredMatch(nPara, false);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown are printed
@@ -866,6 +867,7 @@ class WtCheckRequestAnalysis {
       changeFrom = nPara - numParasToChange;
       changeTo = nPara + numParasToChange + 1;
       singleDocument.removeIgnoredMatch(nPara, false);
+      singleDocument.removePermanentIgnoredMatch(nPara, false);
       mDocHandler.setTextToSidebarBox(xComponent);
     }
   }

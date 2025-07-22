@@ -90,6 +90,7 @@ public class WtMenus {
   public static final String LT_STATISTICAL_ANALYSES_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?statisticalAnalyses";   
   public static final String LT_OFF_STATISTICAL_ANALYSES_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?offStatisticalAnalyses";   
   public static final String LT_RESET_IGNORE_PERMANENT_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?resetIgnorePermanent";   
+  public static final String LT_PERMANENT_IGNORE_PARAGRAPH_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?permanentIgnoreParagraph";   
   public static final String LT_TOGGLE_BACKGROUND_CHECK_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?toggleNoBackgroundCheck";
   public static final String LT_BACKGROUND_CHECK_ON_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?backgroundCheckOn";
   public static final String LT_BACKGROUND_CHECK_OFF_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?backgroundCheckOff";
@@ -794,7 +795,7 @@ public class WtMenus {
               if (!config.filterOverlappingMatches()) {
                 document.getErrorAndChangeRange(aEvent, false);
               }
-              addLTMenus(i, count, null, xContextMenu, xMenuElementFactory);
+              addLTMenus(i, count, null, xContextMenu, xMenuElementFactory, aEvent);
               if (document.getCurrentNumberOfParagraph() >= 0) {
                 props.setPropertyValue("CommandURL", LT_IGNORE_ONCE_COMMAND);
               }
@@ -817,7 +818,7 @@ public class WtMenus {
         //  Workaround for LO 24.x
         WtProofreadingError error = document.getErrorAndChangeRange(aEvent, true);
         if (error != null) {
-          addLTMenus(0, count, error, xContextMenu, xMenuElementFactory);
+          addLTMenus(0, count, error, xContextMenu, xMenuElementFactory, aEvent);
           isRunning = false;
           return ContextMenuInterceptorAction.EXECUTE_MODIFIED;
         }
@@ -845,7 +846,7 @@ public class WtMenus {
         xContextMenu.insertByIndex(nId, xNewMenuEntry4);
         nId++;
 
-        addLTMenuEntry(nId, xContextMenu, xMenuElementFactory, true);
+        addLTMenuEntry(nId, xContextMenu, xMenuElementFactory, aEvent, true);
         if (config.useAiSupport() || config.useAiImgSupport()) {
           nId++;
           addAIMenuEntry(nId, xContextMenu, xMenuElementFactory);
@@ -878,7 +879,7 @@ public class WtMenus {
     }
     
     private void addLTMenus(int n, int count, WtProofreadingError error, XIndexContainer xContextMenu, 
-        XMultiServiceFactory xMenuElementFactory) throws Throwable {
+        XMultiServiceFactory xMenuElementFactory, ContextMenuExecuteEvent aEvent) throws Throwable {
       if (error != null) {
         for (int i = count - 1; i >= 0; i--) {
           xContextMenu.removeByIndex(i);
@@ -952,7 +953,7 @@ public class WtMenus {
         xContextMenu.insertByIndex(nId, createProfileItems(definedProfiles, xMenuElementFactory));
         nId++;
       }
-      addLTMenuEntry(nId, xContextMenu, xMenuElementFactory, false);
+      addLTMenuEntry(nId, xContextMenu, xMenuElementFactory, aEvent, false);
       nId++;
       addAIMenuEntry(nId, xContextMenu, xMenuElementFactory);
       
@@ -964,7 +965,7 @@ public class WtMenus {
     }
     
     private void addLTMenuEntry(int nId, XIndexContainer xContextMenu, XMultiServiceFactory xMenuElementFactory,
-                boolean showAll) throws Throwable {
+            ContextMenuExecuteEvent aEvent, boolean showAll) throws Throwable {
       XIndexContainer xSubMenuContainer = (XIndexContainer)UnoRuntime.queryInterface(XIndexContainer.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerContainer"));
       boolean hasStatisticalStyleRules;
@@ -992,6 +993,16 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
+      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+          xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+      if (isSelectedRange(aEvent)) {
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuPermanentIgnoreRange"));
+      } else {
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuPermanentIgnoreParagraph"));
+      }
+      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_PERMANENT_IGNORE_PARAGRAPH_COMMAND);
+      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+      j++;
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuResetIgnorePermanent"));
@@ -1210,6 +1221,17 @@ public class WtMenus {
         WtMessageHandler.printException(t);
       }
       return null;
+    }
+
+    /**
+     * is selected range
+     */
+    private boolean isSelectedRange(ContextMenuExecuteEvent aEvent) {
+      String selection = getSelectedWord(aEvent);
+      if (selection == null || selection.length() == 0) {
+        return false;
+      }
+      return true;
     }
 
     /**
