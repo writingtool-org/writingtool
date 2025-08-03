@@ -21,6 +21,7 @@ package org.writingtool.aisupport;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -251,6 +252,9 @@ public class WtAiRemote {
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
           try (InputStream inputStream = conn.getInputStream()) {
             String out = readStream(inputStream, "utf-8");
+            if (out == null) {
+              return null;
+            }
             out = parseJasonOutput(out);
             if (out == null) {
               return null;
@@ -332,6 +336,9 @@ public class WtAiRemote {
       if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
         try (InputStream inputStream = conn.getInputStream()) {
           String out = readStream(inputStream, "utf-8");
+          if (out == null) {
+            return null;
+          }
           return parseJasonImgOutput(out);
         }
       } else {
@@ -493,6 +500,12 @@ public class WtAiRemote {
       while ((line = br.readLine()) != null) {
         sb.append(line).append('\r');
       }
+    } catch (IOException e) {
+      //  stream is suddenly closed -> return null
+      if (debugMode > 0) {
+        WtMessageHandler.printToLogFile("AiRemote: readStream: IOException: " + e.getMessage());
+      }
+      return null;
     }
     return sb.toString();
   }
