@@ -66,6 +66,7 @@ public class WtAiRemote {
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, GeneralAi };
   
   private static boolean isRunning = false;
+  private static boolean hasPrintedInfo = false;
 
   private enum AiType { EDITS, COMPLETIONS, CHAT }
   
@@ -430,6 +431,16 @@ public class WtAiRemote {
         conn.setRequestProperty("charset", "utf-8");
         conn.setRequestProperty("Authorization", apiKey);
         conn.setRequestProperty("Content-Length", Integer.toString(postData.length));
+        int connectTimeout = conn.getConnectTimeout();
+        int readTimeout = conn.getReadTimeout();
+        if (!hasPrintedInfo) {
+          WtMessageHandler.printToLogFile("AI-Host: " + url.getHost());
+          WtMessageHandler.printToLogFile("connectTimeout: " + connectTimeout);
+          WtMessageHandler.printToLogFile("readTimeout: " + readTimeout);
+          hasPrintedInfo = true;
+        }
+        conn.setConnectTimeout(connectTimeout * 10);
+        conn.setReadTimeout(readTimeout * 10);
         
         try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
           wr.write(postData);
