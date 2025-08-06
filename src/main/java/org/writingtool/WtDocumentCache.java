@@ -2622,7 +2622,7 @@ public class WtDocumentCache implements Serializable {
         TextParagraph tPara = getNumberOfTextParagraph(nPara);
         if (tPara.type == CURSOR_TYPE_TEXT) {
           WtQuotesDetection quotesDetector = new WtQuotesDetection();
-          quotesDetector.updateTextParagraph(getFlatParagraph(nPara), nPara, openingQuotes, closingQuotes);
+          quotesDetector.updateTextParagraph(getFlatParagraph(nPara), tPara.number, openingQuotes, closingQuotes);
         }
       }
     } catch (Throwable t) {
