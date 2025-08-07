@@ -52,6 +52,8 @@ public class WtAiRemote {
   
   private final static int REMOTE_TRIALS = 5;
   private final static int BUFFER_SIZE = 20000;
+  private final static int CONNECT_TIMEOUT = 10000;
+  private final static int READ_TIMEOUT = 30000;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";
@@ -439,8 +441,8 @@ public class WtAiRemote {
           WtMessageHandler.printToLogFile("readTimeout: " + readTimeout);
           hasPrintedInfo = true;
         }
-        conn.setConnectTimeout(connectTimeout * 10);
-        conn.setReadTimeout(readTimeout * 10);
+        conn.setConnectTimeout(CONNECT_TIMEOUT);
+        conn.setReadTimeout(READ_TIMEOUT);
         
         try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
           wr.write(postData);
