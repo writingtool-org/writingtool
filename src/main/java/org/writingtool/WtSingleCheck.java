@@ -274,7 +274,8 @@ public class WtSingleCheck {
                 if (toPos > 0) {
                   errorList.add(correctRuleMatchWithFootnotes(
                       createOOoError(myRuleMatch, -textPos, footnotePos, docLanguage, config),
-                        footnotePos, docCache.getTextParagraphDeletedCharacters(textPara)));
+                        footnotePos, docCache.getTextParagraphDeletedCharacters(textPara),
+                      docCache.getFlatParagraphNumber(textPara), docCache.getHiddenCharactersMap()));
                 }
               }
             }
@@ -613,7 +614,7 @@ public class WtSingleCheck {
         if (mLt == null || (nFPara >= 0 && docCache != null && docCache.isAutomaticGenerated(nFPara, true))) {
           paragraphMatches = null;
         } else {
-          paraText = removeFootnotes(paraText, footnotePos, deletedChars);
+          paraText = removeFootnotes(paraText, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
           paragraphMatches = mLt.check(paraText, JLanguageTool.ParagraphHandling.NORMAL, nFPara, singleDocument);
         }
         if (isDisposed()) {
@@ -634,7 +635,8 @@ public class WtSingleCheck {
                 toPos = paraText.length();
               }
               errorList.add(correctRuleMatchWithFootnotes(
-                  createOOoError(myRuleMatch, 0, footnotePos, docLanguage, config), footnotePos, deletedChars));
+                  createOOoError(myRuleMatch, 0, footnotePos, docLanguage, config), footnotePos, deletedChars,
+                  nFPara, docCache.getHiddenCharactersMap()));
             }
           }
           if (!errorList.isEmpty()) {
@@ -889,10 +891,30 @@ public class WtSingleCheck {
   }
   
   /**
-   * Remove footnotes from paraText
+   *  get hidden characters as list
+   */
+  public static List<Integer> getHiddenCharactersAsList(String paraText) {
+    int i = paraText.indexOf(WtOfficeTools.SOFT_HYPHEN);
+    if (i < 0) {
+      return null;
+    }
+    List<Integer> hiddenCharacter = new ArrayList<>();
+    hiddenCharacter.add(i);
+    while (i > 0) {
+      i = paraText.indexOf(WtOfficeTools.SOFT_HYPHEN, i + 1);
+      if (i >= 0) {
+        hiddenCharacter.add(i);
+      }
+    }
+    return hiddenCharacter;
+  }
+  
+  /**
+   * Remove footnotes, deleted characters and hidden characters from paraText
    * run cleanFootnotes if information about footnotes are not supported
    */
-  public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars) throws Throwable {
+  public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
     if (paraText == null) {
       return null;
     }
@@ -936,6 +958,13 @@ public class WtSingleCheck {
         }
       }
     }
+    List<Integer> hiddenCharacterList = getHiddenCharactersAsList(paraText);
+    if (hiddenCharacterList != null) {
+      hiddenCharacters.put(nPara, hiddenCharacterList);
+      paraText = paraText.replace(WtOfficeTools.SOFT_HYPHEN, "");
+    } else {
+      hiddenCharacters.remove(nPara);
+    }
     return paraText;
   }
   
@@ -943,7 +972,18 @@ public class WtSingleCheck {
    * Correct WtProofreadingError by footnote positions
    * footnotes before is the sum of all footnotes before the checked paragraph
    */
-  public static WtProofreadingError correctRuleMatchWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars) {
+  public static WtProofreadingError correctRuleMatchWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+    List<Integer> hiddenCharactersList = hiddenCharacters.get(nPara);
+    if (hiddenCharactersList != null) {
+      for (int i : hiddenCharactersList) {
+        if (i <= pError.nErrorStart) {
+          pError.nErrorStart++;
+        } else if (i < pError.nErrorStart + pError.nErrorLength) {
+          pError.nErrorLength++;
+        }
+      }
+    }
     if (deletedChars == null || deletedChars.isEmpty()) {
       if (footnotes == null || footnotes.length == 0) {
         return pError;

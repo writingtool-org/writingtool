@@ -74,23 +74,24 @@ public class WtDocumentCache implements Serializable {
   private static boolean debugModeTm;   // time measurement should be false except for testing
 
 
-  private final List<String> paragraphs = new ArrayList<String>(); // stores the flat paratoTextMappinggraphs of
-                                                                   // document
+  private final List<String> paragraphs = new ArrayList<String>();                      // stores the flat paratoTextMappinggraphs of
+                                                                                        // document
 
-  private final List<List<Integer>> chapterBegins = new ArrayList<List<Integer>>(); // stores the paragraphs formatted as
-                                                                                    // headings; is used to subdivide
-                                                                                    // the document in chapters
-  private final List<Integer> automaticParagraphs = new ArrayList<Integer>(); // stores the paragraphs automatic generated (will not be checked)
-  private final List<SerialLocale> locales = new ArrayList<SerialLocale>(); // stores the language of the paragraphs;
-  private final List<int[]> footnotes = new ArrayList<int[]>();             // stores the footnotes of the paragraphs;
+  private final List<List<Integer>> chapterBegins = new ArrayList<List<Integer>>();     // stores the paragraphs formatted as
+                                                                                        // headings; is used to subdivide
+                                                                                        // the document in chapters
+  private final List<Integer> automaticParagraphs = new ArrayList<Integer>();           // stores the paragraphs automatic generated (will not be checked)
+  private final List<SerialLocale> locales = new ArrayList<SerialLocale>();             // stores the language of the paragraphs;
+  private final List<int[]> footnotes = new ArrayList<int[]>();                         // stores the footnotes of the paragraphs;
   private final List<List<Integer>> deletedCharacters = new ArrayList<List<Integer>>(); // stores the deleted characters (report changes) of the paragraphs;
-  private final List<List<Integer>> openingQuotes = new ArrayList<List<Integer>>(); // stores the opening quotes in a paragraph;
-  private final List<List<Integer>> closingQuotes = new ArrayList<List<Integer>>(); // stores the closing quotes in a paragraph;
-  private final List<TextParagraph> toTextMapping = new ArrayList<>(); // Mapping from FlatParagraph to DocumentCursor
-  protected final List<List<Integer>> toParaMapping = new ArrayList<>(); // Mapping from DocumentCursor to FlatParagraph
-  private final DocumentType docType;                 // stores the document type (Writer, Impress, Calc)
-  private final Map<Integer, List<AnalyzedSentence>> analyzedParagraphs = new HashMap<>();  //  stores analyzed paragraphs
-  private List<Integer> sortedTextIds = null;           // stores the node index of the paragraphs (since LO 7.5 / else null)
+  private final List<List<Integer>> openingQuotes = new ArrayList<List<Integer>>();     // stores the opening quotes in a paragraph;
+  private final List<List<Integer>> closingQuotes = new ArrayList<List<Integer>>();     // stores the closing quotes in a paragraph;
+  private final List<TextParagraph> toTextMapping = new ArrayList<>();                  // Mapping from FlatParagraph to DocumentCursor
+  protected final List<List<Integer>> toParaMapping = new ArrayList<>();                // Mapping from DocumentCursor to FlatParagraph
+  private final DocumentType docType;                                                   // stores the document type (Writer, Impress, Calc)
+  private final Map<Integer, List<AnalyzedSentence>> analyzedParagraphs = new HashMap<>(); //  stores analyzed paragraphs
+  private final Map<Integer, List<Integer>> hiddenCharacters = new HashMap<>();         //  stores place of hidden characters (e.g. soft hyphen)
+  private List<Integer> sortedTextIds = null;                                           // stores the node index of the paragraphs (since LO 7.5 / else null)
   private Map<Integer, Integer> headingMap;
   private boolean isReset = false;
   private boolean isDirty = false;
@@ -384,6 +385,7 @@ public class WtDocumentCache implements Serializable {
       this.deletedCharacters.addAll(deletedCharacters);
       this.automaticParagraphs.clear();
       this.automaticParagraphs.addAll(automaticParagraphs);
+      this.hiddenCharacters.clear();
 //      this.openingQuotes.addAll(openingQuotes);
 //      this.closingQuotes.addAll(closingQuotes);
       if (sortedTextIds != null) {
@@ -1447,6 +1449,7 @@ public class WtDocumentCache implements Serializable {
     toParaMapping.clear();
     deletedCharacters.clear();
     automaticParagraphs.clear();
+    hiddenCharacters.clear();
     openingQuotes.clear();
     closingQuotes.clear();
     if (sortedTextIds != null) {
@@ -1473,6 +1476,7 @@ public class WtDocumentCache implements Serializable {
     if (in.headingMap != null) {
       headingMap = new HashMap<>(in.headingMap);
     }
+    hiddenCharacters.putAll(in.hiddenCharacters);
     documentElementsCount = in.documentElementsCount;
     nText = in.nText;
     nTable = in.nTable;
@@ -1667,6 +1671,13 @@ public class WtDocumentCache implements Serializable {
     } finally {
       rwLock.readLock().unlock();
     }
+  }
+  
+  /**
+   * get map of hidden characters
+   */
+  public Map<Integer, List<Integer>> getHiddenCharactersMap() {
+    return hiddenCharacters;
   }
 
   /**
@@ -1986,10 +1997,12 @@ public class WtDocumentCache implements Serializable {
           return "";
         }
         docText = new StringBuilder(fixLinebreak(WtSingleCheck.removeFootnotes(getFlatParagraph(startPos),
-            (hasFootnotes ? getFlatParagraphFootnotes(startPos) : null), getFlatParagraphDeletedCharacters(startPos))));
+            (hasFootnotes ? getFlatParagraphFootnotes(startPos) : null), getFlatParagraphDeletedCharacters(startPos),
+            startPos, hiddenCharacters)));
         for (int i = startPos + 1; i < endPos; i++) {
           docText.append(WtOfficeTools.END_OF_PARAGRAPH).append(fixLinebreak(
-              WtSingleCheck.removeFootnotes(getFlatParagraph(i), (hasFootnotes ? getFlatParagraphFootnotes(i) : null), getFlatParagraphDeletedCharacters(i))));
+              WtSingleCheck.removeFootnotes(getFlatParagraph(i), (hasFootnotes ? getFlatParagraphFootnotes(i) : null), 
+                  getFlatParagraphDeletedCharacters(i), i, hiddenCharacters)));
         }
       } else {
         TextParagraph startPara = new TextParagraph(textParagraph.type, startPos);
@@ -1998,11 +2011,13 @@ public class WtDocumentCache implements Serializable {
           return "";
         }
         docText = new StringBuilder(fixLinebreak(WtSingleCheck.removeFootnotes(getTextParagraph(startPara),
-            (hasFootnotes ? getTextParagraphFootnotes(startPara) : null), getTextParagraphDeletedCharacters(startPara))));
+            (hasFootnotes ? getTextParagraphFootnotes(startPara) : null), getTextParagraphDeletedCharacters(startPara),
+            getFlatParagraphNumber(startPara), hiddenCharacters)));
         for (int i = startPos + 1; i < endPos; i++) {
           TextParagraph tPara = new TextParagraph(textParagraph.type, i);
-          docText.append(WtOfficeTools.END_OF_PARAGRAPH).append(fixLinebreak(WtSingleCheck
-              .removeFootnotes(getTextParagraph(tPara), (hasFootnotes ? getTextParagraphFootnotes(tPara) : null), getTextParagraphDeletedCharacters(tPara))));
+          docText.append(WtOfficeTools.END_OF_PARAGRAPH).append(fixLinebreak(WtSingleCheck.removeFootnotes(getTextParagraph(tPara),
+              (hasFootnotes ? getTextParagraphFootnotes(tPara) : null), getTextParagraphDeletedCharacters(tPara),
+              getFlatParagraphNumber(tPara), hiddenCharacters)));
         }
       }
       return docText.toString();
@@ -2063,13 +2078,15 @@ public class WtDocumentCache implements Serializable {
       if (parasToCheck < -1) {
         for (int i = startPos; i < nPara; i++) {
           pos += WtSingleCheck.removeFootnotes(getFlatParagraph(i), 
-                  (hasFootnotes ? getFlatParagraphFootnotes(i) : null), getFlatParagraphDeletedCharacters(i)).length() + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
+                  (hasFootnotes ? getFlatParagraphFootnotes(i) : null), getFlatParagraphDeletedCharacters(i),
+                  i, hiddenCharacters).length() + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
         }
       } else {
         for (int i = startPos; i < nPara; i++) {
           TextParagraph tPara = new TextParagraph(textParagraph.type, i);
           pos += WtSingleCheck.removeFootnotes(getTextParagraph(tPara), 
-                  (hasFootnotes ? getTextParagraphFootnotes(tPara) : null), getTextParagraphDeletedCharacters(tPara)).length() + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
+                  (hasFootnotes ? getTextParagraphFootnotes(tPara) : null), getTextParagraphDeletedCharacters(tPara),
+                  this.getFlatParagraphNumber(tPara), hiddenCharacters).length() + WtOfficeTools.NUMBER_PARAGRAPH_CHARS;
         }
       }
       return pos;
@@ -2359,7 +2376,8 @@ public class WtDocumentCache implements Serializable {
       return false;
     }
     text = fixLinebreak(WtSingleCheck.removeFootnotes(text, 
-        getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara)));
+        getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara), 
+        nFPara, hiddenCharacters));
     int len = 0;
     for (AnalyzedSentence analyzedSentence : analyzedSentences) {
       String sentence = analyzedSentence.getText();
@@ -2439,7 +2457,8 @@ public class WtDocumentCache implements Serializable {
         return null;
       }
       paraText = WtSingleCheck.removeFootnotes(paraText, 
-          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara));
+          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara),
+          nFPara, hiddenCharacters);
       return createAnalyzedParagraph(nFPara, paraText, lt);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -2448,7 +2467,8 @@ public class WtDocumentCache implements Serializable {
   }
 
   private List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, String paraText, WtLanguageTool lt) throws IOException {
-    List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText.replace("\u00AD", ""));
+//    List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText.replace("\u00AD", ""));
+    List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText);
     putAnalyzedParagraph(nFPara, analyzedParagraph);
     return analyzedParagraph;
   }
@@ -2464,8 +2484,9 @@ public class WtDocumentCache implements Serializable {
         return null;
       }
       paraText = fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
-          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara)));
-      paraText = paraText.replace("\u00AD", "");
+          getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara),
+          nFPara, hiddenCharacters));
+//      paraText = paraText.replace("\u00AD", "");
       List<AnalyzedSentence> analyzedSentences = getAnalyzedParagraph(nFPara);
       List<String> sentences = new ArrayList<>();
       if (analyzedSentences == null) {

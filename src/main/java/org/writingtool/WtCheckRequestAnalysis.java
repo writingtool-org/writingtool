@@ -585,8 +585,8 @@ class WtCheckRequestAnalysis {
     }
     WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
     int nPara;
-    String vcText = WtSingleCheck.removeFootnotes(viewCursor.getViewCursorParagraphText(), footnotePositions, null);
-    String chPara = WtSingleCheck.removeFootnotes(chParaWithFootnotes, footnotePositions, null);
+    String vcText = WtSingleCheck.removeFootnotes(viewCursor.getViewCursorParagraphText(), footnotePositions, null, -1, docCache.getHiddenCharactersMap());
+    String chPara = WtSingleCheck.removeFootnotes(chParaWithFootnotes, footnotePositions, null, -1, docCache.getHiddenCharactersMap());
     if (debugMode > 0) {
       WtMessageHandler.printToLogFile("CheckRequestAnalysis: getParaFromViewCursorOrDialog: vcText: " + vcText);
       WtMessageHandler.printToLogFile("CheckRequestAnalysis: getParaFromViewCursorOrDialog: chPara: " + chPara);

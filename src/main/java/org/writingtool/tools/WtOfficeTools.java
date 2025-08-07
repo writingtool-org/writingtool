@@ -145,6 +145,7 @@ public class WtOfficeTools {
   public static final String MANUAL_LINEBREAK = "\r";     //  to distinguish from paragraph separator
   public static final String ZERO_WIDTH_SPACE = "\u200B"; // Used to mark footnotes, functions, etc.
   public static final char ZERO_WIDTH_SPACE_CHAR = '\u200B'; // Used to mark footnotes, functions, etc.
+  public static final String SOFT_HYPHEN = "\u00AD";      // Soft Hyphen (has to be removed for grammar check)
   public static final String IGNORE_LANGUAGE = "zxx";     // Used from LT to mark automatic generated text like indexes
   public static final String LOG_LINE_BREAK = System.lineSeparator();  //  LineBreak in Log-File (MS-Windows compatible)
   public static final int MAX_SUGGESTIONS = 25;           // Number of suggestions maximal shown in LO/OO
