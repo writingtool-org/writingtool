@@ -248,7 +248,7 @@ public class WtAiErrorDetection {
           WtMessageHandler.printToLogFile("Rule match suggestion: " + myRuleMatch.getSuggestedReplacements().get(0));
         }
         WtProofreadingError error = WtSingleCheck.createOOoError(myRuleMatch, 0, footnotePos, null, config);
-        if (debugMode > 1) {
+        if (debugMode > 1 && error.aSuggestions.length > 0) {
           WtMessageHandler.printToLogFile("error suggestion: " + error.aSuggestions[0]);
         }
         errorList.add(WtSingleCheck.correctRuleMatchWithFootnotes(
