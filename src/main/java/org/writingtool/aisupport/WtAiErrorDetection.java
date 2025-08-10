@@ -151,12 +151,13 @@ public class WtAiErrorDetection {
       return null;
     }
     paraText = WtDocumentCache.fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
-        footnotePos, deletedChars));
+        footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
     List<AnalyzedSentence> analyzedSentences;
     if (nFPara < 0) {
       paraText = WtDocumentCache.fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
-          footnotePos, deletedChars));
-      analyzedSentences =  lt.analyzeText(paraText.replace("\u00AD", ""));
+          footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
+//      analyzedSentences =  lt.analyzeText(paraText.replace("\u00AD", ""));
+      analyzedSentences =  lt.analyzeText(paraText);
     } else {
       analyzedSentences = docCache.getAnalyzedParagraph(nFPara);
     }
@@ -247,11 +248,11 @@ public class WtAiErrorDetection {
           WtMessageHandler.printToLogFile("Rule match suggestion: " + myRuleMatch.getSuggestedReplacements().get(0));
         }
         WtProofreadingError error = WtSingleCheck.createOOoError(myRuleMatch, 0, footnotePos, null, config);
-        if (debugMode > 1) {
+        if (debugMode > 1 && error.aSuggestions.length > 0) {
           WtMessageHandler.printToLogFile("error suggestion: " + error.aSuggestions[0]);
         }
         errorList.add(WtSingleCheck.correctRuleMatchWithFootnotes(
-            error, footnotePos, deletedChars));
+            error, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
       }
       aiCache.put(nFPara, null, errorList.toArray(new WtProofreadingError[0]));
     }

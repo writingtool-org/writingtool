@@ -724,7 +724,8 @@ public class WtCheckDialog extends Thread {
                     aError.aSuggestions = new String[0];
                   }
                   aError = WtSingleCheck.correctRuleMatchWithFootnotes(aError, 
-                      docCache.getFlatParagraphFootnotes(nPara), docCache.getFlatParagraphDeletedCharacters(nPara));
+                      docCache.getFlatParagraphFootnotes(nPara), docCache.getFlatParagraphDeletedCharacters(nPara),
+                      nPara, docCache.getHiddenCharactersMap());
                   errorArray.add(aError);
                 }
               }
