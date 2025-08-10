@@ -59,6 +59,7 @@ import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAboutDialog;
 import org.writingtool.dialogs.WtAiDialog;
+import org.writingtool.dialogs.WtAiSummaryDialog;
 import org.writingtool.dialogs.WtCheckDialog;
 import org.writingtool.dialogs.WtConfigurationDialog;
 import org.writingtool.dialogs.WtMoreInfoDialog;
@@ -110,7 +111,7 @@ public class WtDocumentsHandler {
   private boolean docReset = false;
 
   private static boolean debugMode = false;   //  should be false except for testing
-  private static boolean debugModeTm = false;   //  should be false except for testing
+  private static boolean debugModeTm = false; //  should be false except for testing
 
   public final boolean isOpenOffice;
   
@@ -126,28 +127,29 @@ public class WtDocumentsHandler {
   private static WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
   private WtSidebarContent sidebarContent;
-  private static Map<String, Set<String>> disabledRulesUI; //  Rules disabled by context menu or spell dialog
-  private final List<Rule> extraRemoteRules;        //  store of rules supported by remote server but not locally
-  private LtCheckDialog ltDialog = null;            //  WT spelling and grammar check dialog
-  private WtConfigurationDialog cfgDialog = null;   //  configuration dialog (show only one configuration panel)
-  private static WtAboutDialog aboutDialog = null;  //  about dialog (show only one about panel)
-  private static WtMoreInfoDialog infoDialog = null;//  more info about a rule dialog (show only one info panel)
-  private boolean dialogIsRunning = false;          //  The dialog was started
+  private static Map<String, Set<String>> disabledRulesUI;  //  Rules disabled by context menu or spell dialog
+  private final List<Rule> extraRemoteRules;                //  store of rules supported by remote server but not locally
+  private LtCheckDialog ltDialog = null;                    //  WT spelling and grammar check dialog
+  private WtConfigurationDialog cfgDialog = null;           //  configuration dialog (show only one configuration panel)
+  private static WtAboutDialog aboutDialog = null;          //  about dialog (show only one about panel)
+  private static WtMoreInfoDialog infoDialog = null;        //  more info about a rule dialog (show only one info panel)
+  private static WtAiSummaryDialog aiSummaryDialog = null;  //  generate summary dialog (AI) (show only one summary panel)
+  private boolean dialogIsRunning = false;                  //  The dialog was started
   private WaitDialogThread waitDialog = null;
 
   
-  private static XComponentContext xContext;               //  The context of the document
-  private final List<WtSingleDocument> documents;   //  The List of LO documents to be checked
-  private final List<String> disposedIds; //  The List of IDs of disposed documents
-  private boolean recheck = true;                   //  if true: recheck the whole document at next iteration
-  private int docNum;                               //  number of the current document
+  private static XComponentContext xContext;          //  The context of the document
+  private final List<WtSingleDocument> documents;     //  The List of LO documents to be checked
+  private final List<String> disposedIds;             //  The List of IDs of disposed documents
+  private boolean recheck = true;                     //  if true: recheck the whole document at next iteration
+  private int docNum;                                 //  number of the current document
   
-  private int numSinceHeapTest = 0;                 //  number of checks since last heap test
-  private boolean heapLimitReached = false;         //  heap limit is reached
+  private int numSinceHeapTest = 0;                   //  number of checks since last heap test
+  private boolean heapLimitReached = false;           //  heap limit is reached
 
-  private boolean noBackgroundCheck = false;        //  is LT switched off by config
-  private boolean useQueue = false;                  //  will be overwritten by config
-  private boolean noLtSpeller = false;              //  true if LT spell checker can't be used
+  private boolean noBackgroundCheck = false;          //  is LT switched off by config
+  private boolean useQueue = false;                   //  will be overwritten by config
+  private boolean noLtSpeller = false;                //  true if LT spell checker can't be used
 
   private String menuDocId = null;                    //  Id of document at which context menu was called 
   private WtTextLevelCheckQueue textLevelQueue = null;// Queue to check text level rules
@@ -155,8 +157,8 @@ public class WtDocumentsHandler {
   private ShapeChangeCheck shapeChangeCheck = null;   // Thread for test changes in shape texts
   private boolean doShapeCheck = false;               // do the test for changes in shape texts
   
-  private boolean useOrginalCheckDialog = false;    // use original spell and grammar dialog (LT check dialog does not work for OO)
-  private boolean checkImpressDocument = false;     //  the document to check is Impress
+  private boolean useOrginalCheckDialog = false;      // use original spell and grammar dialog (LT check dialog does not work for OO)
+  private boolean checkImpressDocument = false;       //  the document to check is Impress
 //  private final HandleLtDictionary handleDictionary;
   private boolean isNotTextDocument = false;
   private int heapCheckInterval = HEAP_CHECK_INTERVAL;
@@ -1420,6 +1422,33 @@ public class WtDocumentsHandler {
     }
   }
   
+  public WtAiSummaryDialog getAiSummaryDialog() {
+    return aiSummaryDialog;
+  }
+
+  public void setAiSummaryDialog(WtAiSummaryDialog dialog) {
+    aiSummaryDialog = dialog;
+  }
+
+  public void closeAiSummaryDialog() {
+    aiSummaryDialog.close();
+    aiSummaryDialog = null;
+  }
+
+  public void runAiSummaryDialog() {
+    for (WtSingleDocument document : documents) {
+      if (menuDocId.equals(document.getDocID())) {
+        if (aiSummaryDialog != null) {
+          aiSummaryDialog.toFront();
+        } else {
+          aiSummaryDialog = new WtAiSummaryDialog(document, messages);
+          aiSummaryDialog.start();
+        }
+        return;
+      }
+    }
+  }
+  
   /**
    * Call method resetIgnorePermanent for concerned document 
    */
@@ -1991,6 +2020,8 @@ public class WtDocumentsHandler {
         runAiTranslateText();
       } else if ("aiTextToSpeech".equals(sEvent)) {
         runAiTextToSpeech();
+      } else if ("aiSummary".equals(sEvent)) {
+        runAiSummaryDialog();
       } else if ("remoteHint".equals(sEvent)) {
         if (getConfiguration().useOtherServer()) {
           WtMessageHandler.showMessage(MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), 

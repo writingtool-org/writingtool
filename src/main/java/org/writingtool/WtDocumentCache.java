@@ -47,7 +47,7 @@ import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
 
 /**
- * Class to store the Text WtProofreadingErrorent cache)
+ * Class to store the Text of the document in a cache
  * 
  * @since 1.0
  * @author Fred Kruse
@@ -2312,6 +2312,9 @@ public class WtDocumentCache implements Serializable {
     rwLock.readLock().lock();
     try {
       if (docLocale == null) {
+        docLocale = getMostUsedLanguage(locales);
+      }
+      if (docLocale == null) {
         return null;
       }
       return docLocale.toLocaleWithoutLabel();
@@ -2659,7 +2662,7 @@ public class WtDocumentCache implements Serializable {
   }
   
   /**
-   * filter sentence in quotes our of error array
+   * filter sentence in quotes out of error array
    */
   public WtProofreadingError[] filterDirectSpeech (WtProofreadingError[] errorArray, int nPara, WtConfiguration config) {
     if (config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_YES 
@@ -2678,6 +2681,62 @@ public class WtDocumentCache implements Serializable {
       }
     }
     return errors.toArray(new WtProofreadingError[0]);
+  }
+  
+  /**
+   * Get List of children of a chapter
+   */
+  private List<WtChapter> getSubChapters(List<Integer> headParas, int n, int hierarchy, WtChapter parent) {
+    List<WtChapter> children = new ArrayList<>();
+    if (headParas != null && !headParas.isEmpty()) {
+//      int nPara = headParas.get(n);
+//      int hierarchy = headingMap.get(nPara);
+      for (int i = n + 1; i < headParas.size(); i++) {
+        int np = headParas.get(i);
+        int hr = headingMap.get(np);
+        if (hr > 0) {
+          if (hr <= hierarchy) {
+            break;
+          }
+          if (hr == hierarchy + 1) {
+            String name = getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, np));
+            int from = np + 1;
+            int to = -1;
+            for (int j = i + 1; j < headParas.size(); j++) {
+              int nSub = headParas.get(j);
+              int hSub = headingMap.get(nSub);
+              if (hSub > 0 && hSub <= hr) {
+                to = nSub;
+                break;
+              }
+            }
+            if (to < 0) {
+              to = textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
+            }
+            WtChapter sub = new WtChapter(name, from, to, hr, parent);
+            List<WtChapter> ch = getSubChapters(headParas, i, hr, sub);
+            sub.setChildren(ch);
+            children.add(sub);
+          }
+        }
+      }
+    }
+    return children;
+  }
+  
+  /**
+   * Get all chapters of the document as node tree
+   */
+  public WtChapter getChapters(String title) {
+    List<Integer> headParas = new ArrayList<>();
+    for (int nPara : headingMap.keySet()) {
+      headParas.add(nPara);
+    }
+    headParas.sort(null);
+    WtChapter root = new WtChapter(title, 0, textSize(WtDocumentCache.CURSOR_TYPE_TEXT), 0, null);
+    List<WtChapter> ch = getSubChapters(headParas, -1, 0, root);
+    root.setChildren(ch);
+    return root;
   }
 
   /**

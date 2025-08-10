@@ -32,6 +32,7 @@ import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.dialogs.WtAiSummaryDialog;
 import org.writingtool.dialogs.WtStatAnDialog;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -110,6 +111,7 @@ public class WtMenus {
   public static final String LT_AI_TEXT_TO_SPEECH = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTextToSpeech";
   public static final String LT_AI_GENERAL_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiGeneralCommand";
   public static final String LT_AI_REPLACE_WORD = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiReplaceWord_";
+  public static final String LT_AI_SUMMARY = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiSummary";
   
 //  public static final String LT_MENU_REPLACE_COLON = "__|__";
   public static final String LT_MENU_REPLACE_COLON = ":";
@@ -486,6 +488,11 @@ public class WtMenus {
           xAiSupportMenu.enableItem(nId , true);
           nId++;
           nPos++;
+          xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiSummaryCommand"), (short) 0, nPos);
+          xAiSupportMenu.setCommand(nId, LT_AI_SUMMARY);
+          xAiSupportMenu.enableItem(nId , true);
+          nId++;
+          nPos++;
           xAiSupportMenu.insertItem(nId, MESSAGES.getString("loMenuAiTranslateCommand"), (short) 0, nPos);
           xAiSupportMenu.setCommand(nId, LT_AI_TRANSLATE_TEXT);
           xAiSupportMenu.enableItem(nId , true);
@@ -567,9 +574,18 @@ public class WtMenus {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ReformulateText);
             aiChange.start();
           } else if (event.MenuId == SUBMENU_ID_AI + 4) {
-            WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ExpandText);
-            aiChange.start();
+            WtAiSummaryDialog dialog = document.getMultiDocumentsHandler().getAiSummaryDialog();
+            if (dialog != null) {
+              dialog.toFront();
+            } else {
+              dialog = new WtAiSummaryDialog(document, MESSAGES);
+              document.getMultiDocumentsHandler().setAiSummaryDialog(dialog);
+              dialog.start();
+            }
           } else if (event.MenuId == SUBMENU_ID_AI + 5) {
+            WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
+            aiTranslate.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 6) {
             WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
             aiTranslate.start();
           } else if (event.MenuId == SUBMENU_ID_AI + 8) {
@@ -1118,6 +1134,12 @@ public class WtMenus {
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
         xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiExpandCommand"));
         xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_EXPAND_TEXT);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiSummaryCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_SUMMARY);
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
