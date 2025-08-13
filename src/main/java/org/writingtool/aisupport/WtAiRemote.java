@@ -52,8 +52,8 @@ public class WtAiRemote {
   
   private final static int REMOTE_TRIALS = 5;
   private final static int BUFFER_SIZE = 20000;
-  private final static int CONNECT_TIMEOUT = 10000;
-  private final static int READ_TIMEOUT = 30000;
+  private final static int CONNECT_TIMEOUT = 0;
+  private final static int READ_TIMEOUT = 0;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";

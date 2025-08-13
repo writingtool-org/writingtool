@@ -782,8 +782,8 @@ public class WtCheckDialog extends Thread {
               for (String suggestion : error.aSuggestions) {
                 suggestionList.add(suggestion);
               }
-              String[] suggestions = documents.getLinguisticServices().getSpellAlternatives(
-                        text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength), locale);
+              String word = text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
+              String[] suggestions = documents.getLinguisticServices().getSpellAlternatives(word, locale);
               if (suggestions != null) {
                 for (String suggestion : suggestions) {
                   if (!suggestionList.contains(suggestion)) {
@@ -2367,8 +2367,11 @@ public class WtCheckDialog extends Thread {
           blockSentenceError = true;
           sentenceIncludeError.setEnabled(true);
           sentenceIncludeError.setBackground(Color.white);
-          sentenceIncludeError.setText(docCache.getFlatParagraph(y));
-          setAttributesForErrorText(error);
+          String text = WtSingleCheck.removeFootnotes(docCache.getFlatParagraph(y), docCache.getFlatParagraphFootnotes(y), 
+              docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap());
+          sentenceIncludeError.setText(text);
+          setAttributesForErrorText(correctErrorWithFootnotes(error, docCache.getFlatParagraphFootnotes(y), 
+              docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap()));
           blockSentenceError = false;
           errorDescription.setEnabled(true);
           errorDescription.setText(error.aFullComment);
@@ -2505,6 +2508,29 @@ public class WtCheckDialog extends Thread {
         closeDialog();
       }
       atWork = false;
+    }
+
+    /**
+     * Correct WtProofreadingError by footnote positions
+     * footnotes before is the sum of all footnotes before the checked paragraph
+     */
+    private WtProofreadingError correctErrorWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars,
+        int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+      if (footnotes == null) {
+        return pError;
+      }
+      WtProofreadingError error = new WtProofreadingError(pError);
+      List<Integer> hiddenCharacterList = hiddenCharacters.get(nPara);
+      int[] allChars = WtSingleCheck.mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
+      for (int i = allChars.length - 1; i >= 0; i--) {
+        int n = allChars[i];
+        if (n < error.nErrorStart) {
+          error.nErrorStart--;
+        } else if (n <= error.nErrorStart + error.nErrorLength) {
+          error.nErrorLength--;
+        }
+      }
+      return error;
     }
 
     /**
@@ -2687,7 +2713,7 @@ public class WtCheckDialog extends Thread {
   //          if (nextError.error.aRuleIdentifier.equals(spellRuleId)) {
             if (nextError.error.nErrorType == TextMarkupType.SPELLCHECK) {
               wrongWord = docCache.getFlatParagraph(y).substring(nextError.error.nErrorStart, 
-                  nextError.error.nErrorStart + nextError.error.nErrorLength);
+                  nextError.error.nErrorStart + nextError.error.nErrorLength).replace(WtOfficeTools.SOFT_HYPHEN, "");
             }
             if (debugMode) {
               WtMessageHandler.printToLogFile("CheckDialog: getNextError: endOfRange: " + endOfRange + "; ErrorStart(" + nStart 
@@ -2724,7 +2750,7 @@ public class WtCheckDialog extends Thread {
   //            if (nextError.error.aRuleIdentifier.equals(spellRuleId)) {
               if (nextError.error.nErrorType == TextMarkupType.SPELLCHECK) {
                 wrongWord = docCache.getFlatParagraph(y).substring(nextError.error.nErrorStart, 
-                    nextError.error.nErrorStart + nextError.error.nErrorLength);
+                    nextError.error.nErrorStart + nextError.error.nErrorLength).replace(WtOfficeTools.SOFT_HYPHEN, "");
               }
               setFlatViewCursor(nextError.error.nErrorStart, y, nextError.error, viewCursor);
               if (debugMode) {
@@ -2974,10 +3000,12 @@ public class WtCheckDialog extends Thread {
         WtMessageHandler.printToLogFile("CheckDialog: changeText: dialog text: " + dialogText);
       }
       orgText = docCache.getFlatParagraph(y);
+      String correctedText = WtSingleCheck.removeFootnotes(docCache.getFlatParagraph(y), docCache.getFlatParagraphFootnotes(y), 
+          docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap());
       if (debugMode) {
         WtMessageHandler.printToLogFile("CheckDialog: changeText: original text: " + orgText);
       }
-      if (!orgText.equals(dialogText)) {
+      if (!correctedText.equals(dialogText)) {
         int firstChange = getDifferenceFromBegin(orgText, dialogText);
         if (debugMode) {
           WtMessageHandler.printToLogFile("CheckDialog: changeText: firstChange: " + firstChange);

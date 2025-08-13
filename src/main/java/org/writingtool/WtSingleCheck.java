@@ -910,9 +910,66 @@ public class WtSingleCheck {
   }
   
   /**
+   * merge Footnotes, deleted and hidden characters to one array
+   */
+  public static int[] mergeFootnotesEtc(int[] footnotes, List<Integer> deletedChars, List<Integer> hiddenCharacters) throws Throwable {
+    if ((deletedChars == null || deletedChars.isEmpty()) && (hiddenCharacters == null || hiddenCharacters.isEmpty())) {
+      return footnotes;
+    }
+    int n = 0;
+    if (footnotes != null) {
+      n += footnotes.length;
+    }
+    if (deletedChars != null) {
+      n += deletedChars.size();
+    }
+    if (hiddenCharacters != null) {
+      n += hiddenCharacters.size();
+    }
+    int[] allChars = new int[n];
+    n = 0;
+    for (int i = 0; i < footnotes.length; i++, n++) {
+      allChars[n] = footnotes[i];
+    }
+    for (int i = 0; i < deletedChars.size(); i++, n++) {
+      allChars[n] = deletedChars.get(i);
+    }
+    for (int i = 0; i < hiddenCharacters.size(); i++, n++) {
+      allChars[n] = hiddenCharacters.get(i);
+    }
+    Arrays.sort(allChars);
+    return allChars;
+  }
+
+  
+  /**
    * Remove footnotes, deleted characters and hidden characters from paraText
    * run cleanFootnotes if information about footnotes are not supported
    */
+  public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+    if (paraText == null) {
+      return null;
+    }
+    if (footnotes == null) {
+      return cleanFootnotes(paraText);
+    }
+    List<Integer> hiddenCharacterList = getHiddenCharactersAsList(paraText);
+    if (hiddenCharacterList != null) {
+      hiddenCharacters.put(nPara, hiddenCharacterList);
+    } else {
+      hiddenCharacters.remove(nPara);
+    }
+    int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
+    for (int i = allChars.length - 1; i >= 0; i--) {
+      if (allChars[i] < paraText.length()) {
+        paraText = paraText.substring(0, allChars[i]) + paraText.substring(allChars[i] + 1);
+      }
+    }
+    return paraText;
+  }
+
+/*
   public static String removeFootnotes(String paraText, int[] footnotes, List<Integer> deletedChars,
       int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
     if (paraText == null) {
@@ -967,11 +1024,28 @@ public class WtSingleCheck {
     }
     return paraText;
   }
-  
+*/  
   /**
    * Correct WtProofreadingError by footnote positions
    * footnotes before is the sum of all footnotes before the checked paragraph
    */
+  public static WtProofreadingError correctRuleMatchWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+    if (footnotes == null) {
+      return pError;
+    }
+    List<Integer> hiddenCharacterList = hiddenCharacters.get(nPara);
+    int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
+    for (int i :allChars) {
+      if (i <= pError.nErrorStart) {
+        pError.nErrorStart++;
+      } else if (i < pError.nErrorStart + pError.nErrorLength) {
+        pError.nErrorLength++;
+      }
+    }
+    return pError;
+  }
+/*
   public static WtProofreadingError correctRuleMatchWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars,
       int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
     List<Integer> hiddenCharactersList = hiddenCharacters.get(nPara);
@@ -1031,7 +1105,7 @@ public class WtSingleCheck {
     }
     return pError;
   }
-  
+*/  
   /**
    * get all errors of a Paragraph as list
    */

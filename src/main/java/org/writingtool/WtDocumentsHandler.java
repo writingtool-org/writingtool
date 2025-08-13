@@ -1886,7 +1886,7 @@ public class WtDocumentsHandler {
         changeProfile(profile);
       } else if (sEvent.startsWith("addToDictionary_")) {
         String[] sArray = sEvent.substring(16).split(":");
-        WtDictionary.addWordToDictionary(sArray[0], sArray[1], xContext);;
+        WtDictionary.addWordToDictionary(sArray[0], sArray[1].replace(WtOfficeTools.SOFT_HYPHEN, ""), xContext);;
       } else if ("renewMarkups".equals(sEvent)) {
         renewMarkups();
       } else if ("checkDialog".equals(sEvent) || "checkAgainDialog".equals(sEvent)) {
