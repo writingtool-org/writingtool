@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
-	<version value="25.10-SNAPSHOT"/>
+	<version value="25.7.1"/>
 	<identifier value="org.openoffice.writingtool.oxt"/>
 	<dependencies>
 		<OpenOffice.org-minimal-version d:name="4.1" value="4.1"/>
