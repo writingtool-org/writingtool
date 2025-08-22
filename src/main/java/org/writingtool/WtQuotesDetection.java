@@ -170,6 +170,9 @@ public class WtQuotesDetection {
   }
   
   public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) throws Throwable {
+    if (nPara < 0 || nPara >= oQuotes.size()) {
+      return;
+    }
     boolean isQuoteBefore = oQuotes.get(nPara) != null && oQuotes.get(nPara).size() > 0 && oQuotes.get(nPara).get(0) < 0; 
     isQuoteBefore = analyzeOneParagraph(txt, isQuoteBefore);
     oQuotes.set(nPara, openingQuotes);
