@@ -928,14 +928,20 @@ public class WtSingleCheck {
     }
     int[] allChars = new int[n];
     n = 0;
-    for (int i = 0; i < footnotes.length; i++, n++) {
-      allChars[n] = footnotes[i];
+    if (footnotes != null) {
+      for (int i = 0; i < footnotes.length; i++, n++) {
+        allChars[n] = footnotes[i];
+      }
     }
-    for (int i = 0; i < deletedChars.size(); i++, n++) {
-      allChars[n] = deletedChars.get(i);
+    if (deletedChars != null) {
+      for (int i = 0; i < deletedChars.size(); i++, n++) {
+        allChars[n] = deletedChars.get(i);
+      }
     }
-    for (int i = 0; i < hiddenCharacters.size(); i++, n++) {
-      allChars[n] = hiddenCharacters.get(i);
+    if (hiddenCharacters != null) {
+      for (int i = 0; i < hiddenCharacters.size(); i++, n++) {
+        allChars[n] = hiddenCharacters.get(i);
+      }
     }
     Arrays.sort(allChars);
     return allChars;
