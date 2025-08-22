@@ -1081,7 +1081,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setUseTextLevelQueue(true);
       config.setRemoteCheck(false);
     });
-    localeCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiIsMultiThread")));
+    localeCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiMultiThread")));
     localeCheckButtons[2].addActionListener(e -> {
       otherServerNameField.setEnabled(false);
       usernameLabel.setEnabled(false);
