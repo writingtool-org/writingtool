@@ -94,7 +94,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   /**
    * the constructor of the class creates all elements of the dialog
    */
-  public WtAiResultDialog(WtSingleDocument document, ResourceBundle messages, boolean isList) {
+  public WtAiResultDialog(WtSingleDocument document, ResourceBundle messages, String labelText, boolean isList) {
     long startTime = 0;
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
@@ -110,7 +110,8 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
-    resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
+//    resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
+    resultLabel = new JLabel(labelText);
     result = new JTextPane();
     resultList = new JList<String>();
     if (!isList) {
@@ -204,7 +205,25 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       
       //  Define Text panels
 
-      //  Define 1. right panel
+      //  Define left panel
+      JPanel leftPanel1 = new JPanel();
+      leftPanel1.setLayout(new GridBagLayout());
+      GridBagConstraints cons11 = new GridBagConstraints();
+      cons11.insets = new Insets(2, 0, 2, 0);
+      cons11.gridx = 0;
+      cons11.gridy = 0;
+      cons11.anchor = GridBagConstraints.NORTHWEST;
+      cons11.fill = GridBagConstraints.BOTH;
+      cons11.weightx = 0.0f;
+      cons11.weighty = 0.0f;
+      cons11.gridy++;
+      leftPanel1.add(resultLabel, cons11);
+      cons11.weightx = 10.0f;
+      cons11.weighty = 10.0f;
+      cons11.gridy++;
+      leftPanel1.add(resultPane, cons11);
+
+      //  Define right panel
       JPanel rightPanel1 = new JPanel();
       rightPanel1.setLayout(new GridBagLayout());
       GridBagConstraints cons21 = new GridBagConstraints();
@@ -230,7 +249,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       cons1.fill = GridBagConstraints.BOTH;
       cons1.weightx = 10.0f;
       cons1.weighty = 10.0f;
-      mainPanel.add(resultPane, cons1);
+      mainPanel.add(leftPanel1, cons1);
       cons1.gridx++;
       cons1.fill = GridBagConstraints.NONE;
       cons1.anchor = GridBagConstraints.SOUTHEAST;
@@ -383,10 +402,11 @@ public class WtAiResultDialog extends Thread implements ActionListener {
    */
   public void closeDialog() {
     dialog.setVisible(false);
-    if (debugMode) {
-      WtMessageHandler.printToLogFile("AiDialog: closeDialog: Close AI Dialog");
-    }
+//    if (debugMode) {
+      WtMessageHandler.printToLogFile("AiDialog: closeDialog: Close AI Result Dialog");
+//    }
     atWork = false;
+    WtAiParagraphChanging.setCloseAiResultDialog();
   }
   
 

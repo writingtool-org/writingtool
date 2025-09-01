@@ -42,17 +42,8 @@ import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtViewCursorTools;
 
-import com.sun.star.frame.XController;
-import com.sun.star.frame.XModel;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
-import com.sun.star.text.XParagraphCursor;
-import com.sun.star.text.XText;
-import com.sun.star.text.XTextCursor;
-import com.sun.star.text.XTextDocument;
-import com.sun.star.text.XTextViewCursor;
-import com.sun.star.text.XTextViewCursorSupplier;
-import com.sun.star.uno.UnoRuntime;
 
 /**
  * Class to execute changes of paragraphs by AI
@@ -71,13 +62,15 @@ public class WtAiParagraphChanging extends Thread {
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
 
   public final static WtSuggestionStore lastWords = new WtSuggestionStore(MAX_WORDS);
-
+  
   private final WtSingleDocument document;
   private final WtConfiguration config;
   private final AiCommand commandId;
   
+  private static WtAiResultDialog resultDialog = null;
   private static WtAiDialog aiDialog = null;
   private WaitDialogThread waitDialog = null;
+  private String word;
   
   public WtAiParagraphChanging(WtSingleDocument document, WtConfiguration config, AiCommand commandId) {
     this.document = document;
@@ -96,6 +89,14 @@ public class WtAiParagraphChanging extends Thread {
   
   public static void setCloseAiDialog() {
     aiDialog = null;
+  }
+  
+  public static WtAiResultDialog getAiResultDialog() {
+    return resultDialog;
+  }
+  
+  public static void setCloseAiResultDialog() {
+    resultDialog = null;
   }
   
   private void runAiChangeOnParagraph() {
@@ -129,35 +130,46 @@ public class WtAiParagraphChanging extends Thread {
       String instruction = null;
       boolean onlyPara = false;
       float temp = WtAiRemote.CORRECT_TEMPERATURE;
+      String labelText;
       if (commandId == AiCommand.CorrectGrammar) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.CORRECT_INSTRUCTION, locale);
         onlyPara = true;
+        labelText = "";
       } else if (commandId == AiCommand.ImproveStyle) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.STYLE_INSTRUCTION, locale);
         onlyPara = true;
+        labelText = messages.getString("loMenuAiStyleCommand") + ":";
       } else if (commandId == AiCommand.ReformulateText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.REFORMULATE_INSTRUCTION, locale);
         onlyPara = true;
         temp = WtAiRemote.REFORMULATE_TEMPERATURE;
+        labelText = messages.getString("loMenuAiReformulateCommand") + ":";
       } else if (commandId == AiCommand.ExpandText) {
         instruction = WtAiRemote.getInstruction(WtAiRemote.EXPAND_INSTRUCTION, locale);
         temp = WtAiRemote.EXPAND_TEMPERATURE;
+        labelText = messages.getString("loMenuAiExpandCommand") + ":";
       } else {
         instruction = WtOptionPane.showInputDialog(null, messages.getString("loMenuAiGeneralCommandMessage"), 
           messages.getString("loMenuAiGeneralCommandTitle"), WtOptionPane.QUESTION_MESSAGE);
         temp = WtAiRemote.EXPAND_TEMPERATURE;
+        labelText = messages.getString("loMenuAiGeneralCommand") + ":";
+      }
+//      WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: Result Dialog " + (resultDialog != null ? "!=" : "==") + " null");
+      if (resultDialog != null) {
+//        WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: Result Dialog closed");
+        resultDialog.closeDialog();
       }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
       if (debugMode > 1) {
-        WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " + text);
+        WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: instruction: " + instruction + ", text: " + text);
       }
       String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara);
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
-      WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages, false);
+      resultDialog = new WtAiResultDialog(document, messages, labelText, false);
       if (output == null) {
         output = "";
       }
@@ -173,83 +185,6 @@ public class WtAiParagraphChanging extends Thread {
   }
   
   /** 
-   * Returns the xText
-   * Returns null if it fails
-   *//*
-  private static XText getXText(XComponent xComponent) {
-    try {
-      XTextDocument curDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
-      if (curDoc == null) {
-        return null;
-      }
-      return curDoc.getText();
-    } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
-      return null;           // Return null as method failed
-    }
-  }
-
-  /** 
-   * Returns ViewCursor 
-   * Returns null if it fails
-   *//*
-  private static XTextViewCursor getViewCursor(XComponent xComponent) {
-    try {
-      XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
-      if (xModel == null) {
-        WtMessageHandler.printToLogFile("xModel == null");
-        return null;
-      }
-      XController xController = xModel.getCurrentController();
-      if (xController == null) {
-        WtMessageHandler.printToLogFile("xController == null");
-        return null;
-      }
-      XTextViewCursorSupplier xViewCursorSupplier =
-          UnoRuntime.queryInterface(XTextViewCursorSupplier.class, xController);
-      if (xViewCursorSupplier == null) {
-        WtMessageHandler.printToLogFile("xViewCursorSupplier == null");
-        return null;
-      }
-      return xViewCursorSupplier.getViewCursor();
-    } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
-      return null;           // Return null as method failed
-    }
-  }
-
-  /** 
-   * Returns Paragraph under ViewCursor 
-   * Paragraph is selected
-   *//*
-  private static String getViewCursorParagraph(XComponent xComponent) {
-    try {
-      XTextViewCursor xVCursor = getViewCursor(xComponent);
-      if (xVCursor == null) {
-        MessageHandler.printToLogFile("xVCursor == null");
-        return null;
-      }
-      XText xVCursorText = xVCursor.getText();
-      XTextCursor xTCursor = xVCursorText.createTextCursorByRange(xVCursor.getStart());
-      XParagraphCursor xPCursor = UnoRuntime.queryInterface(XParagraphCursor.class, xTCursor);
-      if (xPCursor == null) {
-        MessageHandler.showMessage("xPCursor == null");
-        return null;
-      }
-      xPCursor.gotoStartOfParagraph(false);
-      xPCursor.collapseToStart();
-      xVCursor.gotoRange(xPCursor, false);
-      xPCursor.gotoEndOfParagraph(false);
-      xPCursor.collapseToEnd();
-      xVCursor.gotoRange(xPCursor, true);
-      return xVCursor.getString();
-    } catch (Throwable t) {
-      MessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
-      return null;           // Return null as method failed
-    }
-  }
-*/
-  /** 
    * Inserts a Text to cursor position
    */
   public static void insertText(String text, XComponent xComponent, TextParagraph yPara, boolean override) {
@@ -263,35 +198,6 @@ public class WtAiParagraphChanging extends Thread {
     vCursor.insertText(text, override);
   }
 
-/*  
-  public static void insertText(String text, XComponent xComponent, boolean override) {
-    if (text != null && xComponent != null) {
-      try {
-        XText xText = getXText(xComponent);
-        if (xText == null) {
-          return;
-        }
-        XTextViewCursor xVCursor = getViewCursor(xComponent);
-        if (override) {
-          XText xVCursorText = xVCursor.getText();
-          XTextCursor xTCursor = xVCursorText.createTextCursorByRange(xVCursor.getStart());
-          XParagraphCursor xPCursor = UnoRuntime.queryInterface(XParagraphCursor.class, xTCursor);
-          if (xPCursor == null) {
-            WtMessageHandler.showMessage("xPCursor == null");
-            return;
-          }
-          xPCursor.gotoStartOfParagraph(false);
-          xPCursor.gotoEndOfParagraph(true);
-          xPCursor.setString("");
-        }
-        xVCursor.collapseToStart();
-        xText.insertString(xVCursor, text, false);
-      } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
-      }
-    }
-  }
-*/  
   /**
    * change word in a paragraph
    */
@@ -315,6 +221,9 @@ public class WtAiParagraphChanging extends Thread {
     int nStart = 0;
     int nLength = 0;
     try {
+      if (resultDialog != null) {
+        resultDialog.closeDialog();
+      }
       waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       XComponent xComponent = document.getXComponent();
@@ -341,7 +250,8 @@ public class WtAiParagraphChanging extends Thread {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     }
-    WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages, true);
+    String labelText = messages.getString("loMenuAiSynnomsOfWordCommand") + " '" + word + "':";
+    resultDialog = new WtAiResultDialog(document, messages, labelText, true);
     if (synonyms == null) {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("showSynonyms: synonyms == null");
@@ -381,10 +291,8 @@ public class WtAiParagraphChanging extends Thread {
             WtMessageHandler.printToLogFile("getProofreadingError: token isPosTagUnknown || isNonWord: " + token.getToken());
             return null;
           }
-//          if (viewCursor != null) {
-//            viewCursor.setViewCursorSelection((short) (token.getStartPos() + nPos), (short) (token.getEndPos() - token.getStartPos()));
-//          }
           String[] synonyms  = getListOfSynonyms(token, nFPara, docCache);
+          word = token.getToken();
           if (synonyms == null) {
             synonyms = new String[0];
           }
@@ -411,10 +319,10 @@ public class WtAiParagraphChanging extends Thread {
     return getListOfSynonyms(token.getToken(), locale);
   }
   
-  private void addSynonym(String synonym, List<String> synnonymList) {
+  private void addSynonym(String synonym, String word, List<String> synnonymList) {
     if (synonym != null) {
       synonym = synonym.trim();
-      if (!synonym.isEmpty() && !synnonymList.contains(synonym)) {
+      if (!synonym.isEmpty() && !word.equals(synonym) && !synnonymList.contains(synonym)) {
         synnonymList.add(synonym);
       }
     }
@@ -433,7 +341,9 @@ public class WtAiParagraphChanging extends Thread {
     String instruction = WtAiRemote.getInstruction(WtAiRemote.SYNONYMS_INSTRUCTION, locale);
     String output = aiRemote.runInstruction(instruction, word, WtAiRemote.SYNONYM_TEMPERATURE, 0, locale, false);
     List<String> synonyms = new ArrayList<>();
-    WtMessageHandler.printToLogFile("getListOfSynonyms: output: " + output);
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("getListOfSynonyms: output: " + output);
+    }
     if (output == null || output.isBlank()) {
       if (debugMode > 0) {
         WtMessageHandler.printToLogFile("getListOfSynonyms: output == null");
@@ -452,12 +362,12 @@ public class WtAiParagraphChanging extends Thread {
         if (o.length == 1) {
           o = ot.split("-");
           if (o.length == 1) {
-            addSynonym(o[0], synonyms);
+            addSynonym(o[0], word, synonyms);
           } else if(o.length == 2) {
-            addSynonym(o[1], synonyms);
+            addSynonym(o[1], word, synonyms);
           }
         } else if(o.length == 2) {
-          addSynonym(o[1], synonyms);
+          addSynonym(o[1], word, synonyms);
         }
       }
     }
