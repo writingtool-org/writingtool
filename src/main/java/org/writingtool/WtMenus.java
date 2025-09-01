@@ -107,6 +107,7 @@ public class WtMenus {
   public static final String LT_AI_BETTER_STYLE = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiBetterStyle";
   public static final String LT_AI_REFORMULATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiReformulateText";
   public static final String LT_AI_EXPAND_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiAdvanceText";
+  public static final String LT_AI_SYNONYMS_OF_WORD = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiSynonymsOfWord";
   public static final String LT_AI_TRANSLATE_TEXT = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTranslateText";
   public static final String LT_AI_TEXT_TO_SPEECH = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiTextToSpeech";
   public static final String LT_AI_GENERAL_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?aiGeneralCommand";
@@ -1134,6 +1135,12 @@ public class WtMenus {
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
         xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiExpandCommand"));
         xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_EXPAND_TEXT);
+        xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+        j++;
+        xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiSynnomsOfWordCommand"));
+        xNewSubMenuEntry.setPropertyValue("CommandURL", LT_AI_SYNONYMS_OF_WORD);
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,

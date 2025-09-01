@@ -60,12 +60,14 @@ public class WtAiRemote {
   public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text without comments";
   public final static String REFORMULATE_INSTRUCTION = "Output the rephrased text without comments";
   public final static String EXPAND_INSTRUCTION = "Output the expanded text";
+  public final static String SYNONYMS_INSTRUCTION = "List at least 3 and a maximum of 20 synonyms of the following word, without comments";
   
   public final static float CORRECT_TEMPERATURE = 0.0f;
   public final static float REFORMULATE_TEMPERATURE = 0.4f;
   public final static float EXPAND_TEMPERATURE = 0.7f;
+  public final static float SYNONYM_TEMPERATURE = 0.0f;
   
-  public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, GeneralAi };
+  public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
   private static boolean isRunning = false;
   private static boolean hasPrintedInfo = false;

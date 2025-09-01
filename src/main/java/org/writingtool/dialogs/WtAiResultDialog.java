@@ -38,9 +38,11 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.ToolTipManager;
 
 import org.writingtool.WtDocumentsHandler;
@@ -73,6 +75,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   
   private final JLabel resultLabel;
   private final JTextPane result;
+  private final JList<String> resultList;
   private final JButton overrideParagraph; 
   
   private final JPanel mainPanel;
@@ -80,15 +83,18 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   private WtSingleDocument currentDocument;
   private DocumentType documentType;
   private TextParagraph yPara;
+  private int wordStart;
+  private int wordLength;
   
   private int dialogX = -1;
   private int dialogY = -1;
+  private boolean isList = false;
   private boolean atWork = false;
 
   /**
    * the constructor of the class creates all elements of the dialog
    */
-  public WtAiResultDialog(WtSingleDocument document, ResourceBundle messages) {
+  public WtAiResultDialog(WtSingleDocument document, ResourceBundle messages, boolean isList) {
     long startTime = 0;
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
@@ -98,6 +104,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       WtDocumentsHandler.setJavaLookAndFeel();
     }
     
+    this.isList = isList;
     currentDocument = document;
     documentType = document.getDocumentType();
     
@@ -105,7 +112,13 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     contentPane = dialog.getContentPane();
     resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
     result = new JTextPane();
-    result.setBorder(BorderFactory.createLineBorder(Color.gray));
+    resultList = new JList<String>();
+    if (!isList) {
+      result.setBorder(BorderFactory.createLineBorder(Color.gray));
+      resultList.setVisible(false);
+    } else {
+      result.setVisible(false);
+    }
     overrideParagraph = new JButton (messages.getString("loAiDialogOverrideButton")); 
     close = new JButton (messages.getString("loAiDialogCloseButton"));
     mainPanel = new JPanel();
@@ -133,7 +146,15 @@ public class WtAiResultDialog extends Thread implements ActionListener {
           startTime = System.currentTimeMillis();
       }
 
-      JScrollPane resultPane = new JScrollPane(result);
+      JScrollPane resultPane;
+      if (!isList) {
+        resultPane = new JScrollPane(result);
+      } else {
+        resultList.setFont(dialogFont);
+        resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        resultList.setFixedCellHeight((int)(resultList.getFont().getSize() * 1.2 + 0.5));
+        resultPane = new JScrollPane(resultList);
+      }
       resultPane.setMinimumSize(new Dimension(100, 30));
       
       if (debugModeTm) {
@@ -336,13 +357,25 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   
   private void writeToParagraph(boolean override) throws Throwable {
     if (documentType == DocumentType.WRITER) {
-      WtAiParagraphChanging.insertText(result.getText(), currentDocument.getXComponent(), yPara, override);
+      if (isList) {
+        WtAiParagraphChanging.changeWordInParagraph(yPara, wordStart, wordLength, resultList.getSelectedValue(), currentDocument);
+      } else {
+        WtAiParagraphChanging.insertText(result.getText(), currentDocument.getXComponent(), yPara, override);
+      }
     }
   }
 
   public void setResult(String text, TextParagraph yPara) {
     result.setText(text);
     this.yPara = yPara;
+  }
+
+  public void setResultList(String[] results, TextParagraph yPara, int wordStart, int wordLength) {
+    resultList.setListData(results);
+    resultList.setSelectedIndex(0);
+    this.yPara = yPara;
+    this.wordStart = wordStart;
+    this.wordLength = wordLength;
   }
 
   /**

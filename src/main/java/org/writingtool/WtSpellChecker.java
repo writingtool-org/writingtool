@@ -19,9 +19,7 @@
 package org.writingtool;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,8 +75,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   private static SpellingCheckRule spellingCheckRule = null;
   private static MorfologikSpellerRule mSpellRule = null;
   private static HunspellRule hSpellRule = null;
-  private static final Map<String, List<String>> lastWrongWords = new HashMap<>();
-  private static final Map<String, List<String[]>> lastSuggestions = new HashMap<>();
+  private static final WtSuggestionStore lastWrongWords = new WtSuggestionStore(MAX_WRONG);
   private static String last1 = new String();
   private static String last2 = new String();
   private static XComponentContext xContext = null;
@@ -98,23 +95,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           WtCacheIO c = new WtCacheIO(); 
           SpellCache sc = c.new SpellCache();
           if (sc.read()) {
-            if (sc.getWrongWords() != null && sc.getSuggestions() != null
-                && sc.getWrongWords().size() == sc.getSuggestions().size()) {
-              for (String loc : sc.getWrongWords().keySet()) {
-                if (!sc.getWrongWords().get(loc).isEmpty()) {
-                  List<String> savedLastWords = sc.getWrongWords().get(loc);
-                  List<String[]> savedSuggestions = sc.getSuggestions().get(loc);
-                  List<String> lastWords = new ArrayList<>();
-                  List<String[]> suggestions = new ArrayList<>();
-                  for (int i = 0; i < sc.getWrongWords().get(loc).size() && i < MAX_WRONG; i++) {
-                    lastWords.add(savedLastWords.get(i));
-                    suggestions.add(savedSuggestions.get(i));
-                  }
-                  lastWrongWords.put(loc, lastWords);
-                  lastSuggestions.put(loc, suggestions);
-                }
-              }
-            }
+            lastWrongWords.setFullStore(sc.getWrongWords(), sc.getSuggestions());
           }
         }
       } catch (Throwable e) {
@@ -221,9 +202,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       }
       last1 = last2;
       last2 = word;
-      String localeStr = WtOfficeTools.localeToString(locale);
-      List<String> wrongWords = lastWrongWords.get(localeStr);
-      if (wrongWords != null && wrongWords.contains(word)) {
+      if (lastWrongWords.hasWord(word, locale)) {
         if (DEBUG_MODE) {
           WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: invalid word found in list: " + (word == null ? "null" : word));
         }
@@ -251,19 +230,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           }
           return true;
         }
-        if (wrongWords == null) {
-          lastWrongWords.put(localeStr, new ArrayList<String>());
-          lastSuggestions.put(localeStr, new ArrayList<String[]>());
-        }
-        if (!lastWrongWords.get(localeStr).contains(word)) {
-          lastWrongWords.get(localeStr).add(new String(word));
-//          lastSuggestions.get(localeStr).add(suggestionsToArray(matches[0].getSuggestedReplacements()));
-          lastSuggestions.get(localeStr).add(suggestionsToArray(matches.get(0).getSuggestedReplacements()));
-          if (lastWrongWords.get(localeStr).size() >= MAX_WRONG) {
-            lastWrongWords.get(localeStr).remove(0);
-            lastSuggestions.get(localeStr).remove(0);
-          }
-        }
+        lastWrongWords.addSuggestions(word, locale, suggestionsToArray(matches.get(0).getSuggestedReplacements()));
         if (DEBUG_MODE) {
           WtMessageHandler.printToSpellLogFile("LtSpellChecker: isValid: invalid word found: " + (word == null ? "null" : word));
         }
@@ -401,22 +368,17 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           alternatives = new String[0];
           return;
         }
-        String localeStr = WtOfficeTools.localeToString(locale);
-        if (word == null || word.trim().isEmpty() || localeStr == null || localeStr.isEmpty()) {
+        if (word == null || word.isBlank() || locale.Language == null || locale.Language.isBlank()) {
           alternatives = new String[0];
           return;
         }
-        List<String> wrongWords = lastWrongWords.get(localeStr);
-        List<String[]> suggestions = lastSuggestions.get(localeStr);
-        if (wrongWords != null && suggestions != null) {
-          if (wrongWords.contains(word)) {
-            int num = wrongWords.indexOf(word);
-            alternatives = suggestions.get(num);
-            if (alternatives == null) {
-              alternatives = new String[0];
-            }
-            return;
+        
+        if (lastWrongWords.hasWord(word, locale)) {
+          alternatives = lastWrongWords.getSuggestions(word, locale);
+          if (alternatives == null) {
+            alternatives = new String[0];
           }
+          return;
         }
         if (word.matches(PROB_CHARS)) {
           if (DEBUG_MODE) {
@@ -479,11 +441,11 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   }
   
   public static Map<String, List<String>> getWrongWords() {
-    return lastWrongWords;
+    return lastWrongWords.getLastWords();
   }
    
   public static Map<String, List<String[]>> getSuggestions() {
-    return lastSuggestions;
+    return lastWrongWords.getLastSuggestions();
   }
   
   public static boolean runLTSpellChecker(XComponentContext xContext) {
@@ -513,7 +475,6 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
 
   public static void resetSpellCache() {
     lastWrongWords.clear();
-    lastSuggestions.clear();
   }
    
 }

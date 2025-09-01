@@ -18,10 +18,19 @@
  */
 package org.writingtool.aisupport;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import org.languagetool.AnalyzedSentence;
+import org.languagetool.AnalyzedTokenReadings;
 import org.writingtool.WtDocumentCache;
+import org.writingtool.WtLanguageTool;
+import org.writingtool.WtProofreadingError;
+import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
+import org.writingtool.WtSuggestionStore;
+import org.writingtool.WtDocumentCache.AnalysedText;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
@@ -52,12 +61,16 @@ import com.sun.star.uno.UnoRuntime;
  */
 public class WtAiParagraphChanging extends Thread {
 
+  public final static int MAX_WORDS = 1000;
+
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
-  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
+  private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be 0 except for testing
 
   public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
+
+  public final static WtSuggestionStore lastWords = new WtSuggestionStore(MAX_WORDS);
 
   private final WtSingleDocument document;
   private final WtConfiguration config;
@@ -96,6 +109,9 @@ public class WtAiParagraphChanging extends Thread {
           aiDialog.toFront();
         }
         return;
+      } else if (commandId == AiCommand.SynonymsOfWord) {
+        showSynonyms();
+        return;
       }
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: commandId: " + commandId);
@@ -103,10 +119,10 @@ public class WtAiParagraphChanging extends Thread {
       XComponent xComponent = document.getXComponent();
       WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
       TextParagraph tPara = viewCursor.getViewCursorParagraph();
+      viewCursor.selectParagraphFromViewCursor();
       WtDocumentCache docCache = document.getDocumentCache();
-      String text = docCache.getTextParagraph(tPara);
       Locale locale = docCache.getTextParagraphLocale(tPara);
-//      String text = getViewCursorParagraph(xComponent);
+      String text = commandId == AiCommand.SynonymsOfWord ? viewCursor.getWordFromViewCursor() : docCache.getTextParagraph(tPara);
       if (text == null || text.trim().isEmpty()) {
         return;
       }
@@ -141,7 +157,7 @@ public class WtAiParagraphChanging extends Thread {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
-      WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages);
+      WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages, false);
       if (output == null) {
         output = "";
       }
@@ -159,7 +175,7 @@ public class WtAiParagraphChanging extends Thread {
   /** 
    * Returns the xText
    * Returns null if it fails
-   */
+   *//*
   private static XText getXText(XComponent xComponent) {
     try {
       XTextDocument curDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
@@ -176,7 +192,7 @@ public class WtAiParagraphChanging extends Thread {
   /** 
    * Returns ViewCursor 
    * Returns null if it fails
-   */
+   *//*
   private static XTextViewCursor getViewCursor(XComponent xComponent) {
     try {
       XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
@@ -239,9 +255,15 @@ public class WtAiParagraphChanging extends Thread {
   public static void insertText(String text, XComponent xComponent, TextParagraph yPara, boolean override) {
     WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
     vCursor.setTextViewCursor(0, yPara);
-    insertText(text, xComponent, override);
+    vCursor.insertText(text, override);
   }
-  
+
+  public static void insertText(String text, XComponent xComponent, boolean override) {
+    WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
+    vCursor.insertText(text, override);
+  }
+
+/*  
   public static void insertText(String text, XComponent xComponent, boolean override) {
     if (text != null && xComponent != null) {
       try {
@@ -269,134 +291,183 @@ public class WtAiParagraphChanging extends Thread {
       }
     }
   }
-
+*/  
   /**
-   * class to run a dialog in a separate thread
-   * closing if lost focus
-   *//*
-  public class WaitDialogThread extends Thread {
-    private final String dialogName;
-    private final String text;
-    private JDialog dialog = null;
-    private boolean isCanceled = false;
-    JProgressBar progressBar;
+   * change word in a paragraph
+   */
+  public static void changeWordInParagraph(TextParagraph tPara, int nStart, int nLength, String replace, 
+      WtSingleDocument document) throws Throwable {
+    WtDocumentCache docCache = document.getDocumentCache();
+    int nFPara = docCache.getFlatParagraphNumber(tPara);
+    String sPara = docCache.getFlatParagraph(nFPara);
+    String sEnd = (nStart + nLength < sPara.length() ? sPara.substring(nStart + nLength) : "");
+    sPara = sPara.substring(0, nStart) + replace + sEnd;
+    document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
+    docCache.setFlatParagraph(nFPara, sPara);
+    document.removeResultCache(nFPara, true);
+    document.removeIgnoredMatch(nFPara, true);
+    document.removePermanentIgnoredMatch(nFPara, true);
+  }
 
-    public WaitDialogThread(String dialogName, String text) {
-      this.dialogName = dialogName;
-      this.text = text;
+  public void showSynonyms() {
+    String[] synonyms = null;
+    TextParagraph tPara = null;
+    int nStart = 0;
+    int nLength = 0;
+    try {
+      waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+      waitDialog.start();
+      XComponent xComponent = document.getXComponent();
+      WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+      tPara = viewCursor.getViewCursorParagraph();
+      int nChar = viewCursor.getViewCursorCharacter();
+      viewCursor.selectWordFromViewCursor();
+      WtDocumentCache docCache = document.getDocumentCache();
+      WtLanguageTool lt = document.getMultiDocumentsHandler().getLanguageTool();
+      if (lt != null) {
+        int nFPara = docCache.getFlatParagraphNumber(tPara);
+        WtProofreadingError error = getProofreadingError(nChar, nFPara, docCache, lt, viewCursor);
+        if (error == null) {
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile("showSynonyms: error == null, nFPara: " + nFPara + ", nChar: " + nChar);
+          }
+          synonyms = new String[0];
+        } else {
+          nStart = error.nErrorStart;
+          nLength = error.nErrorLength;
+          synonyms = error.aSuggestions;
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     }
+    WtAiResultDialog resultDialog = new WtAiResultDialog(document, messages, true);
+    if (synonyms == null) {
+      if (debugMode > 1) {
+        WtMessageHandler.printToLogFile("showSynonyms: synonyms == null");
+      }
+      synonyms = new String[0];
+    }
+    resultDialog.setResultList(synonyms, tPara, nStart, nLength);
+    if (waitDialog != null) {
+      waitDialog.close();
+      waitDialog = null;
+    }
+    resultDialog.start();
+  }
+  
+  public WtProofreadingError getProofreadingError(int nChar, int nFPara, 
+      WtDocumentCache docCache, WtLanguageTool lt, WtViewCursorTools viewCursor) throws Throwable {
+    return getProofreadingError(nChar, null, nFPara, docCache, lt, viewCursor);
+  }
 
-    @Override
-    public void run() {
-      JLabel textLabel = new JLabel(text);
-      JButton cancelBottom = new JButton("Abbrechen");
-      cancelBottom.addActionListener(e -> {
-        close_intern();
-      });
-      progressBar = new JProgressBar();
-      progressBar.setIndeterminate(true);
-      dialog = new JDialog();
-      Container contentPane = dialog.getContentPane();
-      dialog.setName("InformationThread");
-      dialog.setTitle(dialogName);
-      dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      dialog.addWindowListener(new WindowListener() {
-        @Override
-        public void windowOpened(WindowEvent e) {
+  public WtProofreadingError getProofreadingError(WtProofreadingError error, int nFPara, 
+      WtDocumentCache docCache, WtLanguageTool lt) throws Throwable {
+    return getProofreadingError(0, error, nFPara, docCache, lt, null);
+  }
+
+  public WtProofreadingError getProofreadingError(int nChar, WtProofreadingError error, int nFPara, 
+      WtDocumentCache docCache, WtLanguageTool lt, WtViewCursorTools viewCursor) throws Throwable {
+    if (error != null) {
+      nChar = error.nErrorStart;
+    }
+    AnalysedText analysedText = docCache.getOrCreateAnalyzedParagraph(nFPara, lt);
+    List<AnalyzedSentence> analyzedSentences = analysedText.analyzedSentences;
+    int nPos = 0;
+    for (AnalyzedSentence analyzedSentence : analyzedSentences) {
+      for (AnalyzedTokenReadings token : analyzedSentence.getTokens()) {
+        if (nChar >= token.getStartPos() + nPos && nChar < token.getEndPos() + nPos) {
+          if (token.isPosTagUnknown() || token.isNonWord()) {
+            WtMessageHandler.printToLogFile("getProofreadingError: token isPosTagUnknown || isNonWord: " + token.getToken());
+            return null;
+          }
+//          if (viewCursor != null) {
+//            viewCursor.setViewCursorSelection((short) (token.getStartPos() + nPos), (short) (token.getEndPos() - token.getStartPos()));
+//          }
+          String[] synonyms  = getListOfSynonyms(token, nFPara, docCache);
+          if (synonyms == null) {
+            synonyms = new String[0];
+          }
+          if (error == null) {
+            error = new WtProofreadingError();
+            error.nErrorLength = token.getEndPos() - token.getStartPos();
+            error.nErrorStart = token.getStartPos() + nPos;
+            error = WtSingleCheck.correctRuleMatchWithFootnotes(error, 
+                docCache.getFlatParagraphFootnotes(nFPara), docCache.getFlatParagraphDeletedCharacters(nFPara),
+                nFPara, docCache.getHiddenCharactersMap());
+          }
+          error.aSuggestions = synonyms;
+          return error;
         }
-        @Override
-        public void windowClosing(WindowEvent e) {
-          close_intern();
-        }
-        @Override
-        public void windowClosed(WindowEvent e) {
-        }
-        @Override
-        public void windowIconified(WindowEvent e) {
-        }
-        @Override
-        public void windowDeiconified(WindowEvent e) {
-        }
-        @Override
-        public void windowActivated(WindowEvent e) {
-        }
-        @Override
-        public void windowDeactivated(WindowEvent e) {
-        }
-      });
-      JPanel panel = new JPanel();
-      panel.setLayout(new GridBagLayout());
-      GridBagConstraints cons = new GridBagConstraints();
-      cons.insets = new Insets(16, 24, 16, 24);
-      cons.gridx = 0;
-      cons.gridy = 0;
-      cons.weightx = 1.0f;
-      cons.weighty = 10.0f;
-      cons.anchor = GridBagConstraints.CENTER;
-      cons.fill = GridBagConstraints.BOTH;
-      panel.add(textLabel, cons);
-      cons.gridy++;
-      panel.add(progressBar, cons);
-      cons.gridy++;
-      cons.fill = GridBagConstraints.NONE;
-      panel.add(cancelBottom, cons);
-      contentPane.setLayout(new GridBagLayout());
-      cons = new GridBagConstraints();
-      cons.insets = new Insets(16, 32, 16, 32);
-      cons.gridx = 0;
-      cons.gridy = 0;
-      cons.weightx = 1.0f;
-      cons.weighty = 1.0f;
-      cons.anchor = GridBagConstraints.NORTHWEST;
-      cons.fill = GridBagConstraints.BOTH;
-      contentPane.add(panel);
-      dialog.pack();
-      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      Dimension frameSize = dialog.getSize();
-      dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
-          screenSize.height / 2 - frameSize.height / 2);
-      dialog.setAutoRequestFocus(true);
-      dialog.setAlwaysOnTop(true);
-      dialog.toFront();
-//      if (debugMode > 1) {
-//        MessageHandler.printToLogFile("WaitDialogThread: run: Dialog is running");
-//      }
-      dialog.setVisible(true);
-      if (isCanceled) {
-        dialog.setVisible(false);
-        dialog.dispose();
       }
+      nPos += analyzedSentence.getCorrectedTextLength();
     }
-    
-    public boolean canceled() {
-      return isCanceled;
-    }
-    
-    public void close() {
-      close_intern();
-    }
-    
-    private void close_intern() {
-//      if (debugMode > 1) {
-//        MessageHandler.printToLogFile("WaitDialogThread: close: Dialog closed");
-//      }
-      isCanceled = true;
-      if (dialog != null) {
-        dialog.setVisible(false);
-        dialog.dispose();
+    WtMessageHandler.printToLogFile("getProofreadingError: token not found: nChar: " + nChar + ", nFPara: " + nFPara);
+    return null;
+  }
+  
+  public String[] getListOfSynonyms(AnalyzedTokenReadings token, int nFPara, WtDocumentCache docCache) throws Throwable {
+    Locale locale = docCache.getFlatParagraphLocale(nFPara);
+    return getListOfSynonyms(token.getToken(), locale);
+  }
+  
+  private void addSynonym(String synonym, List<String> synnonymList) {
+    if (synonym != null) {
+      synonym = synonym.trim();
+      if (!synonym.isEmpty() && !synnonymList.contains(synonym)) {
+        synnonymList.add(synonym);
       }
-    }
-    
-    public void initializeProgressBar(int min, int max) {
-      progressBar.setMinimum(min);
-      progressBar.setMaximum(max);
-      progressBar.setStringPainted(true);
-      progressBar.setIndeterminate(false);
-    }
-    
-    public void setValueForProgressBar(int val) {
-      progressBar.setValue(val);
     }
   }
-*/
+  
+  private String[] getListOfSynonyms(String word, Locale locale) throws Throwable {
+    WtMessageHandler.printToLogFile("getListOfSynonyms: word: " + word);
+    String[] synonymArray = lastWords.getSuggestions(word, locale);
+    if (synonymArray != null) {
+      return synonymArray;
+    } else if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("getListOfSynonyms: Synnonym Array == null: word: " + word + ", locale: " 
+            + WtOfficeTools.localeToString(locale));
+    }
+    WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
+    String instruction = WtAiRemote.getInstruction(WtAiRemote.SYNONYMS_INSTRUCTION, locale);
+    String output = aiRemote.runInstruction(instruction, word, WtAiRemote.SYNONYM_TEMPERATURE, 0, locale, false);
+    List<String> synonyms = new ArrayList<>();
+    WtMessageHandler.printToLogFile("getListOfSynonyms: output: " + output);
+    if (output == null || output.isBlank()) {
+      if (debugMode > 0) {
+        WtMessageHandler.printToLogFile("getListOfSynonyms: output == null");
+      }
+      return new String[0];
+    }
+    String[] outp = output.split(":");
+    if (outp.length == 2) {
+      output = outp[1];
+    }
+    outp = output.split("[\n\r]");
+    for (String out : outp) {
+      String[] otp = out.split("[,;]");
+      for (String ot : otp) {
+        String[] o = ot.split("\\.");
+        if (o.length == 1) {
+          o = ot.split("-");
+          if (o.length == 1) {
+            addSynonym(o[0], synonyms);
+          } else if(o.length == 2) {
+            addSynonym(o[1], synonyms);
+          }
+        } else if(o.length == 2) {
+          addSynonym(o[1], synonyms);
+        }
+      }
+    }
+    synonymArray = synonyms.toArray(new String[0]);
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("getListOfSynonyms: Add Synnonym Array: word: " + word + ", locale: " 
+        + WtOfficeTools.localeToString(locale) + ", synonyms size: " + synonymArray.length);
+    }
+    lastWords.addSuggestions(word, locale, synonymArray);
+    return synonymArray;
+  }
+
 }

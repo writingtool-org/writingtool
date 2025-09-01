@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 
 import com.sun.star.linguistic2.SingleProofreadingError;
@@ -298,6 +299,24 @@ public class WtResultCache implements Serializable {
       return false;
     } finally {
       rwLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * replace an error for paragraph
+   * do nothing if error do not exist
+   */
+  public void replaceSuggestions(int numberOfParagraph, WtProofreadingError error) {
+    rwLock.writeLock().lock();
+    try {
+      SerialCacheEntry entry = entries.get(numberOfParagraph);
+      if (entry != null) {
+//        WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: numberOfParagraph: " + numberOfParagraph
+//            + ", Suggestions.length: " + error.aSuggestions.length);
+        entry.replaceSuggestions(error);
+      }
+    } finally {
+      rwLock.writeLock().unlock();
     }
   }
 
@@ -674,6 +693,26 @@ public class WtResultCache implements Serializable {
       return errorArray.length;
     }
     
+    /**
+     * Replace on error in Array (change synonyms)
+     * do nothing if error does not exist
+     */
+    void replaceSuggestions(WtProofreadingError error) {
+//      WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: errorArray.length: " + errorArray.length);
+      for (int i = 0; i < errorArray.length; i++) {
+//        WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + error.aRuleIdentifier
+//            + ", error.nErrorStart: " + error.nErrorStart + ", error.nErrorLength: " + error.nErrorLength);
+//        WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + errorArray[i].aRuleIdentifier
+//            + ", errorArray[i].nErrorStart: " + errorArray[i].nErrorStart + ", errorArray[i].nErrorLength: " + errorArray[i].nErrorLength);
+        if (error.equalsIdAndPos(errorArray[i])) {
+//         WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + error.aRuleIdentifier
+//              + ", Suggestions.length: " + error.aSuggestions.length);
+          errorArray[i].aSuggestions = error.aSuggestions;
+          break;
+        }
+      }
+    }
+
     /**
      * Add an SingleProofreadingError array to an existing one
      */

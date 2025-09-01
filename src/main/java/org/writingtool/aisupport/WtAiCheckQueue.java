@@ -27,8 +27,11 @@ import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtLinguisticServices;
+import org.writingtool.WtProofreadingError;
+import org.writingtool.WtResultCache;
 import org.writingtool.WtTextLevelCheckQueue;
 import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
+import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
@@ -53,48 +56,61 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
    * Add a new entry to queue
    * add it only if the new entry is not identical with the last entry or the running
    */
-   public void addQueueEntry(TextParagraph nTPara, String docId, boolean next) {
-     try {
-       if (nTPara == null || nTPara.type < 0  || nTPara.number < 0 || docId == null || interruptCheck) {
-         if (debugMode > 1) {
-           WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Return without add to queue: nCache = " + WtOfficeTools.CACHE_AI
-               + ", nTPara = " + (nTPara == null ? "null" : ("(" + nTPara.number + "/" + nTPara.type + ")")) + ", docId = " + docId);
-         }
-         return;
-       }
-       QueueEntry queueEntry = new QueueEntry(nTPara, nTPara, WtOfficeTools.CACHE_AI, 0, docId, false);
-       if (!textRuleQueue.isEmpty()) {
-         synchronized(textRuleQueue) {
-           for (int i = 0; i < textRuleQueue.size(); i++) {
-             QueueEntry entry = textRuleQueue.get(i);
-             if (entry.equals(queueEntry)) {
-               if (debugMode > 1) {
-                 WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Entry removed: nCache = " + WtOfficeTools.CACHE_AI
-                     + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
-               }
-               textRuleQueue.remove(i);
-               break;
-             }
-           }
-         }
-       }
-       synchronized(textRuleQueue) {
-         if (next) {
-           textRuleQueue.add(0, queueEntry);
-         } else {
-           textRuleQueue.add(queueEntry);
-         }
-         if (debugMode > 1) {
-           WtMessageHandler.printToLogFile("AiCheckQueue: addQueueEntry: Entry added: nCache = " + WtOfficeTools.CACHE_AI
-               + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
-         }
-       }
-       interruptCheck = false;
-       wakeupQueue();
-     } catch (Throwable t) {
-       WtMessageHandler.showError(t);
-     }
-   }
+  public void addQueueEntry(TextParagraph nTPara, String docId, boolean next) {
+    addQueueEntry(nTPara, 0, docId, next, null);
+  }
+
+  public void addQueueEntry(TextParagraph nTPara, int nCache, String docId, WtProofreadingError error) {
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile(nameOfQueue() + ": addQueueEntry: nCache = " + nCache
+          + ", nTPara = " + (nTPara == null ? "null" : ("(" + nTPara.number + "/" + nTPara.type + ")")) + ", docId = " + docId
+          + ", error.aRuleIdentifier: " + error.aRuleIdentifier);
+    }
+    addQueueEntry(nTPara, nCache, docId, false, error);
+  }
+
+  public void addQueueEntry(TextParagraph nTPara, int nCache, String docId, boolean next, WtProofreadingError error) {
+    try {
+      if (nTPara == null || nTPara.type < 0  || nTPara.number < 0 || docId == null || interruptCheck) {
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile(nameOfQueue() + ": addQueueEntry: Return without add to queue: nCache = " + WtOfficeTools.CACHE_AI
+              + ", nTPara = " + (nTPara == null ? "null" : ("(" + nTPara.number + "/" + nTPara.type + ")")) + ", docId = " + docId);
+        }
+        return;
+      }
+      QueueEntry queueEntry = new QueueEntry(nTPara, nTPara, error == null ? WtOfficeTools.CACHE_AI : nCache, 0, docId, false, error);
+      if (!textRuleQueue.isEmpty()) {
+        synchronized(textRuleQueue) {
+          for (int i = 0; i < textRuleQueue.size(); i++) {
+            QueueEntry entry = textRuleQueue.get(i);
+            if (entry.equals(queueEntry)) {
+              if (debugMode > 1) {
+                WtMessageHandler.printToLogFile(nameOfQueue() + ": addQueueEntry: Entry removed: nCache = " + WtOfficeTools.CACHE_AI
+                    + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
+              }
+              textRuleQueue.remove(i);
+              break;
+            }
+          }
+        }
+      }
+      synchronized(textRuleQueue) {
+        if (next) {
+          textRuleQueue.add(0, queueEntry);
+        } else {
+          textRuleQueue.add(queueEntry);
+        }
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile(nameOfQueue() + ": addQueueEntry: Entry added: nCache = " + WtOfficeTools.CACHE_AI
+              + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
+        }
+      }
+      interruptCheck = false;
+      wakeupQueue();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
   
    /**
     *  get an entry for the next unchecked paragraphs
@@ -144,7 +160,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
     lt = null;
     try {
       if (debugMode > 1) {
-        WtMessageHandler.printToLogFile("TextLevelCheckQueue: initLangtool: language = " + (language == null ? "null" : language.getShortCodeWithCountryAndVariant()));
+        WtMessageHandler.printToLogFile("AiCheckQueue: initLangtool: language = " + (language == null ? "null" : language.getShortCodeWithCountryAndVariant()));
       }
       WtConfiguration config = WtDocumentsHandler.getConfiguration(language);
       WtLinguisticServices linguServices = multiDocHandler.getLinguisticServices();
@@ -177,7 +193,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
         if (docCache != null) {
           int nFPara = nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nTPara.number : docCache.getFlatParagraphNumber(nTPara);
           if (debugMode > 1) {
-            WtMessageHandler.printToLogFile("Run AI Queue Entry for " 
+            WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry for " 
                 + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId
                 + ", nFPara = " + nFPara);
           }
@@ -192,5 +208,50 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
       WtMessageHandler.showError(t);
     }
   }
+
+  /**
+   *  run a queue entry for to get synonyms
+   */
+  @Override
+  protected void runQueueEntrySynonyms(QueueEntry qEntry, WtDocumentsHandler multiDocHandler, WtLanguageTool lt) throws Throwable {
+    try {
+      if (debugMode > 1) {
+        WtMessageHandler.printToLogFile("Try to run AI Queue Entry (Synonym) for " + qEntry.nStart.number);
+      }
+      WtSingleDocument document = getSingleDocument(qEntry.docId);
+      WtConfiguration config = multiDocHandler.getConfiguration();
+      TextParagraph nTPara = qEntry.nStart;
+      if (document != null && !document.isDisposed() && nTPara != null) {
+        WtDocumentCache docCache = document.getDocumentCache();
+        if (docCache != null) {
+          int nFPara = nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nTPara.number : docCache.getFlatParagraphNumber(nTPara);
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry (Synonyms) for " 
+                + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId
+                + ", nFPara = " + nFPara);
+          }
+          WtAiParagraphChanging aiParaChange = new WtAiParagraphChanging(document, config, AiCommand.SynonymsOfWord);
+          WtProofreadingError error = aiParaChange.getProofreadingError(qEntry.error, nFPara, docCache, lt);
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry (Synonyms): Result: error: " + error.aRuleIdentifier
+                + ", Synonyms.length: " + error.aSuggestions.length + ", qEntry.nCache: " + qEntry.nCache);
+          }
+          WtResultCache resultCache = document.getParagraphsCache().get(qEntry.nCache);
+          resultCache.replaceSuggestions(nFPara, error);
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+
+  /**
+   * for debugMode set name of Queue
+   */
+  @Override
+  protected String nameOfQueue() {
+    return "AiCheckQueue";
+  }
+
 
 }

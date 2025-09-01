@@ -49,6 +49,7 @@ import com.sun.star.text.XTextTable;
 import com.sun.star.text.XTextTablesSupplier;
 import com.sun.star.text.XTextViewCursor;
 import com.sun.star.text.XTextViewCursorSupplier;
+import com.sun.star.text.XWordCursor;
 import com.sun.star.uno.UnoRuntime;
 
 /**
@@ -379,6 +380,28 @@ public class WtViewCursorTools {
    * Inserts a Text to cursor position
    * if override == true: Override the selected text 
    */
+  public void insertText(String text, boolean override) {
+    if (text != null) {
+      try {
+        XParagraphCursor xPCursor = getParagraphCursorFromViewCursor();
+        if (xPCursor == null) {
+          return;
+        }
+        XText xText = xPCursor.getText();
+        if (override) {
+          xPCursor.gotoStartOfParagraph(false);
+          xPCursor.gotoEndOfParagraph(true);
+          xPCursor.setString("");
+        }
+        xPCursor.collapseToStart();
+        xText.insertString(xPCursor, text, false);
+      } catch (Throwable t) {
+        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
+      }
+    }
+  }
+
+/*
   public void insertText(String text, boolean override) {
     isBusy++;
     try {
@@ -1060,6 +1083,80 @@ public class WtViewCursorTools {
     }
   }
   
+  /** 
+   * Returns a Word from ViewCursor 
+   * Returns null if method fails
+   */
+  public String getWordFromViewCursor() {
+    isBusy++;
+    try {
+      XTextCursor xTextCursor = getTextCursorFromViewCursor(false);
+      if (xTextCursor == null) {
+        return null;
+      }
+      XWordCursor xWordCursor = UnoRuntime.queryInterface(XWordCursor.class, xTextCursor);
+      if (xWordCursor == null) {
+        return null;
+      }
+      xWordCursor.gotoStartOfWord(false);
+      
+      xWordCursor.gotoEndOfWord(false);
+      return xWordCursor.getString();
+    } catch (Throwable t) {
+      // Note: throws exception if a graphic element is selected
+      //       return: null 
+      return null;
+    } finally {
+      isBusy--;
+    }
+  }
+
+  /** 
+   * Selects the word under the view cursor
+   */
+  public void selectWordFromViewCursor() {
+    isBusy++;
+    try {
+      XTextViewCursor vCursor = getViewCursor();
+      XTextCursor xTextCursor = getTextCursorFromViewCursor(false);
+      if (xTextCursor == null) {
+        return;
+      }
+      XWordCursor xWordCursor = UnoRuntime.queryInterface(XWordCursor.class, xTextCursor);
+      if (xWordCursor == null) {
+        return;
+      }
+      xWordCursor.gotoStartOfWord(false);
+      vCursor.gotoRange(xWordCursor.getStart(), false);
+      xWordCursor.gotoEndOfWord(false);
+      vCursor.gotoRange(xWordCursor.getStart(), true);
+    } catch (Throwable t) {
+    } finally {
+      isBusy--;
+    }
+  }
+
+  /** 
+   * Selects the paragraph under the view cursor
+   */
+  public void selectParagraphFromViewCursor() {
+    isBusy++;
+    try {
+      XTextViewCursor vCursor = getViewCursor();
+      XParagraphCursor xPCursor = this.getParagraphCursorFromViewCursor();
+      if (xPCursor == null) {
+        return;
+      }
+      xPCursor.gotoStartOfParagraph(false);
+      vCursor.gotoRange(xPCursor.getStart(), false);
+      xPCursor.gotoEndOfParagraph(false);
+      vCursor.gotoRange(xPCursor.getStart(), true);
+    } catch (Throwable t) {
+    } finally {
+      isBusy--;
+    }
+  }
+
   /**
    *  Returns the status of view cursor tools
    *  true: If a cursor tool in one or more threads is active

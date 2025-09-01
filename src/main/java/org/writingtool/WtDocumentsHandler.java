@@ -1375,24 +1375,7 @@ public class WtDocumentsHandler {
   /**
    * Call method Ai Support run command to change paragraph
    */
-  public void runAiChangeOnParagraph(int commandId) {
-    AiCommand command;
-    switch (commandId) {
-    case 1:
-      command = AiCommand.CorrectGrammar;
-      break;
-    case 2:
-      command = AiCommand.ImproveStyle;
-      break;
-    case 3:
-      command = AiCommand.ReformulateText;
-      break;
-    case 4:
-      command = AiCommand.ExpandText;
-      break;
-    default:
-      command = AiCommand.GeneralAi;
-    }
+  public void runAiChangeOnParagraph(AiCommand command) {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
@@ -2007,15 +1990,17 @@ public class WtDocumentsHandler {
       } else if ("aiAddErrorMarks".equals(sEvent)) {
         aiAddErrorMarks();
       } else if ("aiGeneralCommand".equals(sEvent)) {
-        runAiChangeOnParagraph(0);
+        runAiChangeOnParagraph(AiCommand.GeneralAi);
       } else if ("aiCorrectErrors".equals(sEvent)) {
-        runAiChangeOnParagraph(1);
+        runAiChangeOnParagraph(AiCommand.CorrectGrammar);
       } else if ("aiBetterStyle".equals(sEvent)) {
-        runAiChangeOnParagraph(2);
+        runAiChangeOnParagraph(AiCommand.ImproveStyle);
       } else if ("aiReformulateText".equals(sEvent)) {
-        runAiChangeOnParagraph(3);
+        runAiChangeOnParagraph(AiCommand.ReformulateText);
       } else if ("aiAdvanceText".equals(sEvent)) {
-        runAiChangeOnParagraph(4);
+        runAiChangeOnParagraph(AiCommand.ExpandText);
+      } else if ("aiSynonymsOfWord".equals(sEvent)) {
+        runAiChangeOnParagraph(AiCommand.SynonymsOfWord);
       } else if ("aiTranslateText".equals(sEvent)) {
         runAiTranslateText();
       } else if ("aiTextToSpeech".equals(sEvent)) {

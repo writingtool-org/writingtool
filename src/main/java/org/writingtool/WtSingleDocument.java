@@ -1016,6 +1016,21 @@ public class WtSingleDocument {
   }
   
   /**
+   * Add an new AI entry to queue (to generate synonyms)
+   */
+  public void addAiQueueEntry(int nFPara,  int nCache, WtProofreadingError error) {
+    if (!disposed && mDocHandler.getAiCheckQueue() != null && docCache != null) {
+      TextParagraph nTPara = docCache.getNumberOfTextParagraph(nFPara);
+      if (nTPara != null) {
+        if (nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
+          nTPara.number = nFPara;
+        }
+        mDocHandler.getAiCheckQueue().addQueueEntry(nTPara, nCache, docID, error); 
+      }
+    }
+  }
+  
+  /**
    * get the queue entry for the first changed paragraph in document cache
    */
   public QueueEntry getQueueEntryForChangedParagraph() {
@@ -1957,9 +1972,36 @@ public class WtSingleDocument {
     WtLinguisticServices linguServices = mDocHandler.getLinguisticServices();
     if (linguServices != null) {
       for (SingleProofreadingError error : paRes.aErrors) {
-        if ((error.aSuggestions == null || error.aSuggestions.length == 0) 
-            && linguServices.isThesaurusRelevantRule(error.aRuleIdentifier)) {
-          error.aSuggestions = getSynonymArray(error, para, locale, lt, true);
+        if (linguServices.isThesaurusRelevantRule(error.aRuleIdentifier)) {
+          if (error.aSuggestions == null || error.aSuggestions.length == 0) {
+            error.aSuggestions = getSynonymArray(error, para, locale, lt, true);
+          } else {
+            String[] synonyms = getSynonymArray(error, para, locale, lt, true);
+            if (synonyms != null && synonyms.length > 0) {
+              String word = para.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
+              int i = 0;
+              int j = 0;
+              int k = 0;
+              List<String> suggestionsList = new ArrayList<>();
+              while (i < WtOfficeTools.MAX_SUGGESTIONS && (j < error.aSuggestions.length || k < synonyms.length)) {
+                if (j < error.aSuggestions.length) {
+                  j++;
+                  if (!word.equals(error.aSuggestions[j]) && !suggestionsList.contains(error.aSuggestions[j])) {
+                    suggestionsList.add(error.aSuggestions[j]);
+                    i++;
+                  }
+                }
+                if (i < WtOfficeTools.MAX_SUGGESTIONS && k < synonyms.length) {
+                  k++;
+                  if (!word.equals(synonyms[k]) && !suggestionsList.contains(synonyms[k])) {
+                    suggestionsList.add(synonyms[k]);
+                    i++;
+                  }
+                }
+              }
+              error.aSuggestions = suggestionsList.toArray(new String[0]);
+            }
+          }
         }
       }
     }

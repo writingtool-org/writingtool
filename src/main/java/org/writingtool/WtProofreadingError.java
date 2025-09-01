@@ -101,4 +101,41 @@ public class WtProofreadingError implements Serializable {
     return error;
   }
 
+  /**
+   * Define equal WtProofreadingError entries
+   *//*
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || !(o instanceof WtProofreadingError)) {
+      return false;
+    }
+    WtProofreadingError e = (WtProofreadingError) o;
+    if (((aRuleIdentifier == null && e.aRuleIdentifier != null) || (aRuleIdentifier != null && e.aRuleIdentifier == null))
+        || ((aFullComment == null && e.aFullComment != null) || (aFullComment != null && e.aFullComment == null))
+        || ((aShortComment == null && e.aShortComment != null) || (aShortComment != null && e.aShortComment == null)) ) {
+      return false;
+    }
+    if (nErrorStart == e.nErrorStart && nErrorLength == e.nErrorLength && nErrorType == e.nErrorType
+        && bDefaultRule == e.bDefaultRule && bPunctuationRule == e.bPunctuationRule && bStyleRule == e.bStyleRule
+        && ((aRuleIdentifier == null && e.aRuleIdentifier == null) || aRuleIdentifier.equals(e.aRuleIdentifier))
+        && ((aShortComment == null && e.aShortComment == null) || aShortComment.equals(e.aShortComment)) 
+        && ((aFullComment == null && e.aFullComment == null) || aFullComment.equals(e.aFullComment)) ) {
+      return true;
+    }
+    return false;
+  }
+*/
+  /**
+   * Define equal WtProofreadingError entries (only ID and Position)
+   */
+  public boolean equalsIdAndPos(WtProofreadingError e) {
+    if (e == null || e.aRuleIdentifier == null || aRuleIdentifier == null) {
+      return false;
+    }
+    if (nErrorStart == e.nErrorStart && nErrorLength == e.nErrorLength && aRuleIdentifier.equals(e.aRuleIdentifier)) {
+      return true;
+    }
+    return false;
+  }
+
 }

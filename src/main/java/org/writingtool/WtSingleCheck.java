@@ -272,10 +272,19 @@ public class WtSingleCheck {
               if (startErrPos >= startPos && startErrPos < endPos) {
                 int toPos = docCache.getTextParagraph(textPara).length();
                 if (toPos > 0) {
-                  errorList.add(correctRuleMatchWithFootnotes(
+                  WtProofreadingError error = correctRuleMatchWithFootnotes(
                       createOOoError(myRuleMatch, -textPos, footnotePos, docLanguage, config),
                         footnotePos, docCache.getTextParagraphDeletedCharacters(textPara),
-                      docCache.getFlatParagraphNumber(textPara), docCache.getHiddenCharactersMap()));
+                      docCache.getFlatParagraphNumber(textPara), docCache.getHiddenCharactersMap());
+                  errorList.add(error);
+                  if (mDocHandler.getAiCheckQueue() != null && mDocHandler.getLinguisticServices() != null 
+                      && mDocHandler.getLinguisticServices().isThesaurusRelevantRule(error.aRuleIdentifier)) {
+                    if (debugMode > 1) {
+                      WtMessageHandler.printToLogFile("WtSingleCheck: addParaErrorsToCache: cacheNum = " + cacheNum
+                          + ", nFPara = " + docCache.getFlatParagraphNumber(textPara) + ", error.aRuleIdentifier: " + error.aRuleIdentifier);
+                    }
+                    singleDocument.addAiQueueEntry(docCache.getFlatParagraphNumber(textPara), cacheNum, error);
+                  }
                 }
               }
             }
@@ -634,14 +643,23 @@ public class WtSingleCheck {
               if (toPos > paraText.length()) {
                 toPos = paraText.length();
               }
-              errorList.add(correctRuleMatchWithFootnotes(
+              WtProofreadingError error = correctRuleMatchWithFootnotes(
                   createOOoError(myRuleMatch, 0, footnotePos, docLanguage, config), footnotePos, deletedChars,
-                  nFPara, docCache.getHiddenCharactersMap()));
+                  nFPara, docCache.getHiddenCharactersMap());
+              errorList.add(error);
+              if (mDocHandler.getAiCheckQueue() != null && mDocHandler.getLinguisticServices() != null 
+                  && mDocHandler.getLinguisticServices().isThesaurusRelevantRule(error.aRuleIdentifier)) {
+                if (debugMode > 1) {
+                  WtMessageHandler.printToLogFile("WtSingleCheck: checkParaRules: cacheNum = " + cacheNum
+                      + ", nFPara = " + nFPara + ", error.aRuleIdentifier: " + error.aRuleIdentifier);
+                }
+                singleDocument.addAiQueueEntry(nFPara, cacheNum, error);
+              }
             }
           }
           if (!errorList.isEmpty()) {
             if (debugMode > 1) {
-              WtMessageHandler.printToLogFile("SingleCheck: checkParaRules: Enter " + (isMultiLingual ? "only para " : " ") + "errors to cache(" 
+              WtMessageHandler.printToLogFile("SingleCheck: checkParaRules: Enter " + (isMultiLingual ? "only para " : "") + "errors to cache(" 
                   + cacheNum + "): Paragraph(" + nFPara + "): " + paraText + "; Error number: " + errorList.size());
             }
             paragraphsCache.get(cacheNum).put(nFPara, nextSentencePositions, errorList.toArray(new WtProofreadingError[0]));
