@@ -203,7 +203,7 @@
 
     <properties>
 		<!-- snapshot revision -->
-        <revision>25.7.1</revision>
+        <revision>25.7.2</revision>
         <lt-revision>6.6</lt-revision>
         
 		<!-- release revision

@@ -1906,11 +1906,9 @@ public class WtDocumentsHandler {
           return;
         }
 
-/*        boolean saveNoBackgroundCheck = noBackgroundCheck;
-        if (noBackgroundCheck && toggleNoBackgroundCheck()) {
+        if (noBackgroundCheck) {
           resetCheck();
         }
-*/
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
         if ("checkAgainDialog".equals(sEvent)) {
@@ -1929,12 +1927,6 @@ public class WtDocumentsHandler {
             }
           }
           resetIgnoredMatches();
-/*
-          if (saveNoBackgroundCheck) {
-             toggleNoBackgroundCheck();
-          }
-*/
-//          resetCheck();
         }
         if (debugMode) {
           

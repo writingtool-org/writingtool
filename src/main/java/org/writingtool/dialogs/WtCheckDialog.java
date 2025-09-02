@@ -291,6 +291,9 @@ public class WtCheckDialog extends Thread {
     if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
       WtDocumentCache oldCache = new WtDocumentCache(docCache);
       docCache.refresh(document, null, null, document.getXComponent(), false, 7);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("CheckDialog: actualizeNonWriterDocumentCache: docCache: is " + (docCache.isEmpty() ? "" : "NOT ") + "empty");
+      }
       if (!oldCache.isEmpty()) {
         boolean isSame = true;
         if (oldCache.size() != docCache.size()) {
@@ -306,6 +309,8 @@ public class WtCheckDialog extends Thread {
         if (!isSame) {
           document.resetResultCache(true);
         }
+      } else {
+        document.resetResultCache(true);
       }
     }
   }
@@ -336,6 +341,9 @@ public class WtCheckDialog extends Thread {
     if (currentDocument != null) {
       docType = currentDocument.getDocumentType();
       docCache = currentDocument.getDocumentCache();
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("CheckDialog: getCurrentDocument: documents.isBackgroundCheckOff(): " + documents.isBackgroundCheckOff());
+      }
       if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
         actualizeNonWriterDocumentCache(currentDocument);
       }
