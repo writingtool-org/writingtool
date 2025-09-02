@@ -1918,11 +1918,15 @@ public class WtDocumentsHandler {
           return;
         }
 
-/*        boolean saveNoBackgroundCheck = noBackgroundCheck;
-        if (noBackgroundCheck && toggleNoBackgroundCheck()) {
-          resetCheck();
+        boolean saveNoBackgroundCheck = isBackgroundCheckOff();
+        if (isBackgroundCheckOff()) {
+          if (toggleNoBackgroundCheck()) {
+            resetCheck();
+          } else {
+            saveNoBackgroundCheck = false;
+          }
         }
-*/
+
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
         if ("checkAgainDialog".equals(sEvent)) {
@@ -1941,15 +1945,14 @@ public class WtDocumentsHandler {
             }
           }
           resetIgnoredMatches();
-/*
-          if (saveNoBackgroundCheck) {
-             toggleNoBackgroundCheck();
-          }
-*/
+
 //          resetCheck();
         }
-        if (debugMode) {
-          
+
+        if (saveNoBackgroundCheck) {
+           toggleNoBackgroundCheck();
+        }
+        if (debugMode) {        
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Start Spell And Grammar Check Dialog");
         }
         checkDialog.start();
