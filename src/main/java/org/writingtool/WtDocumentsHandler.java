@@ -1917,16 +1917,9 @@ public class WtDocumentsHandler {
         if (waitDialog == null || waitDialog.canceled()) {
           return;
         }
-
-        boolean saveNoBackgroundCheck = isBackgroundCheckOff();
         if (isBackgroundCheckOff()) {
-          if (toggleNoBackgroundCheck()) {
-            resetCheck();
-          } else {
-            saveNoBackgroundCheck = false;
-          }
+          resetCheck();
         }
-
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
         if ("checkAgainDialog".equals(sEvent)) {
@@ -1945,19 +1938,13 @@ public class WtDocumentsHandler {
             }
           }
           resetIgnoredMatches();
-
-//          resetCheck();
-        }
-
-        if (saveNoBackgroundCheck) {
-           toggleNoBackgroundCheck();
         }
         if (debugMode) {        
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Start Spell And Grammar Check Dialog");
         }
         checkDialog.start();
       } else if ("nextError".equals(sEvent)) {
-        if (this.isBackgroundCheckOff()) {
+        if (isBackgroundCheckOff()) {
           WtMessageHandler.showMessage(messages.getString("loExtSwitchOffMessage"));
           return;
         }
@@ -1971,7 +1958,7 @@ public class WtDocumentsHandler {
         if (ltDialog != null) {
           ltDialog.closeDialog();
         } 
-        if (this.isBackgroundCheckOff()) {
+        if (isBackgroundCheckOff()) {
           WtMessageHandler.showMessage(messages.getString("loExtSwitchOffMessage"));
           return;
         }

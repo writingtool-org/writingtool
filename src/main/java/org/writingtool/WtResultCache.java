@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 
 import com.sun.star.linguistic2.SingleProofreadingError;
