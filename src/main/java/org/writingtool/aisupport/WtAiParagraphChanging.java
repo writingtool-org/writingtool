@@ -282,6 +282,9 @@ public class WtAiParagraphChanging extends Thread {
       nChar = error.nErrorStart;
     }
     AnalysedText analysedText = docCache.getOrCreateAnalyzedParagraph(nFPara, lt);
+    if (analysedText == null) {
+      return null;
+    }
     List<AnalyzedSentence> analyzedSentences = analysedText.analyzedSentences;
     int nPos = 0;
     for (AnalyzedSentence analyzedSentence : analyzedSentences) {

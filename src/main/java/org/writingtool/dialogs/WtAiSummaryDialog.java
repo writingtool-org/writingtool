@@ -56,6 +56,7 @@ import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote;
 import org.writingtool.tools.WtMessageHandler;
+import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 
 import com.sun.star.lang.Locale;
@@ -74,8 +75,8 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
   private final static int dialogWidth = 700;
   private final static int dialogHeight = 400;
 
-  private boolean debugMode = true;
-  private boolean debugModeTm = false;
+  private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI > 0;
+  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA || WtOfficeTools.DEBUG_MODE_TM;
 
   private final ResourceBundle messages;
   private WtSingleDocument document;
@@ -428,6 +429,10 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
         Locale locale = document.getDocumentCache().getDocumentLocale();
         String instruction = WtAiRemote.getInstruction(SUMMARY_INSTRUCTION, locale);
         WtAiRemote aiRemote = new WtAiRemote(documents, documents.getConfiguration());
+        long startTime = 0;
+        if (debugModeAiTm) {
+          startTime = System.currentTimeMillis();
+        }
         if (debugMode) {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " 
               + (text.length() > 50 ? text.substring(0, 50)+ " ..." : text));
@@ -435,6 +440,12 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
         String output = aiRemote.runInstruction(instruction, text, 0.0f, 0, locale, false);
         if (debugMode) {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: output: " + output);
+        }
+        if (debugModeAiTm) {
+          long runTime = System.currentTimeMillis() - startTime;
+          WtMessageHandler.printToLogFile("AiErrorDetection: getMatchesByAiRule: Time to run AI detection rule for instruction " 
+                                           + instruction + ", text: " + (text.length() > 50 ? text.substring(0, 50)
+                                           + " ..." : text)+ ": " + runTime);
         }
         return output;
       } catch (Throwable t) {

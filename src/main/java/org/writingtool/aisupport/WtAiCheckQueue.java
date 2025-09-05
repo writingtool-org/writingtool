@@ -232,12 +232,14 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
           }
           WtAiParagraphChanging aiParaChange = new WtAiParagraphChanging(document, config, AiCommand.SynonymsOfWord);
           WtProofreadingError error = aiParaChange.getProofreadingError(qEntry.error, nFPara, docCache, lt);
-          if (debugMode > 1) {
-            WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry (Synonyms): Result: error: " + error.aRuleIdentifier
-                + ", Synonyms.length: " + error.aSuggestions.length + ", qEntry.nCache: " + qEntry.nCache);
+          if (error != null) {
+            if (debugMode > 1) {
+              WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry (Synonyms): Result: error: " + error.aRuleIdentifier
+                  + ", Synonyms.length: " + error.aSuggestions.length + ", qEntry.nCache: " + qEntry.nCache);
+            }
+            WtResultCache resultCache = document.getParagraphsCache().get(qEntry.nCache);
+            resultCache.replaceSuggestions(nFPara, error);
           }
-          WtResultCache resultCache = document.getParagraphsCache().get(qEntry.nCache);
-          resultCache.replaceSuggestions(nFPara, error);
         }
       }
     } catch (Throwable t) {

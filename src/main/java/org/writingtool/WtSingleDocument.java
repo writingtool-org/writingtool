@@ -1985,18 +1985,18 @@ public class WtSingleDocument {
               List<String> suggestionsList = new ArrayList<>();
               while (i < WtOfficeTools.MAX_SUGGESTIONS && (j < error.aSuggestions.length || k < synonyms.length)) {
                 if (j < error.aSuggestions.length) {
-                  j++;
                   if (!word.equals(error.aSuggestions[j]) && !suggestionsList.contains(error.aSuggestions[j])) {
                     suggestionsList.add(error.aSuggestions[j]);
                     i++;
                   }
+                  j++;
                 }
                 if (i < WtOfficeTools.MAX_SUGGESTIONS && k < synonyms.length) {
-                  k++;
                   if (!word.equals(synonyms[k]) && !suggestionsList.contains(synonyms[k])) {
                     suggestionsList.add(synonyms[k]);
                     i++;
                   }
+                  k++;
                 }
               }
               error.aSuggestions = suggestionsList.toArray(new String[0]);
