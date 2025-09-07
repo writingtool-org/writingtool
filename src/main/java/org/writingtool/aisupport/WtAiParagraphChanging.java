@@ -319,6 +319,9 @@ public class WtAiParagraphChanging extends Thread {
   
   public String[] getListOfSynonyms(AnalyzedTokenReadings token, int nFPara, WtDocumentCache docCache) throws Throwable {
     Locale locale = docCache.getFlatParagraphLocale(nFPara);
+    if (locale == null) {
+      return null;
+    }
     return getListOfSynonyms(token.getToken(), locale);
   }
   

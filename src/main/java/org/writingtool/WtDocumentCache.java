@@ -1306,6 +1306,9 @@ public class WtDocumentCache implements Serializable {
   public Locale getFlatParagraphLocale(int n) {
     rwLock.readLock().lock();
     try {
+      if (n < 0 || n >= locales.size()) {
+        return null;
+      }
       return locales.get(n).toLocaleWithoutLabel();
     } finally {
       rwLock.readLock().unlock();
