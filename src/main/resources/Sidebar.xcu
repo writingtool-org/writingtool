@@ -38,7 +38,7 @@
 	               	<value>ToolsDeck</value>
 	            </prop>
 	            <prop oor:name="IconURL" oor:type="xs:string">
-	               	<value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTBig.png</value>
+	               	<value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTLogo26.png</value>
 	            </prop>
 		       	<prop oor:name="ContextList">
 	           		<value oor:separator=";">

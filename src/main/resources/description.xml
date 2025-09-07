@@ -65,7 +65,7 @@
 		<name lang="pl">WritingTool</name>
 	</display-name>
 	<icon>
-		<default xlink:href="images/WTBig.png"/>
+		<default xlink:href="images/WTLogo.png"/>
 	</icon>
 	<extension-description>
 		<src lang="zh-CN" xlink:href="description/desc_zh-CN.txt"/>
