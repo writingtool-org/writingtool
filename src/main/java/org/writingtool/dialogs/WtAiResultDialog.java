@@ -99,7 +99,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
     }
-    ltImage = WtOfficeTools.getLtImage();
+    ltImage = WtOfficeTools.getWtImage();
     if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
       WtDocumentsHandler.setJavaLookAndFeel();
     }

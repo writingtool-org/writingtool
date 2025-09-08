@@ -929,7 +929,7 @@ public class WtOfficeTools {
   /**
    * Get WritingTool Image
    */
-  public static Image getLtImage() {
+  public static Image getWtImage() {
     try {
       URL url = WtOfficeTools.class.getResource("/images/WTSmall.png");
       return ImageIO.read(url);
@@ -942,13 +942,21 @@ public class WtOfficeTools {
   /**
    * Get WritingTool Image
    */
-  public static ImageIcon getLtImageIcon(boolean big) {
+  public static ImageIcon getWtImageIcon(boolean big) {
     URL url;
     if (big) {
       url = WtOfficeTools.class.getResource("/images/WTBig.png");
     } else {
       url = WtOfficeTools.class.getResource("/images/WTSmall.png");
     }
+    return new ImageIcon(url);
+  }
+
+  /**
+   * Get WritingTool Banner
+   */
+  public static ImageIcon getWtBannerIcon() {
+    URL url = WtOfficeTools.class.getResource("/images/WTBanner.png");
     return new ImageIcon(url);
   }
 

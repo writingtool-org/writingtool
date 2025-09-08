@@ -57,7 +57,7 @@ public class WtConfigThread extends Thread {
     String title = WtOfficeTools.getMessageBundle().getString("guiWtConfigWindowTitle") 
         + " (WT " + WtVersionInfo.getWtInformation()
         + ", LT " + WtVersionInfo.getLtInformation() + ")";
-    cfgDialog = new WtConfigurationDialog(null, WtOfficeTools.getLtImage(), title, config);
+    cfgDialog = new WtConfigurationDialog(null, WtOfficeTools.getWtImage(), title, config);
   }
 
   @Override

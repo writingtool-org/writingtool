@@ -1157,7 +1157,7 @@ public class WtCheckDialog extends Thread {
       if (debugModeTm) {
         startTime = System.currentTimeMillis();
       }
-      ltImage = WtOfficeTools.getLtImage();
+      ltImage = WtOfficeTools.getWtImage();
       if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
         WtDocumentsHandler.setJavaLookAndFeel();
       }

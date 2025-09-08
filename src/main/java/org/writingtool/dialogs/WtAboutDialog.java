@@ -70,9 +70,9 @@ public class WtAboutDialog {
       dialog.setName(aboutText);
       dialog.setTitle(aboutText);
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      Image ltImage = WtOfficeTools.getLtImage();
+      Image ltImage = WtOfficeTools.getWtImage();
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
-  
+/*  
       ImageIcon icon = WtOfficeTools.getLtImageIcon(true);
       JLabel headerLabel = new JLabel(icon);
       JTextPane headerText = new JTextPane();
@@ -85,7 +85,12 @@ public class WtAboutDialog {
       JPanel headerPanel = new JPanel();
       headerPanel.add(headerLabel);
       headerPanel.add(headerText);
-  
+*/  
+      ImageIcon icon = WtOfficeTools.getWtBannerIcon();
+      JLabel headerLabel = new JLabel(icon);
+      JPanel headerPanel = new JPanel();
+      headerPanel.add(headerLabel);
+
       JTextPane licensePane = new JTextPane();
       licensePane.setBackground(new Color(0, 0, 0, 0));
       licensePane.setBorder(BorderFactory.createEmptyBorder());

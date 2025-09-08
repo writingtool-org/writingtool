@@ -105,7 +105,7 @@ public class WtMoreInfoDialog {
       dialog.setName(cleanTitle);
       dialog.setTitle(cleanTitle);
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      Image ltImage = WtOfficeTools.getLtImage();
+      Image ltImage = WtOfficeTools.getWtImage();
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
       
       dialog.addWindowFocusListener(new WindowFocusListener() {
