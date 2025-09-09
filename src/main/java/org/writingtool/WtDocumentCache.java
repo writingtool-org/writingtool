@@ -117,7 +117,7 @@ public class WtDocumentCache implements Serializable {
     debugMode = WtOfficeTools.DEBUG_MODE_DC;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
     this.docType = docType;
-    refresh(document, fixedLocale, docLocale, xComponent, false, 0);
+    refresh(document, fixedLocale, docLocale, xComponent, false, false, 0);
   }
 
   public WtDocumentCache(WtDocumentCache in) {
@@ -176,7 +176,8 @@ public class WtDocumentCache implements Serializable {
   /**
    * Refresh the cache
    */
-  public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, boolean wait, int fromWhere) {
+  public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, 
+      boolean wait, boolean synchronize, int fromWhere) {
     if (isReset) {
       WtMessageHandler.printToLogFile("DocumentCache:refresh: isReset == true: return");
       return;
@@ -193,7 +194,7 @@ public class WtDocumentCache implements Serializable {
         if (wait) {
           WtOfficeTools.sleep(WAIT_TIME);
         }
-        refreshWriterCache(document, fixedLocale, docLocale, fromWhere);
+        refreshWriterCache(document, fixedLocale, docLocale, synchronize, fromWhere);
       }
       setSingleParagraphsCacheToNull(document.getParagraphsCache());
     } finally {
@@ -205,7 +206,7 @@ public class WtDocumentCache implements Serializable {
    * reset the document cache load the actual state of the document into the cache
    * is only used for writer documents
    */
-  private void refreshWriterCache(WtSingleDocument document, Locale fixedLocale, Locale docLocale, int fromWhere) {
+  private void refreshWriterCache(WtSingleDocument document, Locale fixedLocale, Locale docLocale, boolean synchronize, int fromWhere) {
     try {
       long startTime = System.currentTimeMillis();
       WtFlatParagraphTools flatPara = document.getFlatParagraphTools();
@@ -345,6 +346,9 @@ public class WtDocumentCache implements Serializable {
           textSortedTextIds.add(documentText.sortedTextIds);
         }
         mapParagraphsWNI(paragraphs, toTextMapping, toParaMapping, chapterBegins, locales, footnotes, textSortedTextIds, sortedTextIds, deletedCharacters, deletedChars);
+        if (synchronize) {
+          paragraphs = synchronizeText(documentTexts, paragraphs, footnotes, toTextMapping);
+        }
       }
       addQuoteInfo(document, documentTexts.get(CURSOR_TYPE_TEXT).paragraphs);
       actualizeCache (paragraphs, chapterBegins, locales, footnotes, toTextMapping, toParaMapping, 
@@ -359,6 +363,26 @@ public class WtDocumentCache implements Serializable {
       }
     } finally {
     }
+  }
+  
+  /**
+   * synchronize text between flat and text paragraphs
+   * NOTE: works only for paragraphs without footnotes (TODO: add footnote support)
+   */
+  private List<String> synchronizeText(List<DocumentText> documentTexts, List<String> paragraphs, 
+      List<int[]> footnotes, List<TextParagraph> toTextMapping) {
+    for (int i = 0; i < paragraphs.size(); i++) {
+      if (footnotes.get(i) == null || footnotes.get(i).length == 0) {
+        TextParagraph tPara = toTextMapping.get(i);
+        if (tPara.type != CURSOR_TYPE_UNKNOWN && tPara.number >= 0) {
+          String textPara = documentTexts.get(tPara.type).paragraphs.get(tPara.number);
+          if (!isEqualTextWithoutZeroSpace(paragraphs.get(i), textPara)) {
+            paragraphs.set(i, new String(textPara));
+          }
+        }
+      }
+    }
+    return paragraphs;
   }
   
   /**
@@ -2169,7 +2193,7 @@ public class WtDocumentCache implements Serializable {
    */
   public ChangedRange refreshAndCompare(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, int fromWhere) {
     WtDocumentCache oldCache = new WtDocumentCache(this);
-    this.refresh(document, fixedLocale, docLocale, xComponent, true, fromWhere);
+    refresh(document, fixedLocale, docLocale, xComponent, true, false, fromWhere);
     rwLock.readLock().lock();
     try {
       if (paragraphs == null || paragraphs.isEmpty() || oldCache.paragraphs == null || oldCache.paragraphs.isEmpty()) {

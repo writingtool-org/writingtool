@@ -199,7 +199,7 @@ public class WtSingleCheck {
       if (tPara.type < 0 || tPara.number < 0) {
         WtMessageHandler.printToLogFile("WARNING: doc cache corrupted (at SingleCheck: addParaErrorsToCache) : refresh doc cache!");
         this.docCache.refresh(singleDocument, WtLinguisticServices.getLocale(fixedLanguage), 
-            WtLinguisticServices.getLocale(docLanguage), xComponent, true, 7);
+            WtLinguisticServices.getLocale(docLanguage), xComponent, true, false, 7);
         docCache = new WtDocumentCache(this.docCache);
         tPara = docCache.getNumberOfTextParagraph(nFPara);
         if (tPara.type < 0 || tPara.number < 0) {
