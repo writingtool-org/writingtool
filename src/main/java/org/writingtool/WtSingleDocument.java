@@ -1235,10 +1235,12 @@ public class WtSingleDocument {
     int y = getDocumentCache().getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     List<WtProofreadingError> errors = paragraphsCache.get(WtOfficeTools.CACHE_AI).getErrorsAtPosition(y, x);
-    for (WtProofreadingError error : errors) {
-      if (error.nErrorType == TextMarkupType.SPELLCHECK && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
-        getFlatParagraphTools().changeTextOfParagraph(y, error.nErrorStart, error.nErrorLength, suggestion);
-        break;
+    if (errors != null) {
+      for (WtProofreadingError error : errors) {
+        if (error.nErrorType == TextMarkupType.SPELLCHECK && error.aSuggestions.length > 0 && !error.aSuggestions[0].isBlank()) {
+          getFlatParagraphTools().changeTextOfParagraph(y, error.nErrorStart, error.nErrorLength, suggestion);
+          break;
+        }
       }
     }
   }
