@@ -34,7 +34,7 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
     if (error1pos == error2pos) {
       if (error2len < error1len) {
         return 1;
-      } else if (error1len < error1len) {
+      } else if (error1len < error2len) {
         return -1;
       }
     }
@@ -56,7 +56,7 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
         return -1;
       }
       boolean isErr1Default = match1.bDefaultRule && !match1.bStyleRule && !WtSingleDocument.isAiRule(match1);
-      boolean isErr2Default = match2.bDefaultRule && !match2.bStyleRule && !WtSingleDocument.isAiRule(match1);
+      boolean isErr2Default = match2.bDefaultRule && !match2.bStyleRule && !WtSingleDocument.isAiRule(match2);
       if(isErr1Default && !isErr2Default) {
         return -1;
       } else if(isErr2Default && !isErr1Default) {
