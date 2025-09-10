@@ -53,38 +53,36 @@ import com.sun.star.uno.UnoRuntime;
 
 public class WtAiTranslateDocument extends Thread {
   
-//  private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
-
   private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in the language ";
   private String TRANSLATE_INSTRUCTION_POST = " (without comments)";
   
   private final ResourceBundle messages;
   private WaitDialogThread waitDialog = null;
-//  private XComponentContext xContext;
   private WtSingleDocument document;
-  WtDocumentCursorTools docCursor;
-  //  private XComponent xToComponent;
+  private WtDocumentCursorTools docCursor;
   private Locale locale;
   private float temperature;
   private String fromUrl;
   
   public WtAiTranslateDocument(WtSingleDocument document, ResourceBundle messages) {
-//-    this.xContext = xContext;
     this.document = document;
     this.messages = messages;
     XModel xModel = UnoRuntime.queryInterface(XModel.class, document.getXComponent());
     if (xModel == null) {
-      WtMessageHandler.printToLogFile("CacheIO: getDocumentPath: XModel not found!");
+      WtMessageHandler.printToLogFile("WtAiTranslateDocument: XModel not found!");
       return;
     }
     fromUrl = xModel.getURL();
-
   }
   
   @Override
   public void run() {
     try {
-//      xToComponent = openNewFile();
+      if (fromUrl == null || fromUrl.isBlank()) {
+        WtMessageHandler.showMessage(messages.getString("loAiDialogTranslateFileError"));
+        return;
+      }
+      WtMessageHandler.printToLogFile("WtAiTranslateDocument: fromUrl: " + fromUrl);
       TranslationOptions transOpt = getTranslationOptions();
       if (transOpt != null) {
         locale = transOpt.locale;
@@ -103,30 +101,7 @@ public class WtAiTranslateDocument extends Thread {
     WtAiTranslationDialog langDialog = new WtAiTranslationDialog(document, messages);
     return langDialog.run();
   }
-/*  
-  private XComponent openNewFile() throws IOException, IllegalArgumentException {
-    XDesktop xDesktop = WtOfficeTools.getDesktop(xContext);
-    XComponentLoader xComponentLoader = (XComponentLoader)UnoRuntime.queryInterface(
-        XComponentLoader.class, xDesktop);
-    String loadURL = "private:factory/swriter";
-    
-    // the boolean property Hidden tells the office to open a file in hidden mode
-    PropertyValue[] loadProps = new PropertyValue[1];
-    loadProps[0] = new PropertyValue();
-    loadProps[0].Name = "Hidden";
-    loadProps[0].Value = false; 
-    return xComponentLoader.loadComponentFromURL(loadURL, "_blank", 0, loadProps);
-  }
 
-  private void insertParagraph(String str, XText docText) {
-    docText.getEnd().setString(str);
-    docText.getEnd().setString("\n");
-  }
-*//*  
-  private void replaceParagraph(int nFPara, int oldLength, String str, Locale locale) {
-    document.getFlatParagraphTools().changeTextAndLocaleOfParagraph(nFPara, 0, oldLength, str, locale);
-  }
-*/
   private void replaceParagraph(TextParagraph textPara, String str, Locale locale) 
        throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
     XParagraphCursor pCursor = docCursor.getParagraphCursor(textPara);
@@ -144,6 +119,10 @@ public class WtAiTranslateDocument extends Thread {
   
   private String outUrl(String inUrl, String lang) {
     int n = inUrl.lastIndexOf('.');
+    if (n < 0) {
+      inUrl += ".odt";
+      n = inUrl.lastIndexOf('.');
+    }
     String name = inUrl.substring(0, n);
     String ext = inUrl.substring(n);
     return name + "_" + lang + ext;

@@ -144,7 +144,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow buttonAutoOffWindow;          //  the window of button for auto check off
   private XWindow buttonStatAnWindow;           //  the window of button for statistical Analysis
   private XWindow buttonAiGeneralWindow;        //  the window of button for AI general
-  private XWindow buttonAiTranslateTextWindow;  //  the window of button for AI text to speech
+  private XWindow buttonAiSynonymsOfWord;       //  the window of button for AI generate synonyms of word
+  private XWindow buttonAiSummary;              //  the window of button for AI create summary
+  private XWindow buttonAiTranslateTextWindow;  //  the window of button for AI translate text
   private XWindow buttonAiTextToSpeechWindow;   //  the window of button for AI text to speech
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
@@ -256,6 +258,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       num++;
       buttonAiGeneralWindow = addButtonToContainer(num, "aiGeneralCommand", "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
       buttonAiGeneralWindow.setEnable(isAiSupport);
+      num++;
+      buttonAiSynonymsOfWord = addButtonToContainer(num, "aiSynonymsOfWord", "WTAiWordSynonymsSmall.png", "loMenuAiSynnomsOfWordCommand", buttonContainer);
+      buttonAiSynonymsOfWord.setEnable(isAiSupport);
+      num++;
+      buttonAiSummary = addButtonToContainer(num, "aiSummary", "WTAiSummarySmall.png", "loMenuAiSummaryCommand", buttonContainer);
+      buttonAiSummary.setEnable(isAiSupport);
       num++;
       buttonAiTranslateTextWindow = addButtonToContainer(num, "aiTranslateText", "WTAiTranslateTextSmall.png", "loMenuAiTranslateCommand", buttonContainer);
       buttonAiTranslateTextWindow.setEnable(isAiSupport);
@@ -649,6 +657,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
     buttonStatAnWindow.setEnable(hasStatAn());
     buttonAiGeneralWindow.setEnable(isAiSupport);
+    buttonAiSynonymsOfWord.setEnable(isAiSupport);
+    buttonAiSummary.setEnable(isAiSupport);
     buttonAiTranslateTextWindow.setEnable(isAiSupport);
     buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
     if (isAiSupport) {

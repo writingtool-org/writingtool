@@ -264,6 +264,32 @@
                     </prop>
                 </node>
             </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtAiSynonymsOfWord" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiSynonymsOfWord</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiWordSynonymsSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiWordSynonymsBig.png</value>
+                    </prop>
+                </node>
+            </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtAiSummary" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?aiSummary</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiSummarySmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTAiSummaryBig.png</value>
+                    </prop>
+                </node>
+            </node>
         </node>
         <node oor:name="OfficeToolBar">
             <node oor:name="org.writingtool.WritingTool.toolbar" oor:op="replace">
