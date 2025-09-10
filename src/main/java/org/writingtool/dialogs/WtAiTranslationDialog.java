@@ -374,7 +374,6 @@ public class WtAiTranslationDialog implements ActionListener {
   /**
    * Start translation
    */
-  
   private void translate() {
     if (selectedLang != null) {
       locale = getLocaleFromLanguageName(selectedLang);

@@ -71,13 +71,17 @@ import javax.swing.ToolTipManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.languagetool.Language;
+import org.languagetool.Languages;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
+import org.writingtool.WtLinguisticServices;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote;
+import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
@@ -122,17 +126,22 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private final JTabbedPane instructionPanel;
   private final JLabel instructionLabel;
+  private final JLabel translationLabel;
   private final JLabel directInstructionLabel;
   private final JLabel imgInstructionLabel;
   private final JComboBox<String> instruction;
+  private final JLabel languageLabel;
+  private final JComboBox<String> language;
   private final JLabel paragraphLabel;
   private final JTextPane paragraph;
+  private final JTextPane translationText;
   private final JTextPane directInstruction;
   private final JLabel resultLabel;
   private final JTextPane result;
   private final JLabel temperatureLabel;
   private final JSlider temperatureSlider;
   private final JButton execute; 
+  private final JButton translate; 
   private final JButton copyResult; 
   private final JButton reset; 
   private final JButton clear; 
@@ -179,7 +188,10 @@ public class WtAiDialog extends Thread implements ActionListener {
   private String imgInstText;
   private String instText;
   private String dInstText;
-  private Locale locale;
+  private String translText = null;
+  private String startLang;
+  private String selectedLang;
+  private Locale locale = null;
   private boolean atWork = false;
   private boolean focusLost = false;
   private float temperature = DEFAULT_TEMPERATURE;
@@ -213,15 +225,21 @@ public class WtAiDialog extends Thread implements ActionListener {
     instructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
     directInstructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
     instruction = new JComboBox<String>();
+    languageLabel = new JLabel(messages.getString("loAiDialogLanguageLabel") + ":");
+    language = new JComboBox<String>(getPossibleLanguages());
     paragraphLabel = new JLabel(messages.getString("loAiDialogParagraphLabel") + ":");
     paragraph = new JTextPane();
     paragraph.setBorder(BorderFactory.createLineBorder(Color.gray));
+    translationLabel = new JLabel(messages.getString("loAiDialogTranslateLabel") + ":");
+    translationText = new JTextPane();
+    translationText.setBorder(BorderFactory.createLineBorder(Color.gray));
     directInstruction = new JTextPane();
     directInstruction.setBorder(BorderFactory.createLineBorder(Color.gray));
     resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
     result = new JTextPane();
     result.setBorder(BorderFactory.createLineBorder(Color.gray));
-    execute = new JButton (messages.getString("loAiDialogExecuteButton")); 
+    execute = new JButton (messages.getString("loAiDialogExecuteButton"));
+    translate = new JButton (messages.getString("loAiDialogTranslateButton")); 
     copyResult = new JButton (messages.getString("loAiDialogcopyResultButton")); 
     reset = new JButton (messages.getString("loAiDialogResetButton")); 
     clear = new JButton (messages.getString("loAiDialogClearButton")); 
@@ -272,12 +290,12 @@ public class WtAiDialog extends Thread implements ActionListener {
     checkProgress.setIndeterminate(false);
     try {
       if (debugMode) {
-        WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog called");
+        WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog called");
       }
 
       
       if (dialog == null) {
-        WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
+        WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog == null");
       }
       String dialogName = messages.getString("loAiDialogTitle");
       dialog.setName(dialogName);
@@ -288,7 +306,17 @@ public class WtAiDialog extends Thread implements ActionListener {
       Font dialogFont = instructionLabel.getFont();
       instructionLabel.setFont(dialogFont);
       imgInstructionLabel.setFont(dialogFont);
-
+      
+      language.setFont(dialogFont);
+      language.setSelectedItem(startLang);
+      locale = getLocaleFromLanguageName(startLang);
+      selectedLang = startLang;
+      language.addItemListener(e -> {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          selectedLang = (String) language.getSelectedItem();
+        }
+      });
+      
       instruction.setFont(dialogFont);
       instruction.setEditable(true);
       instructionList = readInstructions();
@@ -298,7 +326,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Languages: " + runTime);
+          WtMessageHandler.printToLogFile("WtAiDialog: Time to initialise Languages: " + runTime);
           startTime = System.currentTimeMillis();
       }
       if (inf.canceled()) {
@@ -316,6 +344,33 @@ public class WtAiDialog extends Thread implements ActionListener {
       paragraph.setFont(dialogFont);
       JScrollPane paragraphPane = new JScrollPane(paragraph);
       paragraphPane.setMinimumSize(new Dimension(0, 30));
+
+      translationLabel.setFont(dialogFont);
+      translationText.setFont(dialogFont);
+      translationText.addKeyListener(new KeyListener() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            translate();
+          }
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {
+          String txt = translationText.getText();
+          if (translText == null && !txt.isEmpty()) {
+            translText = txt;
+            setButtonState(true);
+          } else if (translText != null && txt.isEmpty()) {
+            translText = null;
+            setButtonState(true);
+          }
+        }
+      });
+      JScrollPane translationPane = new JScrollPane(translationText);
+      translationPane.setMinimumSize(new Dimension(0, 30));
 
       directInstructionLabel.setFont(dialogFont);
       directInstruction.setFont(dialogFont);
@@ -395,7 +450,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise suggestions, etc.: " + runTime);
+          WtMessageHandler.printToLogFile("WtAiDialog: Time to initialise suggestions, etc.: " + runTime);
           startTime = System.currentTimeMillis();
       }
       if (inf.canceled()) {
@@ -484,6 +539,11 @@ public class WtAiDialog extends Thread implements ActionListener {
       execute.addActionListener(this);
       execute.setActionCommand("execute");
       
+      translate.setFont(dialogFont);
+      translate.addActionListener(this);
+      translate.setActionCommand("translate");
+      translate.setVisible(false);
+      
       copyResult.setFont(dialogFont);
       copyResult.addActionListener(this);
       copyResult.setActionCommand("copyResult");
@@ -557,7 +617,7 @@ public class WtAiDialog extends Thread implements ActionListener {
               dialogX = p.x;
               dialogY = p.y;
               if (debugMode) {
-                WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: Window Focus gained: Event = " + e.paramString());
+                WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: Event = " + e.paramString());
               }
               setButtonState(!atWork);
               currentDocument = getCurrentDocument();
@@ -566,7 +626,7 @@ public class WtAiDialog extends Thread implements ActionListener {
                 return;
               }
               if (debugMode) {
-                WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: Window Focus gained: new docType = " + currentDocument.getDocumentType());
+                WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: new docType = " + currentDocument.getDocumentType());
               }
               mainPanel.setSelectedIndex(0);
               setText();
@@ -581,7 +641,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         public void windowLostFocus(WindowEvent e) {
           try {
             if (debugMode) {
-              WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: Window Focus lost: Event = " + e.paramString());
+              WtMessageHandler.printToLogFile("WtAiDialog: Window Focus lost: Event = " + e.paramString());
             }
             setButtonState(false);
             dialog.setEnabled(true);
@@ -634,7 +694,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Buttons: " + runTime);
+          WtMessageHandler.printToLogFile("WtAiDialog: Time to initialise Buttons: " + runTime);
           startTime = System.currentTimeMillis();
       }
       if (inf.canceled()) {
@@ -656,6 +716,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons21.weighty = 0.0f;
       cons21.gridy++;
       rightPanel21.add(execute, cons21);
+      rightPanel21.add(translate, cons21);
       cons21.gridy++;
       rightPanel21.add(createImage, cons21);
       cons21.gridy++;
@@ -744,6 +805,30 @@ public class WtAiDialog extends Thread implements ActionListener {
       leftPanel13.add(directInstruction, cons13);
 
       //  Define 3. left panel
+      JPanel leftPanel15 = new JPanel();
+      leftPanel15.setLayout(new GridBagLayout());
+      GridBagConstraints cons15 = new GridBagConstraints();
+      cons15.gridx = 0;
+      cons15.gridy = 0;
+      cons15.anchor = GridBagConstraints.NORTHWEST;
+      cons15.fill = GridBagConstraints.BOTH;
+      cons15.weightx = 1.0f;
+      cons15.weighty = 0.0f;
+      cons15.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons15.gridy++;
+      leftPanel15.add(languageLabel, cons15);
+      cons15.insets = new Insets(4, 0, 4, 0);
+      cons15.gridy++;
+      leftPanel15.add(language, cons15);
+      cons15.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons15.gridy++;
+      leftPanel15.add(translationLabel, cons15);
+      cons15.insets = new Insets(4, 0, 4, 0);
+      cons15.gridy++;
+      cons15.weighty = 2.0f;
+      leftPanel15.add(translationPane, cons15);
+
+      //  Define 4. left panel
       JPanel leftPanel14 = new JPanel();
       leftPanel14.setLayout(new GridBagLayout());
       GridBagConstraints cons14 = new GridBagConstraints();
@@ -760,6 +845,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       leftPanel14.add(temperatureSlider, cons14);
 
       instructionPanel.add(messages.getString("loAiDialogTabParagraph"), leftPanel12);
+      instructionPanel.add(messages.getString("loAiDialogTabTranslation"), leftPanel15);
       instructionPanel.add(messages.getString("loAiDialogTabInstruction"), leftPanel13);
       
 
@@ -986,7 +1072,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
 //        if (runTime > OfficeTools.TIME_TOLERANCE) {
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise panels: " + runTime);
+          WtMessageHandler.printToLogFile("WtAiDialog: Time to initialise panels: " + runTime);
 //        }
           startTime = System.currentTimeMillis();
       }
@@ -1007,7 +1093,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
 //        if (runTime > OfficeTools.TIME_TOLERANCE) {
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise dialog size: " + runTime);
+          WtMessageHandler.printToLogFile("WtAiDialog: Time to initialise dialog size: " + runTime);
 //        }
       }
     } catch (Throwable t) {
@@ -1035,7 +1121,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       return;
     }
     if (debugMode) {
-      WtMessageHandler.printToLogFile("CheckDialog: show: Goto next Error");
+      WtMessageHandler.printToLogFile("WtAiDialog: show: start");
     }
     if (dialogX < 0 || dialogY < 0) {
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1103,16 +1189,26 @@ public class WtAiDialog extends Thread implements ActionListener {
    */
   private void setButtonState(boolean enabled) {
     boolean isImpress = documentType == DocumentType.IMPRESS;
-    boolean isdirectInst = instructionPanel.getSelectedIndex() == 1;
+    boolean isdirectInst = instructionPanel.getSelectedIndex() == 2;
+    boolean isTranslation = instructionPanel.getSelectedIndex() == 1;
     boolean noParaText = !isdirectInst && (paraText == null || paraText.isEmpty());
     boolean noInstText = !isdirectInst && (instText == null || instText.isEmpty());
+    boolean noTrlaText = !isTranslation || (translationText.getText() == null || translationText.getText().isEmpty());
     boolean noResultText = resultText == null || resultText.isEmpty();
     String directInst = directInstruction.getText();
     boolean noDirectInst = isdirectInst && (directInst == null || directInst.isEmpty());
     instruction.setEnabled(enabled);
     paragraph.setEnabled(enabled);
     result.setEnabled(enabled);
-    execute.setEnabled(noInstText && noDirectInst ? false : enabled);
+    if (isTranslation) {
+      execute.setVisible(false);
+      translate.setVisible(true);
+      translate.setEnabled(noTrlaText ? false : enabled);
+    } else {
+      execute.setVisible(true);
+      translate.setVisible(false);
+      execute.setEnabled(noInstText && noDirectInst ? false : enabled);
+    }
     copyResult.setEnabled(isdirectInst || noResultText ? false : enabled);
     reset.setEnabled(isImpress ? false : enabled);
     clear.setEnabled(isdirectInst || noParaText ? false : enabled);
@@ -1142,7 +1238,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   /**
-   * execute AI request
+   * execute AI request for text
    */
   private void createText() {
     try {
@@ -1153,7 +1249,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         return;
       }
       if (debugMode) {
-        WtMessageHandler.printToLogFile("AiDialog: execute: start AI request");
+        WtMessageHandler.printToLogFile("WtAiDialog: createText: start AI request");
       }
       String text;
       String instructionText;
@@ -1182,11 +1278,11 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
       if (debugMode) {
-        WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instText + ", text: " + text);
+        WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
       }
       String output = aiRemote.runInstruction(instructionText, text, temperature, 0, locale, false);
       if (debugMode) {
-        WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
+        WtMessageHandler.printToLogFile("WtAiDialog: createText: output: " + output);
       }
       instruction.setSelectedIndex(0);
       result.setEnabled(true);
@@ -1202,7 +1298,46 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
 
   /**
-   * execute AI request
+   * Start translation
+   */
+  private void translate() {
+    try {
+      setAtWorkState(true);
+      setButtonState(false);
+      if (!documents.isEnoughHeapSpace()) {
+        closeDialog();
+        return;
+      }
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("AiDialog: translate: start AI request");
+      }
+      if (selectedLang != null) {
+        locale = getLocaleFromLanguageName(selectedLang);
+        String instruction = WtAiTranslateDocument.TRANSLATE_INSTRUCTION + locale.Language + WtAiTranslateDocument.TRANSLATE_INSTRUCTION_POST;
+        WtAiRemote aiRemote = new WtAiRemote(documents, config);
+        String text = translationText.getText();
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
+        }
+        String output = aiRemote.runInstruction(instruction, text, temperature, 1, locale, true);
+        result.setEnabled(true);
+        result.setText(output);
+        resultText = output;
+      } else {
+        locale = null;
+        WtMessageHandler.printToLogFile("Locale: null");
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      closeDialog();
+    } finally {
+      setAtWorkState(false);
+      setButtonState(true);
+    }
+  }
+
+  /**
+   * execute AI request for image
    */
   private void createImage() {
     try {
@@ -1271,6 +1406,8 @@ public class WtAiDialog extends Thread implements ActionListener {
           help();
         } else if (action.getActionCommand().equals("execute")) {
           createText();
+        } else if (action.getActionCommand().equals("translate")) {
+          translate();
         } else if (action.getActionCommand().equals("createImage")) {
           createImageFromText();
         } else if (action.getActionCommand().equals("changeImage")) {
@@ -1523,6 +1660,33 @@ public class WtAiDialog extends Thread implements ActionListener {
     setButtonState(true);
   }
   
+  /**
+   * returns an array of the translated names of the languages supported by LT
+   */
+  private String[] getPossibleLanguages() {
+    List<String> languages = new ArrayList<>();
+    for (Language lang : Languages.get()) {
+      languages.add(lang.getTranslatedName(messages));
+      if("English".equals(lang.getName())) {
+        startLang = new String(lang.getTranslatedName(messages));
+      }
+    }
+    languages.sort(null);
+    return languages.toArray(new String[languages.size()]);
+  }
+
+  /**
+   * returns the locale from a translated language name 
+   */
+  private Locale getLocaleFromLanguageName(String translatedName) {
+    for (Language lang : Languages.get()) {
+      if (translatedName.equals(lang.getTranslatedName(messages))) {
+        return (WtLinguisticServices.getLocale(lang));
+      }
+    }
+    return null;
+  }
+
   
 
 }

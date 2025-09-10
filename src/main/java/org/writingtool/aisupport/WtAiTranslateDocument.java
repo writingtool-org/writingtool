@@ -53,8 +53,8 @@ import com.sun.star.uno.UnoRuntime;
 
 public class WtAiTranslateDocument extends Thread {
   
-  private String TRANSLATE_INSTRUCTION = "Print the translation of the following text in the language ";
-  private String TRANSLATE_INSTRUCTION_POST = " (without comments)";
+  public static String TRANSLATE_INSTRUCTION = "Print the translation of the following text in the language ";
+  public static String TRANSLATE_INSTRUCTION_POST = " (without comments)";
   
   private final ResourceBundle messages;
   private WaitDialogThread waitDialog = null;
