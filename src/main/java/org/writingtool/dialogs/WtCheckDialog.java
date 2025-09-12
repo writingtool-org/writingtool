@@ -431,6 +431,17 @@ public class WtCheckDialog extends Thread {
   }
   
   /**
+   * change text by view cursor
+   */
+  private void changeTextOfParagraphByDocCursor(int nFPara, int nStart, int nLength, String replace, WtSingleDocument document) {
+    if (nFPara < 0) {
+      return;
+    }
+    WtDocumentCursorTools docCursor = new WtDocumentCursorTools(document.getXComponent());
+    docCursor.changeTextOfParagraph(docCache.getNumberOfTextParagraph(nFPara), nStart, nLength, replace);
+  }
+  
+  /**
    * change the text of a paragraph independent of the type of document
    * @throws Throwable 
    */
@@ -447,7 +458,10 @@ public class WtCheckDialog extends Thread {
     } else if (docType == DocumentType.CALC) {
       WtOfficeSpreadsheetTools.setTextofCell(nFPara, sPara, document.getXComponent());
     } else {
-      document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
+      boolean success = document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
+      if (!success) {
+        changeTextOfParagraphByDocCursor(nFPara, nStart, nLength, replace, document);
+      }
     }
     docCache.setFlatParagraph(nFPara, sPara);
     document.removeResultCache(nFPara, true);

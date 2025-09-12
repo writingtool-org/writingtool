@@ -68,8 +68,10 @@ public class WtErrorPositionComparator implements Comparator<WtProofreadingError
           return 1;
         } else if (match1.aSuggestions.length == 0 && match2.aSuggestions.length > 0) {
           return 1;
-        } else {
+        } else if (match2.aSuggestions.length == 0 && match1.aSuggestions.length > 0) {
           return -1;
+        } else {
+          return match2.aSuggestions.length - match1.aSuggestions.length;
         }
       }
     }

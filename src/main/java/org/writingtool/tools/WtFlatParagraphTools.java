@@ -71,6 +71,9 @@ public class WtFlatParagraphTools {
     this.xComponent = xComponent;
     xFlatParaIter = getXFlatParagraphIterator(xComponent);
     lastFlatPara = getCurrentFlatParagraph();
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("FlatParagraphTools: Constructor: lastFlatPara " + (lastFlatPara == null ? "==" : "!=") + " null");
+    }
   }
   
   /**
@@ -80,6 +83,9 @@ public class WtFlatParagraphTools {
     xFlatParaIter = null;
     lastFlatPara = null;
     xComponent = null;
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("FlatParagraphTools: setDisposed: lastFlatPara " + (lastFlatPara == null ? "==" : "!=") + " null");
+    }
   }
   
   /**
@@ -155,6 +161,9 @@ public class WtFlatParagraphTools {
       XFlatParagraph tmpFlatPara = xFlatParaIter.getNextPara();
       if (tmpFlatPara != null) {
         lastFlatPara = tmpFlatPara;
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("FlatParagraphTools: getCurrentFlatParagraph: lastFlatPara " + (lastFlatPara == null ? "==" : "!=") + " null");
+        }
       }
       return tmpFlatPara;
     } catch (Throwable t) {
@@ -194,6 +203,7 @@ public class WtFlatParagraphTools {
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
+      xFlatParaIter = getXFlatParagraphIterator(xComponent);
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
         if (debugMode) {
@@ -1043,9 +1053,9 @@ public class WtFlatParagraphTools {
    * Change text of flat paragraph nPara 
    * delete characters between nStart and nStart + nLen, insert newText at nStart
    */
-  public void changeTextOfParagraph(int nPara, int nStart, int nLen, String newText) throws RuntimeException {
+  public boolean changeTextOfParagraph(int nPara, int nStart, int nLen, String newText) throws RuntimeException {
     if (isDisposed()) {
-      return;
+      return false;
     }
     if (newText == null) {
       throw new RuntimeException("Text is null");
@@ -1053,12 +1063,13 @@ public class WtFlatParagraphTools {
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
+      xFlatParaIter = getXFlatParagraphIterator(xComponent);
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
         if (debugMode) {
           WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextOfParagraph: FlatParagraph == null");
         }
-        return;
+        return false;
       }
       XFlatParagraph tmpFlatPara = xFlatPara;
       while (tmpFlatPara != null) {
@@ -1072,7 +1083,7 @@ public class WtFlatParagraphTools {
       }
       if (xFlatPara == null) {
         WtMessageHandler.printToLogFile("FlatParagraphTools: changeTextOfParagraph: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
-        return;
+        return false;
       }
       int paraLen = xFlatPara.getText().length();
       if (nStart > paraLen) {
@@ -1082,9 +1093,10 @@ public class WtFlatParagraphTools {
         nLen = 0;
       }
       xFlatPara.changeText(nStart, nLen, newText, new PropertyValue[0]);
+      return true;
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
-      return;             // Return -1 as method failed
+      return false;             // Return -1 as method failed
     } finally {
       isBusy--;
     }

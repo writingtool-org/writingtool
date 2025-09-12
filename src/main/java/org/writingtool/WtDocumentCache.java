@@ -2073,10 +2073,17 @@ public class WtDocumentCache implements Serializable {
   }
 
   /**
-   * Change manual linebreak to distinguish from end of paragraph
+   * Change manual line-break to distinguish from end of paragraph
    */
   public static String fixLinebreak(String text) {
     return text.replaceAll(WtOfficeTools.SINGLE_END_OF_PARAGRAPH, WtOfficeTools.MANUAL_LINEBREAK);
+  }
+
+  /**
+   * Change back manual line-breaks (necessary for text changes e.g. in check dialog)
+   */
+  public static String undoFixLinebreak(String text) {
+    return text.replaceAll(WtOfficeTools.MANUAL_LINEBREAK, WtOfficeTools.SINGLE_END_OF_PARAGRAPH);
   }
 
   /**

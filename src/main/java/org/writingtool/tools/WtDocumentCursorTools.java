@@ -1604,6 +1604,33 @@ public class WtDocumentCursorTools {
   }
   
   /**
+   * Change text of text paragraph tPara
+   * delete characters between nStart and nStart + nLength, insert replace at nStart
+   */
+  public boolean changeTextOfParagraph(TextParagraph tPara, int nStart, int nLength, String replace) throws RuntimeException {
+    isBusy++;
+    try {
+      XParagraphCursor xPCursor = getParagraphCursor(tPara);
+      if (xPCursor == null) {
+        return false;
+      }
+      xPCursor.gotoStartOfParagraph(false);
+      xPCursor.goRight((short) nStart, false);
+      if (nLength > 0) {
+        xPCursor.goRight((short) nLength, true);
+      }
+      xPCursor.setString(replace);
+      return true;
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      return false;
+    } finally {
+      isBusy--;
+    }
+    
+  }
+
+  /**
    *  Returns the status of cursor tools
    *  true: If a cursor tool in one or more threads is active
    */
