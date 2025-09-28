@@ -48,9 +48,9 @@ public class ErrorSortTest {
     assertEquals("C2", aError[3].aRuleIdentifier);
     assertEquals("D1", aError[4].aRuleIdentifier);
     assertEquals("E1", aError[5].aRuleIdentifier);
-    assertEquals("F1", aError[6].aRuleIdentifier);
-    assertEquals("F2", aError[7].aRuleIdentifier);
-    assertEquals("F3", aError[8].aRuleIdentifier);
+    assertEquals("F3", aError[6].aRuleIdentifier);
+    assertEquals("F1", aError[7].aRuleIdentifier);
+    assertEquals("F2", aError[8].aRuleIdentifier);
     assertEquals("F4", aError[9].aRuleIdentifier);
     assertEquals("F5", aError[10].aRuleIdentifier);
     
