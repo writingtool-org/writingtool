@@ -88,6 +88,7 @@ import org.writingtool.WtPropertyValue;
 import org.writingtool.WtResultCache;
 import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
+import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
@@ -1116,6 +1117,7 @@ public class WtCheckDialog extends Thread {
     private final JLabel checkTypeLabel;
     private final JLabel checkProgressLabel;
     private final JLabel cacheStatusLabel;
+    private final JLabel cacheAiStatusLabel;
     private final ButtonGroup checkTypeGroup;
     private final JRadioButton[] checkTypeButtons;
     private final JButton more; 
@@ -1211,6 +1213,8 @@ public class WtCheckDialog extends Thread {
       checkProgressLabel = new JLabel(labelCheckProgress);
       cacheStatusLabel = new JLabel(" █ ");
       cacheStatusLabel.setToolTipText(messages.getString("loDialogCacheLabel"));
+      cacheAiStatusLabel = new JLabel(" █ ");
+      cacheAiStatusLabel.setToolTipText(messages.getString("loDialogAiCacheLabel"));
       checkProgress = new JProgressBar(0, 100);
 
       try {
@@ -1899,6 +1903,8 @@ public class WtCheckDialog extends Thread {
         cons4.weighty = 0.0f;
         checkProgressPanel.add(cacheStatusLabel, cons4);
         cons4.gridx++;
+        checkProgressPanel.add(cacheAiStatusLabel, cons4);
+        cons4.gridx++;
         cons4.weightx = 0.0f;
         cons4.weighty = 0.0f;
         checkProgressPanel.add(checkProgressLabel, cons4);
@@ -2008,6 +2014,53 @@ public class WtCheckDialog extends Thread {
           numCache++;
         }
       }
+      int size;
+      if (docType == DocumentType.WRITER) {
+        size = WtSidebarContent.getCacheStatusSize(pSize, fullSize * numCache);
+        if (size < 0) {
+          size = 0;
+        } else if (size > 100) {
+          size = 100;
+        }
+      } else {
+        size = 100;
+      }
+      cacheStatusLabel.setToolTipText(messages.getString("loDialogCacheLabel") + ": " + size + "%");
+      cacheStatusLabel.setForeground(WtSidebarContent.getCacheStatusColor(size));
+      if (useAi && docType == DocumentType.WRITER) {
+        cacheAiStatusLabel.setVisible(true);
+        pSize = currentDocument.getParagraphsCache().get(WtOfficeTools.CACHE_AI).size() + nAuto;
+        size = WtSidebarContent.getCacheStatusSize(pSize, fullSize);
+        cacheAiStatusLabel.setToolTipText(messages.getString("loDialogAiCacheLabel") + ": " + size + "%");
+        cacheAiStatusLabel.setForeground(WtSidebarContent.getCacheStatusColor(size));
+      } else {
+        cacheAiStatusLabel.setVisible(false);
+      }
+    }
+
+/*    
+    void setCacheStatusColor() {
+      int fullSize = docCache.size();
+      int nSingle = 0;
+      int nAuto = 0;
+      for (int i = 0; i < docCache.size(); i++) {
+        if (docCache.isAutomaticGenerated(i, true)) {
+          nAuto++;
+        } else if (docCache.isSingleParagraph(i)) {
+          nSingle++;
+        }
+      }
+      int pSize = 0;
+      int numCache = 0;
+      for (int i = 0; i < currentDocument.getParagraphsCache().size(); i++) {
+        if (lt.isSortedRuleForIndex(i)) {
+          pSize += (currentDocument.getParagraphsCache().get(i).size() + nAuto);
+          if (i > 0) {
+            pSize += nSingle;
+          }
+          numCache++;
+        }
+      }
       if (useAi) {
         pSize += (currentDocument.getParagraphsCache().get(WtOfficeTools.CACHE_AI).size() + nAuto);
         numCache++;
@@ -2041,7 +2094,7 @@ public class WtCheckDialog extends Thread {
       }
       return col;
     }
-    
+*/    
     void errorReturn() {
       WtMessageHandler.showMessage(loBusyMessage);
       closeDialog();

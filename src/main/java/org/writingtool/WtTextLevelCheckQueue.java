@@ -414,6 +414,7 @@ public class WtTextLevelCheckQueue {
               + "; nCache = "  + qEntry.nCache + "; nCheck = "  + qEntry.nCheck + "; overrideRunning = "  + qEntry.overrideRunning);
         }
         document.runQueueEntry(qEntry.nStart, qEntry.nEnd, qEntry.nCache, qEntry.nCheck, qEntry.overrideRunning, lt);
+        multiDocHandler.setCacheStatusColor(document);
       }
     } else {
       WtMessageHandler.printToLogFile("Warning: Not enough heap space; text level queue stopped!");

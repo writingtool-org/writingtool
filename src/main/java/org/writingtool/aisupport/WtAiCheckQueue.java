@@ -199,6 +199,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
           }
           WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
           aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
+          multiDocHandler.setCacheStatusColor(document);
           if (multiDocHandler.useAiSuggestion()) {
             aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
           }

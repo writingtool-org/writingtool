@@ -110,8 +110,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
   private final static int LABEL_TOP = 2 * BUTTON_MARGIN_TOP + 2 * (BUTTON_CONTAINER_HEIGHT + BUTTON_MARGIN_BETWEEN) + BUTTON_MARGIN_BOTTOM;
   private final static int LABEL_LEFT = BUTTON_MARGIN_LEFT;
-  private final static int LABEL_WIDTH = MINIMAL_WIDTH - BUTTON_MARGIN_LEFT - BUTTON_MARGIN_RIGHT;;
+  private final static int LABEL_WIDTH = MINIMAL_WIDTH - BUTTON_MARGIN_LEFT - BUTTON_MARGIN_RIGHT;
   private final static int LABEL_HEIGHT = 20;
+  private final static int CACHE_STATUS_WIDTH = 15;
+  private final static int CACHE_STATUS_HEIGHT = 18;
+  private final static int CACHE_STATUS_BETWEEN = 5;
+  private final static int CACHE_STATUS_TOP = 2;
+  private final static int CACHE_STATUS_BOTTOM = 0;
+  private final static int STATUS_CONTAINER_HEIGHT = CACHE_STATUS_HEIGHT + CACHE_STATUS_TOP + CACHE_STATUS_BOTTOM;
 
   private final static int CONTAINER_MARGIN_TOP = 5;
   private final static int CONTAINER_MARGIN_BOTTOM = 5;
@@ -135,6 +141,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow buttonContainer1Window;       //  the window of the first row button container
   private XWindow buttonContainer2Window;       //  the window of the second row button container
   private XWindow buttonContainerAiWindow;      //  the window of the button container for AI action
+  private XWindow cacheStatusContainerWindow;   //  the window of the container for cache status label
   private XWindow paragraphLabelWindow;         //  the window of the paragraph label
   private XWindow paragraphBoxWindow;           //  the window of the paragraph box
   private XWindow aiLabelWindow;                //  the window of the AI label
@@ -148,12 +155,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow buttonAiSummary;              //  the window of button for AI create summary
   private XWindow buttonAiTranslateTextWindow;  //  the window of button for AI translate text
   private XWindow buttonAiTextToSpeechWindow;   //  the window of button for AI text to speech
+  private XWindow cacheAiStatusWindow;          //  the window of AI cache status
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
   private XTextComponent paragraphBox;          //  Box to show paragraph text
   private XControl xAiBox;                      //  Box to show AI result text
   private XTextComponent aiResultBox;           //  Text component of box to show AI result text
   private XFixedText aiLabelText;               //  Text of Label for AI result text
+
+  private List<XControl> xCacheSizeLabel;       //  Labels to show status of cache
   
   private String paragraphText;                 //  Text of the current paragraph
   private String aiResultText;                  //  result Text of AI operation
@@ -376,6 +386,34 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       aiResultBoxWindow.setVisible(isAiSupport);
       overrideButtonWindow.setVisible(isAiSupport);
       documents.setSidebarContent(this);
+      // Add cache status Button container
+      int cacheStatusTop = containerSize.Height - CONTAINER_MARGIN_BOTTOM - STATUS_CONTAINER_HEIGHT;
+      props = new TreeMap<>();
+      props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+      XControl xStatusContainer = createControlContainer(xMCF, context, 
+          new Rectangle(CONTAINER_MARGIN_LEFT, cacheStatusTop, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
+      XControlContainer statusContainer = UnoRuntime.queryInterface(XControlContainer.class, xStatusContainer);
+      controlContainer.addControl("cacheStatusContainer", xStatusContainer);
+      cacheStatusContainerWindow = UnoRuntime.queryInterface(XWindow.class, xStatusContainer);
+      cacheStatusContainerWindow.setPosSize(CONTAINER_MARGIN_LEFT, cacheStatusTop, BUTTON_CONTAINER_WIDTH, STATUS_CONTAINER_HEIGHT, PosSize.POSSIZE);
+      //  Add cache size label
+      xCacheSizeLabel = new ArrayList<>(WtOfficeTools.NUMBER_CACHE);
+      for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
+        props = new TreeMap<>();
+        props.put("TextColor", Color.gray.getRGB() & ~0xFF000000);
+        if (isAiSupport) {
+          props.put("HelpText", "AI-Cache ");
+        } else {
+          props.put("HelpText", "Text-Cache " + i);
+        }
+        XControl xControl = createLabel(xMCF, context, "██", 
+            new Rectangle(BUTTON_MARGIN_LEFT + i * (CACHE_STATUS_BETWEEN + CACHE_STATUS_WIDTH), 
+                CACHE_STATUS_TOP, CACHE_STATUS_WIDTH, LABEL_HEIGHT), props); 
+        xCacheSizeLabel.add(xControl);
+        statusContainer.addControl("cacheLabel" + i, xCacheSizeLabel.get(i));
+      }
+      cacheAiStatusWindow = UnoRuntime.queryInterface(XWindow.class, xCacheSizeLabel.get(WtOfficeTools.CACHE_AI));
+      cacheAiStatusWindow.setVisible(isAiSupport);
       setTextToBox();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
@@ -634,7 +672,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private void resizeContainer() {
     Rectangle rect = contentWindow.getPosSize();
-    containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BOTTOM;
+    containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BETWEEN - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM;
 //    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
     if (isAiSupport) {
       containerHeight = (containerHeight - 2 * BUTTON_CONTAINER_HEIGHT - 4 * CONTAINER_MARGIN_BETWEEN - LABEL_HEIGHT) / 2;
@@ -673,12 +711,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int aiBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
       int aiBoxHeight = containerHeight;
       aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
-      overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);;
+      overrideButtonWindow.setPosSize(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);
     }
+    int cacheStatusTop = rect.Height - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM;
+    cacheStatusContainerWindow.setPosSize(CONTAINER_MARGIN_LEFT, cacheStatusTop, BUTTON_CONTAINER_WIDTH, STATUS_CONTAINER_HEIGHT, PosSize.POSSIZE);
     buttonContainerAiWindow.setVisible(isAiSupport);
     aiLabelWindow.setVisible(isAiSupport);
     aiResultBoxWindow.setVisible(isAiSupport);
     overrideButtonWindow.setVisible(isAiSupport);
+    cacheAiStatusWindow.setVisible(isAiSupport);
   }
   
   private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara, WtSingleDocument document) {
@@ -839,6 +880,86 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   public void toggleBackgroundCheckButton() {
     buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
     buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
+  }
+  
+  /**
+   * Set Color of cache status label
+   * red if cache not filled green for full cache
+   */
+  public void setCacheStatusColor(WtSingleDocument document) {
+    if (document == null) {
+      return;
+    }
+    WtDocumentCache docCache = document.getDocumentCache();
+    if (docCache == null) {
+      return;
+    }
+    WtLanguageTool lt = documents.getLanguageTool();
+    int fullSize = docCache.size();
+    int nSingle = 0;
+    int nAuto = 0;
+    for (int i = 0; i < docCache.size(); i++) {
+      if (docCache.isAutomaticGenerated(i, true)) {
+        nAuto++;
+      } else if (docCache.isSingleParagraph(i)) {
+        nSingle++;
+      }
+    }
+    int pSize = 0;
+    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
+      int size = 100;
+      if (isAiSupport || i != WtOfficeTools.CACHE_AI) {
+        if (lt.isSortedRuleForIndex(i) || i == WtOfficeTools.CACHE_AI) {
+          pSize = (document.getParagraphsCache().get(i).size() + nAuto);
+          if (i > 0 && i != WtOfficeTools.CACHE_AI) {
+            pSize += nSingle;
+          }
+          size = getCacheStatusSize(pSize, fullSize);
+        }
+        if (i != WtOfficeTools.CACHE_AI) {
+          setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
+              messages.getString("loDialogCacheLabel") + "(" + i + "): " + size + "%");
+        } else {
+          setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
+              messages.getString("loDialogAiCacheLabel") + ": " + size + "%");
+        }
+      }
+    }
+  } 
+  
+  /**
+   * get size of cache status in percent
+   */
+  public static int getCacheStatusSize(int pSize, int fullSize) {
+    int size;
+    size = (fullSize == 0) ? 0 : (int) (((pSize * 100.) / fullSize) + 0.5);
+    if (size < 0) {
+      size = 0;
+    } else if (size > 100) {
+      size = 100;
+    }
+    return size;
+  }
+
+  /**
+   * get color (red to green) of cache status from size (in percent)
+   */
+  public static Color getCacheStatusColor(int size) {
+    if (size < 50) {
+      return new Color(120, (int) (size * 2.4 + 0.5), 0);
+    } else {
+      return new Color((int) (120 - (size - 50) * 2.4), 120, 0);
+    }
+  }
+
+  private void setCacheStatusColorAndTooltip(XControl xCacheSizeLabel, Color color, String tooltipText) {
+    try {
+      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xCacheSizeLabel.getModel());
+      props.setPropertyValue("TextColor", color.getRGB() & ~0xFF000000);
+      props.setPropertyValue("HelpText", tooltipText);
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
+    }
   }
   
   @Override

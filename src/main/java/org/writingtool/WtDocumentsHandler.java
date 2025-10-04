@@ -294,6 +294,7 @@ public class WtDocumentsHandler {
     }
 //    handleLtDictionary(paraText);
     paRes = documents.get(docNum).getCheckResults(paraText, locale, paRes, propertyValues, docReset, lt, LoErrorType.GRAMMAR);
+    setCacheStatusColor(documents.get(docNum));
     if (!isBackgroundCheckOff() && lt.doReset()) {
       // langTool.doReset() == true: if server connection is broken ==> switch to internal check
       WtMessageHandler.showMessage(messages.getString("loRemoteSwitchToLocal"));
@@ -445,6 +446,15 @@ public class WtDocumentsHandler {
   public void setTextToSidebarBox(XComponent xComponent) {
     if (sidebarContent != null) {
       sidebarContent.setCursorTextToBox(xComponent);
+    }
+  }
+  
+  /**
+   * set cache status color in sidebar
+   */
+  public void setCacheStatusColor(WtSingleDocument document) {
+    if (sidebarContent != null) {
+      sidebarContent.setCacheStatusColor(document);
     }
   }
   
