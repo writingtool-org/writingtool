@@ -68,7 +68,6 @@ import com.sun.star.lang.Locale;
  */
 public class WtAiSummaryDialog extends Thread implements ActionListener {
   
-  private final static int MAX_TEXT_LENGTH = 20000;
   private final static int MAX_SUMMARY_LENGTH = 1000;
   private final static String SUMMARY_INSTRUCTION = "Write a summary of the following text in less than " + MAX_SUMMARY_LENGTH + " characters";
 
@@ -403,7 +402,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       String mergedText = text.get(0);
       List<String> summaries = new ArrayList<>();
       for (int i = 1; i < text.size(); i++) {
-        if (mergedText.length() + text.get(i).length() > MAX_TEXT_LENGTH) {
+        if (mergedText.length() + text.get(i).length() > WtAiRemote.MAX_TEXT_LENGTH) {
           summaries.add(getSingleSummary(mergedText));
           mergedText = text.get(i);
         } else {
@@ -462,12 +461,12 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
         for (String para : text) {
           len += para.length();
         }
-        num = len / MAX_TEXT_LENGTH;
-        if (num * MAX_TEXT_LENGTH < len) {
+        num = len / WtAiRemote.MAX_TEXT_LENGTH;
+        if (num * WtAiRemote.MAX_TEXT_LENGTH < len) {
           num ++;
         }
-        int ntmp = (num * MAX_SUMMARY_LENGTH) / MAX_TEXT_LENGTH;
-        if (ntmp * MAX_TEXT_LENGTH < num * MAX_SUMMARY_LENGTH) {
+        int ntmp = (num * MAX_SUMMARY_LENGTH) / WtAiRemote.MAX_TEXT_LENGTH;
+        if (ntmp * WtAiRemote.MAX_TEXT_LENGTH < num * MAX_SUMMARY_LENGTH) {
           ntmp ++;
         }
         num += ntmp;
@@ -477,8 +476,8 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
             num += getNumberOfChapters(subChapter); 
           }
         }
-        int ntmp = (chapter.children.size() * MAX_SUMMARY_LENGTH) / MAX_TEXT_LENGTH;
-        if (ntmp * MAX_TEXT_LENGTH < chapter.children.size() * MAX_SUMMARY_LENGTH) {
+        int ntmp = (chapter.children.size() * MAX_SUMMARY_LENGTH) / WtAiRemote.MAX_TEXT_LENGTH;
+        if (ntmp * WtAiRemote.MAX_TEXT_LENGTH < chapter.children.size() * MAX_SUMMARY_LENGTH) {
           ntmp ++;
         }
         num += ntmp;
