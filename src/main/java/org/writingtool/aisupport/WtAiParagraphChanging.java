@@ -291,7 +291,9 @@ public class WtAiParagraphChanging extends Thread {
       for (AnalyzedTokenReadings token : analyzedSentence.getTokens()) {
         if (nChar >= token.getStartPos() + nPos && nChar < token.getEndPos() + nPos) {
           if (token.isPosTagUnknown() || token.isNonWord()) {
-            WtMessageHandler.printToLogFile("getProofreadingError: token isPosTagUnknown || isNonWord: " + token.getToken());
+            if (debugMode > 0) {
+              WtMessageHandler.printToLogFile("getProofreadingError: token isPosTagUnknown || isNonWord: " + token.getToken());
+            }
             return null;
           }
           String[] synonyms  = getListOfSynonyms(token, nFPara, docCache);
@@ -313,7 +315,9 @@ public class WtAiParagraphChanging extends Thread {
       }
       nPos += analyzedSentence.getCorrectedTextLength();
     }
-    WtMessageHandler.printToLogFile("getProofreadingError: token not found: nChar: " + nChar + ", nFPara: " + nFPara);
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("getProofreadingError: token not found: nChar: " + nChar + ", nFPara: " + nFPara);
+    }
     return null;
   }
   
@@ -335,7 +339,9 @@ public class WtAiParagraphChanging extends Thread {
   }
   
   private String[] getListOfSynonyms(String word, Locale locale) throws Throwable {
-    WtMessageHandler.printToLogFile("getListOfSynonyms: word: " + word);
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("getListOfSynonyms: word: " + word);
+    }
     String[] synonymArray = lastWords.getSuggestions(word, locale);
     if (synonymArray != null) {
       return synonymArray;
