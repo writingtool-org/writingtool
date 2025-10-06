@@ -946,9 +946,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    */
   public static Color getCacheStatusColor(int size) {
     if (size < 50) {
-      return new Color(120 + (int) (size * 2. + 0.5), (int) (size * 4.4 + 0.5), 0);
+      return new Color(120 + (int) (size * 1.6 + 0.5), (int) (size * 4. + 0.5), 0);
     } else {
-      return new Color((int) (220 - (size - 50) * 4.4), 220 - (int) ((size - 50) * 2.), 0);
+      return new Color((int) (200 - (size - 50) * 4.), 200 - (int) ((size - 50) * 1.6), 0);
     }
   }
 
