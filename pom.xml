@@ -19,7 +19,7 @@
 
     <repositories>
         <!-- repository for snapshot -->
-        <repository>
+<!--        <repository>
             <id>repo.languagetool.org</id>
             <url>https://repo.languagetool.org/artifactory/languagetool-os-snapshot/</url>
 	        <snapshots>
@@ -31,7 +31,7 @@
 	            <updatePolicy>daily</updatePolicy>
 	        </releases>
         </repository>
-	  	
+-->	  	
         <repository>
             <id>com.formdev</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -203,8 +203,8 @@
 
     <properties>
 		<!-- snapshot revision -->
-        <revision>25.10-SNAPSHOT</revision>
-        <lt-revision>6.7-SNAPSHOT</lt-revision>
+        <revision>25.10</revision>
+        <lt-revision>6.7</lt-revision>
         
 		<!-- release revision
         <revision>1.2</revision>
