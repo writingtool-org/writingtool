@@ -29,6 +29,7 @@ import org.languagetool.LinguServices;
 import org.languagetool.rules.Rule;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtLinguServiceTools;
 
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
@@ -54,7 +55,6 @@ import com.sun.star.uno.XComponentContext;
  */
 public class WtLinguisticServices extends LinguServices {
   
-  private static boolean isSetLt = false;
 //  private XThesaurus thesaurus = null;
 //  private XSpellChecker spellChecker = null;
 //  private XHyphenator hyphenator = null;
@@ -90,46 +90,7 @@ public class WtLinguisticServices extends LinguServices {
     return (spellChecker != null);
   }
   */
-  /** 
-   * Get the LinguServiceManager to be used for example 
-   * to access spell checker, thesaurus and hyphenator
-   */
-  private static XLinguServiceManager getLinguSvcMgr(XComponentContext xContext) {
-    try {
-      XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
-          xContext.getServiceManager());
-      if (xMCF == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: getLinguSvcMgr: XMultiComponentFactory == null");
-        return null;
-      }
-      // retrieve Office's remote component context as a property
-      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xMCF);
-      if (props == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: getLinguSvcMgr: XPropertySet == null");
-        return null;
-      }
-      Object defaultContext = props.getPropertyValue("DefaultContext");
-      // get the remote interface XComponentContext
-      XComponentContext xComponentContext = UnoRuntime.queryInterface(XComponentContext.class, defaultContext);
-      if (xComponentContext == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: getLinguSvcMgr: XComponentContext == null");
-        return null;
-      }
-      Object o = xMCF.createInstanceWithContext("com.sun.star.linguistic2.LinguServiceManager", xComponentContext);     
-      // create service component using the specified component context
-      XLinguServiceManager mxLinguSvcMgr = UnoRuntime.queryInterface(XLinguServiceManager.class, o);
-      if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: getLinguSvcMgr: XLinguServiceManager2 == null");
-        return null;
-      }
-      return mxLinguSvcMgr;
-    } catch (Throwable t) {
-      // If anything goes wrong, give the user a stack trace
-      WtMessageHandler.printException(t);
-    }
-    return null;
-  }
-  
+
   /** 
    * Get XLinguProperties
    */
@@ -171,7 +132,7 @@ public class WtLinguisticServices extends LinguServices {
    */
   private XThesaurus getThesaurus(XComponentContext xContext) {
     try {
-      XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
+      XLinguServiceManager mxLinguSvcMgr = WtLinguServiceTools.getLinguSvcMgr(xContext);
       if (mxLinguSvcMgr != null) {
         return mxLinguSvcMgr.getThesaurus();
       }
@@ -187,7 +148,7 @@ public class WtLinguisticServices extends LinguServices {
    */
   private XHyphenator getHyphenator(XComponentContext xContext) {
     try {
-      XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
+      XLinguServiceManager mxLinguSvcMgr = WtLinguServiceTools.getLinguSvcMgr(xContext);
       if (mxLinguSvcMgr != null) {
         return mxLinguSvcMgr.getHyphenator();
       }
@@ -203,7 +164,7 @@ public class WtLinguisticServices extends LinguServices {
    */
   protected XSpellChecker getSpellChecker(XComponentContext xContext) {
     try {
-      XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
+      XLinguServiceManager mxLinguSvcMgr = WtLinguServiceTools.getLinguSvcMgr(xContext);
       if (mxLinguSvcMgr != null) {
         return mxLinguSvcMgr.getSpellChecker();
       }
@@ -353,146 +314,6 @@ public class WtLinguisticServices extends LinguServices {
     }
   }
   
-  /**
-   * Set LT as grammar checker for a specific language
-   * is normally used deactivate lightproof 
-   */
-  public boolean setLtAsGrammarService(XComponentContext xContext, Locale locale) {
-    if (xContext != null) {
-      XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
-      if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
-        return false;
-      }
-      Locale[] locales = WtDocumentsHandler.getLocales();
-      for (Locale loc : locales) {
-        if (WtOfficeTools.isEqualLocale(locale, loc)) {
-          String[] serviceNames = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.Proofreader", locale);
-          if (serviceNames.length == 0) {
-            WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: No configured Service for: " + WtOfficeTools.localeToString(locale));
-          } else {
-            for (String service : serviceNames) {
-              WtMessageHandler.printToLogFile("Configured Linguistic Service: " + service + ", " + WtOfficeTools.localeToString(locale));
-            }
-          }
-          if (serviceNames.length != 1 || !serviceNames[0].equals(WtOfficeTools.WT_SERVICE_NAME)) {
-            String[] aServiceNames = mxLinguSvcMgr.getAvailableServices("com.sun.star.linguistic2.Proofreader", locale);
-            for (String service : aServiceNames) {
-              WtMessageHandler.printToLogFile("Available Linguistic Service: " + service + ", " + WtOfficeTools.localeToString(locale));
-            }
-            String[] configuredServices = new String[1];
-            configuredServices[0] = new String(WtOfficeTools.WT_SERVICE_NAME);
-            mxLinguSvcMgr.setConfiguredServices("com.sun.star.linguistic2.Proofreader", locale, configuredServices);
-            WtMessageHandler.printToLogFile("LT set as configured Service for Language: " + WtOfficeTools.localeToString(locale));
-          }
-          return true;
-        }
-      }
-      WtMessageHandler.printToLogFile("LT doesn't support language: " + WtOfficeTools.localeToString(locale));
-    }
-    return false;
-  }
-
-  /**
-   * Set LT as grammar checker for all supported languages
-   * is normally used deactivate lightproof 
-   */
-  public boolean setLtAsGrammarService(XComponentContext xContext) {
-    if (xContext != null) {
-      return setLtAsGrammarService(getLinguSvcMgr(xContext));
-    } else {
-      return false;
-    }
-  }
-
-  /**
-   * Set LT as grammar checker for all supported languages
-   * is normally used deactivate lightproof 
-   */
-  private boolean setLtAsGrammarService(XLinguServiceManager mxLinguSvcMgr) {
-    if (isSetLt) {
-      return true;
-    }
-    if (mxLinguSvcMgr == null) {
-      WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
-      return false;
-    }
-    isSetLt = true;
-    Locale[] locales = WtDocumentsHandler.getLocales();
-    for (Locale locale : locales) {
-      String[] serviceNames = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.Proofreader", locale);
-      if (serviceNames.length != 1 || !serviceNames[0].equals(WtOfficeTools.WT_SERVICE_NAME)) {
-        String[] aServiceNames = mxLinguSvcMgr.getAvailableServices("com.sun.star.linguistic2.Proofreader", locale);
-        for (String service : aServiceNames) {
-          WtMessageHandler.printToLogFile("Available Linguistic Service: " + service + ", " + WtOfficeTools.localeToString(locale));
-        }
-        String[] configuredServices = new String[1];
-        configuredServices[0] = new String(WtOfficeTools.WT_SERVICE_NAME);
-        mxLinguSvcMgr.setConfiguredServices("com.sun.star.linguistic2.Proofreader", locale, configuredServices);
-        WtMessageHandler.printToLogFile("LT set as configured Service for Language: " + WtOfficeTools.localeToString(locale));
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Activate / deactivate LT as spell checker for all supported languages
-   * is normally used
-   */
-  public static boolean setLtAsSpellService(XComponentContext xContext, boolean activate) {
-    if (xContext == null) {
-      return false;
-    }
-    XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
-    if (mxLinguSvcMgr == null) {
-      WtMessageHandler.printToLogFile("LinguisticServices: setLtAsSpellService: XLinguServiceManager == null");
-      return false;
-    }
-    Locale[] locales = WtDocumentsHandler.getLocales();
-    WtMessageHandler.printToLogFile("LinguisticServices: setLtAsSpellService: Number locales: " + locales.length);
-    for (Locale locale : locales) {
-      String[] serviceNames = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.SpellChecker", locale);
-//      MessageHandler.printToLogFile("Configured Linguistic Service: NUmber: " + serviceNames.length + ", " + OfficeTools.localeToString(locale));
-//      for (String service : serviceNames) {
-//        MessageHandler.printToLogFile("Configured Linguistic Service: " + service + ", " + OfficeTools.localeToString(locale));
-//      }
-      List<String> serviceList = new ArrayList<>();
-      if (!activate) {
-        for (String serviceName : serviceNames) {
-          if(!WtOfficeTools.WT_SPELL_SERVICE_NAME.equals(serviceName)) {
-            serviceList.add(serviceName);
-          }
-        }
-      } else {
-        boolean add = false;
-        for (String serviceName : serviceNames) {
-          if(!WtOfficeTools.WT_SPELL_SERVICE_NAME.equals(serviceName)) {
-            add = true;
-          }
-          serviceList.add(serviceName);
-        }
-        if (add) {
-          serviceList.add(WtOfficeTools.WT_SPELL_SERVICE_NAME);
-        }
-      }
-      serviceNames = serviceList.toArray(new String[serviceList.size()]);
-      mxLinguSvcMgr.setConfiguredServices("com.sun.star.linguistic2.SpellChecker", locale, serviceNames);
-/*      
-      if (serviceNames.length != 1 || !serviceNames[0].equals(OfficeTools.WT_SERVICE_NAME)) {
-        String[] aServiceNames = mxLinguSvcMgr.getAvailableServices("com.sun.star.linguistic2.Proofreader", locale);
-        for (String service : aServiceNames) {
-          MessageHandler.printToLogFile("Available Linguistic Service: " + service + ", " + OfficeTools.localeToString(locale));
-        }
-        String[] configuredServices = new String[1];
-        configuredServices[0] = new String(OfficeTools.WT_SERVICE_NAME);
-        mxLinguSvcMgr.setConfiguredServices("com.sun.star.linguistic2.Proofreader", locale, configuredServices);
-        MessageHandler.printToLogFile("LT set as configured Service for Language: " + OfficeTools.localeToString(locale));
-      }
-*/
-    }
-    WtMessageHandler.printToLogFile("LT spell service (" + WtOfficeTools.WT_SPELL_SERVICE_NAME + ") " + (!activate ? "deactivated" : "activated"));
-    return true;
-  }
 
   /**
    * Set a thesaurus relevant rule

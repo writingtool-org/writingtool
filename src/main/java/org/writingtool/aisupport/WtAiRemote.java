@@ -56,6 +56,9 @@ public class WtAiRemote {
   private final static int READ_TIMEOUT = 0;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
+
+  public final static int MAX_TEXT_LENGTH = 20000;
+
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";
   public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text without comments";
   public final static String REFORMULATE_INSTRUCTION = "Output the rephrased text without comments";

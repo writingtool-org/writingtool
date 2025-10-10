@@ -32,7 +32,6 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import org.languagetool.tools.Tools;
-import org.writingtool.WtDocumentsHandler;
 import org.writingtool.dialogs.WtOptionPane;
 
 import com.sun.star.uno.XComponentContext;
@@ -223,6 +222,15 @@ public class WtMessageHandler {
   }
   
   /**
+   * run an information message in a blocking window
+   * closing if lost focus
+   */
+  public static void showDialogToCloseLo(String text, XComponentContext xContext) {
+    ClosingInformationThread informationDialog = new ClosingInformationThread(text, true, xContext);
+    informationDialog.start();
+  }
+  
+  /**
    * class to run a dialog in a separate thread
    */
   private static class DialogThread extends Thread {
@@ -257,17 +265,31 @@ public class WtMessageHandler {
    */
   private static class ClosingInformationThread extends Thread {
     private final String text;
+    private final boolean closeLo;
+    private final XComponentContext xContext;
     JDialog dialog;
 
     ClosingInformationThread(String text) {
+      this(text, false, null);
+    }
+
+    ClosingInformationThread(String text, boolean closeLo, XComponentContext xContext) {
       this.text = text;
+      this.closeLo = closeLo;
+      this.xContext = xContext;
     }
 
     @Override
     public void run() {
+      if (showDialog()) {
+        if(closeLo) {
+          WtOfficeTools.closeLO(xContext);
+        }
+      }
+    }
+      
+    private boolean showDialog() {
       try {
-        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
         JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
         dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
         dialog.setModal(false);
@@ -279,15 +301,17 @@ public class WtMessageHandler {
           }
           @Override
           public void windowLostFocus(WindowEvent e) {
-            dialog.setVisible(false);
+            if(!closeLo) {
+              dialog.setVisible(false);
+            }
           }
         });
+        dialog.toFront();
         dialog.setVisible(true);
-        WtGeneralTools.setJavaLookAndFeel(theme);
       } catch (Exception e) {
         WtMessageHandler.printException(e);
       }
+      return true;
     }
   }
-  
 }
