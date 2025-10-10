@@ -2715,7 +2715,10 @@ public class WtCheckDialog extends Thread {
         }
         int nStart = 0;
         for (int i = lastPara; i < y && i < docCache.size(); i++) {
-          nStart += docCache.getFlatParagraph(i).length() + 1;
+          String str = docCache.getFlatParagraph(i);
+          if (str != null) {
+            nStart += str.length() + 1;
+          }
         }
         checkProgress.setMaximum(endOfRange < 0 ? docCache.size() : endOfRange);
         CheckError nextError = null;
