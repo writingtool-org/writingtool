@@ -355,7 +355,7 @@ public class WtDocumentsHandler {
               } else if (prefix.equals("C")) {
                 loc = WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
               } else {
-                loc = WtOfficeTools.getCursorLocale(xContext);
+                loc = WtOfficeTools.getDefaultLocale(xContext);
               }
               docLanguage = getLanguage(loc);
               if (docLanguage == null) {
@@ -968,12 +968,16 @@ public class WtDocumentsHandler {
             if (useQueue && textLevelQueue != null) {
               WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Interrupt text level queue for old document ID: " + oldDocId);
               textLevelQueue.interruptCheck(oldDocId, true);
-              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Interrupt done");
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Interrupt textLevelQueue done");
+              textLevelQueue.setReset();
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: reset textLevelQueue done");
             }
             if (config.useAiSupport() && config.aiAutoCorrect() && aiQueue != null) {
               WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Interrupt AI queue for old document ID: " + oldDocId);
               aiQueue.interruptCheck(oldDocId, true);
-              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: AI Interrupt done");
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: AI queue Interrupt done");
+              aiQueue.setReset();
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: AI queue reset done");
             }
             if (documents.get(i).isDisposed()) {
               documents.get(i).dispose(false);;
@@ -1254,6 +1258,24 @@ public class WtDocumentsHandler {
     WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
     if (!isBackgroundCheckOff()) {
       checkLOWtConfig(getCurrentDocument());
+      useQueue = config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
+      if (useQueue) {
+        if (textLevelQueue == null) {
+          textLevelQueue = new WtTextLevelCheckQueue(this);
+        } else {
+          textLevelQueue.setReset();
+        }
+      }
+      if (config.useAiSupport() && config.aiAutoCorrect()) {
+        if (aiQueue == null) {
+          aiQueue = new WtAiCheckQueue(this);
+        } else {
+          aiQueue.setReset();
+        }
+      }
+      setRecheck();
+      resetCheck();
+    } else {
       if (textLevelQueue != null) {
         textLevelQueue.setStop();
         textLevelQueue = null;
@@ -1262,8 +1284,6 @@ public class WtDocumentsHandler {
         aiQueue.setStop();
         aiQueue = null;
       }
-      setRecheck();
-      resetCheck();
     }
     if (sidebarContent != null) {
       sidebarContent.toggleBackgroundCheckButton();
@@ -1271,9 +1291,9 @@ public class WtDocumentsHandler {
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
-    if (isBackgroundCheckOff()) {
-      resetResultCaches(true);
-    }
+//    if (isBackgroundCheckOff()) {
+//      resetResultCaches(true);
+//    }
     return true;
   }
 
@@ -1848,7 +1868,7 @@ public class WtDocumentsHandler {
    */
   public void trigger(String sEvent) {
     try {
-      WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
+//      WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
       if ("noAction".equals(sEvent)) {  //  special dummy action
         return;
       }
