@@ -1287,6 +1287,7 @@ public class WtDocumentsHandler {
     }
     if (sidebarContent != null) {
       sidebarContent.toggleBackgroundCheckButton();
+      sidebarContent.setCacheStatusColorInactive();
     }
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);

@@ -89,6 +89,10 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   
+  private static final String TEXT_CACHE_LABEL = messages.getString("loDialogCacheLabel");
+  private static final String AI_CACHE_LABEL = messages.getString("loDialogAiCacheLabel");
+  private static final Color CACHE_INACTIVE_COLOR = Color.gray;
+  
   private final static String WAIT_TEXT = ">>> Please wait <<<";
   private final static String OPENING_FORMAT_SIGN = "[";
   private final static String CLOSING_FORMAT_SIGN = "]";
@@ -400,11 +404,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       xCacheSizeLabel = new ArrayList<>(WtOfficeTools.NUMBER_CACHE);
       for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
         props = new TreeMap<>();
-        props.put("TextColor", Color.gray.getRGB() & ~0xFF000000);
-        if (isAiSupport) {
-          props.put("HelpText", "AI-Cache ");
+        props.put("TextColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+        if (i == WtOfficeTools.CACHE_AI) {
+          props.put("HelpText", AI_CACHE_LABEL);
         } else {
-          props.put("HelpText", "Text-Cache " + i);
+          props.put("HelpText", TEXT_CACHE_LABEL + "(" + i + ")");
         }
         XControl xControl = createLabel(xMCF, context, "██", 
             new Rectangle(BUTTON_MARGIN_LEFT + i * (CACHE_STATUS_BETWEEN + CACHE_STATUS_WIDTH), 
@@ -886,6 +890,20 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Set Color of cache status label
    * red if cache not filled green for full cache
    */
+  public void setCacheStatusColorInactive() {
+    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
+      if (i != WtOfficeTools.CACHE_AI) {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), CACHE_INACTIVE_COLOR, TEXT_CACHE_LABEL + "(" + i + ")");
+      } else {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), CACHE_INACTIVE_COLOR, AI_CACHE_LABEL);
+      }
+    }
+  }
+  
+  /**
+   * Set Color of cache status label
+   * red if cache not filled green for full cache
+   */
   public void setCacheStatusColor(WtSingleDocument document) {
     if (document == null) {
       return;
@@ -918,10 +936,10 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         }
         if (i != WtOfficeTools.CACHE_AI) {
           setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
-              messages.getString("loDialogCacheLabel") + "(" + i + "): " + size + "%");
+              TEXT_CACHE_LABEL + "(" + i + "): " + size + "%");
         } else {
           setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
-              messages.getString("loDialogAiCacheLabel") + ": " + size + "%");
+              AI_CACHE_LABEL + ": " + size + "%");
         }
       }
     }
