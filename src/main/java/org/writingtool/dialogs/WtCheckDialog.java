@@ -2036,6 +2036,7 @@ public class WtCheckDialog extends Thread {
       } else {
         cacheAiStatusLabel.setVisible(false);
       }
+      documents.setCacheStatusColor(currentDocument);
     }
 
 /*    

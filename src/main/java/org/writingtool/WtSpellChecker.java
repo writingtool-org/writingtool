@@ -68,6 +68,8 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           "com.sun.star.linguistic2.SpellChecker",
           WtOfficeTools.WT_SPELL_SERVICE_NAME };
   
+  public static final String IMPLEMENTATION_NAME = WtSpellChecker.class.getName();
+  
   private static JLanguageTool lt = null;
   private static Locale lastLocale = null;                //  locale for spell check
   private Language lang;
@@ -119,7 +121,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
 
   @Override
   public String getImplementationName() {
-    return WtSpellChecker.class.getName();
+    return IMPLEMENTATION_NAME;
   }
 
   /**

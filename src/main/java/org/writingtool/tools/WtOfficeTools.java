@@ -81,6 +81,7 @@ import com.sun.star.text.XTextViewCursorSupplier;
 import com.sun.star.ui.XUIElement;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.util.XCloseable;
 
 /**
  * Some tools to get information of LibreOffice/OpenOffice document context
@@ -292,7 +293,41 @@ public class WtOfficeTools {
       return null;           // Return null as method failed
     }
   }
-  
+
+  /**
+   * Close the current document
+   */
+  public static void closeDocument(XComponentContext xContext) {
+    closeDocument(getCurrentComponent(xContext));
+  }
+
+  /**
+   * Close the document presented by xComponent
+   */
+  public static void closeDocument(XComponent xComponent) {
+    try {
+      XCloseable closeable = UnoRuntime.queryInterface(XCloseable.class, xComponent); 
+      if (closeable != null) {
+        closeable.close(false);   // true to force a close
+        // set modifiable to false to close a modified document without complaint setModified(False) 
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+    }
+  }
+
+  /**
+   * Close LibreOffice
+   */
+  public static void closeLO(XComponentContext xContext) {
+    XDesktop xDesktop = getDesktop(xContext);
+    if (xDesktop == null) {
+      WtMessageHandler.printToLogFile("WtOfficeTools: closeLO: xDesktop == null");
+      return;
+    }
+    xDesktop.terminate();
+  }
+
   /**
    * returns the default language of the text document
    */

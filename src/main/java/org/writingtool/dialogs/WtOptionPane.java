@@ -24,6 +24,9 @@ import java.awt.Component;
 import javax.swing.JOptionPane;
 
 import org.writingtool.tools.WtMessageHandler;
+import org.writingtool.tools.WtOfficeTools;
+
+import com.sun.star.uno.XComponentContext;
 
 /**
  * simple panes for information and confirmation 
@@ -50,6 +53,15 @@ public class WtOptionPane {
   public static void showMessageDialog (Component parent, String msg) {
     try {
       JOptionPane.showMessageDialog(parent, msg);
+    } catch (Exception e) {
+      WtMessageHandler.printException(e);
+    }
+  }
+  
+  public static void showCloseLoMessageDialog (String msg, XComponentContext xContext) {
+    try {
+      JOptionPane.showMessageDialog(null, msg);
+      WtOfficeTools.closeLO(xContext);
     } catch (Exception e) {
       WtMessageHandler.printException(e);
     }
