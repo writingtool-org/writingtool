@@ -439,7 +439,8 @@ public class WtCheckDialog extends Thread {
       return;
     }
     WtDocumentCursorTools docCursor = new WtDocumentCursorTools(document.getXComponent());
-    docCursor.changeTextOfParagraph(docCache.getNumberOfTextParagraph(nFPara), nStart, nLength, replace);
+    int[] textFieldPositions = docCache.getFlatParagraphFieldPositions(nFPara);
+    docCursor.changeTextOfParagraphCorrected(docCache.getNumberOfTextParagraph(nFPara), nStart, nLength, replace, textFieldPositions);
   }
   
   /**
@@ -459,10 +460,11 @@ public class WtCheckDialog extends Thread {
     } else if (docType == DocumentType.CALC) {
       WtOfficeSpreadsheetTools.setTextofCell(nFPara, sPara, document.getXComponent());
     } else {
-      boolean success = document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
-      if (!success) {
+//      nStart = correctStartOfChange(nStart, nFPara);
+//      boolean success = document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
+//      if (!success) {
         changeTextOfParagraphByDocCursor(nFPara, nStart, nLength, replace, document);
-      }
+//      }
     }
     docCache.setFlatParagraph(nFPara, sPara);
     document.removeResultCache(nFPara, true);
@@ -2400,7 +2402,7 @@ public class WtCheckDialog extends Thread {
           return;
         }
         if (debugMode) {
-          WtMessageHandler.printToLogFile("CheckDialog: findNextError: start getNextError");
+          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: start getNextError");
         }
         removeMarkups();
         if (checkType == 3) {
@@ -2420,7 +2422,7 @@ public class WtCheckDialog extends Thread {
         }
         WtOfficeTools.waitForLO();  //  wait to end all LO related process to prevent LO hang up
         if (debugMode) {
-          WtMessageHandler.printToLogFile("CheckDialog: findNextError: Error is " + (checkError == null ? "Null" : "NOT Null"));
+          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Error is " + (checkError == null ? "Null" : "NOT Null"));
         }
         error = checkError == null ? null : checkError.error;
         locale = checkError == null ? null : checkError.locale;
@@ -2432,19 +2434,27 @@ public class WtCheckDialog extends Thread {
         close.setEnabled(true);
         resetIgnorePermanent.setEnabled(true);
         if (sentenceIncludeError == null || errorDescription == null || suggestions == null) {
-          WtMessageHandler.printToLogFile("CheckDialog: findNextError: SentenceIncludeError == null || errorDescription == null || suggestions == null");
+          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: SentenceIncludeError == null || errorDescription == null || suggestions == null");
           error = null;
         }
         
         setCacheStatusColor();
         if (error != null) {
-//          isSpellError = error.aRuleIdentifier.equals(spellRuleId);
           isSpellError = error.nErrorType == TextMarkupType.SPELLCHECK;
           blockSentenceError = true;
           sentenceIncludeError.setEnabled(true);
           sentenceIncludeError.setBackground(Color.white);
+/*          
+          String sFootnotes = "";
+          for (int n : docCache.getFlatParagraphFootnotes(y)) {
+            sFootnotes += n + ", ";
+          }
+          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Para(" + docCache.getFlatParagraph(y).length() + "): " + docCache.getFlatParagraph(y));
+          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Footnotes: " + sFootnotes);
+*/
           String text = WtSingleCheck.removeFootnotes(docCache.getFlatParagraph(y), docCache.getFlatParagraphFootnotes(y), 
               docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap());
+//          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Para(corrected)( " + text.length() + "): " + text);
           sentenceIncludeError.setText(text);
           setAttributesForErrorText(correctErrorWithFootnotes(error, docCache.getFlatParagraphFootnotes(y), 
               docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap()));
@@ -2456,7 +2466,7 @@ public class WtCheckDialog extends Thread {
           ignoreOnce.setEnabled(true);
           ignoreAll.setEnabled(true);
           if (debugMode) {
-            WtMessageHandler.printToLogFile("CheckDialog: findNextError: Error Text set");
+            WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Error Text set");
           }
           if (error.aSuggestions != null && error.aSuggestions.length > 0) {
             suggestions.setEnabled(true);
@@ -2474,7 +2484,7 @@ public class WtCheckDialog extends Thread {
             autoCorrect.setEnabled(false);
           }
           if (debugMode) {
-            WtMessageHandler.printToLogFile("CheckDialog: findNextError: Suggestions set");
+            WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Suggestions set");
           }
           Language lang = locale == null ? lt.getLanguage() : WtDocumentsHandler.getLanguage(locale);
           if (lang == null) {
@@ -2487,7 +2497,7 @@ public class WtCheckDialog extends Thread {
           language.setEnabled(true);
           language.setSelectedItem(lang.getTranslatedName(messages));
           if (debugMode) {
-            WtMessageHandler.printToLogFile("CheckDialog: findNextError: Language set");
+            WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Language set");
           }
           
           allDifferentErrors = getAllDifferentErrors();
@@ -2545,7 +2555,7 @@ public class WtCheckDialog extends Thread {
           more.setEnabled(informationUrl != null);
           undo.setEnabled(undoList != null && !undoList.isEmpty());
           if (debugMode) {
-            WtMessageHandler.printToLogFile("CheckDialog: findNextError: All set");
+            WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: All set");
           }
         } else {
           language.setEnabled(true);

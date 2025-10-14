@@ -984,12 +984,14 @@ public class WtSingleCheck {
     } else {
       hiddenCharacters.remove(nPara);
     }
+//    WtMessageHandler.printToLogFile("removeFootnotes: paraText.length: " + paraText.length() + ", footnotes.length: " + footnotes.length);
     int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
     for (int i = allChars.length - 1; i >= 0; i--) {
       if (allChars[i] < paraText.length()) {
         paraText = paraText.substring(0, allChars[i]) + paraText.substring(allChars[i] + 1);
       }
     }
+//    WtMessageHandler.printToLogFile("removeFootnotes (new): paraText.length: " + paraText.length() + ", allChars.length: " + allChars.length);
     return paraText;
   }
 

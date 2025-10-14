@@ -306,6 +306,7 @@ public class WtFlatParagraphTools {
       List<String> allParas = new ArrayList<>();
       List<Locale> locales = new ArrayList<>();
       List<int[]> footnotePositions = new ArrayList<>();
+      List<int[]> fieldPositions = new ArrayList<>();
       XFlatParagraph tmpFlatPara = xFlatPara;
       List<Integer> sortedTextIds = getIntPropertyValue("SortedTextId", tmpFlatPara) == -1 ? null : new ArrayList<>();
       int documentElementsCount = sortedTextIds == null ? -1 : getIntPropertyValue("DocumentElementsCount", tmpFlatPara);
@@ -314,7 +315,8 @@ public class WtFlatParagraphTools {
         String text = new String(tmpFlatPara.getText());
         int len = text.length();
         allParas.add(0, text);
-        footnotePositions.add(0, getIntArrayPropertyValue("FootnotePositions", tmpFlatPara));
+        footnotePositions.add(0, getFootnotePosition(tmpFlatPara));
+        fieldPositions.add(0, getFieldPosition(tmpFlatPara));
         // add just one local for the whole paragraph
         locale = getPrimaryParagraphLanguage(tmpFlatPara, 0, len, fixedLocale, locale, false);
         locales.add(0, locale);
@@ -328,7 +330,8 @@ public class WtFlatParagraphTools {
         String text = new String(tmpFlatPara.getText());
         int len = text.length();
         allParas.add(text);
-        footnotePositions.add(getIntArrayPropertyValue("FootnotePositions", tmpFlatPara));
+        footnotePositions.add(getFootnotePosition(tmpFlatPara));
+        fieldPositions.add(getFieldPosition(tmpFlatPara));
         locale = getPrimaryParagraphLanguage(tmpFlatPara, 0, len, fixedLocale, locale, false);
         locales.add(locale);
         if (debugMode) {
@@ -340,7 +343,7 @@ public class WtFlatParagraphTools {
         tmpFlatPara = xFlatParaIter.getParaAfter(tmpFlatPara);
       }
       xFlatParaIter = getXFlatParagraphIterator(xComponent);
-      return new FlatParagraphContainer(allParas, locales, footnotePositions, sortedTextIds, documentElementsCount);
+      return new FlatParagraphContainer(allParas, locales, footnotePositions, fieldPositions, sortedTextIds, documentElementsCount);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
@@ -600,10 +603,25 @@ public class WtFlatParagraphTools {
   /** 
    * Returns positions of footnotes of flatparagraph
    */
-  public int[] getFootnotePosition(XFlatParagraph xFlatPara) {
+  private int[] getFootnotePosition(XFlatParagraph xFlatPara) {
     return getIntArrayPropertyValue("FootnotePositions", xFlatPara);
   }
 
+  /** 
+   * Returns positions of footnotes of flatparagraph
+   */
+  private int[] getFieldPosition(XFlatParagraph xFlatPara) {
+    return getIntArrayPropertyValue("FieldPositions", xFlatPara);
+  }
+
+  /** 
+   * Returns merged positions of footnote and field positions of flatparagraph
+   *//*
+  public int[] getMergedFootnotePosition(XFlatParagraph xFlatPara) {
+    return WtGeneralTools.mergeTwoIntArrays(getIntArrayPropertyValue("FootnotePositions", xFlatPara), 
+        getIntArrayPropertyValue("FieldPositions", xFlatPara));
+  }
+*/
   /** 
    * Returns positions of properties by name 
    */
@@ -691,17 +709,21 @@ public class WtFlatParagraphTools {
       return;
     }
     WtMessageHandler.printToLogFile("FlatParagraphTools: Property Value Info:");
+    WtMessageHandler.printToLogFile("Para: " + xFlatPara.getText());
     try {
       XPropertySetInfo propertySetInfo = paraProps.getPropertySetInfo();
       
       for (Property property : propertySetInfo.getProperties()) {
-        int nValue;
+        String sValue = "";
         if (property.Name.equals("FootnotePositions") || property.Name.equals("FieldPositions")) {
-          nValue = ((int[]) paraProps.getPropertyValue(property.Name)).length;
+          int[] value = (int[]) paraProps.getPropertyValue(property.Name);
+          for (int i = 0; i < value.length; i++) {
+            sValue += (i > 0 ? ", " : "") + value[i];
+          }
         } else {
-          nValue = (int) paraProps.getPropertyValue(property.Name);
+          sValue += (int) paraProps.getPropertyValue(property.Name);
         }
-        WtMessageHandler.printToLogFile("Name : " + property.Name + "; Type : " + property.Type.getTypeName() + "; Value : " + nValue + "; Handle : " + property.Handle);
+        WtMessageHandler.printToLogFile("Name : " + property.Name + "; Type : " + property.Type.getTypeName() + "; Value : " + sValue + "; Handle : " + property.Handle);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
@@ -1228,14 +1250,16 @@ public class WtFlatParagraphTools {
     public List<String> paragraphs;
     public List<Locale> locales;
     public List<int[]> footnotePositions;
+    public List<int[]> fieldPositions;
     public List<Integer> sortedTextIds;
     public int documentElementsCount;
     
-    FlatParagraphContainer(List<String> paragraphs, List<Locale> locales, List<int[]> footnotePositions, 
-        List<Integer> sortedTextIds, int documentElementsCount) {
+    FlatParagraphContainer(List<String> paragraphs, List<Locale> locales, List<int[]> footnotePositions,
+        List<int[]> fieldPositions, List<Integer> sortedTextIds, int documentElementsCount) {
       this.paragraphs = paragraphs;
       this.locales = locales;
       this.footnotePositions = footnotePositions;
+      this.fieldPositions = fieldPositions;
       this.sortedTextIds = sortedTextIds;
       this.documentElementsCount = documentElementsCount;
     }

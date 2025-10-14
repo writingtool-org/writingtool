@@ -91,6 +91,7 @@ public class WtDocumentCache implements Serializable {
   private final DocumentType docType;                                                   // stores the document type (Writer, Impress, Calc)
   private final Map<Integer, List<AnalyzedSentence>> analyzedParagraphs = new HashMap<>(); //  stores analyzed paragraphs
   private final Map<Integer, List<Integer>> hiddenCharacters = new HashMap<>();         //  stores place of hidden characters (e.g. soft hyphen)
+  private final Map<Integer, int[]> fieldPositions = new HashMap<>();               // stores the field positions of the paragraphs (if not empty)
   private List<Integer> sortedTextIds = null;                                           // stores the node index of the paragraphs (since LO 7.5 / else null)
   private Map<Integer, Integer> headingMap;
   private boolean isReset = false;
@@ -218,6 +219,7 @@ public class WtDocumentCache implements Serializable {
       List<TextParagraph> toTextMapping = new ArrayList<>();
       List<List<Integer>> toParaMapping = new ArrayList<>();
       List<Integer> sortedTextIds;
+      Map<Integer, int[]> fieldPositions = new HashMap<>();               
       clear();
       boolean withDeleted = document.getMultiDocumentsHandler().getConfiguration().includeTrackedChanges();
       for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
@@ -297,7 +299,12 @@ public class WtDocumentCache implements Serializable {
       }
       footnotes.addAll(paragraphContainer.footnotePositions);
       sortedTextIds = paragraphContainer.sortedTextIds;
-      
+      for (int i = 0; i < paragraphContainer.fieldPositions.size(); i++) {
+        int[] fPos = paragraphContainer.fieldPositions.get(i);
+        if (fPos != null && fPos.length > 0) {
+          fieldPositions.put(i, fPos);
+        }
+      }
       if (debugMode) {
         int unknown = 0;
         for (DocumentText documentText : documentTexts) {
@@ -352,7 +359,7 @@ public class WtDocumentCache implements Serializable {
       }
       addQuoteInfo(document, documentTexts.get(CURSOR_TYPE_TEXT).paragraphs);
       actualizeCache (paragraphs, chapterBegins, locales, footnotes, toTextMapping, toParaMapping, 
-          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds);
+          deletedCharacters, documentTexts.get(CURSOR_TYPE_TEXT).automaticTextParagraphs, sortedTextIds, fieldPositions);
 //      for (Locale locale : getDifferentLocalesOftext(paragraphContainer.locales)) {
 //        document.getMultiDocumentsHandler().handleLtDictionary(getDocAsString(), locale);
 //      }
@@ -390,7 +397,8 @@ public class WtDocumentCache implements Serializable {
    */
   private void actualizeCache (List<String> paragraphs, List<List<Integer>> chapterBegins, List<SerialLocale> locales, 
       List<int[]> footnotes, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping, 
-      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds) {
+      List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds,
+      Map<Integer, int[]> fieldPositions) {
     rwLock.writeLock().lock();
     try {
       clearAnalyzedParagraphs();
@@ -421,6 +429,8 @@ public class WtDocumentCache implements Serializable {
         this.sortedTextIds.addAll(sortedTextIds);
       }
       this.docLocale = getMostUsedLanguage(locales);
+      this.fieldPositions.clear();
+      this.fieldPositions.putAll(fieldPositions);
     } finally {
       rwLock.writeLock().unlock();
     }
@@ -1371,6 +1381,22 @@ public class WtDocumentCache implements Serializable {
   }
 
   /**
+   * get field position of Flat Paragraph by Index
+   */
+  public int[] getFlatParagraphFieldPositions(int n) {
+    rwLock.readLock().lock();
+    try {
+      if (n >= 0 && n < footnotes.size() && fieldPositions.containsKey(n)) {
+        return fieldPositions.get(n);
+      } else {
+        return new int[0];
+      }
+    } finally {
+      rwLock.readLock().unlock();
+    }
+  }
+
+  /**
    * set footnotes of Flat Paragraph by Index
    */
   public void setFlatParagraphFootnotes(int n, int[] footnotePos) {
@@ -1482,6 +1508,7 @@ public class WtDocumentCache implements Serializable {
     if (sortedTextIds != null) {
       sortedTextIds.clear();
     }
+    fieldPositions.clear();
   }
   
   /**
@@ -1492,6 +1519,7 @@ public class WtDocumentCache implements Serializable {
     chapterBegins.addAll(in.chapterBegins);
     locales.addAll(in.locales);
     footnotes.addAll(in.footnotes);
+    fieldPositions.putAll(in.fieldPositions);
     toTextMapping.addAll(in.toTextMapping);
     for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
       toParaMapping.add(new ArrayList<Integer>(in.toParaMapping.get(i)));
@@ -1646,6 +1674,22 @@ public class WtDocumentCache implements Serializable {
       }
       int nFPara = toParaMapping.get(textParagraph.type).get(textParagraph.number);
       return nFPara < 0 ? new int[0] : footnotes.get(nFPara);
+    } finally {
+      rwLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * get field positions of Text Paragraph by Index
+   */
+  public int[] getTextParagraphFieldPositions(TextParagraph textParagraph) {
+    rwLock.readLock().lock();
+    try {
+      if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
+        return new int[0];
+      }
+      int nFPara = toParaMapping.get(textParagraph.type).get(textParagraph.number);
+      return nFPara < 0 || !fieldPositions.containsKey(nFPara) ? new int[0] : fieldPositions.get(nFPara);
     } finally {
       rwLock.readLock().unlock();
     }
@@ -2635,6 +2679,22 @@ public class WtDocumentCache implements Serializable {
       this.type = type;
       this.number = number;
     }
+    
+    /**
+     * Define equal queue entries
+     */
+    @Override
+    public boolean equals(Object o) {
+      if (o == null || !(o instanceof TextParagraph)) {
+        return false;
+      }
+      TextParagraph tp = (TextParagraph) o;
+      if (type == tp.type && number == tp.number) {
+        return true;
+      }
+      return false;
+    }
+    
   }
 /*
   public static void printTokenizedSentences(List<AnalyzedSentence> sentences) {

@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -363,6 +364,39 @@ public final class WtGeneralTools {
     }
     return String.format("<br/><br/><a href=\"%s\">%s</a>",
             url.toExternalForm(), StringUtils.abbreviate(url.toString(), 50));
+  }
+  
+  /**
+   * Merge two integer arrays
+   * give back null if both of them are null
+   * sort them by default (it is assumed that there are no identical numbers inside of both
+   */
+  public static int[] mergeTwoIntArrays(int[] a1, int[] a2) {
+    if (a2 == null) {
+      return a1;
+    }
+    if (a1 == null) {
+      return a2;
+    }
+    if (a2.length == 0) {
+      return a1;
+    }
+    if (a1.length == 0) {
+      return a2;
+    }
+    List<Integer> a3 = new ArrayList<>();
+    for(int n : a1) {
+      a3.add(n);
+    }
+    for(int n : a2) {
+      a3.add(n);
+    }
+    a3.sort(null);
+    int[] a4 = new int[a3.size()];
+    for (int i = 0; i < a3.size(); i++) {
+      a4[i] = a3.get(i);
+    }
+    return a4;
   }
 
   public static void setJavaLookAndFeel(int theme) throws Exception {
