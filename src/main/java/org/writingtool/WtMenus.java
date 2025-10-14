@@ -420,7 +420,7 @@ public class WtMenus {
     private void setActivateRuleMenu(short pos, short id, short submenuStartId) throws Throwable {
       Map<String, String> deactivatedRulesMap = document.getMultiDocumentsHandler().getDisabledRulesMap(null);
       if (!deactivatedRulesMap.isEmpty()) {
-        if (ltMenu.getItemPos(id) < 1) {
+        if (ltMenu.getItemPos(id) < 1 || xActivateRuleMenu == null) {
           ltMenu.insertItem(id, MESSAGES.getString("loContextMenuActivateRule"), MenuItemStyle.AUTOCHECK, pos);
           xActivateRuleMenu = WtOfficeTools.getPopupMenu(xContext);
           if (xActivateRuleMenu == null) {
