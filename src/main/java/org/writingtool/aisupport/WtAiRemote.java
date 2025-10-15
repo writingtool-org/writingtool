@@ -37,6 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 
@@ -272,7 +273,10 @@ public class WtAiRemote {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
-            documents.getSidebarContent().setTextToAiResultBox(orgText, out, instruction);
+            WtSidebarContent sidebarContent = documents.getSidebarContent();
+            if (sidebarContent != null) {
+              sidebarContent.setTextToAiResultBox(orgText, out, instruction);
+            }
             return out;
           }
         } else {
