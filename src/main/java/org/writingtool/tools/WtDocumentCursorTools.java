@@ -1747,6 +1747,162 @@ public class WtDocumentCursorTools {
     return sumLength;
   }
 
+  /**
+   * replace all text fields, footnotes and endnotes of a paragraph by zero space character
+   */
+  public String getFlatParagraph(TextParagraph tPara, String textPragraph, boolean hasFootnote, boolean hasTextField) {
+    isBusy++;
+    try {
+      List<Integer> fieldPos = null;
+      
+      if (hasTextField) {
+        fieldPos = new ArrayList<>();
+        textPragraph = flatTextForTextField(tPara, textPragraph, fieldPos);
+      }
+      if (!hasFootnote) {
+        return textPragraph;
+      }
+      List<String> footnoteLabels = null;
+      List<XTextRange> footnoteAnchors = null;
+      XFootnotesSupplier xFootnoteSupplier = UnoRuntime.queryInterface(XFootnotesSupplier.class, curDoc );
+      if (xFootnoteSupplier == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xFootnoteSupplier == null");
+        return textPragraph;
+      }
+      XIndexAccess xFootnotes = UnoRuntime.queryInterface(XIndexAccess.class, xFootnoteSupplier.getFootnotes());
+      if (xFootnotes == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xFootnotes == null");
+        return textPragraph;
+      }
+      footnoteLabels = new ArrayList<>();
+      footnoteAnchors = new ArrayList<>();
+      for (int i = 0; i < xFootnotes.getCount(); i++) {
+        XFootnote xFootnote = UnoRuntime.queryInterface(XFootnote.class, xFootnotes.getByIndex(i));
+        if (xFootnote == null) {
+          WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xFootnote == null");
+          continue;
+        }
+        footnoteLabels.add(xFootnote.getLabel());
+        footnoteAnchors.add(xFootnote.getAnchor());
+      }
+      XEndnotesSupplier xEndnoteSupplier = UnoRuntime.queryInterface(XEndnotesSupplier.class, curDoc );
+      if (xEndnoteSupplier == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xEndnoteSupplier == null");
+        return textPragraph;
+      }
+      XIndexAccess xEndnotes = UnoRuntime.queryInterface(XIndexAccess.class, xEndnoteSupplier.getEndnotes());
+      if (xEndnotes == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xEndnotes == null");
+        return textPragraph;
+      }
+      for (int i = 0; i < xEndnotes.getCount(); i++) {
+        XFootnote xEndnote = UnoRuntime.queryInterface(XFootnote.class, xEndnotes.getByIndex(i));
+        if (xEndnote == null) {
+          WtMessageHandler.printToLogFile("WtDocumentCursorTools: flatTextForFootnotes: xEndnote == null");
+          continue;
+        }
+        footnoteLabels.add(xEndnote.getAnchor().getString()); //  note: getLabel is always empty for endnote
+        footnoteAnchors.add(xEndnote.getAnchor());
+      }
+      List<Integer> pos = new ArrayList<>();
+      Map<Integer, String> labelMap = new HashMap<>();
+      for (int j = 0; j < footnoteAnchors.size(); j++) {
+        TextParagraph aPara = getParagraphFromRange(footnoteAnchors.get(j));
+        if (tPara.equals(aPara)) {
+          XTextCursor tCursor = footnoteAnchors.get(j).getText().createTextCursorByRange(footnoteAnchors.get(j).getStart());
+          XParagraphCursor pCursor = UnoRuntime.queryInterface(XParagraphCursor.class, tCursor);
+          pCursor.gotoStartOfParagraph(true);
+          int x = pCursor.getString().length();
+          pos.add(x);
+          labelMap.put(x, footnoteLabels.get(j));
+        }
+      }
+      if (!pos.isEmpty()) {
+        pos.sort(null);
+        for (int i = pos.size() - 1; i >= 0; i--) {
+          int nPos = pos.get(i);
+          int nLen = labelMap.get(nPos).length();
+          int nfp = 0;
+          if (fieldPos != null) {
+            for (int j = 0; j < fieldPos.size(); j++) {
+              if (fieldPos.get(j) < nPos) {
+                nfp++;
+              }
+            }
+            nPos += nfp;
+          }
+          textPragraph = textPragraph.substring(0, nPos) + WtOfficeTools.ZERO_WIDTH_SPACE + 
+              (nPos + nLen < textPragraph.length() ? textPragraph.substring(nPos + nLen) : "");
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+    } finally {
+      isBusy--;
+    }
+
+    return textPragraph;
+  }
+
+  /**
+   * replace add an zero space character before all text fields of a paragraph
+   */
+  private String flatTextForTextField(TextParagraph tPara, String text, List<Integer> pos) {
+    List<XTextRange> fieldAnchors = null;
+    try {
+      XTextFieldsSupplier xTextFieldsSupplier = UnoRuntime.queryInterface(XTextFieldsSupplier.class, curDoc);
+      if (xTextFieldsSupplier == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: getTextFieldLength: xTextFieldsSupplier == null");
+        return text;
+      }
+      XEnumerationAccess xEnumeratedFields = xTextFieldsSupplier.getTextFields();
+      if (xEnumeratedFields == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: getTextFieldLength: xEnumeratedFields == null");
+        return text;
+      }
+      XEnumeration xTextFieldEnum = xEnumeratedFields.createEnumeration();
+      if (xTextFieldEnum == null) {
+        WtMessageHandler.printToLogFile("WtDocumentCursorTools: getTextFieldLength: xTextFieldEnum == null");
+        return text;
+      }
+      fieldAnchors = new ArrayList<>();
+      XTextField xTextField = null;
+      while (xTextFieldEnum.hasMoreElements()) {
+        if (xTextFieldEnum.hasMoreElements()) {
+          xTextField = UnoRuntime.queryInterface(XTextField.class, xTextFieldEnum.nextElement());
+        }
+        if (xTextField == null) {
+          WtMessageHandler.printToLogFile("WtDocumentCursorTools: getTextFieldLength: xTextField == null");
+          continue;
+        }
+        XTextRange anchor = xTextField.getAnchor();
+        fieldAnchors.add(anchor);
+      }
+      for (int j = 0; j < fieldAnchors.size(); j++) {
+        TextParagraph aPara = getParagraphFromRange(fieldAnchors.get(j));
+        if (tPara.equals(aPara)) {
+          XTextCursor tCursor = fieldAnchors.get(j).getText().createTextCursorByRange(fieldAnchors.get(j).getStart());
+          XParagraphCursor pCursor = UnoRuntime.queryInterface(XParagraphCursor.class, tCursor);
+          pCursor.gotoStartOfParagraph(true);
+          int x = pCursor.getString().length();
+          pos.add(x);
+        }
+      }
+      if (!pos.isEmpty()) {
+        pos.sort(null);
+        for (int i = pos.size() - 1; i >= 0; i--) {
+          int nPos = pos.get(i);
+          text = text.substring(0, nPos) + WtOfficeTools.ZERO_WIDTH_SPACE + 
+              (nPos < text.length() ? text.substring(nPos) : "");
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+    }
+    return text;
+  }
+
+
   /** 
    * get the paragraph from a range
    */

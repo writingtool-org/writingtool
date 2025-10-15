@@ -354,7 +354,7 @@ public class WtDocumentCache implements Serializable {
         }
         mapParagraphsWNI(paragraphs, toTextMapping, toParaMapping, chapterBegins, locales, footnotes, textSortedTextIds, sortedTextIds, deletedCharacters, deletedChars);
         if (synchronize) {
-          paragraphs = synchronizeText(documentTexts, paragraphs, footnotes, toTextMapping);
+          paragraphs = synchronizeText(documentTexts, paragraphs, footnotes, fieldPositions, toTextMapping, docCursor);
         }
       }
       addQuoteInfo(document, documentTexts.get(CURSOR_TYPE_TEXT).paragraphs);
@@ -372,20 +372,35 @@ public class WtDocumentCache implements Serializable {
     }
   }
   
+  boolean isInArray(int n, int[] fn) {
+    for (int i : fn) {
+      if (i == n) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   /**
    * synchronize text between flat and text paragraphs
-   * NOTE: works only for paragraphs without footnotes (TODO: add footnote support)
    */
   private List<String> synchronizeText(List<DocumentText> documentTexts, List<String> paragraphs, 
-      List<int[]> footnotes, List<TextParagraph> toTextMapping) {
-    for (int i = 0; i < paragraphs.size(); i++) {
-      if (footnotes.get(i) == null || footnotes.get(i).length == 0) {
-        TextParagraph tPara = toTextMapping.get(i);
-        if (tPara.type != CURSOR_TYPE_UNKNOWN && tPara.number >= 0) {
-          String textPara = documentTexts.get(tPara.type).paragraphs.get(tPara.number);
-          if (!isEqualTextWithoutZeroSpace(paragraphs.get(i), textPara)) {
-            paragraphs.set(i, new String(textPara));
-          }
+      List<int[]> footnotes, Map<Integer, int[]> fieldPositions, 
+      List<TextParagraph> toTextMapping, WtDocumentCursorTools docCursor) {
+   for (int i = 0; i < paragraphs.size(); i++) {
+      TextParagraph tPara = toTextMapping.get(i);
+      if (tPara.type != CURSOR_TYPE_UNKNOWN && tPara.number >= 0) {
+        String textPara = documentTexts.get(tPara.type).paragraphs.get(tPara.number);
+        String paraText = paragraphs.get(i);
+        boolean hasFields = fieldPositions.containsKey(i);
+        boolean hasFootnotes = footnotes.get(i) != null && footnotes.get(i).length > 0;
+        if (hasFields || hasFootnotes) {
+          textPara = docCursor.getFlatParagraph(tPara, textPara, hasFootnotes, hasFields);
+        }
+        if (!paraText.equals(textPara)) {
+          WtMessageHandler.printToLogFile("DocumentCache: synchronizeText: text paragraph and flatparagrah are not synchron: " + 
+              "\nset text: " + textPara);
+          paragraphs.set(i, new String(textPara));
         }
       }
     }
