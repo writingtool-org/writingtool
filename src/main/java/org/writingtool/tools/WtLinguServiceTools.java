@@ -49,6 +49,10 @@ public class WtLinguServiceTools {
    */
   public static XLinguServiceManager getLinguSvcMgr(XComponentContext xContext) {
     try {
+      if (xContext == null) {
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: getLinguSvcMgr: xContext == null");
+        return null;
+      }
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
       if (xMCF == null) {
@@ -89,6 +93,10 @@ public class WtLinguServiceTools {
    */
   public static void getLinguProperties(XComponentContext xContext) {
     try {
+      if (xContext == null) {
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: getLinguSvcMgr: xContext == null");
+        return;
+      }
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
       if (xMCF == null) {
@@ -137,6 +145,10 @@ public class WtLinguServiceTools {
    */
   public static boolean isSettingHandle(int handle, XComponentContext xContext) {
     try {
+      if (xContext == null) {
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: getLinguSvcMgr: xContext == null");
+        return false;
+      }
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
       if (xMCF == null) {
@@ -176,6 +188,10 @@ public class WtLinguServiceTools {
    */
   public static void setSettingHandle(int handle, boolean value, XComponentContext xContext) {
     try {
+      if (xContext == null) {
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: getLinguSvcMgr: xContext == null");
+        return;
+      }
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
       if (xMCF == null) {
