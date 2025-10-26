@@ -87,6 +87,7 @@ public class WtConfigThread extends Thread {
         config.saveConfiguration(docLanguage);
         documents.resetDocumentCaches();
         documents.resetConfiguration();
+        documents.resetToolbar();
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
       }

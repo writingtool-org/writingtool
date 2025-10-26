@@ -1400,6 +1400,18 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * Reset toolbar (change of configuration)
+   */
+  public void resetToolbar() {
+    for (WtSingleDocument document : documents) {
+      WtToolbar wtToolbar = document.getWtToolbar();
+      if (wtToolbar != null) {
+        wtToolbar.resetToolbar();
+      }
+    }
+  }
+
+  /**
    * Call method Ai Support mark errors 
    */
   public void aiAddErrorMarks() {
@@ -1416,31 +1428,37 @@ public class WtDocumentsHandler {
    * Call method Ai Support run command to change paragraph
    */
   public void runAiChangeOnParagraph(AiCommand command) {
-    for (WtSingleDocument document : documents) {
-      if (menuDocId.equals(document.getDocID())) {
-        WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
-        aiChange.start();
-        return;
+    if(menuDocId != null) {
+      for (WtSingleDocument document : documents) {
+        if (menuDocId.equals(document.getDocID())) {
+          WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
+          aiChange.start();
+          return;
+        }
       }
     }
   }
   
   public void runAiTranslateText() {
-    for (WtSingleDocument document : documents) {
-      if (menuDocId.equals(document.getDocID())) {
-        WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, messages);
-        aiTranslate.start();
-        return;
+    if(menuDocId != null) {
+      for (WtSingleDocument document : documents) {
+        if (menuDocId.equals(document.getDocID())) {
+          WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, messages);
+          aiTranslate.start();
+          return;
+        }
       }
     }
   }
   
   public void runAiTextToSpeech() {
-    for (WtSingleDocument document : documents) {
-      if (menuDocId.equals(document.getDocID())) {
-        WtAiTextToSpeech aiTextToSpeech = new WtAiTextToSpeech(document, messages);
-        aiTextToSpeech.start();
-        return;
+    if(menuDocId != null) {
+      for (WtSingleDocument document : documents) {
+        if (menuDocId.equals(document.getDocID())) {
+          WtAiTextToSpeech aiTextToSpeech = new WtAiTextToSpeech(document, messages);
+          aiTextToSpeech.start();
+          return;
+        }
       }
     }
   }
@@ -1914,14 +1932,7 @@ public class WtDocumentsHandler {
       } else if ("toggleNoBackgroundCheck".equals(sEvent) || "backgroundCheckOn".equals(sEvent) || "backgroundCheckOff".equals(sEvent)) {
         if (toggleNoBackgroundCheck()) {
           resetCheck();
-/*  TODO: in LT 6.5 add dynamic toolbar          
-          for (SingleDocument document : documents) {
-            LtToolbar ltToolbar = document.getLtToolbar();
-            if (ltToolbar != null) {
-              ltToolbar.makeToolbar(document.getLanguage());
-            }
-          }
-*/
+          resetToolbar();
         }
       } else if ("ignoreOnce".equals(sEvent)) {
         ignoreOnce();
@@ -1937,7 +1948,7 @@ public class WtDocumentsHandler {
         deactivateRule();
       } else if (sEvent.startsWith("aiReplaceWord_")) {
         String suggestion = sEvent.substring(14);
-        this.aiReplaceError(suggestion);
+        aiReplaceError(suggestion);
       } else if (sEvent.startsWith("activateRule_")) {
         String ruleId = sEvent.substring(13);
         activateRule(ruleId);
