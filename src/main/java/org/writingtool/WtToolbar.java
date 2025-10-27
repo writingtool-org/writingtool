@@ -75,8 +75,10 @@ public class WtToolbar {
   private static final ResourceBundle MESSAGES = WtOfficeTools.getMessageBundle();
   private static final String WRITER_SERVICE = "com.sun.star.text.TextDocument";
   private static final String WT_NEW_TOOLBAR_URL = "private:resource/toolbar/WtToolbarFactory.toolbar";
+//  private static final String WT_NEW_TOOLBAR_URL = "private:resource/toolbar/addon_org.writingtool.WritingTool.toolbar";
   private static final String WT_NEW_AI_TOOLBAR_URL = "private:resource/toolbar/WtToolbarFactory?aiGeneralCommand";
   private static final String WT_NEW_TOOLBAR_NAME = "WritingToolNew";
+//  private static final String WT_NEW_TOOLBAR_NAME = "WritingTool";
   private XComponentContext xContext;
   private WtSingleDocument document;
 
@@ -93,16 +95,45 @@ public class WtToolbar {
         WtMessageHandler.printToLogFile("WtToolbar: makeToolbar: Cannot create configuration manager");
         return;
       }
-      
-      String newToolbarName = WT_NEW_TOOLBAR_NAME;
-      String newToolbarURL = WT_NEW_TOOLBAR_URL;
-      
-/*      
       XUIElementFactoryRegistration uiFactoryRegistration = getUIElementFactoryRegistration(xContext);
-      uiFactoryRegistration.registerFactory("toolbar", "WtToolbarFactory", "", WtToolbarFactory.class.getName());
+      if (uiFactoryRegistration.getFactory(WT_NEW_TOOLBAR_URL, "") == null) {
+        uiFactoryRegistration.registerFactory("toolbar", "WtToolbarFactory", "", WtToolbarFactory.class.getName());
+      }
+      XUIElementFactory wtUIFactory = uiFactoryRegistration.getFactory(WT_NEW_TOOLBAR_URL, "");
+      XUIElement wtToolbar = wtUIFactory.createUIElement(WT_NEW_TOOLBAR_URL, new PropertyValue[0]);
+      XUIElementSettings oWtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, wtToolbar);
+      XIndexAccess oWtBarAccess = oWtBarSettings.getSettings(true);
+      XIndexContainer elementsContainer = UnoRuntime.queryInterface(XIndexContainer.class, oWtBarAccess);
+      addToolbarButtons(elementsContainer, null);
+      oWtBarSettings.setSettings(elementsContainer);
+      oWtBarSettings.updateSettings();
+      if (confMan.hasSettings(WT_NEW_TOOLBAR_URL)) {
+        WtMessageHandler.printToLogFile("WtToolbar: createToolbar: XUIConfigurationManager: replace Element: " + WT_NEW_TOOLBAR_URL);
+        confMan.replaceSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
+      } else {
+        WtMessageHandler.printToLogFile("WtToolbar: createToolbar: XUIConfigurationManager: create Element: " + WT_NEW_TOOLBAR_URL);
+        confMan.insertSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
+      }
+      XLayoutManager layoutManager = getLayoutManager();
+      if (layoutManager.getElement(WT_NEW_TOOLBAR_URL) == null) {
+        WtMessageHandler.printToLogFile("WtToolbar: createToolbar: XLayoutManager: create Element: " + WT_NEW_TOOLBAR_URL);
+        layoutManager.createElement(WT_NEW_TOOLBAR_URL);
+      }
+      if (layoutManager.isElementVisible(WT_NEW_TOOLBAR_URL)) {
+        layoutManager.hideElement(WT_NEW_TOOLBAR_URL);
+        layoutManager.showElement(WT_NEW_TOOLBAR_URL);
+      }
+//      resetToolbar(true);
+/*
+      XUIConfigurationManager confMan = getUIConfigManagerDoc(xContext);
+      if (confMan == null) {
+        WtMessageHandler.printToLogFile("WtToolbar: makeToolbar: Cannot create configuration manager");
+        return;
+      }
+/*      
 //      printRegisteredUIElementFactories(xContext);
-      XUIElementFactory wtUIFactory = uiFactoryRegistration.getFactory(newToolbarURL, "");
-      XUIElement wtToolbar = wtUIFactory.createUIElement(newToolbarURL, new PropertyValue[0]);
+      XUIElementFactory wtUIFactory = uiFactoryRegistration.getFactory(WT_NEW_TOOLBAR_URL, "");
+      XUIElement wtToolbar = wtUIFactory.createUIElement(WT_NEW_TOOLBAR_URL, new PropertyValue[0]);
       XUIElementSettings xWtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, wtToolbar);
       XIndexAccess UISettings = xWtBarSettings.getSettings(true);
       XPropertySet propset = UnoRuntime.queryInterface(XPropertySet.class, UISettings);
@@ -117,14 +148,14 @@ public class WtToolbar {
               + ", Value: " + propVal[k].Value + ", State: " + propVal[k].State);
         }
       }
-*/      
+*//*      
       WtMessageHandler.printToLogFile("WtToolbar: makeToolbar: is running");
       XLayoutManager layoutManager = getLayoutManager();
 //      layoutManager.destroyElement(toolbarName);
 
-      boolean hasConfSettings = confMan.hasSettings(newToolbarURL);
+      boolean hasConfSettings = confMan.hasSettings(WT_NEW_TOOLBAR_URL);
       WtMessageHandler.printToLogFile("WtToolbar: makeToolbar: hasSettings: " + 
-          (hasConfSettings ? "true" : "false") + ": " + newToolbarURL);
+          (hasConfSettings ? "true" : "false") + ": " + WT_NEW_TOOLBAR_URL);
       
       XIndexAccess settings = confMan.createSettings();
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, settings);
@@ -135,44 +166,61 @@ public class WtToolbar {
       XIndexContainer elementsContainer = UnoRuntime.queryInterface(XIndexContainer.class, settings);
       addToolbarButtons(elementsContainer, confMan);
       if (hasConfSettings) {
-        confMan.replaceSettings(newToolbarURL, elementsContainer);
+        confMan.replaceSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
       } else {
-        confMan.insertSettings(newToolbarURL, elementsContainer);
+        confMan.insertSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
       }
-      if (layoutManager.isElementVisible(newToolbarName)) {
-        layoutManager.hideElement(newToolbarName);
-        layoutManager.showElement(newToolbarName);
+      if (layoutManager.isElementVisible(WT_NEW_TOOLBAR_URL)) {
+        layoutManager.hideElement(WT_NEW_TOOLBAR_URL);
+        layoutManager.showElement(WT_NEW_TOOLBAR_URL);
       }
-      if (layoutManager.getElement(newToolbarURL) == null) {
-        layoutManager.createElement(newToolbarURL);
-        XUIElement toolbar = layoutManager.getElement(newToolbarURL);
-        XUIElementSettings oLtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, toolbar);
-        XIndexAccess oLtBarAccess = oLtBarSettings.getSettings(true);
+      if (layoutManager.getElement(WT_NEW_TOOLBAR_URL) == null) {
+        layoutManager.createElement(WT_NEW_TOOLBAR_URL);
+      }
+      XUIElement toolbar = layoutManager.getElement(WT_NEW_TOOLBAR_URL);
+      XUIElementSettings oWtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, toolbar);
 //        XPropertySet propset = UnoRuntime.queryInterface(XPropertySet.class, oLtBarAccess);
 //        propset.setPropertyValue("UIName", WT_NEW_TOOLBAR_NAME);
-        oLtBarSettings.updateSettings();
-        for (int i = 0; i < oLtBarAccess.getCount(); i++) {
-          WtMessageHandler.printToLogFile("");
-          PropertyValue[] propVal = (PropertyValue[]) oLtBarAccess.getByIndex(i);
-          for (int k = 0; k < propVal.length; k++) {
-            WtMessageHandler.printToLogFile(i + ".: Property: Name: " + propVal[k].Name + ", Handle: " + propVal[k].Handle 
-                + ", Value: " + propVal[k].Value + ", State: " + propVal[k].State);
+      oWtBarSettings.updateSettings();
+      XIndexAccess oLtBarAccess = oWtBarSettings.getSettings(true);
+      for (int i = 0; i < oLtBarAccess.getCount(); i++) {
+        WtMessageHandler.printToLogFile("");
+        PropertyValue[] propVal = (PropertyValue[]) oLtBarAccess.getByIndex(i);
+        for (int k = 0; k < propVal.length; k++) {
+          WtMessageHandler.printToLogFile(i + ".: Property: Name: " + propVal[k].Name + ", Handle: " + propVal[k].Handle 
+              + ", Value: " + propVal[k].Value + ", State: " + propVal[k].State);
 //            WtMessageHandler.printToLogFile("Access (" + i + "): " + oLtBarAccess.getByIndex(i));
-          }
-        }
-//        XToolPanel wtToolBar = UnoRuntime.queryInterface(XToolPanel.class, toolbar.getRealInterface());
-        WtMessageHandler.printToLogFile("toolbar is " + (toolbar == null ? "NULL" : "NOT null"));
-        for (XUIElement element : layoutManager.getElements()) {
-          WtMessageHandler.printToLogFile("Element: Name: " + element.getResourceURL() + "(Type: " + element.getType() + ")");
         }
       }
+//        XToolPanel wtToolBar = UnoRuntime.queryInterface(XToolPanel.class, toolbar.getRealInterface());
+      WtMessageHandler.printToLogFile("toolbar is " + (toolbar == null ? "NULL" : "NOT null"));
+      for (XUIElement element : layoutManager.getElements()) {
+        WtMessageHandler.printToLogFile("Element: Name: " + element.getResourceURL() + "(Type: " + element.getType() + ")");
+      }
+      layoutManager.doLayout();
+*/      
     } catch (Throwable e) {
       WtMessageHandler.printException(e);
     }
   }
   
   public void resetToolbar() {
+    resetToolbar(false);
+  }
+  
+  private void resetToolbar(boolean create) {
     try {
+      Language lang = document.getLanguage();
+      boolean hasStatisticalStyleRules;
+      if (document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
+        hasStatisticalStyleRules = false;
+      } else {
+        hasStatisticalStyleRules = WtOfficeTools.hasStatisticalStyleRules(lang);
+      }
+      WtConfiguration config = document.getMultiDocumentsHandler().getConfiguration();
+      boolean aiSupport = config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport();
+      boolean isBackgroundCheckOff = document.getMultiDocumentsHandler().isBackgroundCheckOff();
+/*      
       XUIConfigurationManager confMan;
       WtMessageHandler.printToLogFile("WtToolBar: resetToobar called");
       confMan = getUIConfigManagerDoc(xContext);
@@ -183,8 +231,79 @@ public class WtToolbar {
       XIndexAccess settings = confMan.createSettings();
       XIndexContainer elementsContainer = UnoRuntime.queryInterface(XIndexContainer.class, settings);
       addToolbarButtons(elementsContainer, confMan);
+      if (confMan.hasSettings(WT_NEW_TOOLBAR_URL)) {
+        confMan.replaceSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
+      } else {
+        confMan.insertSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
+      }
+      if (create) {
+*/      
+      XUIConfigurationManager confMan;
+      WtMessageHandler.printToLogFile("WtToolBar: resetToobar called");
+      confMan = getUIConfigManagerDoc(xContext);
+      if (confMan == null) {
+        WtMessageHandler.printToLogFile("WtToolbar: makeToolbar: Cannot create configuration manager");
+        return;
+      }      
+//      XLayoutManager layoutManager = getLayoutManager();
+/*      
+      XUIElement toolbar = layoutManager.getElement(WT_NEW_TOOLBAR_URL);
+      XUIElementSettings oWtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, toolbar);
+      XIndexAccess oWtBarAccess = oWtBarSettings.getSettings(true);
+*/
+      XIndexAccess oWtBarAccess = confMan.getSettings(WT_NEW_TOOLBAR_URL, true);
+      XIndexContainer elementsContainer = UnoRuntime.queryInterface(XIndexContainer.class, oWtBarAccess);
+      addToolbarButtons(elementsContainer, null);
+/*      
+      for (int i = 0; i < elementsContainer.getCount(); i++) {
+        PropertyValue[] propVal = (PropertyValue[]) elementsContainer.getByIndex(i);
+        for (int k = 0; k < propVal.length; k++) {
+          if("CommandURL".equals(propVal[k].Name)) {
+            if (WtMenus.LT_BACKGROUND_CHECK_ON_COMMAND.equals(propVal[k].Value)) {
+              WtMessageHandler.printToLogFile("WtToolBar: resetToobar: Set " + WtMenus.LT_BACKGROUND_CHECK_ON_COMMAND + ": " + isBackgroundCheckOff);
+              setVisible(propVal, isBackgroundCheckOff);
+            } else if (WtMenus.LT_BACKGROUND_CHECK_OFF_COMMAND.equals(propVal[k].Value)) {
+              WtMessageHandler.printToLogFile("WtToolBar: resetToobar: Set " + WtMenus.LT_BACKGROUND_CHECK_OFF_COMMAND + ": " + !isBackgroundCheckOff);
+              setVisible(propVal, !isBackgroundCheckOff);
+            } else if (WtMenus.LT_STATISTICAL_ANALYSES_COMMAND.equals(propVal[k].Value)) {
+              WtMessageHandler.printToLogFile("WtToolBar: resetToobar: Set " + WtMenus.LT_STATISTICAL_ANALYSES_COMMAND + ": " + hasStatisticalStyleRules);
+              setVisible(propVal, hasStatisticalStyleRules);
+            } else if (WT_NEW_AI_TOOLBAR_URL.equals(propVal[k].Value)) {
+              WtMessageHandler.printToLogFile("WtToolBar: resetToobar: Set " + WT_NEW_AI_TOOLBAR_URL + ": " + aiSupport);
+              setVisible(propVal, aiSupport);
+            }
+          }
+        }
+      }
+*/      
+      confMan.replaceSettings(WT_NEW_TOOLBAR_URL, elementsContainer);
+//      oWtBarSettings.setSettings(elementsContainer);
+//      oWtBarSettings.updateSettings();
+/*      
+      XUIElement toolbar = layoutManager.getElement(WT_NEW_TOOLBAR_URL);
+      XUIElementSettings oWtBarSettings = UnoRuntime.queryInterface(XUIElementSettings.class, toolbar);
+      oWtBarAccess = oWtBarSettings.getSettings(true);
+      for (int i = 0; i < oWtBarAccess.getCount(); i++) {
+        WtMessageHandler.printToLogFile("");
+        PropertyValue[] propVal = (PropertyValue[]) oWtBarAccess.getByIndex(i);
+        for (int k = 0; k < propVal.length; k++) {
+          WtMessageHandler.printToLogFile(i + ".: Property: Name: " + propVal[k].Name + ", Handle: " + propVal[k].Handle 
+              + ", Value: " + propVal[k].Value + ", State: " + propVal[k].State);
+        }
+      }
+*/
+//        layoutManager.doLayout();
     } catch (Throwable e) {
       WtMessageHandler.printException(e);
+    }
+  }
+    
+  private void setVisible(PropertyValue[] propVal, boolean visible) {
+    for (int k = 0; k < propVal.length; k++) {
+      if("IsVisible".equals(propVal[k].Name)) {
+        WtMessageHandler.printToLogFile("WtToolBar: setVisible: Set: " + visible);
+        propVal[k].Value = visible;
+      }
     }
   }
   
@@ -200,26 +319,30 @@ public class WtToolbar {
     }
     WtConfiguration config = document.getMultiDocumentsHandler().getConfiguration();
     boolean aiSupport = config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport();
-    PropertyValue[] itemProps = makeBarItem(WtMenus.LT_NEXT_ERROR_COMMAND, MESSAGES.getString("loContextMenuNextError"));
-    elementsContainer.insertByIndex(j, itemProps);
-    j++;
-    itemProps = makeBarItem(WtMenus.LT_CHECKDIALOG_COMMAND, MESSAGES.getString("loContextMenuGrammarCheck"));
-    elementsContainer.insertByIndex(j, itemProps);
-    j++;
-    itemProps = makeBarItem(WtMenus.LT_CHECKAGAINDIALOG_COMMAND, MESSAGES.getString("loContextMenuGrammarCheckAgain"));
-    elementsContainer.insertByIndex(j, itemProps);
-    j++;
-    itemProps = makeBarItem(WtMenus.LT_REFRESH_CHECK_COMMAND, MESSAGES.getString("loContextMenuRefreshCheck"));
-    elementsContainer.insertByIndex(j, itemProps);
-    j++;
-    if (document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
-      itemProps = makeBarItem(WtMenus.LT_BACKGROUND_CHECK_ON_COMMAND, MESSAGES.getString("loMenuEnableBackgroundCheck"));
-    } else {
-      itemProps = makeBarItem(WtMenus.LT_BACKGROUND_CHECK_OFF_COMMAND, MESSAGES.getString("loMenuDisableBackgroundCheck"));
+    boolean isBackgroundCheckOff = document.getMultiDocumentsHandler().isBackgroundCheckOff();
+    int num = elementsContainer.getCount();
+    for (int i = num - 1; i >= 0; i--) {
+      elementsContainer.removeByIndex(i);
     }
+    PropertyValue[] itemProps = makeBarItem(WtMenus.LT_NEXT_ERROR_COMMAND, MESSAGES.getString("loContextMenuNextError"), true);
     elementsContainer.insertByIndex(j, itemProps);
     j++;
-    itemProps = makeBarItem(WtMenus.LT_RESET_IGNORE_PERMANENT_COMMAND, MESSAGES.getString("loMenuResetIgnorePermanent"));
+    itemProps = makeBarItem(WtMenus.LT_CHECKDIALOG_COMMAND, MESSAGES.getString("loContextMenuGrammarCheck"), true);
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_CHECKAGAINDIALOG_COMMAND, MESSAGES.getString("loContextMenuGrammarCheckAgain"), true);
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_REFRESH_CHECK_COMMAND, MESSAGES.getString("loContextMenuRefreshCheck"), true);
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_BACKGROUND_CHECK_ON_COMMAND, MESSAGES.getString("loMenuEnableBackgroundCheck"), isBackgroundCheckOff);
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_BACKGROUND_CHECK_OFF_COMMAND, MESSAGES.getString("loMenuDisableBackgroundCheck"), !isBackgroundCheckOff);
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_RESET_IGNORE_PERMANENT_COMMAND, MESSAGES.getString("loMenuResetIgnorePermanent"), true);
     elementsContainer.insertByIndex(j, itemProps);
 /*        TODO: Add sub toolbars:
     if(!document.getMultiDocumentsHandler().getDisabledRulesMap(null).isEmpty()) {
@@ -234,17 +357,15 @@ public class WtToolbar {
     }
 */
     j++;
-    itemProps = makeBarItem(WtMenus.LT_OPTIONS_COMMAND, MESSAGES.getString("loContextMenuOptions"));
+    itemProps = makeBarItem(WtMenus.LT_OPTIONS_COMMAND, MESSAGES.getString("loContextMenuOptions"), true);
     elementsContainer.insertByIndex(j, itemProps);
     j++;
-    itemProps = makeBarItem(WtMenus.LT_ABOUT_COMMAND, MESSAGES.getString("loContextMenuAbout"));
+    itemProps = makeBarItem(WtMenus.LT_ABOUT_COMMAND, MESSAGES.getString("loContextMenuAbout"), true);
     elementsContainer.insertByIndex(j, itemProps);
-    if (hasStatisticalStyleRules) {
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_STATISTICAL_ANALYSES_COMMAND, MESSAGES.getString("loStatisticalAnalysis"));
-      elementsContainer.insertByIndex(j, itemProps);
-    }
-    if (aiSupport) {
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_STATISTICAL_ANALYSES_COMMAND, MESSAGES.getString("loStatisticalAnalysis"), hasStatisticalStyleRules);
+    elementsContainer.insertByIndex(j, itemProps);
+    if (confMan != null) {
       j++;
       XIndexAccess settings = confMan.createSettings();
       XIndexContainer aiElementsContainer = UnoRuntime.queryInterface(XIndexContainer.class, settings);
@@ -254,7 +375,7 @@ public class WtToolbar {
       } else {
         confMan.insertSettings(WT_NEW_AI_TOOLBAR_URL, aiElementsContainer);
       }
-      itemProps = makeBarItem(WT_NEW_AI_TOOLBAR_URL, MESSAGES.getString("loMenuAiGeneralCommand"));
+      itemProps = makeBarItem(WT_NEW_AI_TOOLBAR_URL, MESSAGES.getString("loMenuAiGeneralCommand"), aiSupport);
       elementsContainer.insertByIndex(j, itemProps);
     }
   }
@@ -262,35 +383,29 @@ public class WtToolbar {
   private void addAiToolbarButtons(XIndexContainer elementsContainer, WtConfiguration config) throws Throwable {
     int j = 0;
     PropertyValue[] itemProps;
-    if (config.useAiSupport()) {
-      itemProps = makeBarItem(WtMenus.LT_AI_BETTER_STYLE, MESSAGES.getString("loMenuAiStyleCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_AI_REFORMULATE_TEXT, MESSAGES.getString("loMenuAiReformulateCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_AI_EXPAND_TEXT, MESSAGES.getString("loMenuAiExpandCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_AI_SYNONYMS_OF_WORD, MESSAGES.getString("loMenuAiSynnomsOfWordCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_AI_SUMMARY, MESSAGES.getString("loMenuAiSummaryCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-      itemProps = makeBarItem(WtMenus.LT_AI_TRANSLATE_TEXT, MESSAGES.getString("loMenuAiTranslateCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-    }
-    if (config.useAiTtsSupport()) {
-      itemProps = makeBarItem(WtMenus.LT_AI_TEXT_TO_SPEECH, MESSAGES.getString("loMenuAiTextToSpeechCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-      j++;
-    }
-    if (config.useAiSupport() || config.useAiTtsSupport()) {
-      itemProps = makeBarItem(WtMenus.LT_AI_GENERAL_COMMAND, MESSAGES.getString("loMenuAiGeneralCommand"));
-      elementsContainer.insertByIndex(j, itemProps);
-    }
+    itemProps = makeBarItem(WtMenus.LT_AI_BETTER_STYLE, MESSAGES.getString("loMenuAiStyleCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_REFORMULATE_TEXT, MESSAGES.getString("loMenuAiReformulateCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_EXPAND_TEXT, MESSAGES.getString("loMenuAiExpandCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_SYNONYMS_OF_WORD, MESSAGES.getString("loMenuAiSynnomsOfWordCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_SUMMARY, MESSAGES.getString("loMenuAiSummaryCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_TRANSLATE_TEXT, MESSAGES.getString("loMenuAiTranslateCommand"), config.useAiSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_TEXT_TO_SPEECH, MESSAGES.getString("loMenuAiTextToSpeechCommand"), config.useAiTtsSupport());
+    elementsContainer.insertByIndex(j, itemProps);
+    j++;
+    itemProps = makeBarItem(WtMenus.LT_AI_GENERAL_COMMAND, MESSAGES.getString("loMenuAiGeneralCommand"), config.useAiSupport() || config.useAiTtsSupport());
+    elementsContainer.insertByIndex(j, itemProps);
   }
   
 /*  
@@ -334,7 +449,7 @@ public class WtToolbar {
     return props;
   }
 
-  private PropertyValue[] makeBarItem(String cmd, String itemName) {
+  private PropertyValue[] makeBarItem(String cmd, String itemName, boolean visible) {
     // properties for a toolbar item using a name and an image
     // problem: image does not appear next to text on toolbar
     PropertyValue[] props = new PropertyValue[5];
@@ -352,8 +467,8 @@ public class WtToolbar {
     props[2].Value = ItemType.DEFAULT;  // 0;
 
     props[3] = new PropertyValue();
-    props[3].Name = "Visible";
-    props[3].Value = true;
+    props[3].Name = "IsVisible";
+    props[3].Value = visible;
 
     props[4] = new PropertyValue();
     props[4].Name = "Style";
