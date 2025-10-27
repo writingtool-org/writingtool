@@ -856,6 +856,17 @@ public class WtMenus {
           nId++;
         }
 
+        XPropertySet xNewMenuEntry5 = UnoRuntime.queryInterface(XPropertySet.class,
+            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+        if (isSelectedRange(aEvent)) {
+          xNewMenuEntry5.setPropertyValue("Text", MESSAGES.getString("loMenuPermanentIgnoreRange"));
+        } else {
+          xNewMenuEntry5.setPropertyValue("Text", MESSAGES.getString("loMenuPermanentIgnoreParagraph"));
+        }
+        xNewMenuEntry5.setPropertyValue("CommandURL", LT_PERMANENT_IGNORE_PARAGRAPH_COMMAND);
+        xContextMenu.insertByIndex(nId, xNewMenuEntry5);
+        nId++;
+
         XPropertySet xNewMenuEntry4 = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
         xNewMenuEntry4.setPropertyValue("Text", MESSAGES.getString("loContextMenuRenewMarkups"));
@@ -868,13 +879,6 @@ public class WtMenus {
           nId++;
           addAIMenuEntry(nId, xContextMenu, xMenuElementFactory);
         }
-/*        
-        XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
-            xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuOptions"));
-        xNewMenuEntry.setPropertyValue("CommandURL", LT_OPTIONS_URL);
-        xContextMenu.insertByIndex(nId, xNewMenuEntry);
-*/
         if (debugModeTm) {
           long runTime = System.currentTimeMillis() - startTime;
           if (runTime > WtOfficeTools.TIME_TOLERANCE) {
@@ -1010,6 +1014,7 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
+/*      
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       if (isSelectedRange(aEvent)) {
@@ -1020,6 +1025,7 @@ public class WtMenus {
       xNewSubMenuEntry.setPropertyValue("CommandURL", LT_PERMANENT_IGNORE_PARAGRAPH_COMMAND);
       xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
       j++;
+*/
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuResetIgnorePermanent"));
