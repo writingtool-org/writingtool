@@ -305,6 +305,7 @@
             </node>
         </node>
         <node oor:name="OfficeToolBar">
+<!--			
             <node oor:name="org.writingtool.WritingTool.toolbar" oor:op="replace">
                 <node oor:name="T1" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
@@ -325,6 +326,7 @@
 		        <value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
                     </prop>
                 </node>
+-->                
                 <node oor:name="T2" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?checkDialog</value>
@@ -333,7 +335,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Check Text</value>
@@ -372,7 +374,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Recheck Document</value>
@@ -401,6 +403,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet igen</value>
                     </prop>
                 </node>
+<!--                
                 <node oor:name="T4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?refreshCheck</value>
@@ -418,6 +421,7 @@
                     <value xml:lang="sv">Uppdatera språkgranskningspunkterna</value>
                     </prop>
                 </node>
+-->                
                 <node oor:name="T5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>service:org.writingtool.WritingTool?configure</value>
@@ -426,7 +430,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Options...</value>
@@ -465,7 +469,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">About...</value>

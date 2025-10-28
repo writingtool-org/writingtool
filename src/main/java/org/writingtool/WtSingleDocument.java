@@ -130,9 +130,10 @@ public class WtSingleDocument {
   private boolean isLastIntern = false;           //  true: last check was intern
   private boolean isRightButtonPressed = false;   //  true: right mouse Button was pressed
   private boolean isOnUnload = false;             //  Document will be closed
+//  private boolean firstRun = true;                //  check runs at first time
   private String lastSinglePara = null;           //  stores the last paragraph which is checked as single paragraph
   private Language docLanguage;                   //  docLanguage (usually the Language of the first paragraph)
-  private Locale docLocale;                       //  docLanguage as Locale
+//  private Locale docLocale;                       //  docLanguage as Locale
   private final Language fixedLanguage;           //  fixed language (by configuration); if null: use language of document (given by LO/OO)
   private WtMenus ltMenus = null;                 //  WT menus (tools menu and context menu)
   private WtToolbar wtToolbar = null;             //  WT dynamic toolbar
@@ -443,11 +444,17 @@ public class WtSingleDocument {
       if (ltMenus == null && !mDocHandler.isOpenOffice && docType == DocumentType.WRITER && paraText.length() > 0) {
         ltMenus = new WtMenus(xContext, this, config);
       }
+/*      
       if (!mDocHandler.isOpenOffice && docType == DocumentType.WRITER && docCache != null && docCache.getDocumentLocale() != null
           && docLocale != null && !WtOfficeTools.isEqualLocale(docLocale, docCache.getDocumentLocale())) {
         docLocale = docCache.getDocumentLocale();
         wtToolbar.resetToolbar();
       }
+      if (wtToolbar != null && firstRun) {
+        wtToolbar.resetToolbar();
+        firstRun = false;
+      }
+*/
 /*
       if (proofInfo == WtOfficeTools.PROOFINFO_MARK_PARAGRAPH) {
         paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(
@@ -581,10 +588,12 @@ public class WtSingleDocument {
    */
   void setLanguage(Language language) {
     docLanguage = language;
+/*
     docLocale = WtLinguisticServices.getLocale(language);
     if (wtToolbar != null) {
       wtToolbar.resetToolbar();
     }
+*/
   }
   
   /** 

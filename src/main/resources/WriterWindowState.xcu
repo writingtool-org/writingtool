@@ -6,6 +6,7 @@
 	<node oor:name="UIElements">
 		<node oor:name="States">
 			<!-- Used to dock the toolbar in the first toolbar row (by default it's floating) -->
+<!--
 			<node oor:name="private:resource/toolbar/addon_org.writingtool.WritingTool.toolbar" oor:op="replace">
 				<prop oor:name="UIName" oor:type="xs:string">
 					<value>WritingTool</value>
@@ -23,9 +24,10 @@
 					<value>0</value>
 				</prop>
 			</node>
+-->
 			<node oor:name="private:resource/toolbar/WtToolbarFactory.toolbar" oor:op="replace">
 				<prop oor:name="UIName" oor:type="xs:string">
-					<value>WritingToolNew</value>
+					<value>WritingTool</value>
 				</prop>
 					<prop oor:name="ImageURL" oor:type="xs:string">
 						<value>//org.openoffice.writingtool.oxt/images/WTBig.png</value>
