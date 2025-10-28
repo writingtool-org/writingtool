@@ -293,7 +293,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     stepSlider = new JSlider(0, 100, DEFAULT_STEP);
     
     checkProgress.setStringPainted(true);
-    checkProgress.setIndeterminate(true);
+    checkProgress.setIndeterminate(false);
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog called");
@@ -357,7 +357,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            translate();
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                translate();
+              }
+            });
+            t.start();
           }
         }
         @Override
@@ -384,7 +389,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            createText();
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createText();
+              }
+            });
+            t.start();
           }
         }
         @Override
@@ -435,7 +445,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            createImage();
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
           }
         }
         @Override
@@ -467,7 +482,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            createImage();
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
           }
         }
         @Override
@@ -490,7 +510,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-            createImage();
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
           }
         }
         @Override
@@ -511,7 +536,12 @@ public class WtAiDialog extends Thread implements ActionListener {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
             instText = (String) instruction.getEditor().getItem();
             if (instText != null) {
-              createText();
+              Thread t = new Thread(new Runnable() {
+                public void run() {
+                  createText();
+                }
+              });
+              t.start();
             }
           }
         }
@@ -1245,9 +1275,9 @@ public class WtAiDialog extends Thread implements ActionListener {
    * Initial button state
    */
   private void setAtWorkState(boolean work) {
-    checkProgress.setIndeterminate(true);
+    checkProgress.setIndeterminate(work);
     if (!work) {
-      checkProgress.setValue(0);
+      checkProgress.setValue(100);
     }
     atWork = work;
   }
@@ -1356,6 +1386,9 @@ public class WtAiDialog extends Thread implements ActionListener {
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
+      }
+      if (locale == null) {
+        locale = WtOfficeTools.getCursorLocale(documents.getContext());
       }
       String output = aiRemote.runInstruction(instructionText, text, temperature, 0, locale, false);
       if (debugMode) {
@@ -1481,42 +1514,62 @@ public class WtAiDialog extends Thread implements ActionListener {
           closeDialog();
         } else if (action.getActionCommand().equals("help")) {
           help();
-        } else if (action.getActionCommand().equals("execute")) {
-          createText();
-        } else if (action.getActionCommand().equals("translate")) {
-          translate();
-        } else if (action.getActionCommand().equals("createImage")) {
-          createImageFromText();
-        } else if (action.getActionCommand().equals("changeImage")) {
-          createImage();
-        } else if (action.getActionCommand().equals("newImage")) {
-          seed = randomInteger();
-          createImage();
-        } else {
-          if (action.getActionCommand().equals("copyResult")) {
-            copyResult();
-          } else if (action.getActionCommand().equals("reset")) {
-            resetText();
-          } else if (action.getActionCommand().equals("loadChapter")) {
-            loadChapter();
-          } else if (action.getActionCommand().equals("clear")) {
-            clearText();
-          } else if (action.getActionCommand().equals("undo")) {
-            undo();
-          } else if (action.getActionCommand().equals("overrideParagraph")) {
-            writeToParagraph(true);
-          } else if (action.getActionCommand().equals("addToParagraph")) {
-            writeToParagraph(false);
-          } else if (action.getActionCommand().equals("saveImage")) {
-            saveImage();
-          } else if (action.getActionCommand().equals("insertImage")) {
-            insertImage();
-          } else if (action.getActionCommand().equals("removeImage")) {
-            removeImage();
-          } else {
-            WtMessageHandler.showMessage("Action '" + action.getActionCommand() + "' not supported");
-          }
           setButtonState(true);
+        } else if (action.getActionCommand().equals("copyResult")) {
+          copyResult();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("reset")) {
+          resetText();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("loadChapter")) {
+          loadChapter();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("clear")) {
+          clearText();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("undo")) {
+          undo();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("overrideParagraph")) {
+          writeToParagraph(true);
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("addToParagraph")) {
+          writeToParagraph(false);
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("saveImage")) {
+          saveImage();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("insertImage")) {
+          insertImage();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("removeImage")) {
+          removeImage();
+          setButtonState(true);
+        } else {
+          Thread t = new Thread(new Runnable() {
+            public void run() {
+              try {
+                if (action.getActionCommand().equals("execute")) {
+                  createText();
+                } else if (action.getActionCommand().equals("translate")) {
+                  translate();
+                } else if (action.getActionCommand().equals("createImage")) {
+                  createImageFromText();
+                } else if (action.getActionCommand().equals("changeImage")) {
+                  createImage();
+                } else if (action.getActionCommand().equals("newImage")) {
+                  seed = randomInteger();
+                  createImage();
+                } else {
+                  WtMessageHandler.showMessage("Action '" + action.getActionCommand() + "' not supported");
+                }
+              } catch (Throwable e) {
+                WtMessageHandler.showError(e);
+                closeDialog();
+              }
+            }
+          });
+          t.start();
         }
       } catch (Throwable e) {
         WtMessageHandler.showError(e);
