@@ -293,7 +293,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     stepSlider = new JSlider(0, 100, DEFAULT_STEP);
     
     checkProgress.setStringPainted(true);
-    checkProgress.setIndeterminate(false);
+    checkProgress.setIndeterminate(true);
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog called");
@@ -622,44 +622,54 @@ public class WtAiDialog extends Thread implements ActionListener {
         @Override
         public void windowGainedFocus(WindowEvent e) {
           if (focusLost) {
-            try {
-              Point p = dialog.getLocation();
-              dialogX = p.x;
-              dialogY = p.y;
-              if (debugMode) {
-                WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: Event = " + e.paramString());
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                try {
+                  Point p = dialog.getLocation();
+                  dialogX = p.x;
+                  dialogY = p.y;
+                  if (debugMode) {
+                    WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: Event = " + e.paramString());
+                  }
+                  setButtonState(!atWork);
+                  currentDocument = getCurrentDocument();
+                  if (currentDocument == null) {
+                    closeDialog();
+                    return;
+                  }
+                  if (debugMode) {
+                    WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: new docType = " + currentDocument.getDocumentType());
+                  }
+                  mainPanel.setSelectedIndex(0);
+                  setText();
+                  focusLost = false;
+                } catch (Throwable t) {
+                  WtMessageHandler.showError(t);
+                  closeDialog();
+                }
               }
-              setButtonState(!atWork);
-              currentDocument = getCurrentDocument();
-              if (currentDocument == null) {
-                closeDialog();
-                return;
-              }
-              if (debugMode) {
-                WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: new docType = " + currentDocument.getDocumentType());
-              }
-              mainPanel.setSelectedIndex(0);
-              setText();
-              focusLost = false;
-            } catch (Throwable t) {
-              WtMessageHandler.showError(t);
-              closeDialog();
-            }
+            });
+            t.start();
           }
         }
         @Override
         public void windowLostFocus(WindowEvent e) {
-          try {
-            if (debugMode) {
-              WtMessageHandler.printToLogFile("WtAiDialog: Window Focus lost: Event = " + e.paramString());
+          Thread t = new Thread(new Runnable() {
+            public void run() {
+              try {
+                if (debugMode) {
+                  WtMessageHandler.printToLogFile("WtAiDialog: Window Focus lost: Event = " + e.paramString());
+                }
+                setButtonState(false);
+                dialog.setEnabled(true);
+                focusLost = true;
+              } catch (Throwable t) {
+                WtMessageHandler.showError(t);
+                closeDialog();
+              }
             }
-            setButtonState(false);
-            dialog.setEnabled(true);
-            focusLost = true;
-          } catch (Throwable t) {
-            WtMessageHandler.showError(t);
-            closeDialog();
-          }
+          });
+          t.start();
         }
       });
 
@@ -1178,8 +1188,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       TextParagraph tPara = viewCursor.getViewCursorParagraph();
       WtDocumentCache docCache = currentDocument.getDocumentCache();
       paraText = docCache.getTextParagraph(tPara);
+      translText = paraText;
       locale = docCache.getTextParagraphLocale(tPara);
       paragraph.setText(paraText);
+      translationText.setText(paraText);
     } else {
       XComponent xComponent = currentDocument.getXComponent();
       paraText = "";
@@ -1210,9 +1222,17 @@ public class WtAiDialog extends Thread implements ActionListener {
         if (pText.length() + paraText.length() > WtAiRemote.MAX_TEXT_LENGTH) {
           break;
         }
-        paraText = pText + WtOfficeTools.SINGLE_END_OF_PARAGRAPH + paraText;
+        if (instructionPanel.getSelectedIndex() == 0) {
+          paraText = pText + WtOfficeTools.SINGLE_END_OF_PARAGRAPH + paraText;
+        } else {
+          translText = pText + WtOfficeTools.SINGLE_END_OF_PARAGRAPH + translText;
+        }
       }
-      paragraph.setText(paraText);
+      if (instructionPanel.getSelectedIndex() == 0) {
+        paragraph.setText(paraText);
+      } else {
+        translationText.setText(translText);
+      }
     } else {
       XComponent xComponent = currentDocument.getXComponent();
       paraText = "";
@@ -1225,7 +1245,10 @@ public class WtAiDialog extends Thread implements ActionListener {
    * Initial button state
    */
   private void setAtWorkState(boolean work) {
-    checkProgress.setIndeterminate(work);
+    checkProgress.setIndeterminate(true);
+    if (!work) {
+      checkProgress.setValue(0);
+    }
     atWork = work;
   }
   
@@ -1278,6 +1301,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     saveImage.setEnabled(image == null ? false : enabled);
     insertImage.setEnabled(image == null ? false : enabled);
     
+//    contentPane.setEnabled(enabled);
     contentPane.revalidate();
     contentPane.repaint();
     dialog.setEnabled(enabled);
@@ -1502,14 +1526,19 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   private void copyResult() {
-    saveText = paraText;
-    saveResult = resultText;
-    paraText = resultText;
-    paragraph.setText(paraText);
+    if (instructionPanel.getSelectedIndex() == 0) {
+      saveText = paraText;
+      saveResult = resultText;
+      paraText = resultText;
+      paragraph.setText(paraText);
+    } else if (instructionPanel.getSelectedIndex() == 1) {
+      translText = resultText;
+      translationText.setText(translText);
+    }
   }
 
   private void resetText() throws Throwable {
-    if (instructionPanel.getSelectedIndex() == 0) {
+    if (instructionPanel.getSelectedIndex() < 2) {
       saveText = paraText;
       saveResult = resultText;
       setText();
@@ -1520,7 +1549,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
 
   private void loadChapter() throws Throwable {
-    if (instructionPanel.getSelectedIndex() == 0) {
+    if (instructionPanel.getSelectedIndex() < 2) {
       saveText = paraText;
       saveResult = resultText;
       setChapterText();
@@ -1531,15 +1560,22 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
 
   private void clearText() throws Throwable {
-    saveText = paraText;
-    saveResult = resultText;
-    paraText = "";
-    paragraph.setText(paraText);
+    if (instructionPanel.getSelectedIndex() == 0) {
+      saveText = paraText;
+      saveResult = resultText;
+      paraText = "";
+      paragraph.setText(paraText);
+    } if (instructionPanel.getSelectedIndex() == 1) {
+      translText = "";
+      translationText.setText(translText);
+    } else {
+      directInstruction.setText("");
+    }
     setButtonState(true);
   }
 
   private void undo() {
-    if (saveText != null) {
+    if (saveText != null && instructionPanel.getSelectedIndex() == 0) {
       paraText = saveText;
       resultText = saveResult;
       saveText = null;
