@@ -55,6 +55,7 @@ public class WtAiTextToSpeech extends Thread {
   public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
   
   public final static String TMP_DIRNAME = "audioOut";
+  public final static String FILE_EXTENSION = ".wav";
 
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be false except for testing
   
@@ -185,11 +186,11 @@ public class WtAiTextToSpeech extends Thread {
     try {
     if (isRealHeader(nParaStart)) {
       filename = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, nParaStart));
-      filename.replaceAll("[^\\w\\d]", "_");
+      filename = filename.replaceAll("[^\\w\\d]", "_");
     } else {
       filename = "Intro";
     }
-    filename = audioDir + (nFile < 10 ? "0" : "") + nFile + "_" + filename;
+    filename = audioDir + (nFile < 10 ? "0" : "") + nFile + "_" + filename + FILE_EXTENSION;
     StringBuilder sb = new StringBuilder();
     if (n < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT)) {
       addToText(n, sb);
