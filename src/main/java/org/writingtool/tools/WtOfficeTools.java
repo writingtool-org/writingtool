@@ -246,7 +246,7 @@ public class WtOfficeTools {
   }
 
   /** 
-   * Returns the current XFrame 
+   * Returns the current XWindow 
    * Returns null if it fails
    */
   @Nullable

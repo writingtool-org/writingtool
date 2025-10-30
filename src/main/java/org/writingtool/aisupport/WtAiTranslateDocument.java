@@ -18,6 +18,7 @@
  */
 package org.writingtool.aisupport;
 
+import java.awt.Component;
 import java.util.ResourceBundle;
 
 import javax.swing.SwingUtilities;
@@ -26,24 +27,30 @@ import org.writingtool.WtDocumentCache;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.dialogs.WtAiTranslationDialog;
 import org.writingtool.dialogs.WtAiTranslationDialog.TranslationOptions;
+import org.writingtool.dialogs.WtOptionPane;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 
+import com.sun.star.awt.XWindow;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.PropertyVetoException;
 import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
+import com.sun.star.frame.XComponentLoader;
+import com.sun.star.frame.XDesktop;
 import com.sun.star.frame.XModel;
 import com.sun.star.frame.XStorable;
 import com.sun.star.io.IOException;
 import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XComponent;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.uno.UnoRuntime;
+import com.sun.star.util.XModifiable;
 
 /**
  * Class for a new document filled by AI
@@ -79,8 +86,16 @@ public class WtAiTranslateDocument extends Thread {
   public void run() {
     try {
       if (fromUrl == null || fromUrl.isBlank()) {
-        WtMessageHandler.showMessage(messages.getString("loAiDialogTranslateFileError"));
+        WtOptionPane.showMessageDialog (null, messages.getString("loAiDialogTranslateFileError"));
         return;
+      }
+      if (isDocModified()) {
+        int ret = WtOptionPane.showConfirmDialog(null, messages.getString("loAiDialogSaveFileMessage"), 
+            messages.getString("guiOOSaveDocument"), WtOptionPane.OK_CANCEL_OPTION);
+        if (ret == WtOptionPane.CANCEL_OPTION) {
+          return;
+        }
+        fileSave();
       }
       WtMessageHandler.printToLogFile("WtAiTranslateDocument: fromUrl: " + fromUrl);
       TranslationOptions transOpt = getTranslationOptions();
@@ -88,8 +103,14 @@ public class WtAiTranslateDocument extends Thread {
         locale = transOpt.locale;
         temperature = transOpt.temperature;
         WtMessageHandler.printToLogFile("Locale: " + WtOfficeTools.localeToString(locale));
-        saveFile();
+        fileSaveAs();
+        XWindow xWindow = WtOfficeTools.getCurrentWindow(document.getMultiDocumentsHandler().getContext());
+        fileLoad();
+//        XWindow xNewWindow = WtOfficeTools.getCurrentWindow(document.getMultiDocumentsHandler().getContext());
+        xWindow.setFocus();
+//        xNewWindow.setVisible(true);
         writeText();
+        fileSaveAs();
       } else {
         WtMessageHandler.printToLogFile("Locale: null");
       }
@@ -128,13 +149,50 @@ public class WtAiTranslateDocument extends Thread {
     return name + "_" + lang + ext;
   }
   
-  private void saveFile() throws IOException {
+  private void fileSaveAs() throws IOException {
     XStorable xStore = UnoRuntime.queryInterface (com.sun.star.frame.XStorable.class, document.getXComponent());
     PropertyValue[] sProps = new PropertyValue[1];
     sProps[0] = new PropertyValue();
     sProps[0].Name = "Overwrite";
     sProps[0].Value = true; 
     xStore.storeAsURL (outUrl(fromUrl, locale.Language), sProps);
+  }
+  
+  private void fileSave() throws IOException {
+    XStorable xStore = UnoRuntime.queryInterface (com.sun.star.frame.XStorable.class, document.getXComponent());
+    PropertyValue[] sProps = new PropertyValue[1];
+    sProps[0] = new PropertyValue();
+    sProps[0].Name = "Overwrite";
+    sProps[0].Value = true; 
+    xStore.store();
+  }
+  
+  private XComponent fileLoad() {
+    try {
+      XDesktop xDesktop = WtOfficeTools.getDesktop(document.getMultiDocumentsHandler().getContext());
+      if (xDesktop == null) {
+        WtMessageHandler.printToLogFile("WtAiTranslateDocument: fileLoad: xDesktop == null");   
+        return null;
+      }
+      XComponentLoader xLoader = UnoRuntime.queryInterface (XComponentLoader.class, xDesktop);
+/*      
+      PropertyValue[] sProps = new PropertyValue[1];
+      sProps[0] = new PropertyValue();
+      sProps[0].Name = "Hidden";
+      sProps[0].Value = true; 
+*/      
+      PropertyValue[] sProps = new PropertyValue[0];
+      WtMessageHandler.printToLogFile("WtAiTranslateDocument: fileLoad: Load file: " + fromUrl.toString());
+      return xLoader.loadComponentFromURL(fromUrl, "_blank", 0, sProps);
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+    return null;
+  }
+  
+  private boolean isDocModified() {
+    XModifiable xModifiable = UnoRuntime.queryInterface (XModifiable.class, document.getXComponent());
+    return xModifiable.isModified();
   }
   
   private void writeText() {
