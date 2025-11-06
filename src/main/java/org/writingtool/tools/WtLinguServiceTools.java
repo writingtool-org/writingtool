@@ -40,7 +40,8 @@ import com.sun.star.uno.XComponentContext;
 public class WtLinguServiceTools {
   
   //  fast handles defined in LibeOffice source: unotools/source/config/lingucfg.cxx
-  private static int FH_IS_SPELL_AUTO = 8;
+//  private static int FH_IS_SPELL_AUTO = 8;
+  private static String IS_SPELL_AUTO = "IsSpellAuto";
   private static int FH_IS_GRAMMAR_AUTO = 29;
 
   /** 
@@ -130,8 +131,12 @@ public class WtLinguServiceTools {
    * is automatic spell active
    */
   public static boolean isSpellAuto(XComponentContext xContext) {
-    return isSettingHandle(FH_IS_SPELL_AUTO, xContext);
+    return isSetting(IS_SPELL_AUTO, xContext);
   }
+
+//  public static boolean isSpellAuto(XComponentContext xContext) {
+//    return isSettingHandle(FH_IS_SPELL_AUTO, xContext);
+//  }
 
   /**
    * is automatic grammar check active
@@ -173,8 +178,12 @@ public class WtLinguServiceTools {
    * set value of automatic spell active
    */
   public static void setSpellAuto(boolean value, XComponentContext xContext) {
-    setSettingHandle(FH_IS_SPELL_AUTO, value, xContext);
+    setSetting(IS_SPELL_AUTO, value, xContext);
   }
+
+//  public static void setSpellAuto(boolean value, XComponentContext xContext) {
+//    setSettingHandle(FH_IS_SPELL_AUTO, value, xContext);
+//  }
 
   /**
    * set value of automatic grammar check active
@@ -211,7 +220,6 @@ public class WtLinguServiceTools {
     }
   }
   
-/*
   public static boolean isSetting(String property, XComponentContext xContext) {
     try {
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
@@ -234,7 +242,7 @@ public class WtLinguServiceTools {
     return false;
   }
 
-  public static void setSpellAuto(boolean spellAuto, XComponentContext xContext) {
+  public static void setSetting(String property, boolean value, XComponentContext xContext) {
     try {
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
@@ -248,13 +256,13 @@ public class WtLinguServiceTools {
         WtMessageHandler.printToLogFile("WtLinguServiceTools: isSpellAuto: XPropertySet == null");
         return;
       }
-      props.setPropertyValue("IsSpellAuto", spellAuto);
+      props.setPropertyValue(property, value);
     } catch (Throwable t) {
       // If anything goes wrong, give the user a stack trace
       WtMessageHandler.printException(t);
     }
   }
-*/
+
   public static boolean isWtGrammarServiceActive(XComponentContext xContext, Locale locale) {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
