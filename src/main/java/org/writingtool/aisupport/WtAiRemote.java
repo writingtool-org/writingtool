@@ -30,6 +30,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -74,6 +76,7 @@ public class WtAiRemote {
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
   private static boolean isRunning = false;
+  private static List<Integer> oIds = new ArrayList<>();
   private static boolean hasPrintedInfo = false;
 
   private enum AiType { EDITS, COMPLETIONS, CHAT }
@@ -81,6 +84,8 @@ public class WtAiRemote {
   private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
   
+  private final int oId;
+
   private final WtDocumentsHandler documents;
   private final WtConfiguration config;
   private final String apiKey;
@@ -115,12 +120,22 @@ public class WtAiRemote {
     } else {
       aiType = AiType.CHAT;
     }
+    oId = getId();
+  }
+  
+  private int getId() {
+    int id = 0;
+    while (oIds.contains(id)) {
+      id++;
+    }
+    return id;
   }
 
   public String runInstruction(String instruction, String text, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
+    oIds.add(oId);
     try {
-      while (isRunning) {
+      while (isRunning || oId != oIds.get(0)) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -128,6 +143,7 @@ public class WtAiRemote {
         }
       }
       isRunning = true;
+      oIds.remove(0);
       return runInstruction_intern(instruction, text, temperature, seed, locale, onlyOneParagraph);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
