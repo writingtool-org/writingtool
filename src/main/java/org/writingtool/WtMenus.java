@@ -118,7 +118,8 @@ public class WtMenus {
   public static final String LT_MENU_REPLACE_COLON = ":";
 
   private static final ResourceBundle MESSAGES = WtOfficeTools.getMessageBundle();
-  private static final int SUBMENU_ID_DIFF = 21;
+  private static final short SWITCH_OFF_ID = 102;
+  private static final short SUBMENU_ID_DIFF = 21;
   private static final short SUBMENU_ID_AI = 1000;
 //  private static final String LT_TOOLBAR_URL = "private:resource/toolbar/addon_" + OfficeTools.WT_SERVICE_NAME + ".toolbar";
   
@@ -239,7 +240,7 @@ public class WtMenus {
         for (short i = 0; i < ltMenu.getItemCount(); i++) {
           String command = ltMenu.getCommand(ltMenu.getItemId(i));
           if (LT_OPTIONS_COMMAND.equals(command)) {
-            switchOffId = (short)102;
+            switchOffId = SWITCH_OFF_ID;
             switchOffPos = (short)(i - 1);
             break;
           }
@@ -257,9 +258,10 @@ public class WtMenus {
           }
         }
         if (hasStatisticalStyleRules) {
-          ltMenu.insertItem((short)(switchOffId + 1), MESSAGES.getString("loStatisticalAnalysis") + " ...", 
+          short statRuleId = (short)(switchOffId + 5);
+          ltMenu.insertItem(statRuleId, MESSAGES.getString("loStatisticalAnalysis") + " ...", 
               (short)0, switchOffPos);
-          ltMenu.setCommand(switchOffId, LT_STATISTICAL_ANALYSES_COMMAND);
+          ltMenu.setCommand(statRuleId, LT_STATISTICAL_ANALYSES_COMMAND);
           switchOffPos++;
         }
         ltMenu.insertItem(switchOffId, MESSAGES.getString("loMenuResetIgnorePermanent"), (short)0, switchOffPos);
@@ -344,6 +346,7 @@ public class WtMenus {
      */
     private void setProfileMenu(short profilesId, short profilesPos) throws Throwable {
       ltMenu.insertItem(profilesId, MESSAGES.getString("loMenuChangeProfiles"), MenuItemStyle.AUTOCHECK, profilesPos);
+      ltMenu.setCommand(profilesId, LT_PROFILE_COMMAND);
       xProfileMenu = WtOfficeTools.getPopupMenu(xContext);
       if (xProfileMenu == null) {
         WtMessageHandler.printToLogFile("LanguageToolMenus: setProfileMenu: Profile menu == null");
@@ -429,6 +432,7 @@ public class WtMenus {
           }
           xActivateRuleMenu.addMenuListener(this);
           ltMenu.setPopupMenu(id, xActivateRuleMenu);
+          ltMenu.setCommand(id, LT_ACTIVATE_RULES_COMMAND );
         }
         xActivateRuleMenu.removeItem((short) 0, xActivateRuleMenu.getItemCount());
         short nId = submenuStartId;
@@ -575,6 +579,9 @@ public class WtMenus {
             WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ReformulateText);
             aiChange.start();
           } else if (event.MenuId == SUBMENU_ID_AI + 4) {
+            WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, AiCommand.ExpandText);
+            aiChange.start();
+          } else if (event.MenuId == SUBMENU_ID_AI + 5) {
             WtAiSummaryDialog dialog = document.getMultiDocumentsHandler().getAiSummaryDialog();
             if (dialog != null) {
               dialog.toFront();
@@ -583,9 +590,6 @@ public class WtMenus {
               document.getMultiDocumentsHandler().setAiSummaryDialog(dialog);
               dialog.start();
             }
-          } else if (event.MenuId == SUBMENU_ID_AI + 5) {
-            WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
-            aiTranslate.start();
           } else if (event.MenuId == SUBMENU_ID_AI + 6) {
             WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, MESSAGES);
             aiTranslate.start();
