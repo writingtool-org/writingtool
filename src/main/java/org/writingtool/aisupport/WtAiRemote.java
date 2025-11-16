@@ -76,15 +76,13 @@ public class WtAiRemote {
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
   private static boolean isRunning = false;
-  private static List<Integer> oIds = new ArrayList<>();
+  private static List<String> oIds = new ArrayList<>();
   private static boolean hasPrintedInfo = false;
 
   private enum AiType { EDITS, COMPLETIONS, CHAT }
   
   private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
-  
-  private final int oId;
 
   private final WtDocumentsHandler documents;
   private final WtConfiguration config;
@@ -98,6 +96,8 @@ public class WtAiRemote {
   private final String ttsModel;
   private final String ttsUrl;
   private final AiType aiType;
+  
+  private String oId;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
     this.documents = documents;
@@ -120,22 +120,22 @@ public class WtAiRemote {
     } else {
       aiType = AiType.CHAT;
     }
-    oId = getId();
   }
   
-  private int getId() {
+  private String getId() {
     int id = 0;
-    while (oIds.contains(id)) {
+    while (oIds.contains("" + id)) {
       id++;
     }
-    return id;
+    return "" + id;
   }
 
   public String runInstruction(String instruction, String text, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
+    oId = getId();
     oIds.add(oId);
     try {
-      while (isRunning || oId != oIds.get(0)) {
+      while (isRunning || !oId.equals(oIds.get(0))) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -143,19 +143,23 @@ public class WtAiRemote {
         }
       }
       isRunning = true;
-      oIds.remove(0);
       return runInstruction_intern(instruction, text, temperature, seed, locale, onlyOneParagraph);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;
     } finally {
+      if (oIds.contains(oId)) {
+        oIds.remove(oId);
+      }
       isRunning = false;
     }
   }
   
   public String runImgInstruction(String instruction, String exclude, int step, int seed, int size) throws Throwable {
+    oId = getId();
+    oIds.add(oId);
     try {
-      while (isRunning) {
+      while (isRunning || !oId.equals(oIds.get(0))) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -168,13 +172,18 @@ public class WtAiRemote {
       WtMessageHandler.showError(t);
       return null;
     } finally {
+      if (oIds.contains(oId)) {
+        oIds.remove(oId);
+      }
       isRunning = false;
     }
   }
 
   public String runTtsInstruction(String text, String filename) throws Throwable {
+    oId = getId();
+    oIds.add(oId);
     try {
-      while (isRunning) {
+      while (isRunning || !oId.equals(oIds.get(0))) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
@@ -187,6 +196,9 @@ public class WtAiRemote {
       WtMessageHandler.showError(t);
       return null;
     } finally {
+      if (oIds.contains(oId)) {
+        oIds.remove(oId);
+      }
       isRunning = false;
     }
   }
