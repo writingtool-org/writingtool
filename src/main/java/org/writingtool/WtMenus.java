@@ -688,33 +688,42 @@ public class WtMenus {
         
         document.setMenuDocId();
         if (document.getDocumentType() == DocumentType.IMPRESS) {
-          int nId = 0;
-          XMultiServiceFactory xMenuElementFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class, xContextMenu);
-          XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
-              xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-          xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuGrammarCheck"));
-          xNewMenuEntry.setPropertyValue("CommandURL", LT_CHECKDIALOG_COMMAND);
-          xContextMenu.insertByIndex(nId, xNewMenuEntry);
-          nId++;
-          if (config.useAiSupport() || config.useAiImgSupport()) {
-            addAIMenuEntry(nId, xContextMenu, xMenuElementFactory);
+          try {
+            int nId = 0;
+            XMultiServiceFactory xMenuElementFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class, xContextMenu);
+            XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+                xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+            xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuGrammarCheck"));
+            xNewMenuEntry.setPropertyValue("CommandURL", LT_CHECKDIALOG_COMMAND);
+            xContextMenu.insertByIndex(nId, xNewMenuEntry);
             nId++;
-          }
-          XPropertySet xSeparator = UnoRuntime.queryInterface(XPropertySet.class,
-              xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerSeparator"));
-          xSeparator.setPropertyValue("SeparatorType", ActionTriggerSeparatorType.LINE);
-          xContextMenu.insertByIndex(nId, xSeparator);
-          if (debugModeTm) {
-            long runTime = System.currentTimeMillis() - startTime;
-            if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-              WtMessageHandler.printToLogFile("Time to generate context menu (Impress): " + runTime);
+            if (config.useAiSupport() || config.useAiImgSupport()) {
+              xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+                  xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+              xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));
+              xNewMenuEntry.setPropertyValue("CommandURL", LT_AI_GENERAL_COMMAND);
+              xContextMenu.insertByIndex(nId, xNewMenuEntry);
+              nId++;
             }
+            XPropertySet xSeparator = UnoRuntime.queryInterface(XPropertySet.class,
+                xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerSeparator"));
+            xSeparator.setPropertyValue("SeparatorType", ActionTriggerSeparatorType.LINE);
+            xContextMenu.insertByIndex(nId, xSeparator);
+            if (debugModeTm) {
+              long runTime = System.currentTimeMillis() - startTime;
+              if (runTime > WtOfficeTools.TIME_TOLERANCE) {
+                WtMessageHandler.printToLogFile("Time to generate context menu (Impress): " + runTime);
+              }
+            }
+            isRunning = false;
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("LanguageToolMenus: notifyContextMenuExecute: execute modified for Impress");
+            }
+            return ContextMenuInterceptorAction.EXECUTE_MODIFIED;
+          } catch (Throwable t) {
+            WtMessageHandler.printException(t);
+            return ContextMenuInterceptorAction.IGNORED;
           }
-          isRunning = false;
-          if (debugMode) {
-            WtMessageHandler.printToLogFile("LanguageToolMenus: notifyContextMenuExecute: execute modified for Impress");
-          }
-          return ContextMenuInterceptorAction.EXECUTE_MODIFIED;
         }
         
         int count = xContextMenu.getCount();
