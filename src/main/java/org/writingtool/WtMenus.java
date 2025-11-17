@@ -236,19 +236,26 @@ public class WtMenus {
           WtMessageHandler.printToLogFile("LanguageToolMenus: LTHeadMenu: LT Menu is null");
           return;
         }
-        
+        switchOffId = 0; 
         for (short i = 0; i < ltMenu.getItemCount(); i++) {
           String command = ltMenu.getCommand(ltMenu.getItemId(i));
+          short nId = ltMenu.getItemId(i);
+          if (nId >= switchOffId) {
+            switchOffId += (short)1;
+          }
           if (LT_OPTIONS_COMMAND.equals(command)) {
-            switchOffId = SWITCH_OFF_ID;
+//            switchOffId = SWITCH_OFF_ID;
             switchOffPos = (short)(i - 1);
-            break;
+//            break;
           }
         }
         if (switchOffId == 0) {
           WtMessageHandler.printToLogFile("LanguageToolMenus: LTHeadMenu: switchOffId not found");
           return;
         }
+        
+        switchOffId += 5;
+        
         boolean hasStatisticalStyleRules = false;
         if (document.getDocumentType() == DocumentType.WRITER &&
             !document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
@@ -258,15 +265,15 @@ public class WtMenus {
           }
         }
         if (hasStatisticalStyleRules) {
-          short statRuleId = (short)(switchOffId + 5);
-          ltMenu.insertItem(statRuleId, MESSAGES.getString("loStatisticalAnalysis") + " ...", 
+          ltMenu.insertItem(switchOffId, MESSAGES.getString("loStatisticalAnalysis") + " ...", 
               (short)0, switchOffPos);
-          ltMenu.setCommand(statRuleId, LT_STATISTICAL_ANALYSES_COMMAND);
+          ltMenu.setCommand(switchOffId, LT_STATISTICAL_ANALYSES_COMMAND);
+          switchOffId++;
           switchOffPos++;
         }
         ltMenu.insertItem(switchOffId, MESSAGES.getString("loMenuResetIgnorePermanent"), (short)0, switchOffPos);
         ltMenu.setCommand(switchOffId, LT_RESET_IGNORE_PERMANENT_COMMAND);
-        switchOffId--;
+        switchOffId++;
         switchOffPos++;
         ltMenu.insertItem(switchOffId, MESSAGES.getString("loMenuEnableBackgroundCheck"), (short)0, switchOffPos);
         if (document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
@@ -312,29 +319,14 @@ public class WtMenus {
         setProfileMenu(profilesId, profilesPos);
       }
       int nProfileItems = setProfileItems();
-      setActivateRuleMenu((short)(switchOffPos + 3), (short)(switchOffId + 11), (short)(switchOffId + SUBMENU_ID_DIFF + nProfileItems));
-      short nId = (short)(SUBMENU_ID_AI + 1);
-//      short nPos = (short)(switchOffPos + 3);
-      short aiPos = ltMenu.getItemPos((short)(nId + 1));
-//      short aiAutoPos = ltMenu.getItemPos(nId);
-/*      
-      if (config.useAiSupport() && !config.aiAutoCorrect() && aiAutoPos < 1) {
-        ltMenu.insertItem(nId, MESSAGES.getString("loMenuAiAddErrorMarks"), (short) 0, nPos);
-        ltMenu.setCommand(nId, LT_AI_MARK_ERRORS);
-        ltMenu.enableItem(nId , true);
-        nPos++;
-      } else if ((!config.useAiSupport() || config.aiAutoCorrect()) && aiAutoPos > 0) {
-        ltMenu.removeItem(aiAutoPos, (short)1);
-      }
-*/      
+      boolean isActivateRuleMenue = setActivateRuleMenu((short)(switchOffPos + 3), (short)(switchOffId + 11), (short)(switchOffId + SUBMENU_ID_DIFF + nProfileItems));
+      short aiPos = ltMenu.getItemPos(SUBMENU_ID_AI);
       if ((config.useAiSupport() || config.useAiImgSupport()) && aiPos < 1) {
-        setAIMenu((short)(switchOffPos + 3), SUBMENU_ID_AI, (short)(SUBMENU_ID_AI + 1));
-/*
-        nId++;
-        ltMenu.insertItem(nId, MESSAGES.getString("loMenuAiGeneralCommand"), (short) 0, nPos);
-        ltMenu.setCommand(nId, LT_AI_GENERAL_COMMAND);
-        ltMenu.enableItem(nId , true);
-*/
+        short aiPosNew = (short)(switchOffPos + 3);
+        if (isActivateRuleMenue) {
+          aiPosNew++;
+        }
+        setAIMenu(aiPosNew, SUBMENU_ID_AI, (short)(SUBMENU_ID_AI + 1));
       } else if ((!config.useAiSupport() && !config.useAiImgSupport()) && aiPos > 0) {
         ltMenu.removeItem(aiPos, (short)1);
       }
@@ -346,7 +338,7 @@ public class WtMenus {
      */
     private void setProfileMenu(short profilesId, short profilesPos) throws Throwable {
       ltMenu.insertItem(profilesId, MESSAGES.getString("loMenuChangeProfiles"), MenuItemStyle.AUTOCHECK, profilesPos);
-      ltMenu.setCommand(profilesId, LT_PROFILE_COMMAND);
+      ltMenu.setCommand(profilesId, LT_PROFILES_COMMAND);
       xProfileMenu = WtOfficeTools.getPopupMenu(xContext);
       if (xProfileMenu == null) {
         WtMessageHandler.printToLogFile("LanguageToolMenus: setProfileMenu: Profile menu == null");
@@ -420,7 +412,7 @@ public class WtMenus {
     /**
      * Set Activate Rule Submenu
      */
-    private void setActivateRuleMenu(short pos, short id, short submenuStartId) throws Throwable {
+    private boolean setActivateRuleMenu(short pos, short id, short submenuStartId) throws Throwable {
       Map<String, String> deactivatedRulesMap = document.getMultiDocumentsHandler().getDisabledRulesMap(null);
       if (!deactivatedRulesMap.isEmpty()) {
         if (ltMenu.getItemPos(id) < 1 || xActivateRuleMenu == null) {
@@ -428,7 +420,7 @@ public class WtMenus {
           xActivateRuleMenu = WtOfficeTools.getPopupMenu(xContext);
           if (xActivateRuleMenu == null) {
             WtMessageHandler.printToLogFile("LanguageToolMenus: setActivateRuleMenu: activate rule menu == null");
-            return;
+            return false;
           }
           xActivateRuleMenu.addMenuListener(this);
           ltMenu.setPopupMenu(id, xActivateRuleMenu);
@@ -444,12 +436,14 @@ public class WtMenus {
           nId++;
           nPos++;
         }
+        return true;
       } else if (xActivateRuleMenu != null) {
         pos = ltMenu.getItemPos(id);
         ltMenu.removeItem(pos, (short)1);
         xActivateRuleMenu.removeItem((short) 0, xActivateRuleMenu.getItemCount());
         xActivateRuleMenu = null;
       }
+      return false;
     }
 
     /**
