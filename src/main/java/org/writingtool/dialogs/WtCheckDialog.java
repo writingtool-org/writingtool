@@ -1232,7 +1232,8 @@ public class WtCheckDialog extends Thread {
         dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         ((Frame) dialog.getOwner()).setIconImage(ltImage);
-        defaultForeground = dialog.getForeground() == null ? Color.BLACK : dialog.getForeground();
+//        defaultForeground = dialog.getForeground() == null ? Color.BLACK : dialog.getForeground();
+        defaultForeground = errorDescription.getForeground() == null ? Color.BLACK : errorDescription.getForeground();
   
         languageLabel.createToolTip().updateUI();
         
@@ -1316,7 +1317,7 @@ public class WtCheckDialog extends Thread {
         errorDescription.setEditable(false);
         errorDescription.setLineWrap(true);
         errorDescription.setWrapStyleWord(true);
-        errorDescription.setBackground(dialog.getContentPane().getBackground());
+//        errorDescription.setBackground(dialog.getContentPane().getBackground());
         errorDescription.setText(checkStatusInitialization);
         errorDescription.setForeground(Color.RED);
         Font descriptionFont = dialogFont.deriveFont(Font.BOLD);
@@ -1356,7 +1357,7 @@ public class WtCheckDialog extends Thread {
         
         suggestionsLabel.setFont(dialogFont);
   
-        suggestions.setFont(dialogFont);
+//        suggestions.setFont(dialogFont);
         suggestions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         suggestions.setFixedCellHeight((int)(suggestions.getFont().getSize() * 1.2 + 0.5));
         suggestions.setToolTipText(formatToolTipText(suggestionsHelp));
@@ -2373,13 +2374,13 @@ public class WtCheckDialog extends Thread {
       activateRule.setEnabled(false);
       checkRuleBox.setEnabled(false);
       endOfDokumentMessage = null;
-      sentenceIncludeError.setBackground(Color.LIGHT_GRAY);
+//      sentenceIncludeError.setBackground(Color.LIGHT_GRAY);
       sentenceIncludeError.setEnabled(false);
-      suggestions.setBackground(Color.LIGHT_GRAY);
+//      suggestions.setBackground(Color.LIGHT_GRAY);
       suggestions.setEnabled(false);
       errorDescription.setText(checkStatusCheck);
       errorDescription.setForeground(Color.RED);
-      errorDescription.setBackground(Color.LIGHT_GRAY);
+//      errorDescription.setBackground(Color.LIGHT_GRAY);
       contentPane.revalidate();
       contentPane.repaint();
       dialog.setEnabled(false);
@@ -2443,7 +2444,7 @@ public class WtCheckDialog extends Thread {
           isSpellError = error.nErrorType == TextMarkupType.SPELLCHECK;
           blockSentenceError = true;
           sentenceIncludeError.setEnabled(true);
-          sentenceIncludeError.setBackground(Color.white);
+//          sentenceIncludeError.setBackground(Color.white);
 /*          
           String sFootnotes = "";
           for (int n : docCache.getFlatParagraphFootnotes(y)) {
@@ -2462,7 +2463,7 @@ public class WtCheckDialog extends Thread {
           errorDescription.setEnabled(true);
           errorDescription.setText(error.aFullComment);
           errorDescription.setForeground(defaultForeground);
-          errorDescription.setBackground(Color.white);
+//          errorDescription.setBackground(Color.white);
           ignoreOnce.setEnabled(true);
           ignoreAll.setEnabled(true);
           if (debugMode) {
@@ -2472,7 +2473,7 @@ public class WtCheckDialog extends Thread {
             suggestions.setEnabled(true);
             suggestions.setListData(error.aSuggestions);
             suggestions.setSelectedIndex(0);
-            suggestions.setBackground(Color.white);
+//            suggestions.setBackground(Color.white);
             change.setEnabled(true);
             changeAll.setEnabled(!documents.isBackgroundCheckOff() || isSpellError);
             autoCorrect.setEnabled(true);
@@ -2579,7 +2580,7 @@ public class WtCheckDialog extends Thread {
           errorDescription.setEnabled(true);
           errorDescription.setForeground(Color.RED);
           errorDescription.setText(endOfDokumentMessage == null ? " " : endOfDokumentMessage);
-          errorDescription.setBackground(Color.white);
+//          errorDescription.setBackground(Color.white);
           sentenceIncludeError.setEnabled(false);
 //          sentenceIncludeError.setText(" ");
           errorDescription.setEnabled(true);
