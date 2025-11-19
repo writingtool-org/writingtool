@@ -313,6 +313,25 @@ public class WtDocumentsHandler {
     }
     return paRes;
   }
+  
+  /**
+   *  Is current document known
+   */
+  private boolean isKnownDocument() {
+    try {
+      XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
+      if (xComponent != null) {
+        for (WtSingleDocument document : documents) {
+          if (xComponent.equals(document.getXComponent())) {
+            return true;
+          }
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+    return false;
+  }
 
   /**
    *  Get the current used document
@@ -559,7 +578,7 @@ public class WtDocumentsHandler {
           found = true;
           document.dispose(true);
           disposedIds.add(document.getDocID());
-          if (documents.size() < 2) {
+//          if (documents.size() < 2) {
  /*
             if (textLevelQueue != null) {
               textLevelQueue.setStop();
@@ -570,8 +589,8 @@ public class WtDocumentsHandler {
               aiQueue = null;
             }
 */            
-            isHelperDisposed = true;
-          }
+//            isHelperDisposed = true;
+//          }
 //          document.removeDokumentListener(xComponent);
 //          document.setXComponent(xContext, null);
           if (document.getDocumentCache().hasNoContent(false)) {
@@ -603,7 +622,7 @@ public class WtDocumentsHandler {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareUnload for docId: " + docId);
       }
       if (documents.size() < 2) {
-        isHelperDisposed = true;
+//        isHelperDisposed = true;
         if (textLevelQueue != null) {
           textLevelQueue.setStop();
           textLevelQueue = null;
@@ -2628,40 +2647,45 @@ public class WtDocumentsHandler {
     public void run() {
       try {
         WtSingleDocument currentDocument = null;
-        while (!isHelperDisposed && currentDocument == null) {
+        while (!isHelperDisposed) {
           Thread.sleep(250);
           if (isHelperDisposed) {
             return;
           }
-          currentDocument = getCurrentDocument();
-
-          if (isFirstRun) {
-            if (isLOConfigIncorrect(currentDocument)) {
-              String cmd = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?enableWt";
-              while (!WtOfficeTools.dispatchCmd(cmd, xContext)) {
-                Thread.sleep(250);
-              }
-            }
-            isFirstRun = false;
+          boolean isUnknownDocument = !isKnownDocument();
+          if (isFirstRun || isUnknownDocument) {
+            currentDocument = getCurrentDocument();
           }
-
-          if (currentDocument != null && (currentDocument.getDocumentType() == DocumentType.IMPRESS 
-              || currentDocument.getDocumentType() == DocumentType.CALC)) {
-            if (currentDocument.getDocumentType() == DocumentType.IMPRESS) {
-              checkImpressDocument = true;
-              locale = WtOfficeDrawTools.getDocumentLocale(currentDocument.getXComponent());
-            } else {
-              locale = WtOfficeSpreadsheetTools.getDocumentLocale(currentDocument.getXComponent());
+          if (currentDocument != null) {
+            if (isFirstRun) {
+              if (isLOConfigIncorrect(currentDocument)) {
+                String cmd = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?enableWt";
+                while (!WtOfficeTools.dispatchCmd(cmd, xContext)) {
+                  Thread.sleep(250);
+                }
+              }
+              isFirstRun = false;
             }
-            if (locale == null) {
-              locale = new Locale("en","US","");
-            }
-            WtMessageHandler.printToLogFile("MultiDocumentsHandler: WtHelper: local: " + WtOfficeTools.localeToString(locale));
-            langForShortName = getLanguage(locale);
-            if (langForShortName != null) {
-              docLanguage = langForShortName;
-              lt = initLanguageTool();
-              initDocuments(false);
+            if (isUnknownDocument) {
+              if ((currentDocument.getDocumentType() == DocumentType.IMPRESS 
+                  || currentDocument.getDocumentType() == DocumentType.CALC)) {
+                if (currentDocument.getDocumentType() == DocumentType.IMPRESS) {
+                  checkImpressDocument = true;
+                  locale = WtOfficeDrawTools.getDocumentLocale(currentDocument.getXComponent());
+                } else {
+                  locale = WtOfficeSpreadsheetTools.getDocumentLocale(currentDocument.getXComponent());
+                }
+                if (locale == null) {
+                  locale = new Locale("en","US","");
+                }
+                WtMessageHandler.printToLogFile("MultiDocumentsHandler: WtHelper: local: " + WtOfficeTools.localeToString(locale));
+                langForShortName = getLanguage(locale);
+                if (langForShortName != null) {
+                  docLanguage = langForShortName;
+                  lt = initLanguageTool();
+                  initDocuments(false);
+                }
+              }
             }
           }
         }

@@ -444,6 +444,10 @@ public class WtSingleDocument {
       }
       if (ltMenus == null && !mDocHandler.isOpenOffice && docType == DocumentType.WRITER && paraText.length() > 0) {
         ltMenus = new WtMenus(xContext, this, config);
+        WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+        if (sidebarContent != null) {
+          sidebarContent.resizeContainer();
+        }
       }
 /*  TODO: in LT 6.5 add dynamic toolbar          
       if (!mDocHandler.isOpenOffice && docType == DocumentType.WRITER && docCache != null && docCache.getDocumentLocale() != null

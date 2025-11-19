@@ -675,7 +675,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return WtOfficeTools.hasStatisticalStyleRules(xContext);
   }
   
-  private void resizeContainer() {
+  public void resizeContainer() {
     Rectangle rect = contentWindow.getPosSize();
     containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BETWEEN - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM;
 //    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
@@ -775,8 +775,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private void setTextToBox() {
     try {
-      resizeContainer();
       setCursorTextToBox();
+      resizeContainer();
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
     }
