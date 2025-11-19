@@ -405,6 +405,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
         props = new TreeMap<>();
         props.put("TextColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+        props.put("BackgroundColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
         if (i == WtOfficeTools.CACHE_AI) {
           props.put("HelpText", AI_CACHE_LABEL);
         } else {
@@ -974,6 +975,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     try {
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xCacheSizeLabel.getModel());
       props.setPropertyValue("TextColor", color.getRGB() & ~0xFF000000);
+      props.setPropertyValue("BackgroundColor", color.getRGB() & ~0xFF000000);
       props.setPropertyValue("HelpText", tooltipText);
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
