@@ -261,6 +261,10 @@ public class WtCheckDialog extends Thread {
       }
       if (currentDocument == null || docCache == null || docCache.size() <= 0) {
         inf.close();
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("CheckDialog: run: close busy: currentDocument: " + (currentDocument != null? "NOT " : "") 
+              + "null, " + (docCache == null ? "docCache == null" : "docCache.size: " + docCache.size()));
+        }
         WtMessageHandler.showMessage(loBusyMessage);
         documents.setLtDialogIsRunning(false);
         return;
