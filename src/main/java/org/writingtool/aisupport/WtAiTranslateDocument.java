@@ -18,7 +18,6 @@
  */
 package org.writingtool.aisupport;
 
-import java.awt.Component;
 import java.util.ResourceBundle;
 
 import javax.swing.SwingUtilities;

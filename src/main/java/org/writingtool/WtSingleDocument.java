@@ -287,11 +287,16 @@ public class WtSingleDocument {
         int nFPara = -1;
         if (hasSortedTextId) {
           nFPara = docCache.getFlatparagraphFromSortedTextId(sortedTextId);
-          if (debugMode > 0) {
-            WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: get errors direct from cache, nFPara: " + nFPara);
-          }
-          if (nFPara >= 0) {
+          if (isMouseRequest && nFPara >= 0) {
+            if (debugMode > 0) {
+              WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: get errors direct from cache, nFPara: " + nFPara
+                  + ", isMouseRequest: " + isMouseRequest);
+            }
             return getErrorsFromCache(nFPara, paRes, paraText, locale, lt);
+          }
+          if (!isMouseRequest && nFPara >= 0 && !paraText.equals(docCache.getFlatParagraph(nFPara))) {
+            docCache.setFlatParagraph(nFPara, paraText);
+            removeResultCache(nFPara, true);
           }
         }
         if ((WtDocumentCursorTools.isBusy() || WtViewCursorTools.isBusy() || WtFlatParagraphTools.isBusy() || docCache.isResetRunning())) {
@@ -300,7 +305,7 @@ public class WtSingleDocument {
           WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage,
               docLanguage, numParasToCheck, true, isMouseRequest, false);
           paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(singleCheck.checkParaRules(paraText, locale, 
-                            footnotePositions, -1, paRes.nStartOfSentencePosition, lt, 0, 0, false, false, errType));
+                            footnotePositions, nFPara, paRes.nStartOfSentencePosition, lt, 0, 0, false, false, errType));
 //          if (paRes.aErrors != null && paRes.aErrors.length > 0) {
 //            WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: errors[0]: " + paRes.aErrors[0].aRuleIdentifier);
 //          }
