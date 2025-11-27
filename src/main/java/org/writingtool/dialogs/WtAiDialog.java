@@ -202,6 +202,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private int seed = randomInteger();
   private int step = DEFAULT_STEP;
   private int instructionIndex = 0;
+  private File fileToSave = null;
   private BufferedImage image;
   private String urlString;
 
@@ -1275,8 +1276,10 @@ public class WtAiDialog extends Thread implements ActionListener {
    * Initial button state
    */
   private void setAtWorkState(boolean work) {
+    checkProgress.setStringPainted(false);
     checkProgress.setIndeterminate(work);
     if (!work) {
+      checkProgress.setStringPainted(true);
       checkProgress.setValue(100);
     }
     atWork = work;
@@ -1660,7 +1663,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       return;
     }
-    String parsedText = text.replace("\n", "\r").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
+    String parsedText = text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
     imgInstruction.setText(parsedText);
     exclude.setText("");
     createImage();
@@ -1791,12 +1794,14 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private void saveImage() {
     JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle(messages.getString("loAiDialogImgSaveTitle"));   
-     
+    fileChooser.setDialogTitle(messages.getString("loAiDialogImgSaveTitle"));
+    if (fileToSave != null) {
+      fileChooser.setSelectedFile(fileToSave);
+    }
     int userSelection = fileChooser.showSaveDialog(dialog);
      
     if (userSelection == JFileChooser.APPROVE_OPTION) {
-      File fileToSave = fileChooser.getSelectedFile();
+      fileToSave = fileChooser.getSelectedFile();
       saveImage(fileToSave);
     }
   }

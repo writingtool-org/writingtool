@@ -234,8 +234,9 @@ public class WtAiRemote {
     String langName = locale.Language;
     String org = text == null ? instruction : text;
     if (text != null) {
-      text = text.replace("\n", "\r").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
+      text = text.replace("\n", " ").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
     }
+    instruction = instruction.replace("\n", " ").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
     String urlParameters;
 //    instruction = addLanguageName(instruction, locale);
     if (aiType == AiType.CHAT) {
@@ -275,16 +276,16 @@ public class WtAiRemote {
       WtMessageHandler.printToLogFile("AiRemote: runInstruction: postData: " + urlParameters);
     }
     HttpURLConnection conn = null;
-    try {
-      conn = getConnection(postData, checkUrl, apiKey);
-    } catch (RuntimeException e) {
-      WtMessageHandler.printException(e);
-      stopAiRemote();
-      return null;
-    }
     int trials = 0;
     while (trials < REMOTE_TRIALS) {
       trials++;
+      try {
+        conn = getConnection(postData, checkUrl, apiKey);
+      } catch (RuntimeException e) {
+        WtMessageHandler.printException(e);
+        stopAiRemote();
+        return null;
+      }
       try {
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
           try (InputStream inputStream = conn.getInputStream()) {
@@ -310,9 +311,9 @@ public class WtAiRemote {
         } else {
           try (InputStream inputStream = conn.getErrorStream()) {
             String error = readStream(inputStream, "utf-8");
-            WtMessageHandler.printToLogFile("Got error: " + error + " - HTTP response code " + conn.getResponseCode());
-            WtMessageHandler.printToLogFile("urlParameters: " + urlParameters);
-            stopAiRemote();
+            WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
+                  + "\nurlParameters: " + urlParameters);
+//            stopAiRemote();
             return null;
           }
         }
@@ -384,8 +385,9 @@ public class WtAiRemote {
       } else {
         try (InputStream inputStream = conn.getErrorStream()) {
           String error = readStream(inputStream, "utf-8");
-          WtMessageHandler.printToLogFile("Got error: " + error + " - HTTP response code " + conn.getResponseCode());
-          stopAiImgRemote();
+          WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
+          + "\nurlParameters: " + urlParameters);
+//        stopAiRemote();
           return null;
         }
       }
@@ -406,7 +408,7 @@ public class WtAiRemote {
     if (text == null || text.trim().isEmpty()) {
       return null;
     }
-    text = text.replace("\n", "\r").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
+    text = text.replace("\n", " ").replace("\r", " ").replace("\"", "\\\"").replace("\t", " ");
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: Ask AI started! URL: " + url);
     }
@@ -438,9 +440,9 @@ public class WtAiRemote {
       } else {
         try (InputStream inputStream = conn.getErrorStream()) {
           String error = readStream(inputStream, "utf-8");
-          WtMessageHandler.printToLogFile("Got error: " + error + " - HTTP response code " + conn.getResponseCode());
-          WtMessageHandler.printToLogFile("Url: " + checkUrl.toString() + "\nurlParameters: " + urlParameters);
-          stopAiTtsRemote();
+          WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
+              + "\nurlParameters: " + urlParameters);
+//        stopAiRemote();
           return null;
         }
       }
