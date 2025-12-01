@@ -192,16 +192,22 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
         WtDocumentCache docCache = document.getDocumentCache();
         if (docCache != null) {
           int nFPara = nTPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nTPara.number : docCache.getFlatParagraphNumber(nTPara);
-          if (debugMode > 1) {
-            WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry for " 
-                + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId
-                + ", nFPara = " + nFPara);
-          }
-          WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
-          aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
-          multiDocHandler.setCacheStatusColor(document);
-          if (multiDocHandler.useAiSuggestion()) {
-            aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
+          if (nFPara >= 0) {
+            String paraText = new String(docCache.getFlatParagraph(nFPara));
+            if (debugMode > 1) {
+              WtMessageHandler.printToLogFile(nameOfQueue() + ": Run Queue Entry for " 
+                  + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + qEntry.docId
+                  + ", nFPara = " + nFPara);
+            }
+            WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
+            aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
+            multiDocHandler.setCacheStatusColor(document);
+            if (multiDocHandler.useAiSuggestion()) {
+              aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
+            }
+            if (!paraText.equals(docCache.getFlatParagraph(nFPara))) {
+              addQueueEntry(nTPara, qEntry.docId, true);
+            }
           }
         }
       }
