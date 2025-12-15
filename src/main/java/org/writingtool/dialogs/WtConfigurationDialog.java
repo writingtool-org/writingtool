@@ -391,7 +391,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     cons.fill = GridBagConstraints.NONE;
     cons.anchor = GridBagConstraints.LINE_END;
-    jPane.add(getTreeButtonPanel(0), cons);
+    jPane.add(getTreeButtonPanel(0, rules), cons);
     cons.fill = GridBagConstraints.HORIZONTAL;
     cons.anchor = GridBagConstraints.WEST;
     cons.gridx = 0;
@@ -418,7 +418,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     cons.fill = GridBagConstraints.NONE;
     cons.anchor = GridBagConstraints.LINE_END;
-    jPane.add(getTreeButtonPanel(1), cons);
+    jPane.add(getTreeButtonPanel(1, rules), cons);
     cons.fill = GridBagConstraints.HORIZONTAL;
     cons.anchor = GridBagConstraints.WEST;
     cons.gridx = 0;
@@ -446,7 +446,7 @@ public class WtConfigurationDialog implements ActionListener {
       cons.gridy++;
       cons.fill = GridBagConstraints.NONE;
       cons.anchor = GridBagConstraints.LINE_END;
-      jPane.add(getTreeButtonPanel(i + 2), cons);
+      jPane.add(getTreeButtonPanel(i + 2, rules), cons);
   
       cons.fill = GridBagConstraints.HORIZONTAL;
       cons.anchor = GridBagConstraints.WEST;
@@ -1651,9 +1651,50 @@ public class WtConfigurationDialog implements ActionListener {
     }
     return ret;
   }
+  
+  private void actualizeRuleStatus(int num, List<Rule> rules) {
+    TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+    for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+      WtCategoryNode o = (WtCategoryNode) cat.nextElement();
+      if (o.getCategory().isDefaultOff()) {
+        if (o.isEnabled()) {
+          config.getDisabledCategoryNames().remove(o.getCategory().getName());
+          config.getEnabledCategoryNames().add(o.getCategory().getName());
+        } else {
+          config.getDisabledCategoryNames().add(o.getCategory().getName());
+          config.getEnabledCategoryNames().remove(o.getCategory().getName());
+        }
+      } else {
+        if (o.isEnabled()) {
+          config.getDisabledCategoryNames().remove(o.getCategory().getName());
+        } else {
+          config.getDisabledCategoryNames().add(o.getCategory().getName());
+        }
+      }
+      for (Enumeration<?> rul = o.children(); rul.hasMoreElements();) {
+        WtRuleNode r = (WtRuleNode) rul.nextElement();
+        if (r.getRule().isDefaultOff() || r.getRule().getCategory().isDefaultOff()) {
+          if (r.isEnabled()) {
+            config.getEnabledRuleIds().add(r.getRule().getId());
+            config.getDisabledRuleIds().remove(r.getRule().getId());
+          } else {
+            config.getEnabledRuleIds().remove(r.getRule().getId());
+            config.getDisabledRuleIds().add(r.getRule().getId());
+          }
+        } else {
+          if (r.isEnabled()) {
+            config.getDisabledRuleIds().remove(r.getRule().getId());
+          } else {
+            config.getDisabledRuleIds().add(r.getRule().getId());
+          }
+        }
+      }
+    }
+    updateProfileRules(rules);
+  }
 
   @NotNull
-  private JPanel getTreeButtonPanel(int num) {
+  private JPanel getTreeButtonPanel(int num, List<Rule> rules) {
     GridBagConstraints cons;
     JPanel treeButtonPanel = new JPanel();
     cons = new GridBagConstraints();
@@ -1673,6 +1714,7 @@ public class WtConfigurationDialog implements ActionListener {
           r.setEnabled(true);
         }
       }
+      actualizeRuleStatus(num, rules);
       configTree[num].repaint();
     });
 
@@ -1689,6 +1731,7 @@ public class WtConfigurationDialog implements ActionListener {
           r.setEnabled(false);
         }
       }
+      actualizeRuleStatus(num, rules);
       configTree[num].repaint();
     });
 
@@ -1705,6 +1748,7 @@ public class WtConfigurationDialog implements ActionListener {
           r.setEnabled(getDefaultRuleState(r.getRule()));
         }
       }
+      actualizeRuleStatus(num, rules);
       configTree[num].repaint();
     });
     
