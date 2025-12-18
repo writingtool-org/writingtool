@@ -295,6 +295,9 @@ public class WtDocumentsHandler {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start getCheckResults at single document: " + paraText);
     }
 //    handleLtDictionary(paraText);
+    if (docNum >= documents.size()) {
+      return paRes;
+    }
     paRes = documents.get(docNum).getCheckResults(paraText, locale, paRes, propertyValues, docReset, lt, LoErrorType.GRAMMAR);
     setCacheStatusColor(documents.get(docNum));
     if (!isBackgroundCheckOff() && lt.doReset()) {

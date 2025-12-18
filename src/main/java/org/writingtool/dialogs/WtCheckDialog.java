@@ -444,7 +444,13 @@ public class WtCheckDialog extends Thread {
     }
     WtDocumentCursorTools docCursor = new WtDocumentCursorTools(document.getXComponent());
     int[] textFieldPositions = docCache.getFlatParagraphFieldPositions(nFPara);
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraphByDocCursor: do change");
+    }
     docCursor.changeTextOfParagraphCorrected(docCache.getNumberOfTextParagraph(nFPara), nStart, nLength, replace, textFieldPositions);
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraphByDocCursor: done!");
+    }
   }
   
   /**
@@ -457,7 +463,7 @@ public class WtCheckDialog extends Thread {
     String sEnd = (nStart + nLength < sPara.length() ? sPara.substring(nStart + nLength) : "");
     sPara = sPara.substring(0, nStart) + replace + sEnd;
     if (debugMode) {
-      WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraph: set setFlatParagraph: " + sPara);
+      WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraph: set FlatParagraph: " + sPara);
     }
     if (docType == DocumentType.IMPRESS) {
       WtOfficeDrawTools.changeTextOfParagraph(nFPara, nStart, nLength, replace, document.getXComponent());
@@ -467,7 +473,14 @@ public class WtCheckDialog extends Thread {
 //      nStart = correctStartOfChange(nStart, nFPara);
 //      boolean success = document.getFlatParagraphTools().changeTextOfParagraph(nFPara, nStart, nLength, replace);
 //      if (!success) {
-        changeTextOfParagraphByDocCursor(nFPara, nStart, nLength, replace, document);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraph: nFPara: " + nFPara + ", nStart:" + nStart
+            + ", nLength:" + nLength + ", replace:" + replace);
+      }
+      changeTextOfParagraphByDocCursor(nFPara, nStart, nLength, replace, document);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("CheckDialog: changeTextOfParagraph: done!");
+      }
 //      }
     }
     docCache.setFlatParagraph(nFPara, sPara);
@@ -1584,13 +1597,14 @@ public class WtCheckDialog extends Thread {
         checkRuleBox.setVisible(true);
         checkRuleBox.setEnabled(false);
         checkRuleBox.addItemListener(e -> {
-          if (e.getStateChange() == ItemEvent.SELECTED && checkType == 3 && checkRuleBox.getItemCount() > 0) {
+          if (e.getStateChange() == ItemEvent.SELECTED && checkType == 3 && checkRuleBox.getItemCount() > 0 && !atWork) {
             String newRuleId = getRuleId((String) checkRuleBox.getSelectedItem(), allDifferentErrors);
             if (checkRuleId == null || !checkRuleId.equals(newRuleId)) {
               Thread t = new Thread(new Runnable() {
                 public void run() {
                   try {
                     WtMessageHandler.printToLogFile("checkDialog: Set checkRuleId old: " + checkRuleId + ", new: " + newRuleId);
+                    setAtWorkButtonState(true);
                     checkRuleId = newRuleId;
                     startOfRange = -1;
                     endOfRange = -1;

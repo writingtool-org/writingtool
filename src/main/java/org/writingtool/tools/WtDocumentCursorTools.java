@@ -425,15 +425,31 @@ public class WtDocumentCursorTools {
   }
   
   /**
-   * Print properties to log file for the actual position of cursor
+   * get the SortedTextId of the actual position of cursor
    */
   private static int getSortedTextId(XParagraphCursor xPCursor) {
     try {
       if (xPCursor == null) {
-        WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: ParagraphCursor == null");
+        WtMessageHandler.printToLogFile("DocumentCursorTools: getSortedTextId: ParagraphCursor == null");
         return -1;
       }
-      XPropertySet xParagraphPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xPCursor.getStart());
+      return getSortedTextId(xPCursor.getStart());
+    } catch (Throwable e) {
+      WtMessageHandler.printException(e);
+    }
+    return -1;
+  }
+  
+  /**
+   * get the SortedTextId of a range
+   */
+  private static int getSortedTextId(XTextRange xTextRange) {
+    try {
+      if (xTextRange == null) {
+        WtMessageHandler.printToLogFile("DocumentCursorTools: getSortedTextId: xTextRange == null");
+        return -1;
+      }
+      XPropertySet xParagraphPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xTextRange);
       if (xParagraphPropertySet != null) {
         return (int) xParagraphPropertySet.getPropertyValue("SortedTextId");
       }
@@ -1694,6 +1710,8 @@ public class WtDocumentCursorTools {
   private int getTextFieldLength(TextParagraph tPara, int nStart, XParagraphCursor xPCursor) {
     List<String> fieldNames = null;
     List<XTextRange> fieldAnchors = null;
+    int sortedId = getSortedTextId(xPCursor);
+    boolean hasSortedId = sortedId >= 0;
     int sumLength = 0;
     try {
       XTextFieldsSupplier xTextFieldsSupplier = UnoRuntime.queryInterface(XTextFieldsSupplier.class, curDoc);
@@ -1728,8 +1746,14 @@ public class WtDocumentCursorTools {
         fieldAnchors.add(anchor);
       }
       for (int j = 0; j < fieldAnchors.size(); j++) {
-        TextParagraph aPara = getParagraphFromRange(fieldAnchors.get(j));
-        if (tPara.equals(aPara)) {
+        TextParagraph aPara = null;
+        int sortedAnchorId = -1;
+        if (hasSortedId) {
+          sortedAnchorId = getSortedTextId(fieldAnchors.get(j));
+        } else {
+          aPara = getParagraphFromRange(fieldAnchors.get(j));
+        }
+        if ((hasSortedId && sortedId == sortedAnchorId) || (!hasSortedId && tPara.equals(aPara))) {
           XTextCursor tCursor = fieldAnchors.get(j).getText().createTextCursorByRange(fieldAnchors.get(j).getStart());
           XParagraphCursor pCursor = UnoRuntime.queryInterface(XParagraphCursor.class, tCursor);
           pCursor.gotoStartOfParagraph(true);
@@ -1850,6 +1874,9 @@ public class WtDocumentCursorTools {
   private String flatTextForTextField(TextParagraph tPara, String text, List<Integer> pos) {
     List<XTextRange> fieldAnchors = null;
     try {
+      XParagraphCursor xtPCursor = getParagraphCursor(tPara);
+      int sortedId = getSortedTextId(xtPCursor);
+      boolean hasSortedId = sortedId >= 0;
       XTextFieldsSupplier xTextFieldsSupplier = UnoRuntime.queryInterface(XTextFieldsSupplier.class, curDoc);
       if (xTextFieldsSupplier == null) {
         WtMessageHandler.printToLogFile("WtDocumentCursorTools: getTextFieldLength: xTextFieldsSupplier == null");
@@ -1879,8 +1906,14 @@ public class WtDocumentCursorTools {
         fieldAnchors.add(anchor);
       }
       for (int j = 0; j < fieldAnchors.size(); j++) {
-        TextParagraph aPara = getParagraphFromRange(fieldAnchors.get(j));
-        if (tPara.equals(aPara)) {
+        TextParagraph aPara = null;
+        int sortedAnchorId = -1;
+        if (hasSortedId) {
+          sortedAnchorId = getSortedTextId(fieldAnchors.get(j));
+        } else {
+          aPara = getParagraphFromRange(fieldAnchors.get(j));
+        }
+        if ((hasSortedId && sortedId == sortedAnchorId) || (!hasSortedId && tPara.equals(aPara))) {
           XTextCursor tCursor = fieldAnchors.get(j).getText().createTextCursorByRange(fieldAnchors.get(j).getStart());
           XParagraphCursor pCursor = UnoRuntime.queryInterface(XParagraphCursor.class, tCursor);
           pCursor.gotoStartOfParagraph(true);

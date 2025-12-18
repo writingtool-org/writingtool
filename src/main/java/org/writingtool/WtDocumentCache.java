@@ -180,7 +180,7 @@ public class WtDocumentCache implements Serializable {
   public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, 
       boolean wait, boolean synchronize, int fromWhere) {
     if (isReset) {
-      WtMessageHandler.printToLogFile("DocumentCache:refresh: isReset == true: return");
+      WtMessageHandler.printToLogFile("DocumentCache: refresh (from: " + fromWhere + "): isReset == true: return");
       return;
     }
     isReset = true;
