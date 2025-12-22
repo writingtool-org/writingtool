@@ -546,18 +546,20 @@ public class WtAiRemote {
   
   private String readStream(InputStream stream, String encoding) throws Throwable {
     StringBuilder sb = new StringBuilder();
-    try (InputStreamReader isr = new InputStreamReader(stream, encoding);
-         BufferedReader br = new BufferedReader(isr)) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        sb.append(line).append('\r');
+    if (stream != null) {
+      try (InputStreamReader isr = new InputStreamReader(stream, encoding);
+           BufferedReader br = new BufferedReader(isr)) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          sb.append(line).append('\r');
+        }
+      } catch (IOException e) {
+        //  stream is suddenly closed -> return null
+        if (debugMode > 0) {
+          WtMessageHandler.printToLogFile("AiRemote: readStream: IOException: " + e.getMessage());
+        }
+        return null;
       }
-    } catch (IOException e) {
-      //  stream is suddenly closed -> return null
-      if (debugMode > 0) {
-        WtMessageHandler.printToLogFile("AiRemote: readStream: IOException: " + e.getMessage());
-      }
-      return null;
     }
     return sb.toString();
   }
