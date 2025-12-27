@@ -211,7 +211,7 @@ public class WtAiTranslateDocument extends Thread {
         if(str.trim().isEmpty()) {
           continue;
         }
-        String out = aiRemote.runInstruction(instruction, str, temperature, 1, locale, true);
+        String out = aiRemote.runInstruction(instruction, str, temperature, 1, locale, true, false);
         TextParagraph textPara = fromCache.getNumberOfTextParagraph(i);
         replaceParagraph(textPara, out, locale);
         int nValue = i;

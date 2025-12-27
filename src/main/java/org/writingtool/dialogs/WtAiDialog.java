@@ -1393,7 +1393,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (locale == null) {
         locale = WtOfficeTools.getCursorLocale(documents.getContext());
       }
-      String output = aiRemote.runInstruction(instructionText, text, temperature, 0, locale, false);
+      String output = aiRemote.runInstruction(instructionText, text, temperature, 0, locale, false, true);
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: createText: output: " + output);
       }
@@ -1432,7 +1432,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         if (debugMode) {
           WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
         }
-        String output = aiRemote.runInstruction(instruction, text, temperature, 1, translLocale, true);
+        String output = aiRemote.runInstruction(instruction, text, temperature, 1, translLocale, true, true);
         result.setEnabled(true);
         result.setText(output);
         resultText = output;
@@ -1473,7 +1473,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " 
               + imgInstText + ", exclude: " + excludeText);
       }
-      urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageWidth);
+      urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageWidth, true);
       if (urlString != null) {
         if (debugMode) {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
@@ -1658,7 +1658,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       setAtWorkState(true);
       setButtonState(false);
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
-      text = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, text, 0, 0, locale, true);
+      text = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, text, 0, 0, locale, true, true);
     }
     if (text == null || text.trim().isEmpty()) {
       return;

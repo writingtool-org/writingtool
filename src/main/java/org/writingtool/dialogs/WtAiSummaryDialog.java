@@ -436,7 +436,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " + instruction + ", text: " 
               + (text.length() > 50 ? text.substring(0, 50)+ " ..." : text));
         }
-        String output = aiRemote.runInstruction(instruction, text, 0.0f, 0, locale, false);
+        String output = aiRemote.runInstruction(instruction, text, 0.0f, 0, locale, false, false);
         if (debugMode) {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: output: " + output);
         }

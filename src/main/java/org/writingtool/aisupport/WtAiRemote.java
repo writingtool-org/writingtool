@@ -31,7 +31,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -57,10 +59,12 @@ public class WtAiRemote {
   private final static int BUFFER_SIZE = 20000;
   private final static int CONNECT_TIMEOUT = 0;
   private final static int READ_TIMEOUT = 0;
+  private final static int WAIT_TIMEOUT = 1000; //  Hundredth of a second
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
   public final static int MAX_TEXT_LENGTH = 20000;
+  public final static int MAX_OID = 32000;
 
   public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";
   public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text without comments";
@@ -73,10 +77,13 @@ public class WtAiRemote {
   public final static float EXPAND_TEMPERATURE = 0.7f;
   public final static float SYNONYM_TEMPERATURE = 0.0f;
   
+  public static enum AiCategory { Text, Image, Speech };
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
   private static boolean isRunning = false;
-  private static List<String> oIds = new ArrayList<>();
+  private static Map<Integer, String> results = new HashMap<>();
+  private static List<AiEntry> entries = new ArrayList<>();
+  private static int lastOid = 0;
   private static boolean hasPrintedInfo = false;
 
   private enum AiType { EDITS, COMPLETIONS, CHAT }
@@ -97,7 +104,10 @@ public class WtAiRemote {
   private final String ttsUrl;
   private final AiType aiType;
   
-  private String oId;
+  private String outText;
+  private boolean isDone;
+  
+  private int oId = 0;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
     this.documents = documents;
@@ -122,88 +132,109 @@ public class WtAiRemote {
     }
   }
   
-  private String getId() {
-    int id = 0;
-    while (oIds.contains("" + id)) {
-      id++;
+  private int getId() {
+    if (lastOid == MAX_OID) {
+      lastOid = 0;
     }
-    return "" + id;
+    lastOid++;
+    return lastOid;
   }
 
   public String runInstruction(String instruction, String text, float temperature, 
-      int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
-    oId = getId();
-    oIds.add(oId);
-    try {
-      while (isRunning || !oId.equals(oIds.get(0))) {
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {
-          WtMessageHandler.printException(e);
-        }
-      }
-      isRunning = true;
-      return runInstruction_intern(instruction, text, temperature, seed, locale, onlyOneParagraph);
-    } catch (Throwable t) {
-      WtMessageHandler.showError(t);
-      return null;
-    } finally {
-      if (oIds.contains(oId)) {
-        oIds.remove(oId);
-      }
-      isRunning = false;
-    }
+      int seed, Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
+    return runInstructionGeneral(AiCategory.Text, instruction, text, null, null, temperature, seed, 0, 0, locale, onlyOneParagraph, preferred);
+  }
+
+  public String runImgInstruction(String instruction, String exclude, int step, int seed, int size, boolean preferred) throws Throwable {
+    return runInstructionGeneral(AiCategory.Image, instruction, null, exclude, null, 0, seed, step, size, null, false, preferred);
+  }
+
+  public String runTtsInstruction(String text, String filename, boolean preferred) throws Throwable {
+    return runInstructionGeneral(AiCategory.Speech, null, text, null, filename, 0, 0, 0, 0, null, false, preferred);
   }
   
-  public String runImgInstruction(String instruction, String exclude, int step, int seed, int size) throws Throwable {
+  public String runInstructionGeneral(AiCategory category, String instruction, String text, String exclude, String filename, 
+      float temperature, int seed, int step, int size, Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
+    if (oId > 0) {
+      throw new RuntimeException("Duplicate OID in WtAiRemote");
+    }
     oId = getId();
-    oIds.add(oId);
+    AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filename, temperature, seed, step, size, locale, onlyOneParagraph);
+    if (preferred) {
+      entries.add(0, entry);
+    } else {
+      entries.add(entry);
+    }
+    wakeRunAiEntries();
     try {
-      while (isRunning || !oId.equals(oIds.get(0))) {
+      while (!results.containsKey(oId)) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
           WtMessageHandler.printException(e);
         }
       }
-      isRunning = true;
-      return runImgInstruction_intern(instruction, exclude, step, seed, size);
+      String result = results.get(oId);
+      results.remove(oId);
+      return result;
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;
-    } finally {
-      if (oIds.contains(oId)) {
-        oIds.remove(oId);
+    }
+  }
+/*  
+  public String runImgInstruction(String instruction, String exclude, int step, int seed, int size, boolean preferred) throws Throwable {
+    oId = getId();
+    AiEntry entry = new AiEntry(oId, instruction, exclude, step, seed, size);
+    if (preferred) {
+      entries.add(0, entry);
+    } else {
+      entries.add(entry);
+    }
+    wakeRunAiEntries();
+    try {
+      while (!results.containsKey(oId)) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          WtMessageHandler.printException(e);
+        }
       }
-      isRunning = false;
+      String result = results.get(oId);
+      results.remove(oId);
+      return result;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
     }
   }
 
-  public String runTtsInstruction(String text, String filename) throws Throwable {
+  public String runTtsInstruction(String text, String filename, boolean preferred) throws Throwable {
     oId = getId();
-    oIds.add(oId);
+    AiEntry entry = new AiEntry(oId, text, filename);
+    if (preferred) {
+      entries.add(0, entry);
+    } else {
+      entries.add(entry);
+    }
+    wakeRunAiEntries();
     try {
-      while (isRunning || !oId.equals(oIds.get(0))) {
+      while (!results.containsKey(oId)) {
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
           WtMessageHandler.printException(e);
         }
       }
-      isRunning = true;
-      return runTtsInstruction_intern(text, filename);
+      String result = results.get(oId);
+      results.remove(oId);
+      return result;
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;
-    } finally {
-      if (oIds.contains(oId)) {
-        oIds.remove(oId);
-      }
-      isRunning = false;
     }
   }
-
-  
+*/  
   private String runInstruction_intern(String instruction, String orgText, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
     if (instruction == null || orgText == null) {
@@ -703,6 +734,159 @@ public class WtAiRemote {
   public static String addLanguageName(String instruction, Locale locale) throws Throwable {
     String langName = getLanguageName(locale);
     return instruction + " (language - " + langName + ")";
+  }
+  
+  private String runInstructionText(String instruction, String orgText, float temperature, 
+      int seed, Locale locale, boolean onlyOneParagraph) {
+    outText = null;
+    isDone = false;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          outText = runInstruction_intern(instruction, orgText, temperature, seed, locale, onlyOneParagraph);
+          isDone = true;
+        } catch (Throwable e) {
+          WtMessageHandler.showError(e);
+        }
+      }
+    });
+    t.start();
+    int n = 0;
+    while (!isDone && n < WAIT_TIMEOUT) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        WtMessageHandler.printException(e);
+      }
+    }
+    return outText;
+  }
+  
+  private String runInstructionImage(String instruction, String exclude, int step, int seed, int size) {
+    outText = null;
+    isDone = false;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          outText = runImgInstruction_intern(instruction, exclude, step, seed, size);
+          isDone = true;
+        } catch (Throwable e) {
+          WtMessageHandler.showError(e);
+        }
+      }
+    });
+    t.start();
+    int n = 0;
+    while (!isDone && n < WAIT_TIMEOUT) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        WtMessageHandler.printException(e);
+      }
+    }
+    return outText;
+  }
+  
+  private String runInstructionTTS(String text, String filename) {
+    outText = null;
+    isDone = false;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          outText = runTtsInstruction_intern(text, filename);
+          isDone = true;
+        } catch (Throwable e) {
+          WtMessageHandler.showError(e);
+        }
+      }
+    });
+    t.start();
+    int n = 0;
+    while (!isDone && n < WAIT_TIMEOUT) {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        WtMessageHandler.printException(e);
+      }
+    }
+    return outText;
+  }
+  
+  private void wakeRunAiEntries() {
+    if (!isRunning) {
+      runAiEntries();
+    }
+  }
+  
+  private void runAiEntries() {
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          isRunning = true;
+          while (entries.size() > 0) {
+            AiEntry entry = entries.get(0);
+            entries.remove(0);
+            String result = null;
+            if (entry.category == AiCategory.Text) {
+              result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
+            } else if (entry.category == AiCategory.Image) {
+              result = runInstructionImage(entry.instruction, entry.exclude, entry.step, entry.seed, entry.size);
+            } else if (entry.category == AiCategory.Image) {
+              result = runInstructionTTS(entry.text, entry.filename);
+            }
+            results.put(entry.oId, result);
+          }
+          isRunning = false;
+        } catch (Throwable e) {
+          WtMessageHandler.showError(e);
+        }
+      }
+    });
+    t.start();
+  }
+
+  private class AiEntry {
+    public final AiCategory category;
+    public final int oId;
+    public final String instruction;
+    public final String text;
+    public final String exclude;
+    public final String filename;
+    public final float temperature;
+    public final int seed;
+    public final int step;
+    public final int size;
+    public final Locale locale;
+    public final boolean onlyOneParagraph;
+    
+    AiEntry (AiCategory category, int oId, String instruction, String text, String exclude, String filename, float temperature, 
+        int seed, int step, int size, Locale locale, boolean onlyOneParagraph) {
+      this.category = category;
+      this.oId = oId;
+      this.instruction = instruction;
+      this.text = text;
+      this.exclude = exclude;
+      this.filename = filename;
+      this.temperature = temperature;
+      this.seed = seed;
+      this.step = step;
+      this.size = size;
+      this.locale = locale;
+      this.onlyOneParagraph = onlyOneParagraph;
+    }
+/*    
+    AiEntry(int oId, String instruction, String text, float temperature, int seed, Locale locale, boolean onlyOneParagraph) {
+      this (AiCategory.Text, oId, instruction, text, null, null, temperature, seed, 0, 0, locale, onlyOneParagraph);
+    }
+    
+    AiEntry(int oId, String instruction, String exclude, int step, int seed, int size) {
+      this (AiCategory.Image, oId, instruction, null, exclude, null, 0, seed, step, size, null, false);
+    }
+    
+    AiEntry(int oId, String text, String filename) {
+      this (AiCategory.Speech, oId, null, text, null, filename, 0, 0, 0, 0, null, false);
+    }
+*/  
   }
   
 }

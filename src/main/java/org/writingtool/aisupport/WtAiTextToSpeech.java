@@ -203,7 +203,7 @@ public class WtAiTextToSpeech extends Thread {
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiTextToSpeech: runInstruction: text: " + text);
     }
-    aiRemote.runTtsInstruction(text, filename);
+    aiRemote.runTtsInstruction(text, filename, false);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       n = docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);

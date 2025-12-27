@@ -651,7 +651,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
       setColorOfAiBox("", "");
       aiResultBox.setText(WAIT_TEXT);
-      aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara);
+      aiResultText = aiRemote.runInstruction(instruction, paragraphText, temp, 1, locale, onlyPara, true);
       if (aiResultText == null) {
         aiResultText = "";
       }

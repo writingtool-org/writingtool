@@ -165,7 +165,7 @@ public class WtAiParagraphChanging extends Thread {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: instruction: " + instruction + ", text: " + text);
       }
-      String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara);
+      String output = aiRemote.runInstruction(instruction, text, temp, 1, locale, onlyPara, true);
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: output: " + output);
       }
@@ -351,7 +351,7 @@ public class WtAiParagraphChanging extends Thread {
     }
     WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
     String instruction = WtAiRemote.getInstruction(WtAiRemote.SYNONYMS_INSTRUCTION, locale);
-    String output = aiRemote.runInstruction(instruction, word, WtAiRemote.SYNONYM_TEMPERATURE, 0, locale, false);
+    String output = aiRemote.runInstruction(instruction, word, WtAiRemote.SYNONYM_TEMPERATURE, 0, locale, false, true);
     List<String> synonyms = new ArrayList<>();
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("getListOfSynonyms: output: " + output);

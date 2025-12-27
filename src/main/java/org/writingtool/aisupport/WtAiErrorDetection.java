@@ -275,7 +275,7 @@ public class WtAiErrorDetection {
 //      temp = WtAiRemote.REFORMULATE_TEMPERATURE;
     }
     WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(),config);
-    String output = aiRemote.runInstruction(command, para, temp, 1, locale, true);
+    String output = aiRemote.runInstruction(command, para, temp, 1, locale, true, false);
     return output;
   }
   
