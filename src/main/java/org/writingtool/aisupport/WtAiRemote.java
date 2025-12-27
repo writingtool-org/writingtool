@@ -497,7 +497,7 @@ public class WtAiRemote {
       try {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
-        conn.setInstanceFollowRedirects(false);
+        conn.setInstanceFollowRedirects(true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("charset", "utf-8");
