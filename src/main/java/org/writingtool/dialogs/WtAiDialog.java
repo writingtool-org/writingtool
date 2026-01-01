@@ -1654,6 +1654,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       text = instructionPanel.getSelectedIndex() == 0 ? paragraph.getText() : directInstruction.getText();
     }
+    String orgText = text;
     if (!locale.Language.equals("en")) {
       setAtWorkState(true);
       setButtonState(false);
@@ -1664,6 +1665,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       return;
     }
     String parsedText = text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
+    parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, orgText);
     imgInstruction.setText(parsedText);
     exclude.setText("");
     createImage();

@@ -536,6 +536,17 @@ public class WtAiRemote {
     return out;
   }
   
+  public static String removeSurroundingQuotes(String out, String org) throws Throwable {
+    out = out.trim();
+    org = org.trim();
+    if (out.startsWith("\"") && out.endsWith("\"")) {
+      if (!org.startsWith("\\\"") || !org.endsWith("\"")) {
+        return out.substring(1, out.length() - 1);
+      }
+    }
+    return out;
+  }
+  
   private String filterOutput (String out, String org, String instruction, boolean onlyOneParagraph) throws Throwable {
     out = removeSurroundingBrackets(out, org);
     out = out.replace("\n", "\r").replace("\r\r", "\r").replace("\\\"", "\"").trim();
