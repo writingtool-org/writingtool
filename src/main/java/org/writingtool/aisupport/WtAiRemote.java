@@ -320,11 +320,14 @@ public class WtAiRemote {
       try {
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
           try (InputStream inputStream = conn.getInputStream()) {
-            String out = readStream(inputStream, "utf-8");
-            if (out == null) {
+            List<String> outList = readStreamToList(inputStream, "utf-8");
+            if (outList == null) {
               return null;
             }
-            out = parseJasonOutput(out);
+            String out = parseJasonOutputOllama(outList);
+            if (out == null) {
+              out = parseJasonOutput(outList);
+            }
             if (out == null) {
               return null;
             }
@@ -606,6 +609,37 @@ public class WtAiRemote {
     return sb.toString();
   }
   
+  private String listToString(List<String> list) throws Throwable {
+    if (list == null) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    for(int i = 0; i < list.size(); i++) {
+      sb.append(list.get(i)).append('\r');
+    }
+    return sb.toString();
+  }
+  
+  private List <String> readStreamToList(InputStream stream, String encoding) throws Throwable {
+    List<String> out = new ArrayList<>(); 
+    if (stream != null) {
+      try (InputStreamReader isr = new InputStreamReader(stream, encoding);
+           BufferedReader br = new BufferedReader(isr)) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          out.add(line.toString());
+        }
+      } catch (IOException e) {
+        //  stream is suddenly closed -> return null
+        if (debugMode > 0) {
+          WtMessageHandler.printToLogFile("AiRemote: readStream: IOException: " + e.getMessage());
+        }
+        return null;
+      }
+    }
+    return out;
+  }
+  
   private void storeByteStream(InputStream inp, String filename) throws Throwable {
     try (OutputStream outp = new FileOutputStream(filename)) {
       byte[] bytes = new byte[BUFFER_SIZE];
@@ -623,6 +657,9 @@ public class WtAiRemote {
     try {
       JSONObject jsonObject = new JSONObject(text);
       JSONArray choices;
+      if (debugMode > 2) {
+        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + text);
+      }
       try {
         choices = jsonObject.getJSONArray("choices");
       } catch (Throwable t) {
@@ -671,6 +708,30 @@ public class WtAiRemote {
       WtMessageHandler.showMessage(text);
       return null;
     }
+  }
+  
+  private String parseJasonOutput(List<String> textList) throws Throwable {
+    return parseJasonOutput(listToString(textList));
+  }
+  
+  private String parseJasonOutputOllama(List<String> textList) throws Throwable {
+    if (textList == null) {
+      return null;
+    }
+    try {
+      StringBuilder sb = new StringBuilder();
+      boolean done = false;
+      for(int i = 0; i < textList.size() && !done; i++) {
+        JSONObject jsonObject = new JSONObject(textList.get(i));
+        JSONObject message = jsonObject.getJSONObject("message");
+        String content = message.getString("content");
+        done = jsonObject.getBoolean("done");
+        sb.append(content);
+      }
+      return sb.toString();
+    } catch (Throwable t) {
+    }
+    return null;
   }
   
   private String parseJasonImgOutput(String text) throws Throwable {
