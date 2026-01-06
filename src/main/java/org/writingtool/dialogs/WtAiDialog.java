@@ -70,9 +70,12 @@ import javax.swing.JTextPane;
 import javax.swing.ToolTipManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.languagetool.Language;
 import org.languagetool.Languages;
+import org.languagetool.rules.RuleOption;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLinguisticServices;
@@ -113,8 +116,9 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final static int SHIFT1 = 14;
   private final static int dialogWidth = 700;
   private final static int dialogHeight = 750;
-  private final static int imageWidth = 512;
-//  private final static int imageHeight = 256;
+  
+  private int imageWidth = 512;
+  private int imageHeight = 512;
 
   private boolean debugMode = false;
   private boolean debugModeTm = false;
@@ -162,6 +166,10 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JLabel imageLabel;
 //  private final JFrame imageFrame;
   private final JLabel imageFrame;
+  private final JLabel imageWidthLabel;
+  private final JTextField imageWidthValueField;
+  private final JLabel imageHeightLabel;
+  private final JTextField imageHeightValueField;
   private final JLabel stepLabel;
   private final JSlider stepSlider;
   
@@ -272,6 +280,15 @@ public class WtAiDialog extends Thread implements ActionListener {
 //    imageFrame = new JFrame();
 //    imageFrame.setSize(imageWidth, imageHeight);
 //    imageFrame.add(image);
+
+    imageWidthLabel = new JLabel(messages.getString("loAiDialogImgWidthLabel") + ":");
+    imageWidthValueField = new JTextField("   ", 3);
+    imageWidthValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
+    imageWidthValueField.setText("" + imageWidth);
+    imageHeightLabel = new JLabel(messages.getString("loAiDialogImgHeightLabel") + ":");
+    imageHeightValueField = new JTextField("   ", 3);
+    imageHeightValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
+    imageHeightValueField.setText("" + imageHeight);
     
     changeImage = new JButton (messages.getString("loAiDialogImgChangeImageButton"));
     newImage = new JButton (messages.getString("loAiDialogImgNewImageButton"));
@@ -569,6 +586,54 @@ public class WtAiDialog extends Thread implements ActionListener {
 //          WtMessageHandler.printToLogFile("itemStateChanged: Instruction: " + instruction.getSelectedItem());
           instText = (String) instruction.getSelectedItem();
           setButtonState(true);
+        }
+      });
+      
+      imageWidthValueField.getDocument().addDocumentListener(new DocumentListener() {
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+          changedUpdate(e);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+//          changedUpdate(e);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+          int num = Integer.parseInt(imageWidthValueField.getText());
+          int diff = num % 8;
+          if (diff != 0 || num < 32 || num > 2048) {
+            imageWidthValueField.setForeground(Color.RED);
+          } else {
+            imageWidthValueField.setForeground(null);
+            imageWidth = num;
+          }
+        }
+      });
+      
+      imageHeightValueField.getDocument().addDocumentListener(new DocumentListener() {
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+          changedUpdate(e);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+//          changedUpdate(e);
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+          int num = Integer.parseInt(imageHeightValueField.getText());
+          int diff = num % 8;
+          if (diff != 0 || num < 64 || num > 2048) {
+            imageHeightValueField.setForeground(Color.RED);
+          } else {
+            imageHeightValueField.setForeground(null);
+            imageHeight = num;
+          }
         }
       });
       
@@ -965,6 +1030,26 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons11.gridy++;
       leftPanel1.add(exclude, cons11);
 
+      //  Define left panel Image Width and Height 
+      JPanel weidthHeightPanel = new JPanel();
+      weidthHeightPanel.setLayout(new GridBagLayout());
+      cons12 = new GridBagConstraints();
+      cons12.gridx = 0;
+      cons12.gridy = 0;
+      cons12.anchor = GridBagConstraints.NORTHWEST;
+      cons12.fill = GridBagConstraints.NONE;
+      cons12.weightx = 0.0f;
+      cons12.weighty = 0.0f;
+      cons12.insets = new Insets(0, 4, 0, 4);
+      weidthHeightPanel.add(imageWidthLabel, cons12);
+      cons12.gridx++;
+      weidthHeightPanel.add(imageWidthValueField, cons12);
+      cons12.gridx++;
+      weidthHeightPanel.add(imageHeightLabel, cons12);
+      cons12.weightx = 1.0f;
+      cons12.gridx++;
+      weidthHeightPanel.add(imageHeightValueField, cons12);
+
       //  Define 2. left panel
       JPanel leftPanel2 = new JPanel();
       leftPanel2.setLayout(new GridBagLayout());
@@ -976,6 +1061,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons12.weightx = 1.0f;
       cons12.weighty = 0.0f;
       cons12.insets = new Insets(SHIFT1, 0, 4, 0);
+      cons12.gridy++;
+      leftPanel2.add(weidthHeightPanel, cons12);
       cons12.gridy++;
       leftPanel2.add(stepLabel, cons12);
       cons12.insets = new Insets(0, 0, 0, 0);
@@ -1473,7 +1560,9 @@ public class WtAiDialog extends Thread implements ActionListener {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " 
               + imgInstText + ", exclude: " + excludeText);
       }
-      urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageWidth, true);
+      imageWidthValueField.setText("" + imageWidth);
+      imageHeightValueField.setText("" + imageHeight);
+      urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageHeight, imageWidth, true);
       if (urlString != null) {
         if (debugMode) {
           WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
@@ -1496,10 +1585,22 @@ public class WtAiDialog extends Thread implements ActionListener {
   private void setImageSize() {
     if (image != null) {
       ImageIcon imageIcon = new ImageIcon(image);
-      int size = imageFrame.getHeight() < imageFrame.getWidth() ? imageFrame.getHeight() : imageFrame.getWidth();
-      imageIcon.setImage(imageIcon.getImage().getScaledInstance(size, size,Image.SCALE_DEFAULT));
+      float factor = (float)imageHeight / (float)imageWidth;
+      int height;
+      int width;
+      if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
+        height = imageFrame.getHeight();
+        width = (int) (imageFrame.getHeight() / factor);
+      } else {
+        height = (int) (imageFrame.getWidth() * factor);
+        width = imageFrame.getWidth();
+      }
+      WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
+          + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
+          + " imageFrame.getHeight(): " + imageFrame.getHeight());
+      imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
       imageFrame.setIcon(imageIcon);
-      imageFrame.setMaximumSize(new Dimension(size, size));
+      imageFrame.setMaximumSize(new Dimension(width, height));
     }
   }
 
@@ -1834,10 +1935,10 @@ public class WtAiDialog extends Thread implements ActionListener {
     File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME);
     saveImage(tmpFile);
     if (documentType == DocumentType.IMPRESS) {
-      WtOfficeGraphicTools.insertGraphicInImpress(tmpFile.getAbsolutePath(), imageWidth,
+      WtOfficeGraphicTools.insertGraphicInImpress(tmpFile.getAbsolutePath(), imageHeight, imageWidth,
         currentDocument.getXComponent(), documents.getContext());
     } else {
-      WtOfficeGraphicTools.insertGraphic(tmpFile.getAbsolutePath(), imageWidth, 
+      WtOfficeGraphicTools.insertGraphic(tmpFile.getAbsolutePath(), imageHeight, imageWidth, 
         currentDocument.getXComponent(), documents.getContext());
     }
   }

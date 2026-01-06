@@ -142,24 +142,29 @@ public class WtAiRemote {
 
   public String runInstruction(String instruction, String text, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
-    return runInstructionGeneral(AiCategory.Text, instruction, text, null, null, temperature, seed, 0, 0, locale, onlyOneParagraph, preferred);
+    return runInstructionGeneral(AiCategory.Text, instruction, text, null, null, temperature, seed, 0, 0, 0, 
+        locale, onlyOneParagraph, preferred);
   }
 
-  public String runImgInstruction(String instruction, String exclude, int step, int seed, int size, boolean preferred) throws Throwable {
-    return runInstructionGeneral(AiCategory.Image, instruction, null, exclude, null, 0, seed, step, size, null, false, preferred);
+  public String runImgInstruction(String instruction, String exclude, int step, int seed, int height, 
+      int width, boolean preferred) throws Throwable {
+    return runInstructionGeneral(AiCategory.Image, instruction, null, exclude, null, 0, seed, step, height, width, 
+        null, false, preferred);
   }
 
   public String runTtsInstruction(String text, String filename, boolean preferred) throws Throwable {
-    return runInstructionGeneral(AiCategory.Speech, null, text, null, filename, 0, 0, 0, 0, null, false, preferred);
+    return runInstructionGeneral(AiCategory.Speech, null, text, null, filename, 0, 0, 0, 0, 0, null, false, preferred);
   }
   
   public String runInstructionGeneral(AiCategory category, String instruction, String text, String exclude, String filename, 
-      float temperature, int seed, int step, int size, Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
+      float temperature, int seed, int step, int height, int width, 
+      Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
     if (oId > 0) {
       throw new RuntimeException("Duplicate OID in WtAiRemote");
     }
     oId = getId();
-    AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filename, temperature, seed, step, size, locale, onlyOneParagraph);
+    AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filename, temperature, seed, 
+        step, height, width, locale, onlyOneParagraph);
     if (preferred) {
       entries.add(0, entry);
     } else {
@@ -369,7 +374,7 @@ public class WtAiRemote {
     return null;
   }
   
-  private String runImgInstruction_intern(String instruction, String exclude, int step, int seed, int size) throws Throwable {
+  private String runImgInstruction_intern(String instruction, String exclude, int step, int seed, int height, int width) throws Throwable {
     if (instruction == null || exclude == null) {
       return null;
     }
@@ -381,16 +386,18 @@ public class WtAiRemote {
     if (!exclude.isEmpty()) {
       instruction += "|" + exclude;
     }
+/*    
     if (size != 128 && size != 256 && size != 512) {
       size = 256;
     }
+*/
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: Ask AI started! URL: " + url);
     }
     String urlParameters = "{\"model\": \"" + imgModel + "\", " 
         + "\"prompt\": \"" + instruction + "\", "
         + (seed > 0 ? "\"seed\": " + seed + ", " : "")
-        + "\"size\": \"" + size + "x" + size + "\", "
+        + "\"size\": \"" + width + "x" + height + "\", "
         + "\"step\": " + step + "}";
     
     byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
@@ -834,13 +841,13 @@ public class WtAiRemote {
     return outText;
   }
   
-  private String runInstructionImage(String instruction, String exclude, int step, int seed, int size) {
+  private String runInstructionImage(String instruction, String exclude, int step, int seed, int height, int width) {
     outText = null;
     isDone = false;
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          outText = runImgInstruction_intern(instruction, exclude, step, seed, size);
+          outText = runImgInstruction_intern(instruction, exclude, step, seed, height, width);
           isDone = true;
         } catch (Throwable e) {
           WtMessageHandler.showError(e);
@@ -902,7 +909,7 @@ public class WtAiRemote {
             if (entry.category == AiCategory.Text) {
               result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
             } else if (entry.category == AiCategory.Image) {
-              result = runInstructionImage(entry.instruction, entry.exclude, entry.step, entry.seed, entry.size);
+              result = runInstructionImage(entry.instruction, entry.exclude, entry.step, entry.seed, entry.height, entry.width);
             } else if (entry.category == AiCategory.Image) {
               result = runInstructionTTS(entry.text, entry.filename);
             }
@@ -927,12 +934,13 @@ public class WtAiRemote {
     public final float temperature;
     public final int seed;
     public final int step;
-    public final int size;
+    public final int height;
+    public final int width;
     public final Locale locale;
     public final boolean onlyOneParagraph;
     
     AiEntry (AiCategory category, int oId, String instruction, String text, String exclude, String filename, float temperature, 
-        int seed, int step, int size, Locale locale, boolean onlyOneParagraph) {
+        int seed, int step, int height, int width, Locale locale, boolean onlyOneParagraph) {
       this.category = category;
       this.oId = oId;
       this.instruction = instruction;
@@ -942,7 +950,8 @@ public class WtAiRemote {
       this.temperature = temperature;
       this.seed = seed;
       this.step = step;
-      this.size = size;
+      this.height = height;
+      this.width = width;
       this.locale = locale;
       this.onlyOneParagraph = onlyOneParagraph;
     }

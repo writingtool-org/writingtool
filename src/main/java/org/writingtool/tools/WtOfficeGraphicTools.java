@@ -56,7 +56,7 @@ public class WtOfficeGraphicTools {
   private final static int SIZE_Del = 8;
   private final static String BITMAP_NAME_PREFIX = "WtAiImage";
 
-  public static void insertGraphic(String strUrl, int size, XComponent xComp, XComponentContext xContext) {
+  public static void insertGraphic(String strUrl, int height, int width, XComponent xComp, XComponentContext xContext) {
     try {
       XTextDocument xTextDoc = UnoRuntime.queryInterface(XTextDocument.class, xComp);
       XMultiServiceFactory xMSFDoc = UnoRuntime.queryInterface(XMultiServiceFactory.class, xTextDoc);
@@ -119,10 +119,10 @@ public class WtOfficeGraphicTools {
 //        xPropSet.setPropertyValue( "VertOrientPosition", Integer.valueOf( 4200 ) );
 
         // Setting the width
-        xPropSet.setPropertyValue("Width", size * SIZE_FACTOR);
+        xPropSet.setPropertyValue("Width", width * SIZE_FACTOR);
 
         // Setting the height
-        xPropSet.setPropertyValue("Height", size * SIZE_FACTOR);
+        xPropSet.setPropertyValue("Height", height * SIZE_FACTOR);
       } catch (Exception e) {
         WtMessageHandler.printToLogFile("Couldn't set property 'GraphicURL'");
         WtMessageHandler.printException(e);
@@ -152,13 +152,13 @@ public class WtOfficeGraphicTools {
   
   //  For Impress
   
-  public static void insertGraphicInImpress(String strUrl, int size, XComponent xComponent, XComponentContext xContext) {
+  public static void insertGraphicInImpress(String strUrl, int height, int width, XComponent xComponent, XComponentContext xContext) {
     try {
       XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
       XController xController = xModel.getCurrentController();
       XDrawView xDrawView = UnoRuntime.queryInterface(XDrawView.class, xController);
       XDrawPage xCurrentDrawPage = xDrawView.getCurrentPage();
-      drawImage(xCurrentDrawPage, strUrl, 0, 0, size / SIZE_Del, size / SIZE_Del, xComponent, xContext);    
+      drawImage(xCurrentDrawPage, strUrl, 0, 0, height / SIZE_Del, width / SIZE_Del, xComponent, xContext);    
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
