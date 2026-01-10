@@ -75,7 +75,6 @@ import javax.swing.event.DocumentListener;
 
 import org.languagetool.Language;
 import org.languagetool.Languages;
-import org.languagetool.rules.RuleOption;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLinguisticServices;

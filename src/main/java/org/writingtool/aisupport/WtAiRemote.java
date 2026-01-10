@@ -86,7 +86,7 @@ public class WtAiRemote {
   private static int lastOid = 0;
   private static boolean hasPrintedInfo = false;
 
-  private enum AiType { EDITS, COMPLETIONS, CHAT }
+  private enum AiType { EDITS, COMPLETIONS, CHAT, GENERATE }
   
   private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
@@ -127,6 +127,8 @@ public class WtAiRemote {
       aiType = AiType.CHAT;
     } else if (url.endsWith("/completions/") || url.endsWith("/completions")) {
       aiType = AiType.COMPLETIONS;
+    } else if (url.endsWith("/generate/") || url.endsWith("/generate")) {
+      aiType = AiType.GENERATE;
     } else {
       aiType = AiType.CHAT;
     }
@@ -277,7 +279,8 @@ public class WtAiRemote {
 //    instruction = addLanguageName(instruction, locale);
     if (aiType == AiType.CHAT) {
       urlParameters = "{\"model\": \"" + model + "\", " 
-//          + "\"response_format\": { \"type\": \"json_object\" }, "
+//        + "\"response_format\": { \"type\": \"json_object\" }, "
+          + "\"stream\": false, "
           + "\"language\": \"" + langName + "\", "
           + "\"messages\": [ { \"role\": \"user\", "
           + "\"content\": \"" + instruction + (text == null ? "" : ": {" + text + "}") + "\" } ], "
@@ -292,9 +295,9 @@ public class WtAiRemote {
           + "\"temperature\": " + temperature + "}";
     } else {
       urlParameters = "{\"model\": \"" + model + "\", " 
-//          + "\"response_format\": { \"type\": \"json_object\" },"
           + "\"prompt\": \"" + instruction + ": {" + text + "}\", "
-//          + "\"seed\": 1, "
+          + (aiType == AiType.GENERATE ? "\"stream\": false, " : "")
+          + (seed > 0 ? "\"seed\": " + seed + ", " : "")
           + "\"temperature\": " + temperature + "}";
     }
 
@@ -722,23 +725,45 @@ public class WtAiRemote {
   }
   
   private String parseJasonOutputOllama(List<String> textList) throws Throwable {
+    if (debugMode > 2) {
+      WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + textList.get(0));
+    }
     if (textList == null) {
       return null;
     }
-    try {
-      StringBuilder sb = new StringBuilder();
-      boolean done = false;
-      for(int i = 0; i < textList.size() && !done; i++) {
-        JSONObject jsonObject = new JSONObject(textList.get(i));
-        JSONObject message = jsonObject.getJSONObject("message");
-        String content = message.getString("content");
-        done = jsonObject.getBoolean("done");
-        sb.append(content);
-      }
-      return sb.toString();
-    } catch (Throwable t) {
+    if (textList.isEmpty()) {
+      return "";
     }
-    return null;
+    StringBuilder sb = new StringBuilder();
+    boolean done = false;
+    boolean hasMessage = true;
+    for(int i = 0; i < textList.size() && !done; i++) {
+      JSONObject jsonObject = new JSONObject(textList.get(i));
+      if (i == 0) {
+        if (!jsonObject.has("done")) {
+          return null;
+        }
+        if (!jsonObject.has("message")) {
+          if (!jsonObject.has("response")) {
+            return null;
+          }
+          hasMessage = false;
+        }
+      }
+      String content;
+      if (hasMessage) {
+        JSONObject message = jsonObject.getJSONObject("message");
+        content = message.getString("content");
+      } else {
+        content = jsonObject.getString("response");
+      }
+      if (debugMode > 2) {
+        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + textList.get(i));
+      }
+      done = jsonObject.getBoolean("done");
+      sb.append(content);
+    }
+    return sb.toString();
   }
   
   private String parseJasonImgOutput(String text) throws Throwable {
