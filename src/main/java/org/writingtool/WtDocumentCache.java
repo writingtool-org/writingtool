@@ -2204,7 +2204,7 @@ public class WtDocumentCache implements Serializable {
       for (int i = 0; i < toTextMapping.size(); i++) {
         if (toTextMapping.get(i).type == CURSOR_TYPE_UNKNOWN) {
           deletedCharacters.add(null);
-          if (debugMode || !paragraphs.get(i).isEmpty()) {
+          if (debugMode) {
             WtMessageHandler.printToLogFile("Warning: CURSOR_TYPE_UNKNOWN at Paragraph " + i + ": deleted Characters set to null");
             WtMessageHandler.printToLogFile("         Paragraph : '" + paragraphs.get(i) + "'");
           }

@@ -147,10 +147,10 @@ public class WtLanguageTool {
     if (config.enableTmpOffRules()) {
       //  enable TempOff rules if configured
       List<Rule> allRules = getAllRules();
-      WtMessageHandler.printToLogFile("initCheck: enableTmpOffRules: true");
+//      WtMessageHandler.printToLogFile("initCheck: enableTmpOffRules: true");
       for (Rule rule : allRules) {
         if (rule.isDefaultTempOff()) {
-          WtMessageHandler.printToLogFile("initCheck: enableTmpOffRule: " + rule.getId());
+//          WtMessageHandler.printToLogFile("initCheck: enableTmpOffRule: " + rule.getId());
           enableRule(rule.getId());
         }
       }
