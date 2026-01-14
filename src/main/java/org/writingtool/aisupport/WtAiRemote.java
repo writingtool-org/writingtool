@@ -352,10 +352,17 @@ public class WtAiRemote {
           }
         } else {
           try (InputStream inputStream = conn.getErrorStream()) {
+            int responseCode = conn.getResponseCode();
             String error = readStream(inputStream, "utf-8");
-            WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
-                  + "\nurlParameters: " + urlParameters);
-//            stopAiRemote();
+            String msg = "Got error: " + error + " - HTTP response code " + responseCode
+                + "\nurlParameters: " + urlParameters;
+            if (responseCode == 404) {
+              WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+              WtMessageHandler.printToLogFile(msg);
+              stopAiRemote();
+            } else {
+              WtMessageHandler.showMessage(msg);
+            }
             return null;
           }
         }
@@ -428,10 +435,17 @@ public class WtAiRemote {
         }
       } else {
         try (InputStream inputStream = conn.getErrorStream()) {
+          int responseCode = conn.getResponseCode();
           String error = readStream(inputStream, "utf-8");
-          WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
-          + "\nurlParameters: " + urlParameters);
-//        stopAiRemote();
+          String msg = "Got error: " + error + " - HTTP response code " + responseCode
+              + "\nurlParameters: " + urlParameters;
+          if (responseCode == 404) {
+            WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+            WtMessageHandler.printToLogFile(msg);
+            stopAiRemote();
+          } else {
+            WtMessageHandler.showMessage(msg);
+          }
           return null;
         }
       }
@@ -483,10 +497,17 @@ public class WtAiRemote {
         }
       } else {
         try (InputStream inputStream = conn.getErrorStream()) {
+          int responseCode = conn.getResponseCode();
           String error = readStream(inputStream, "utf-8");
-          WtMessageHandler.showMessage("Got error: " + error + " - HTTP response code " + conn.getResponseCode()
-              + "\nurlParameters: " + urlParameters);
-//        stopAiRemote();
+          String msg = "Got error: " + error + " - HTTP response code " + responseCode
+              + "\nurlParameters: " + urlParameters;
+          if (responseCode == 404) {
+            WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+            WtMessageHandler.printToLogFile(msg);
+            stopAiRemote();
+          } else {
+            WtMessageHandler.showMessage(msg);
+          }
           return null;
         }
       }
