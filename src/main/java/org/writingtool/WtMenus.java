@@ -882,7 +882,7 @@ public class WtMenus {
         nId++;
 
         addLTMenuEntry(nId, xContextMenu, xMenuElementFactory, aEvent, true);
-        if (config.useAiSupport() || config.useAiImgSupport()) {
+        if (config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport()) {
           nId++;
           addAIMenuEntry(nId, xContextMenu, xMenuElementFactory);
         }
@@ -1177,7 +1177,7 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
-      if (config.useAiSupport() || config.useAiTtsSupport()) {
+      if (config.useAiSupport() || config.useAiImgSupport()) {
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
         xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuAiGeneralCommand"));

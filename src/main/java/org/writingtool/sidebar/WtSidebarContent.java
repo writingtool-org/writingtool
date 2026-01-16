@@ -271,7 +271,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonStatAnWindow.setEnable(hasStatAn());
       num++;
       buttonAiGeneralWindow = addButtonToContainer(num, "aiGeneralCommand", "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
-      buttonAiGeneralWindow.setEnable(isAiSupport);
+      buttonAiGeneralWindow.setEnable(isAiSupport || documents.getConfiguration().useAiImgSupport());
       num++;
       buttonAiSynonymsOfWord = addButtonToContainer(num, "aiSynonymsOfWord", "WTAiWordSynonymsSmall.png", "loMenuAiSynnomsOfWordCommand", buttonContainer);
       buttonAiSynonymsOfWord.setEnable(isAiSupport);
@@ -699,7 +699,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
     buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
     buttonStatAnWindow.setEnable(hasStatAn());
-    buttonAiGeneralWindow.setEnable(isAiSupport);
+    buttonAiGeneralWindow.setEnable(isAiSupport || documents.getConfiguration().useAiImgSupport());
     buttonAiSynonymsOfWord.setEnable(isAiSupport);
     buttonAiSummary.setEnable(isAiSupport);
     buttonAiTranslateTextWindow.setEnable(isAiSupport);

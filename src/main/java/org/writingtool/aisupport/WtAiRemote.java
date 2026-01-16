@@ -41,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.dialogs.WtAiDialog;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -423,7 +424,14 @@ public class WtAiRemote {
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: postData: " + urlParameters);
     }
-    HttpURLConnection conn = getConnection(postData, checkUrl, imgApiKey);
+    HttpURLConnection conn;
+    try {
+      conn = getConnection(postData, checkUrl, imgApiKey);
+    } catch (RuntimeException e) {
+      WtMessageHandler.printException(e);
+      stopAiImgRemote();
+      return null;
+    }
     try {
       if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
         try (InputStream inputStream = conn.getInputStream()) {
@@ -442,7 +450,7 @@ public class WtAiRemote {
           if (responseCode == 404) {
             WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
             WtMessageHandler.printToLogFile(msg);
-            stopAiRemote();
+            stopAiImgRemote();
           } else {
             WtMessageHandler.showMessage(msg);
           }
@@ -487,7 +495,14 @@ public class WtAiRemote {
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runTtsInstruction: postData: " + urlParameters);
     }
-    HttpURLConnection conn = getConnection(postData, checkUrl, ttsApiKey);
+    HttpURLConnection conn;
+    try {
+      conn = getConnection(postData, checkUrl, ttsApiKey);
+    } catch (RuntimeException e) {
+      WtMessageHandler.printException(e);
+      stopAiTtsRemote();
+      return null;
+    }
     try {
       if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
         try (InputStream inputStream = conn.getInputStream()) {
@@ -823,21 +838,36 @@ public class WtAiRemote {
   
   private void stopAiRemote() throws Throwable {
     config.setUseAiSupport(false);
+    documents.getSidebarContent().setAiSupport(config.useAiSupport());
     if (documents.getAiCheckQueue() != null) {
       documents.getAiCheckQueue().setStop();
       documents.setAiCheckQueue(null);
     }
     WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+    WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
+    if (aiDialog != null) {
+      aiDialog.closeDialog();
+    } 
   }
   
   private void stopAiImgRemote() throws Throwable {
     config.setUseAiImgSupport(false);
+    documents.getSidebarContent().setAiSupport(config.useAiSupport());
     WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+    WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
+    if (aiDialog != null) {
+      aiDialog.closeDialog();
+    } 
   }
   
   private void stopAiTtsRemote() throws Throwable {
     config.setUseAiTtsSupport(false);
+    documents.getSidebarContent().setAiSupport(config.useAiSupport());
     WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+    WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
+    if (aiDialog != null) {
+      aiDialog.closeDialog();
+    } 
   }
   
   public static String getInstruction(String mess, Locale locale) throws Throwable {
@@ -952,11 +982,11 @@ public class WtAiRemote {
             AiEntry entry = entries.get(0);
             entries.remove(0);
             String result = null;
-            if (entry.category == AiCategory.Text) {
+            if (entry.category == AiCategory.Text && config.useAiSupport()) {
               result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
-            } else if (entry.category == AiCategory.Image) {
+            } else if (entry.category == AiCategory.Image && config.useAiImgSupport()) {
               result = runInstructionImage(entry.instruction, entry.exclude, entry.step, entry.seed, entry.height, entry.width);
-            } else if (entry.category == AiCategory.Image) {
+            } else if (entry.category == AiCategory.Speech && config.useAiTtsSupport()) {
               result = runInstructionTTS(entry.text, entry.filename);
             }
             results.put(entry.oId, result);
