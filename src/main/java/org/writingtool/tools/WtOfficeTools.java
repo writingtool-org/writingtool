@@ -1208,10 +1208,10 @@ public class WtOfficeTools {
    */
   public static String getFormatedLicenseInformation() {
     return "<html>"
-        + "<p>Copyright (C) 2024 Fred Kruse - "
+        + "<p>Copyright (C) 2024-2026 Fred Kruse - "
         + "<a href=\"" + WtOfficeTools.WT_SERVER + "\">" + WtOfficeTools.WT_SERVER + "</a><br>  <br>"
         + "based on LanguageTool - "
-        + "Copyright (C) 2005-2024 the LanguageTool community and Daniel Naber.<br>  <br>"
+        + "Copyright (C) 2005-2026 the LanguageTool community and Daniel Naber.<br>  <br>"
         + "WritingTool and LanguageTool are licensed under the GNU Lesser General Public License.<br>"
         + "</html>";
   }
