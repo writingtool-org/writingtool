@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 
 import org.writingtool.tools.WtMessageHandler;
 
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.i18n.LocaleDataItem;
