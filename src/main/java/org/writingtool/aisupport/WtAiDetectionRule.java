@@ -49,7 +49,7 @@ public class WtAiDetectionRule extends TextLevelRule {
 
   public static final int STYLE_HINT_LIMIT = 25;  //  Limit of changed tokens in a sentence in percent (after that a style hint is assumed)
   
-  private static final Pattern QUOTES = Pattern.compile("[\"“”“„»«]");
+  public static final Pattern QUOTES = Pattern.compile("[\"“”“„»«]");
   private static final Pattern SINGLE_QUOTES = Pattern.compile("[‚‘’'›‹]");
   private static final Pattern PUNCTUATION = Pattern.compile("[,\\.!\\?:]");
   private static final Pattern OPENING_BRACKETS = Pattern.compile("[\\{\\(\\[]");

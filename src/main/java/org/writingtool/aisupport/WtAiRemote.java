@@ -40,6 +40,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.writingtool.WtDocumentsHandler;
+import org.writingtool.WtQuotesDetection;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAiDialog;
 import org.writingtool.sidebar.WtSidebarContent;
@@ -341,6 +342,7 @@ public class WtAiRemote {
               return null;
             }
             out = filterOutput (out, org, instruction, onlyOneParagraph);
+            out = changesQuotesToOriginal(out, org, locale);
             if (debugModeTm) {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
@@ -585,14 +587,31 @@ public class WtAiRemote {
     return out;
   }
   
+  /**
+   * remove surrounding quotes if there was no in original text
+   */
   public static String removeSurroundingQuotes(String out, String org) throws Throwable {
     out = out.trim();
     org = org.trim();
     if (out.startsWith("\"") && out.endsWith("\"")) {
-      if (!org.startsWith("\\\"") || !org.endsWith("\"")) {
+      if (!WtAiDetectionRule.QUOTES.matcher(org.substring(0, 1)).matches() 
+          || !WtAiDetectionRule.QUOTES.matcher(org.substring(org.length() - 1)).matches()) {
         return out.substring(1, out.length() - 1);
       }
     }
+    return out;
+  }
+  
+  /**
+   * remove surrounding quotes if there was no in original text
+   */
+  public static String changesQuotesToOriginal(String out, String org, Locale locale) throws Throwable {
+    out = removeSurroundingQuotes(out, org);
+//    WtMessageHandler.printToLogFile("AiRemote: changesQuotesToOrigninal: org: " + org);
+//    WtMessageHandler.printToLogFile("AiRemote: changesQuotesToOrigninal: out: " + out);
+    WtQuotesDetection qoutesDetection = new WtQuotesDetection(WtDocumentsHandler.getComponentContext(), locale);
+    out = qoutesDetection.changeToCorrectQuote(out);
+//    WtMessageHandler.printToLogFile("AiRemote: changesQuotesToOrigninal: out(new): " + out);
     return out;
   }
   
