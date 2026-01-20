@@ -1536,8 +1536,14 @@ public class WtDocumentCache implements Serializable {
     footnotes.addAll(in.footnotes);
     fieldPositions.putAll(in.fieldPositions);
     toTextMapping.addAll(in.toTextMapping);
-    for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
-      toParaMapping.add(new ArrayList<Integer>(in.toParaMapping.get(i)));
+    if (in.toParaMapping.size() < NUMBER_CURSOR_TYPES) {
+      for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
+        toParaMapping.add(new ArrayList<Integer>());
+      }
+    } else {
+      for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
+        toParaMapping.add(new ArrayList<Integer>(in.toParaMapping.get(i)));
+      }
     }
     deletedCharacters.addAll(in.deletedCharacters);
     if (in.sortedTextIds != null) {
