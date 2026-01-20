@@ -32,7 +32,6 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import org.languagetool.tools.Tools;
-import org.writingtool.dialogs.WtOptionPane;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -120,7 +119,7 @@ public class WtMessageHandler {
         + System.getProperty("java.version") + " from "
         + System.getProperty("java.vm.vendor");
     msg += metaInfo;
-    DialogThread dt = new DialogThread(msg, true);
+    WtDialogThread dt = new WtDialogThread(msg, true);
     e.printStackTrace();
     dt.start();
   }
@@ -149,7 +148,7 @@ public class WtMessageHandler {
         ) {
       writer.write(str + logLineBreak);
     } catch (Throwable t) {
-      showError(t);
+      System.out.println(Tools.getFullStackTrace(t));
     }
   }
 
@@ -200,8 +199,8 @@ public class WtMessageHandler {
     if (toLogFile) {
       printToLogFile(txt);
     }
-    DialogThread dt = new DialogThread(txt, false);
-    dt.run();
+    WtDialogThread dt = new WtDialogThread(txt, false);
+    dt.start();
   }
   
   public static void showFullStackMessage (String msg) {
@@ -232,7 +231,7 @@ public class WtMessageHandler {
   
   /**
    * class to run a dialog in a separate thread
-   */
+   *//*
   private static class DialogThread extends Thread {
     private final String text;
     private boolean isException;
@@ -258,7 +257,7 @@ public class WtMessageHandler {
       }
     }
   }
-  
+*/  
   /**
    * class to run a dialog in a separate thread
    * closing if lost focus
@@ -302,6 +301,73 @@ public class WtMessageHandler {
           @Override
           public void windowLostFocus(WindowEvent e) {
             if(!closeLo) {
+              dialog.setVisible(false);
+            }
+          }
+        });
+        dialog.toFront();
+        dialog.setVisible(true);
+      } catch (Exception e) {
+        WtMessageHandler.printException(e);
+      }
+      return true;
+    }
+  }
+
+  /**
+   * class to run a dialog in a separate thread
+   * closing if lost focus
+   */
+  private static class WtDialogThread extends Thread {
+    private final String text;
+    private final boolean closeAtLostFocus;
+    private final boolean isException;
+    JDialog dialog;
+/*
+    WtDialogThread(String text) {
+      this(text, false, false);
+    }
+*/
+    WtDialogThread(String text, boolean isException) {
+      this(text, isException, false);
+    }
+
+    WtDialogThread(String text, boolean isException, boolean closeAtLostFocus) {
+      if (text == null || text.isBlank()) {
+        text = "Error empty text";
+      }
+      this.text = text;
+      this.closeAtLostFocus = closeAtLostFocus;
+      this.isException = isException;
+    }
+
+    @Override
+    public void run() {
+      if (isException) {
+        if (!isOpen) {
+          isOpen = true;
+          showDialog();
+          isOpen = false;
+        }
+      } else {
+        showDialog();
+      }
+    }
+      
+    private boolean showDialog() {
+      try {
+        JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
+        dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
+        dialog.setModal(false);
+        dialog.setAutoRequestFocus(true);
+        dialog.setAlwaysOnTop(true);
+        dialog.addWindowFocusListener(new WindowFocusListener() {
+          @Override
+          public void windowGainedFocus(WindowEvent e) {
+          }
+          @Override
+          public void windowLostFocus(WindowEvent e) {
+            if(closeAtLostFocus) {
               dialog.setVisible(false);
             }
           }
