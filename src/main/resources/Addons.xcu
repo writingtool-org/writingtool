@@ -186,6 +186,19 @@
                     </prop>
                 </node>
             </node>
+            <node oor:name="org.writingtool.WritingTool.imageChangeQuotes" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>service:org.writingtool.WritingTool?changeQuotes</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTChangeQuotesSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTChangeQuotesBig.png</value>
+                    </prop>
+                </node>
+            </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiGeneralCommand" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>service:org.writingtool.WritingTool?aiGeneralCommand</value>

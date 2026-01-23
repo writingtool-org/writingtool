@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.writingtool.tools.WtMessageHandler;
+import org.writingtool.tools.WtOfficeTools;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
@@ -50,6 +51,10 @@ public class WtQuotesDetection {
   private List<Integer> closingQuotes;
   
   public WtQuotesDetection() {}
+
+  public WtQuotesDetection(XComponentContext xContext) {
+    this(xContext, null);
+  }
 
   public WtQuotesDetection(XComponentContext xContext, Locale locale) {
     try {
@@ -129,11 +134,11 @@ public class WtQuotesDetection {
    * True, if the quotation mark is a potential inch mark.
    */
   boolean isPotentialInchMark(String txt, int i) throws Throwable {
-    if(txt.substring(i, i + 1).equals("\"")) {
+    if(!txt.substring(i, i + 1).equals("\"") || i < 1 || !Character.isDigit(txt.charAt(i - 1))) {
       return false;
     }
     int j;
-    for (j = i - 1; j >= 0 && !Character.isDigit(txt.charAt(j)); j--);
+    for (j = i - 1; j >= 0 && Character.isDigit(txt.charAt(j)); j--);
     if(j < 0 || Character.isWhitespace(txt.charAt(j))) {
       if(i + 1 < txt.length() && !txt.substring(i + 1, i + 2).equals(",")) {
         return true;
@@ -264,36 +269,31 @@ public class WtQuotesDetection {
    * Function to detect wrong double quotes
    * @throws Throwable 
    */
-  public boolean isNotCorrectQuote(String txt) throws Throwable {
-    boolean isNotCorrectDouble = false;
+  public int numNotCorrectQuotes(String txt, int nQuote) throws Throwable {
+    this.nQuote = nQuote;
+    int num = 0;
     for (int i = 0; i < txt.length(); i++) {
       int tQuote = isOpeningQuote(txt, i);
       if (tQuote >= 0) {
         if ("\"".equals(startSymbols.get(tQuote))) {
-          isNotCorrectDouble = true;
+          num++;
         } else if (nQuote < 0) {
           nQuote = tQuote;
         } else if (nQuote != tQuote) {
-          isNotCorrectDouble = true;
-        }
-        if (isNotCorrectDouble && nQuote >= 0) {
-          return isNotCorrectDouble;
+          num++;
         }
       } else {
         tQuote = isPotentialClosingQuote(txt, i);
         if (tQuote >= 0) {
           if ("\"".equals(endSymbols.get(tQuote))) {
-            isNotCorrectDouble = true;
+            num++;
           } else if (nQuote != tQuote) {
-            isNotCorrectDouble = true;
-          }
-          if (isNotCorrectDouble && nQuote >= 0) {
-            return isNotCorrectDouble;
+            num++;
           }
         }
       }
     }
-    return isNotCorrectDouble;
+    return num;
   }
 
   /**
@@ -305,7 +305,7 @@ public class WtQuotesDetection {
     return changeToCorrectQuote(txt, 0);
   }
   
-  private String changeToCorrectQuote(String txt, int iCorrectQuote) throws Throwable {
+  public String changeToCorrectQuote(String txt, int iCorrectQuote) throws Throwable {
     nChanges = 0;
     if (iCorrectQuote < 0 || iCorrectQuote >= startSymbols.size()) {
       return txt;
@@ -412,6 +412,9 @@ public class WtQuotesDetection {
         return;
       }
       XLocaleData xlocaleData = UnoRuntime.queryInterface(XLocaleData.class, olocaleData);
+      if (locale == null) {
+        locale = WtOfficeTools.getDefaultLocale(xContext);
+      }
       LocaleDataItem localeDataItem = xlocaleData.getLocaleItem(locale);
       doubleStart = localeDataItem.doubleQuotationStart;
       doubleEnd = localeDataItem.doubleQuotationEnd;
@@ -437,6 +440,7 @@ public class WtQuotesDetection {
     }
     startSymbols.add(0, doubleStart);
     endSymbols.add(0, doubleEnd);
+    nQuote = 0;
   }
 
 }

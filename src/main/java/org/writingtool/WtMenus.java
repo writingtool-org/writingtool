@@ -89,6 +89,7 @@ public class WtMenus {
   public final static String LT_CHECKDIALOG_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?checkDialog";
   public final static String LT_CHECKAGAINDIALOG_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?checkAgainDialog";
   public static final String LT_STATISTICAL_ANALYSES_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?statisticalAnalyses";   
+  public static final String LT_CHANGE_QUOTES_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?changeQuotes";   
   public static final String LT_OFF_STATISTICAL_ANALYSES_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?offStatisticalAnalyses";   
   public static final String LT_RESET_IGNORE_PERMANENT_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?resetIgnorePermanent";   
   public static final String LT_PERMANENT_IGNORE_PARAGRAPH_COMMAND = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?permanentIgnoreParagraph";   
@@ -271,6 +272,10 @@ public class WtMenus {
           switchOffId++;
           switchOffPos++;
         }
+        ltMenu.insertItem(switchOffId, MESSAGES.getString("loMenuChangeQuotes"), (short)0, switchOffPos);
+        ltMenu.setCommand(switchOffId, LT_CHANGE_QUOTES_COMMAND);
+        switchOffId++;
+        switchOffPos++;
         ltMenu.insertItem(switchOffId, MESSAGES.getString("loMenuResetIgnorePermanent"), (short)0, switchOffPos);
         ltMenu.setCommand(switchOffId, LT_RESET_IGNORE_PERMANENT_COMMAND);
         switchOffId++;
@@ -548,13 +553,17 @@ public class WtMenus {
         if (debugMode) {
           WtMessageHandler.printToLogFile("LanguageToolMenus: itemSelected: event id: " + ((int)event.MenuId));
         }
+        document.setMenuDocId();
         if (event.MenuId == switchOffId) {
           if (document.getMultiDocumentsHandler().toggleNoBackgroundCheck()) {
             document.getMultiDocumentsHandler().resetCheck(); 
           }
-        } else if (event.MenuId == switchOffId + 1) {
+        } else if (event.MenuId == switchOffId - 1) {
           document.resetIgnorePermanent();
-        } else if (event.MenuId == switchOffId + 2) {
+        } else if (event.MenuId == switchOffId - 2) {
+          document.getMultiDocumentsHandler().runChangeQuotes();
+          return;
+        } else if (event.MenuId == switchOffId - 3) {
           WtStatAnDialog statAnDialog = new WtStatAnDialog(document);
           statAnDialog.start();
           return;
@@ -1021,6 +1030,12 @@ public class WtMenus {
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
       }
+      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+          xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loMenuChangeQuotes"));
+      xNewSubMenuEntry.setPropertyValue("CommandURL", LT_CHANGE_QUOTES_COMMAND);
+      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+      j++;
 /*      
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));

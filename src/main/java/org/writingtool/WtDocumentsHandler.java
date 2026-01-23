@@ -64,6 +64,7 @@ import org.writingtool.dialogs.WtCheckDialog;
 import org.writingtool.dialogs.WtConfigurationDialog;
 import org.writingtool.dialogs.WtMoreInfoDialog;
 import org.writingtool.dialogs.WtOptionPane;
+import org.writingtool.dialogs.WtQuotesChangeDialog;
 import org.writingtool.dialogs.WtStatAnDialog;
 import org.writingtool.dialogs.WtCheckDialog.LtCheckDialog;
 import org.writingtool.sidebar.WtSidebarContent;
@@ -136,6 +137,7 @@ public class WtDocumentsHandler {
   private static WtAboutDialog aboutDialog = null;          //  about dialog (show only one about panel)
   private static WtMoreInfoDialog infoDialog = null;        //  more info about a rule dialog (show only one info panel)
   private static WtAiSummaryDialog aiSummaryDialog = null;  //  generate summary dialog (AI) (show only one summary panel)
+  private static WtQuotesChangeDialog quotesChangeDialog = null;  //  dialog to change quotes
   private boolean dialogIsRunning = false;                  //  The dialog was started
   private WaitDialogThread waitDialog = null;
 
@@ -1420,6 +1422,29 @@ public class WtDocumentsHandler {
     }
     return null;
   }
+
+  /**
+   * run change quotes dialog
+   */
+  public void runChangeQuotes() {
+    for (WtSingleDocument document : documents) {
+      if (menuDocId.equals(document.getDocID())) {
+        if (quotesChangeDialog != null) {
+          quotesChangeDialog.closeDialog();
+        }
+        quotesChangeDialog = new WtQuotesChangeDialog(document, messages);
+        quotesChangeDialog.start();
+        return;
+      }
+    }
+  }
+  
+  /**
+   * run change quotes dialog
+   */
+  public static void closeChangeQuotesDialog() {
+    quotesChangeDialog = null;
+  }
   
   /**
    * Call method Ai Support mark errors 
@@ -2043,6 +2068,8 @@ public class WtDocumentsHandler {
           WtStatAnDialog statAnDialog = new WtStatAnDialog(getCurrentDocument());
           statAnDialog.start();
         }
+      } else if ("changeQuotes".equals(sEvent)) {
+        runChangeQuotes();
       } else if ("offStatisticalAnalyses".equals(sEvent)) {
         //  statistical analysis id not supported for this language --> do nothing
       } else if ("writeAnalyzedParagraphs".equals(sEvent)) {

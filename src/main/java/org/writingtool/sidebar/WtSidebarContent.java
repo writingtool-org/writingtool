@@ -267,6 +267,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       
       // Add buttons to container
       num = 0;
+      buttonStatAnWindow = addButtonToContainer(num, "changeQuotes", "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
+      buttonStatAnWindow.setEnable(true);
+      num++;
       buttonStatAnWindow = addButtonToContainer(num, "statisticalAnalyses", "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
       buttonStatAnWindow.setEnable(hasStatAn());
       num++;

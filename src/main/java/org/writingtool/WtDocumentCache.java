@@ -2127,6 +2127,9 @@ public class WtDocumentCache implements Serializable {
   public String getDocAsString() {
     rwLock.readLock().lock();
     try {
+      if (paragraphs.size() <= 0) {
+        return "";
+      }
       StringBuilder docText = new StringBuilder(paragraphs.get(0));
       for (int i = 1; i < paragraphs.size(); i++) {
         docText.append(WtOfficeTools.END_OF_PARAGRAPH).append(paragraphs.get(i));
