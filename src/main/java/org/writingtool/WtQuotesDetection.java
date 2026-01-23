@@ -395,31 +395,53 @@ public class WtQuotesDetection {
     Object access = confMsf.createInstanceWithArguments(
         "com.sun.star.configuration.ConfigurationAccess", args);
 
-    XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, access);
+    String doubleStart = "";
+    String doubleEnd = "";
     
-    int iDoubleStart = (int) props.getPropertyValue("DoubleQuoteAtStart");
-    int iDoubleEnd   = (int) props.getPropertyValue("DoubleQuoteAtEnd");
+    int iDoubleStart = 0;
+    int iDoubleEnd = 0;
+    
+    XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, access);
+    Object o = props.getPropertyValue("DoubleQuoteAtStart");
+    if (o != null) {
+      if (o instanceof Integer) {
+        iDoubleStart = (int) o;
+      } else if (o instanceof String) {
+        doubleStart = (String) o;
+      }
+    }
+    o = props.getPropertyValue("DoubleQuoteAtEnd");
+    if (o != null) {
+      if (o instanceof Integer) {
+        iDoubleEnd = (int) o;
+      } else if (o instanceof String) {
+        doubleEnd = (String) o;
+      }
+    }
 //    int iSingleStart = (int) props.getPropertyValue("SingleQuoteAtStart");
 //    int iSingleEnd   = (int) props.getPropertyValue("SingleQuoteAtEnd");
     
-    String doubleStart = "";
-    String doubleEnd = "";
-
-    if (iDoubleStart == 0 || iDoubleEnd == 0) {
-      Object olocaleData = xMSF.createInstance("com.sun.star.i18n.LocaleData");
-      if (olocaleData == null) {
-        WtMessageHandler.printToLogFile("olocaleData == null");
-        return;
+    if (doubleStart.isEmpty() || !doubleEnd.isEmpty()) {
+      if (iDoubleStart == 0 || iDoubleEnd == 0) {
+        Object olocaleData = xMSF.createInstance("com.sun.star.i18n.LocaleData");
+        if (olocaleData == null) {
+          WtMessageHandler.printToLogFile("olocaleData == null");
+          return;
+        }
+        XLocaleData xlocaleData = UnoRuntime.queryInterface(XLocaleData.class, olocaleData);
+        if (locale == null) {
+          locale = WtOfficeTools.getDefaultLocale(xContext);
+        }
+        LocaleDataItem localeDataItem = xlocaleData.getLocaleItem(locale);
+        if (doubleStart.isEmpty()) {
+          doubleStart = localeDataItem.doubleQuotationStart;
+        }
+        if (doubleEnd.isEmpty()) {
+          doubleEnd = localeDataItem.doubleQuotationEnd;
+        }
+  //      singleStart = localeDataItem.quotationStart.charAt(0);
+  //      singleEnd = localeDataItem.quotationEnd.charAt(0);
       }
-      XLocaleData xlocaleData = UnoRuntime.queryInterface(XLocaleData.class, olocaleData);
-      if (locale == null) {
-        locale = WtOfficeTools.getDefaultLocale(xContext);
-      }
-      LocaleDataItem localeDataItem = xlocaleData.getLocaleItem(locale);
-      doubleStart = localeDataItem.doubleQuotationStart;
-      doubleEnd = localeDataItem.doubleQuotationEnd;
-//      singleStart = localeDataItem.quotationStart.charAt(0);
-//      singleEnd = localeDataItem.quotationEnd.charAt(0);
     }
     if (iDoubleStart != 0) {
       doubleStart = "" + ((char) iDoubleStart);
@@ -429,18 +451,20 @@ public class WtQuotesDetection {
     }
 //    WtMessageHandler.printToLogFile("WtQuotesDetection: readQuotes: doubleStart: " + doubleStart + ", doubleEnd: " + doubleEnd);
 //        + ", singleStart: " + singleStart + ", singleEnd: " + singleEnd);
-    for (int i = startSymbols.size() - 1; i >= 0; i--) {
-      if (startSymbols.get(i).equals(doubleStart)) {
-        if (endSymbols.get(i).equals(doubleEnd)) {
-          startSymbols.remove(i);
-          endSymbols.remove(i);
+    if (!doubleStart.isEmpty() && !doubleEnd.isEmpty()) {
+      for (int i = startSymbols.size() - 1; i >= 0; i--) {
+        if (startSymbols.get(i).equals(doubleStart)) {
+          if (endSymbols.get(i).equals(doubleEnd)) {
+            startSymbols.remove(i);
+            endSymbols.remove(i);
+          }
+          break;
         }
-        break;
       }
+      startSymbols.add(0, doubleStart);
+      endSymbols.add(0, doubleEnd);
+      nQuote = 0;
     }
-    startSymbols.add(0, doubleStart);
-    endSymbols.add(0, doubleEnd);
-    nQuote = 0;
   }
 
 }
