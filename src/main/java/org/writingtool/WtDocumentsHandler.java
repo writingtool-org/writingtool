@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -59,6 +60,7 @@ import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAboutDialog;
 import org.writingtool.dialogs.WtAiDialog;
+import org.writingtool.dialogs.WtAiResultDialog;
 import org.writingtool.dialogs.WtAiSummaryDialog;
 import org.writingtool.dialogs.WtCheckDialog;
 import org.writingtool.dialogs.WtConfigurationDialog;
@@ -137,6 +139,8 @@ public class WtDocumentsHandler {
   private static WtAboutDialog aboutDialog = null;          //  about dialog (show only one about panel)
   private static WtMoreInfoDialog infoDialog = null;        //  more info about a rule dialog (show only one info panel)
   private static WtAiSummaryDialog aiSummaryDialog = null;  //  generate summary dialog (AI) (show only one summary panel)
+  private static WtAiTranslateDocument aiTranslate = null;  //  generate translate dialog (AI) (show only one translate panel)
+  private static WtStatAnDialog statAnDialog = null;        //  dialog for statistical analysis
   private static WtQuotesChangeDialog quotesChangeDialog = null;  //  dialog to change quotes
   private boolean dialogIsRunning = false;                  //  The dialog was started
   private WaitDialogThread waitDialog = null;
@@ -169,7 +173,6 @@ public class WtDocumentsHandler {
   private boolean testMode = false;
   private static int javaLookAndFeelSet = -1;
   private boolean isHelperDisposed = false;
-  private boolean statAnDialogRunning = false;
 
   
   WtDocumentsHandler(XComponentContext xContext, XProofreader xProofreader, XEventListener xEventListener) {
@@ -543,15 +546,15 @@ public class WtDocumentsHandler {
   /**
    *  Set dialog for statisical analysis running
    */
-  public void setStatAnDialogRunning(boolean running) {
-    statAnDialogRunning = running;
+  public void setStatAnDialogClose() {
+    statAnDialog = null;
   }
   
   /**
    *  use analyzed sentences cache
    */
   public boolean useAnalyzedSentencesCache() {
-    return !config.doRemoteCheck() || statAnDialogRunning;
+    return !config.doRemoteCheck() || statAnDialog != null;
   }
   
   /**
@@ -566,9 +569,37 @@ public class WtDocumentsHandler {
       cfgDialog.close();
       cfgDialog = null;
     }
+    if (aboutDialog != null) {
+      aboutDialog.close();
+      aboutDialog = null;
+    } 
+    if (infoDialog != null) {
+      infoDialog.close();
+      infoDialog = null;
+    }
+    if (aiSummaryDialog != null) {
+      aiSummaryDialog.close();
+      aiSummaryDialog = null;
+    } 
+    if (aiTranslate != null) {
+      aiTranslate.closeDialog();
+      aiTranslate = null;
+    }
+    if (quotesChangeDialog != null) {
+      quotesChangeDialog.closeDialog();
+      quotesChangeDialog = null;
+    } 
+    if (statAnDialog != null) {
+      statAnDialog.closeDialog();
+      statAnDialog = null;
+    }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
       aiDialog.closeDialog();
+    } 
+    WtAiResultDialog aiResultDialog = WtAiParagraphChanging.getAiResultDialog();
+    if (aiResultDialog != null) {
+      aiResultDialog.closeDialog();
     } 
   }
   
@@ -1426,12 +1457,10 @@ public class WtDocumentsHandler {
   /**
    * run change quotes dialog
    */
-  public void runChangeQuotes() {
+  public void runChangeQuotes() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        if (quotesChangeDialog != null) {
-          quotesChangeDialog.closeDialog();
-        }
+        closeDialogs();
         quotesChangeDialog = new WtQuotesChangeDialog(document, messages);
         quotesChangeDialog.start();
         return;
@@ -1440,7 +1469,7 @@ public class WtDocumentsHandler {
   }
   
   /**
-   * run change quotes dialog
+   * close quotes dialog
    */
   public static void closeChangeQuotesDialog() {
     quotesChangeDialog = null;
@@ -1461,10 +1490,12 @@ public class WtDocumentsHandler {
   
   /**
    * Call method Ai Support run command to change paragraph
+   * @throws Throwable 
    */
-  public void runAiChangeOnParagraph(AiCommand command) {
+  public void runAiChangeOnParagraph(AiCommand command) throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
+        closeDialogs();
         WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
         aiChange.start();
         return;
@@ -1472,14 +1503,22 @@ public class WtDocumentsHandler {
     }
   }
   
-  public void runAiTranslateText() {
+  public void runAiTranslateText() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        WtAiTranslateDocument aiTranslate = new WtAiTranslateDocument(document, messages);
+        closeDialogs();
+        aiTranslate = new WtAiTranslateDocument(document, messages);
         aiTranslate.start();
         return;
       }
     }
+  }
+  
+  /**
+   * run change quotes dialog
+   */
+  public static void closeAiTranslateText() {
+    aiTranslate = null;
   }
   
   public void runAiTextToSpeech() {
@@ -1505,15 +1544,12 @@ public class WtDocumentsHandler {
     aiSummaryDialog = null;
   }
 
-  public void runAiSummaryDialog() {
+  public void runAiSummaryDialog() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        if (aiSummaryDialog != null) {
-          aiSummaryDialog.toFront();
-        } else {
-          aiSummaryDialog = new WtAiSummaryDialog(document, messages);
-          aiSummaryDialog.start();
-        }
+        closeDialogs();
+        aiSummaryDialog = new WtAiSummaryDialog(document, messages);
+        aiSummaryDialog.start();
         return;
       }
     }
@@ -1947,10 +1983,7 @@ public class WtDocumentsHandler {
         closeDialogs();
         runOptionsDialog();
       } else if ("about".equals(sEvent)) {
-        if (aboutDialog != null) {
-          aboutDialog.close();
-          aboutDialog = null;
-        }
+        closeDialogs();
         if (!isJavaLookAndFeelSet()) {
           setJavaLookAndFeel();
         }
@@ -2063,11 +2096,9 @@ public class WtDocumentsHandler {
         WtSpellChecker.resetSpellCache();
         resetDocument();
       } else if ("statisticalAnalyses".equals(sEvent)) {
-        if (!statAnDialogRunning) {
-          statAnDialogRunning = true;
-          WtStatAnDialog statAnDialog = new WtStatAnDialog(getCurrentDocument());
-          statAnDialog.start();
-        }
+        closeDialogs();
+        statAnDialog = new WtStatAnDialog(getCurrentDocument());
+        statAnDialog.start();
       } else if ("changeQuotes".equals(sEvent)) {
         runChangeQuotes();
       } else if ("offStatisticalAnalyses".equals(sEvent)) {
@@ -2756,7 +2787,8 @@ public class WtDocumentsHandler {
           close_intern();
         });
         progressBar.setIndeterminate(true);
-        dialog = new JDialog();
+        JFrame frame = new JFrame();
+        dialog = new JDialog(frame);
         Container contentPane = dialog.getContentPane();
         dialog.setName("InformationThread");
         dialog.setTitle(dialogName);
@@ -2774,6 +2806,7 @@ public class WtDocumentsHandler {
           }
           @Override
           public void windowIconified(WindowEvent e) {
+            close_intern();
           }
           @Override
           public void windowDeiconified(WindowEvent e) {
@@ -2818,6 +2851,8 @@ public class WtDocumentsHandler {
             screenSize.height / 2 - frameSize.height / 2);
         dialog.setAutoRequestFocus(true);
         dialog.setAlwaysOnTop(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false); // prevents minimizing and maximizing
         dialog.toFront();
 //        if (debugMode) {
           WtMessageHandler.printToLogFile(dialogName + ": run: Dialog is running");

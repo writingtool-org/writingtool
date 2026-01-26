@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -289,8 +290,9 @@ public class WtMessageHandler {
       
     private boolean showDialog() {
       try {
+        JFrame frame = new JFrame();
         JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
-        dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
+        dialog = pane.createDialog(frame, UIManager.getString("OptionPane.messageDialogTitle", null));
         dialog.setModal(false);
         dialog.setAutoRequestFocus(true);
         dialog.setAlwaysOnTop(true);
@@ -305,6 +307,8 @@ public class WtMessageHandler {
             }
           }
         });
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false); // prevents minimizing and maximizing
         dialog.toFront();
         dialog.setVisible(true);
       } catch (Exception e) {
@@ -356,8 +360,9 @@ public class WtMessageHandler {
       
     private boolean showDialog() {
       try {
+        JFrame frame = new JFrame();
         JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
-        dialog = pane.createDialog(null, UIManager.getString("OptionPane.messageDialogTitle", null));
+        dialog = pane.createDialog(frame, UIManager.getString("OptionPane.messageDialogTitle", null));
         dialog.setModal(false);
         dialog.setAutoRequestFocus(true);
         dialog.setAlwaysOnTop(true);
@@ -372,6 +377,8 @@ public class WtMessageHandler {
             }
           }
         });
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false); // prevents minimizing and maximizing
         dialog.toFront();
         dialog.setVisible(true);
       } catch (Exception e) {

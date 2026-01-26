@@ -101,14 +101,16 @@ public class WtAiParagraphChanging extends Thread {
   
   private void runAiChangeOnParagraph() {
     try {
+      if (aiDialog != null) {
+        aiDialog.closeDialog();
+      }
+      if (resultDialog != null) {
+        resultDialog.closeDialog();
+      }
       if (commandId == AiCommand.GeneralAi) {
-        if (aiDialog == null) {
-          waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
-          aiDialog = new WtAiDialog(document, waitDialog, messages);
-          aiDialog.start();
-        } else {
-          aiDialog.toFront();
-        }
+        waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+        aiDialog = new WtAiDialog(document, waitDialog, messages);
+        aiDialog.start();
         return;
       } else if (commandId == AiCommand.SynonymsOfWord) {
         showSynonyms();

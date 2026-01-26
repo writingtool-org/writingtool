@@ -1701,6 +1701,7 @@ public class WtCheckDialog extends Thread {
           }
           @Override
           public void windowIconified(WindowEvent e) {
+            closeDialog();
           }
           @Override
           public void windowDeiconified(WindowEvent e) {

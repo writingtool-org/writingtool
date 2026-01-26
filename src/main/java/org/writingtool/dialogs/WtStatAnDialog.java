@@ -47,6 +47,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -100,6 +101,7 @@ public class WtStatAnDialog extends Thread  {
   private final static int MIN_OPTION_HEIGHT = 400;
   
   private JDialog dialog;
+  private WaitDialogThread waitdialog;
   private Container contentPane;
   private JPanel chapterPanel;
   private JPanel leftPanel;
@@ -146,7 +148,6 @@ public class WtStatAnDialog extends Thread  {
   public WtStatAnDialog(WtSingleDocument document) {
     xComponent = document.getXComponent();
     this.document = document;
-    document.getMultiDocumentsHandler().setStatAnDialogRunning(true);
     rules.clear();
     Language lang = document.getLanguage();
     if (lang != null) {
@@ -173,15 +174,24 @@ public class WtStatAnDialog extends Thread  {
     }
   }
   
-  private void closeDialog(WaitDialogThread waitdialog) {
+  public void closeDialog() {
     try {
       cache.setNewResultcache(null, null);
       dialog.setVisible(false);
-      document.getMultiDocumentsHandler().setStatAnDialogRunning(false);
+      document.getMultiDocumentsHandler().setStatAnDialogClose();
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
     waitdialog.close();
+  }
+  
+  public void toFront() {
+    try {
+      dialog.toFront();
+      dialog.setVisible(true);
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
   }
   
   private boolean hasReadabilityRule() {
@@ -193,13 +203,16 @@ public class WtStatAnDialog extends Thread  {
     return false;
   }
   
-  private void runDialog(WaitDialogThread waitdialog) {
+  private void runDialog() {
     if (rules.isEmpty()) {
       Language lang = document.getLanguage();
       String shortCode = lang == null ? "unknown" : lang.getShortCode();
       WtMessageHandler.printToLogFile("Statistical Rules are not supported for language: " + shortCode);
     }
-    dialog = new JDialog();
+    JFrame frame = new JFrame();
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    dialog = new JDialog(frame);
+//    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     dialog.setName(dialogName);
     dialog.setTitle(dialogName + " (WritingTool " + WtVersionInfo.getWtInformation() + ")");
     dialog.setMinimumSize(new Dimension(MIN_DIALOG_WIDTH, MIN_DIALOG_HEIGHT));
@@ -210,13 +223,14 @@ public class WtStatAnDialog extends Thread  {
       }
       @Override
       public void windowClosing(WindowEvent e) {
-        closeDialog(waitdialog);
+        closeDialog();
       }
       @Override
       public void windowClosed(WindowEvent e) {
       }
       @Override
       public void windowIconified(WindowEvent e) {
+        closeDialog();
       }
       @Override
       public void windowDeiconified(WindowEvent e) {
@@ -285,7 +299,7 @@ public class WtStatAnDialog extends Thread  {
       }
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);
-      closeDialog(waitdialog);
+      closeDialog();
     }
 
     optionLabel = new JLabel (MESSAGES.getString("loStatisticalAnalysisOptionsLabel") + ":");
@@ -403,7 +417,7 @@ public class WtStatAnDialog extends Thread  {
     cons1.gridx++;
     JButton closeButton = new JButton(MESSAGES.getString("loStatisticalAnalysisCloseButton"));
     closeButton.addActionListener(e -> {
-      closeDialog(waitdialog);
+      closeDialog();
     });
     buttonPanel.add(closeButton, cons1);
     
@@ -872,10 +886,9 @@ public class WtStatAnDialog extends Thread  {
   @Override
   public void run() {
     try {
-      WaitDialogThread waitdialog = 
-          new WaitDialogThread("Please wait", MESSAGES.getString("loWaitMessage"));
+      waitdialog = new WaitDialogThread("Please wait", MESSAGES.getString("loWaitMessage"));
       waitdialog.start();
-      runDialog(waitdialog);
+      runDialog();
       waitdialog.close();
       dialog.setVisible(true);
       if (debugMode) {
@@ -1356,7 +1369,7 @@ public class WtStatAnDialog extends Thread  {
     JButton changeButton = new JButton(MESSAGES.getString("guiUColorChange"));
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
-      dialog.setAlwaysOnTop(false);
+//      dialog.setAlwaysOnTop(false);
       JColorChooser colorChooser = new JColorChooser(oldColor);
       ActionListener okActionListener = new ActionListener() {
         public void actionPerformed(ActionEvent actionEvent) {
@@ -1371,13 +1384,13 @@ public class WtStatAnDialog extends Thread  {
               WtMessageHandler.showError(e1);
             }
           }
-          dialog.setAlwaysOnTop(true);
+//          dialog.setAlwaysOnTop(true);
         }
       };
       // For cancel selection, change button background to red
       ActionListener cancelActionListener = new ActionListener() {
         public void actionPerformed(ActionEvent actionEvent) {
-          dialog.setAlwaysOnTop(true);
+//          dialog.setAlwaysOnTop(true);
         }
       };
       JDialog colorDialog = JColorChooser.createDialog(dialog, MESSAGES.getString("guiUColorDialogHeader"), true,

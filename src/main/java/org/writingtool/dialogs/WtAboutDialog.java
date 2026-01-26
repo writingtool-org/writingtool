@@ -31,6 +31,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ResourceBundle;
@@ -130,6 +132,32 @@ public class WtAboutDialog {
       maxHeight = Math.min(maintainersPane.getPreferredSize().height, maxHeight);
       maintainersPane.setPreferredSize(new Dimension(prefWidth, maxHeight));
   
+      dialog.addWindowListener(new WindowListener() {
+        @Override
+        public void windowOpened(WindowEvent e) {
+        }
+        @Override
+        public void windowClosing(WindowEvent e) {
+          close();
+        }
+        @Override
+        public void windowClosed(WindowEvent e) {
+        }
+        @Override
+        public void windowIconified(WindowEvent e) {
+          close();
+        }
+        @Override
+        public void windowDeiconified(WindowEvent e) {
+        }
+        @Override
+        public void windowActivated(WindowEvent e) {
+        }
+        @Override
+        public void windowDeactivated(WindowEvent e) {
+        }
+      });
+      
       JScrollPane scrollPane = new JScrollPane(maintainersPane);
       scrollPane.setBorder(BorderFactory.createEmptyBorder());
       
@@ -219,7 +247,7 @@ public class WtAboutDialog {
       dialog.setLocationByPlatform(true);
       dialog.setAutoRequestFocus(true);
       dialog.setVisible(true);
-      dialog.setAlwaysOnTop(true);
+//      dialog.setAlwaysOnTop(true);
       dialog.toFront();
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -261,6 +289,7 @@ public class WtAboutDialog {
 */  
   public void close() {
     dialog.setVisible(false);
+    dialog.dispose();
   }
 
 }

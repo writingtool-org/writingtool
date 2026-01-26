@@ -148,6 +148,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
         }
         @Override
         public void windowIconified(WindowEvent e) {
+          close_dialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {

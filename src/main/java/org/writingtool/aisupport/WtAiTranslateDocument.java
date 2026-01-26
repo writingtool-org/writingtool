@@ -28,6 +28,7 @@ import org.writingtool.dialogs.WtAiTranslationDialog;
 import org.writingtool.dialogs.WtAiTranslationDialog.TranslationOptions;
 import org.writingtool.dialogs.WtOptionPane;
 import org.writingtool.WtDocumentCache.TextParagraph;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtMessageHandler;
@@ -64,11 +65,13 @@ public class WtAiTranslateDocument extends Thread {
   
   private final ResourceBundle messages;
   private WaitDialogThread waitDialog = null;
+  private WtAiTranslationDialog langDialog = null;
   private WtSingleDocument document;
   private WtDocumentCursorTools docCursor;
   private Locale locale;
   private float temperature;
   private String fromUrl;
+  private boolean dispose = false;
   
   public WtAiTranslateDocument(WtSingleDocument document, ResourceBundle messages) {
     this.document = document;
@@ -113,12 +116,25 @@ public class WtAiTranslateDocument extends Thread {
       } else {
         WtMessageHandler.printToLogFile("Locale: null");
       }
+      WtDocumentsHandler.closeAiTranslateText();
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
   }
+  
+  public void closeDialog() {
+    dispose = true;
+    if (langDialog != null) {
+      langDialog.closeDialog();
+    }
+    if (waitDialog != null) {
+      waitDialog.close();
+    }
+    WtDocumentsHandler.closeAiTranslateText();
+  }
+
   private TranslationOptions getTranslationOptions() {
-    WtAiTranslationDialog langDialog = new WtAiTranslationDialog(document, messages);
+    langDialog = new WtAiTranslationDialog(document, messages);
     return langDialog.run();
   }
 
@@ -204,7 +220,7 @@ public class WtAiTranslateDocument extends Thread {
       String instruction = TRANSLATE_INSTRUCTION + locale.Language + TRANSLATE_INSTRUCTION_POST;
       SwingUtilities.invokeLater(() -> { waitDialog.initializeProgressBar(0, fromCache.size()); });
       for(int i = 0; i < fromCache.size(); i++) {
-        if (waitDialog.canceled()) {
+        if (dispose || waitDialog.canceled()) {
           break;
         }
         String str = fromCache.getFlatParagraph(i);

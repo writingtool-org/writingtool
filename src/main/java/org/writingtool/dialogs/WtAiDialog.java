@@ -781,6 +781,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
         @Override
         public void windowIconified(WindowEvent e) {
+          closeDialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {

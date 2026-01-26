@@ -33,6 +33,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -40,6 +41,7 @@ import java.util.ResourceBundle;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -113,7 +115,8 @@ public class WtAiTranslationDialog implements ActionListener {
     
     currentDocument = document;
     
-    dialog = new JDialog();
+    JFrame frame = new JFrame();
+    dialog = new JDialog(frame);
     contentPane = dialog.getContentPane();
     languageLabel = new JLabel(messages.getString("loAiDialogLanguageLabel") + ":");
     language = new JComboBox<String>(getPossibleLanguages());
@@ -186,35 +189,57 @@ public class WtAiTranslationDialog implements ActionListener {
       cancel.setFont(dialogFont);
       cancel.addActionListener(this);
       cancel.setActionCommand("cancel");
-
+/*
+      dialog.addWindowStateListener(new WindowStateListener() {
+        @Override
+        public void windowStateChanged(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowStateChanged: " + e.getNewState());
+          if ((e.getNewState() & Frame.ICONIFIED) != 0) {
+            closeDialog();
+          }
+        }
+      });
+*/
       dialog.addWindowListener(new WindowListener() {
         @Override
         public void windowOpened(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowOpened");
         }
         @Override
         public void windowClosing(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosing");
           closeDialog();
         }
         @Override
         public void windowClosed(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosed");
         }
         @Override
         public void windowIconified(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowIconified");
+          closeDialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeiconified");
         }
         @Override
         public void windowActivated(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowActivated");
         }
         @Override
         public void windowDeactivated(WindowEvent e) {
+          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeactivated");
+          WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isVisible());
+          WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isShowing());
+          Dimension frameSize = dialog.getSize();
+          WtMessageHandler.printToLogFile("TranslationDialog: weidth: " + frameSize.width + ", height: " + frameSize.height);
         }
       });
       
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-          WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Buttons: " + runTime);
+          WtMessageHandler.printToLogFile("TranslationDialog: Time to initialise Buttons: " + runTime);
           startTime = System.currentTimeMillis();
       }
       
@@ -389,9 +414,10 @@ public class WtAiTranslationDialog implements ActionListener {
   public void closeDialog() {
     locale = null;
     dialog.setVisible(false);
-    if (debugMode) {
-      WtMessageHandler.printToLogFile("AiDialog: closeDialog: Close AI Dialog");
-    }
+    dialog.dispose();
+//    if (debugMode) {
+      WtMessageHandler.printToLogFile("AiTranslationDialog: closeDialog: Close AI Dialog");
+//    }
   }
   
   /**

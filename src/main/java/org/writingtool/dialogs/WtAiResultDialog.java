@@ -185,6 +185,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
         }
         @Override
         public void windowIconified(WindowEvent e) {
+          closeDialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {
