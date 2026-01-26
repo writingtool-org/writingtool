@@ -608,26 +608,31 @@ public class WtCheckDialog extends Thread {
     List<WtProofreadingError[]> errors = new ArrayList<>();
     while (nWait < TEST_LOOPS) {
       document = documents.getCurrentDocument();
+      if (document != null) {
+        noNull = true;
 //      for (int cacheNum = 0; cacheNum < lt.getNumMinToCheckParas().size(); cacheNum++) {
-      for (int cacheNum = 0; cacheNum < document.getParagraphsCache().size(); cacheNum++) {
-        if (!docCache.isAutomaticGenerated(nFPara, true) && ((cacheNum == WtOfficeTools.CACHE_SINGLE_PARAGRAPH 
-                || (lt.isSortedRuleForIndex(cacheNum) && !document.getDocumentCache().isSingleParagraph(nFPara)))
-            || (cacheNum == WtOfficeTools.CACHE_AI && useAi))) {
-          WtProofreadingError[] pErrors = document.getParagraphsCache().get(cacheNum).getSafeMatches(nFPara);
-          //  Note: unsafe matches are needed to prevent the thread to get into a read lock
-          if (pErrors == null) {
-            noNull = false;
-            hasUncheckedParas = true;
-            if (debugMode) {
-              WtMessageHandler.printToLogFile("CheckDialog: getErrorsFromCache: Cache(" + cacheNum + ") is null for Paragraph: " + nFPara);
+        for (int cacheNum = 0; cacheNum < document.getParagraphsCache().size(); cacheNum++) {
+          if (!docCache.isAutomaticGenerated(nFPara, true) && ((cacheNum == WtOfficeTools.CACHE_SINGLE_PARAGRAPH 
+                  || (lt.isSortedRuleForIndex(cacheNum) && !document.getDocumentCache().isSingleParagraph(nFPara)))
+              || (cacheNum == WtOfficeTools.CACHE_AI && useAi))) {
+            WtProofreadingError[] pErrors = document.getParagraphsCache().get(cacheNum).getSafeMatches(nFPara);
+            //  Note: unsafe matches are needed to prevent the thread to get into a read lock
+            if (pErrors == null) {
+              noNull = false;
+              hasUncheckedParas = true;
+              if (debugMode) {
+                WtMessageHandler.printToLogFile("CheckDialog: getErrorsFromCache: Cache(" + cacheNum + ") is null for Paragraph: " + nFPara);
+              }
+              errors.add(null);
+            } else {
+              errors.add(pErrors);
             }
-            errors.add(null);
           } else {
-            errors.add(pErrors);
+            errors.add(new WtProofreadingError[0]);
           }
-        } else {
-          errors.add(new WtProofreadingError[0]);
         }
+      } else {
+        noNull = false;
       }
       if (noNull) {
         mergeSpellingErrors(errors);
