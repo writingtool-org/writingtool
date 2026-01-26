@@ -203,37 +203,39 @@ public class WtAiTranslationDialog implements ActionListener {
       dialog.addWindowListener(new WindowListener() {
         @Override
         public void windowOpened(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowOpened");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowOpened");
         }
         @Override
         public void windowClosing(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosing");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosing");
           closeDialog();
         }
         @Override
         public void windowClosed(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosed");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosed");
         }
         @Override
         public void windowIconified(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowIconified");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowIconified");
           closeDialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeiconified");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeiconified");
         }
         @Override
         public void windowActivated(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowActivated");
+//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowActivated");
         }
         @Override
         public void windowDeactivated(WindowEvent e) {
+/*
           WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeactivated");
           WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isVisible());
           WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isShowing());
           Dimension frameSize = dialog.getSize();
           WtMessageHandler.printToLogFile("TranslationDialog: weidth: " + frameSize.width + ", height: " + frameSize.height);
+*/
         }
       });
       
