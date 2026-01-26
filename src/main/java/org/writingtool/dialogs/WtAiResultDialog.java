@@ -345,6 +345,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     }
     dialog.setLocation(dialogX, dialogY);
     dialog.setAutoRequestFocus(true);
+    dialog.toFront();
     dialog.setVisible(true);
   }
   

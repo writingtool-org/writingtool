@@ -29,6 +29,7 @@ import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 
 import org.writingtool.WtDocumentCache;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
@@ -82,7 +83,7 @@ public class WtAiTextToSpeech extends Thread {
       if (audioDir == null) {
         return;
       }
-      waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+      waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
 /*      
       WtConfiguration config = document.getMultiDocumentsHandler().getConfiguration();

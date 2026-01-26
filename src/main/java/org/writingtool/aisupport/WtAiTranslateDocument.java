@@ -213,7 +213,7 @@ public class WtAiTranslateDocument extends Thread {
   private void writeText() {
     try {
       WtDocumentCache fromCache = document.getDocumentCache();
-      waitDialog = new WaitDialogThread(WtAiParagraphChanging.WAIT_TITLE, WtAiParagraphChanging.WAIT_MESSAGE);
+      waitDialog = WtDocumentsHandler.getWaitDialog(WtAiParagraphChanging.WAIT_TITLE, WtAiParagraphChanging.WAIT_MESSAGE);
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), document.getMultiDocumentsHandler().getConfiguration());
       docCursor = document.getDocumentCursorTools();

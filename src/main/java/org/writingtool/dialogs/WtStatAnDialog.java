@@ -176,7 +176,9 @@ public class WtStatAnDialog extends Thread  {
   
   public void closeDialog() {
     try {
-      cache.setNewResultcache(null, null);
+      if (cache != null) {
+        cache.setNewResultcache(null, null);
+      }
       dialog.setVisible(false);
       document.getMultiDocumentsHandler().setStatAnDialogClose();
     } catch (Throwable e) {
@@ -886,10 +888,11 @@ public class WtStatAnDialog extends Thread  {
   @Override
   public void run() {
     try {
-      waitdialog = new WaitDialogThread("Please wait", MESSAGES.getString("loWaitMessage"));
+      waitdialog = WtDocumentsHandler.getWaitDialog("Please wait", MESSAGES.getString("loWaitMessage"));
       waitdialog.start();
       runDialog();
       waitdialog.close();
+      dialog.toFront();
       dialog.setVisible(true);
       if (debugMode) {
         WtMessageHandler.printToLogFile("Dialog visible set");

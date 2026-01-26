@@ -538,9 +538,9 @@ public class WtConfigurationDialog implements ActionListener {
       }
     }
     dialog.setAutoRequestFocus(true);
-    dialog.setAlwaysOnTop(true);
-    dialog.setVisible(true);
+//    dialog.setAlwaysOnTop(true);
     dialog.toFront();
+    dialog.setVisible(true);
     return configChanged;
   }
 

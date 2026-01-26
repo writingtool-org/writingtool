@@ -33,7 +33,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.event.WindowStateListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -366,6 +365,7 @@ public class WtAiTranslationDialog implements ActionListener {
     dialog.setLocation(dialogX, dialogY);
     dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
     dialog.setAutoRequestFocus(true);
+    dialog.toFront();
     dialog.setVisible(true);
     if(locale != null) {
       return new TranslationOptions(locale, temperature);

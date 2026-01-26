@@ -25,6 +25,7 @@ import java.util.ResourceBundle;
 import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedTokenReadings;
 import org.writingtool.WtDocumentCache;
+import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtProofreadingError;
 import org.writingtool.WtSingleCheck;
@@ -108,7 +109,7 @@ public class WtAiParagraphChanging extends Thread {
         resultDialog.closeDialog();
       }
       if (commandId == AiCommand.GeneralAi) {
-        waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+        waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
         aiDialog = new WtAiDialog(document, waitDialog, messages);
         aiDialog.start();
         return;
@@ -161,7 +162,7 @@ public class WtAiParagraphChanging extends Thread {
 //        WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: Result Dialog closed");
         resultDialog.closeDialog();
       }
-      waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+      waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       WtAiRemote aiRemote = new WtAiRemote(document.getMultiDocumentsHandler(), config);
       if (debugMode > 1) {
@@ -226,7 +227,7 @@ public class WtAiParagraphChanging extends Thread {
       if (resultDialog != null) {
         resultDialog.closeDialog();
       }
-      waitDialog = new WaitDialogThread(WAIT_TITLE, WAIT_MESSAGE);
+      waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
       waitDialog.start();
       XComponent xComponent = document.getXComponent();
       WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);

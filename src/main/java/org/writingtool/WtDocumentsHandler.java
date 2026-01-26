@@ -142,8 +142,8 @@ public class WtDocumentsHandler {
   private static WtAiTranslateDocument aiTranslate = null;  //  generate translate dialog (AI) (show only one translate panel)
   private static WtStatAnDialog statAnDialog = null;        //  dialog for statistical analysis
   private static WtQuotesChangeDialog quotesChangeDialog = null;  //  dialog to change quotes
+  private static WaitDialogThread waitDialog = null;        //  window for initialization of dialogs
   private boolean dialogIsRunning = false;                  //  The dialog was started
-  private WaitDialogThread waitDialog = null;
 
   
   private static XComponentContext xContext;          //  The context of the document
@@ -562,6 +562,9 @@ public class WtDocumentsHandler {
    * @throws Throwable 
    */
   private void closeDialogs() throws Throwable {
+    if (waitDialog != null) {
+      waitDialog.close();
+    }
     if (ltDialog != null) {
       ltDialog.closeDialog();
     } 
@@ -1971,10 +1974,6 @@ public class WtDocumentsHandler {
       if (debugModeTm) {
         startTime = System.currentTimeMillis();
       }
-      if (("checkDialog".equals(sEvent) || "checkAgainDialog".equals(sEvent)) && !useOrginalCheckDialog && !dialogIsRunning) {
-        waitDialog = new WaitDialogThread("Please wait", messages.getString("loWaitMessage"));
-        waitDialog.start();
-      }
       if (!testDocLanguage(true)) {
         WtMessageHandler.printToLogFile("Test for document language failed: Can't trigger event: " + sEvent);
         return;
@@ -2042,14 +2041,11 @@ public class WtDocumentsHandler {
         if (dialogIsRunning) {
           return;
         }
-        if (waitDialog == null || waitDialog.canceled()) {
-          return;
-        }
         if (isBackgroundCheckOff()) {
           resetCheck();
         }
         setLtDialogIsRunning(true);
-        WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, waitDialog);
+        WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage);
         if ("checkAgainDialog".equals(sEvent)) {
           WtSingleDocument document = getCurrentDocument();
           if (document != null) {
@@ -2080,7 +2076,7 @@ public class WtDocumentsHandler {
           WtOfficeTools.dispatchCmd(".uno:SpellingAndGrammarDialog", xContext);
           return;
         }
-        WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage, null);
+        WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage);
         checkDialog.nextError();
       } else if ("refreshCheck".equals(sEvent)) {
         if (ltDialog != null) {
@@ -2595,6 +2591,15 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * get a wait dialog
+   */
+  
+  public static WaitDialogThread getWaitDialog(String dialogName, String text) {
+    return new WaitDialogThread(dialogName, text);
+  }
+  
+  
+  /**
    *  start a separate thread to add or remove the internal LT dictionary
    *//*
   private void handleLtDictionary(String text) {
@@ -2769,7 +2774,7 @@ public class WtDocumentsHandler {
     private boolean isCanceled = false;
     private JProgressBar progressBar;
 
-    public WaitDialogThread(String dialogName, String text) {
+    private WaitDialogThread(String dialogName, String text) {
       this.dialogName = dialogName;
       this.text = text;
       progressBar = new JProgressBar();
@@ -2873,7 +2878,7 @@ public class WtDocumentsHandler {
     
     public void close() {
       close_intern();
-    }
+     }
     
     private void close_intern() {
       try {
@@ -2887,6 +2892,7 @@ public class WtDocumentsHandler {
           }
           dialog.dispose();
         }
+        waitDialog = null;
       } catch (Throwable t) {
         WtMessageHandler.showError(t);
       }

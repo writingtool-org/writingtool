@@ -350,7 +350,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     @Override
     public void run() {
       try {
-        waitDialog = new WaitDialogThread(messages.getString("loAiWaitDialogTitle"), 
+        waitDialog = WtDocumentsHandler.getWaitDialog(messages.getString("loAiWaitDialogTitle"), 
             messages.getString("loAiWaitDialogMessage"));
         int iter = getNumberOfChapters(chapter);
         waitDialog.initializeProgressBar(0, iter);

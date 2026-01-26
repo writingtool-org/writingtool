@@ -80,6 +80,7 @@ import org.languagetool.rules.Rule;
 import org.writingtool.WtDictionary;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
+import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.WtIgnoredMatches;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtLinguisticServices;
@@ -90,7 +91,6 @@ import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.WtDocumentCache.TextParagraph;
-import org.writingtool.WtDocumentsHandler.WaitDialogThread;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtFlatParagraphTools;
 import org.writingtool.tools.WtGeneralTools;
@@ -192,13 +192,13 @@ public class WtCheckDialog extends Thread {
 //  private ExtensionSpellChecker spellChecker;
   private WtLinguisticServices linguServices;
   
-  private WaitDialogThread inf;
   private WtLanguageTool lt = null;
   private Language lastLanguage;
   private Locale locale;
   private int checkType = 0;
   private String checkRuleId = null;
   private WtDocumentCache docCache;
+  private WaitDialogThread inf;
   private DocumentType docType = DocumentType.WRITER;
   private boolean doInit = true;
   private int dialogX = -1;
@@ -207,12 +207,13 @@ public class WtCheckDialog extends Thread {
   private boolean useAi = false;
   
   
-  public WtCheckDialog(XComponentContext xContext, WtDocumentsHandler documents, Language language, WaitDialogThread inf) {
+  public WtCheckDialog(XComponentContext xContext, WtDocumentsHandler documents, Language language) {
     debugMode = WtOfficeTools.DEBUG_MODE_CD;
     this.xContext = xContext;
     this.documents = documents;
-    this.inf = inf;
     lastLanguage = language;
+    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("loWaitMessage"));
+    inf.start();
     locale = WtLinguisticServices.getLocale(language);
     if(!documents.javaVersionOkay()) {
       return;
@@ -253,8 +254,6 @@ public class WtCheckDialog extends Thread {
       if (debugModeTm) {
         startTime = System.currentTimeMillis();
       }
-//      InformationThread inf = new InformationThread(loWaitMessage);
-//      inf.start();
       WtSingleDocument currentDocument = getCurrentDocument(false);
       if (inf.canceled()) {
         return;
