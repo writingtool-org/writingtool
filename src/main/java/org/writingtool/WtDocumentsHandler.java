@@ -2301,6 +2301,10 @@ public class WtDocumentsHandler {
    */
   public boolean isEnoughHeapSpace() {
     try {
+      if (config != null && (config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode())) {
+        heapLimitReached = false;
+        return true;
+      }
       double heapRatio = WtOfficeTools.getCurrentHeapRatio();
       if (heapRatio >= 1.0) {
         heapLimitReached = true;
