@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -112,6 +113,14 @@ public class WtDocumentsHandler {
 
   private static final int HEAP_CHECK_INTERVAL = 1000;
 
+  private enum DocumentStatus {
+    KNOWN,      //  known document
+    UNKNOWN,    //  unknown document
+    DISPOSED    //  disposed document
+  }
+
+  private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
+  
   private final List<XLinguServiceEventListener> xEventListeners;
   private boolean docReset = false;
 
@@ -172,7 +181,7 @@ public class WtDocumentsHandler {
   private int heapCheckInterval = HEAP_CHECK_INTERVAL;
   private boolean testMode = false;
   private static int javaLookAndFeelSet = -1;
-  private boolean isHelperDisposed = false;
+//  private boolean isHelperDisposed = false;
 
   
   WtDocumentsHandler(XComponentContext xContext, XProofreader xProofreader, XEventListener xEventListener) {
@@ -325,20 +334,21 @@ public class WtDocumentsHandler {
   /**
    *  Is current document known
    */
-  private boolean isKnownDocument() {
+  private DocumentStatus isKnownDocument() {
     try {
-      XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
+      XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext, false);
       if (xComponent != null) {
         for (WtSingleDocument document : documents) {
           if (xComponent.equals(document.getXComponent())) {
-            return true;
+            return DocumentStatus.KNOWN;
           }
         }
+        return DocumentStatus.UNKNOWN;
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     }
-    return false;
+    return DocumentStatus.DISPOSED;
   }
 
   /**
@@ -610,6 +620,7 @@ public class WtDocumentsHandler {
    *  Set a document as closed
    */
   private void setContextOfClosedDoc(XComponent xComponent) {
+    rwLock.readLock().lock();
     boolean found = false;
     try {
       for (WtSingleDocument document : documents) {
@@ -649,6 +660,8 @@ public class WtDocumentsHandler {
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
+    } finally {
+      rwLock.readLock().unlock();
     }
   }
   
@@ -1051,8 +1064,15 @@ public class WtDocumentsHandler {
         }
       }
     }
-    WtSingleDocument newDocument = new WtSingleDocument(xContext, config, docID, xComponent, this, docLanguage);
-    documents.add(newDocument);
+    rwLock.writeLock().lock();
+    try {
+      WtSingleDocument newDocument = new WtSingleDocument(xContext, config, docID, xComponent, this, docLanguage);
+      documents.add(newDocument);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    } finally {
+      rwLock.writeLock().unlock();
+    }
     for (String id : disposedIds) {
       removeDoc(id);
     }
@@ -1064,6 +1084,7 @@ public class WtDocumentsHandler {
    * Delete a document number and all internal space
    */
   private int removeDoc(String docID) {
+    rwLock.writeLock().lock();
     try {
       for (int i = documents.size() - 1; i >= 0; i--) {
         if (!docID.equals(documents.get(i).getDocID())) {
@@ -1086,6 +1107,8 @@ public class WtDocumentsHandler {
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
+    } finally {
+      rwLock.writeLock().unlock();
     }
     return (-1);
   }
@@ -2716,14 +2739,16 @@ public class WtDocumentsHandler {
     @Override
     public void run() {
       try {
+        boolean runHelper = true;
         WtSingleDocument currentDocument = null;
-        while (!isHelperDisposed) {
+        while (runHelper) {
           Thread.sleep(250);
-          if (isHelperDisposed) {
-            return;
+          DocumentStatus docStat = isKnownDocument();
+          if (docStat == DocumentStatus.DISPOSED) {
+            break;
           }
-          boolean isUnknownDocument = !isKnownDocument();
-          if (isFirstRun || isUnknownDocument) {
+          boolean isUnknownDocument = docStat == DocumentStatus.UNKNOWN ? true : false;
+          if ((isFirstRun || isUnknownDocument)) {
             currentDocument = getCurrentDocument();
           }
           if (currentDocument != null) {

@@ -107,10 +107,10 @@ public class WtDocumentCursorTools {
    * document is disposed: set all class variables to null
    */
   public void setDisposed() {
+    isDisposed = true;
     xPCursor = null;
     xTextCursor = null;
     curDoc = null;
-    isDisposed = true;
   }
   
   public XTextDocument getTextDocument() {

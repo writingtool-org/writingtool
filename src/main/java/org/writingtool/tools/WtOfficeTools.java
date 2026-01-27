@@ -212,6 +212,11 @@ public class WtOfficeTools {
    */
   @Nullable
   public static XDesktop getDesktop(XComponentContext xContext) {
+    return getDesktop(xContext, true);
+  }
+
+  @Nullable
+  public static XDesktop getDesktop(XComponentContext xContext, boolean printException) {
     try {
       if (xContext == null) {
         return null;
@@ -227,7 +232,9 @@ public class WtOfficeTools {
       }
       return UnoRuntime.queryInterface(XDesktop.class, desktop);
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      if (printException) {
+        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      }
       return null;           // Return null as method failed
     }
   }
@@ -264,14 +271,21 @@ public class WtOfficeTools {
    */
   @Nullable
   public static XComponent getCurrentComponent(XComponentContext xContext) {
+    return getCurrentComponent(xContext, true);
+  }
+
+  @Nullable
+  public static XComponent getCurrentComponent(XComponentContext xContext, boolean printException) {
     try {
-      XDesktop xdesktop = getDesktop(xContext);
+      XDesktop xdesktop = getDesktop(xContext, printException);
       if (xdesktop == null) {
         return null;
       }
       else return xdesktop.getCurrentComponent();
     } catch (Throwable t) {
-      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      if (printException) {
+        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      }
       return null;           // Return null as method failed
     }
   }
