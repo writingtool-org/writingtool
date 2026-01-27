@@ -789,6 +789,10 @@ public class WtAiRemote {
     if (textList.isEmpty()) {
       return "";
     }
+    String tmp = textList.get(0).trim();
+    if (tmp.isEmpty() || !tmp.endsWith("}") || !tmp.startsWith("{")) {
+      return null;
+    }
     StringBuilder sb = new StringBuilder();
     boolean done = false;
     boolean hasMessage = true;
