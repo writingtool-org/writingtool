@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -44,6 +45,8 @@ import com.sun.star.uno.XComponentContext;
 public class WtMessageHandler {
   
   private static final String logLineBreak = System.lineSeparator();  //  LineBreak in Log-File (MS-Windows compatible)
+  private static final Pattern PUNCTUATION = Pattern.compile("[,\\.!\\?:]");
+  private static final Pattern OPENING_BRACKETS = Pattern.compile("[\\{\\(\\[]");
   
   private static boolean isOpen = false;
   private static boolean isInit = false;
@@ -189,6 +192,53 @@ public class WtMessageHandler {
   }
 
   /**
+   * wrap text to max length
+   */
+  public static String wrapText(String text, int min, int max) {
+    if (text.length() <= max) {
+      return text;
+    }
+    String out = "";
+    String[] txt = text.split("\n");
+    for (int j = 0; j < txt.length; j++) {
+      String str = txt[j];
+      String tmp = "";
+      while (str.length() > max) {
+        int i;
+        for (i = max; i >= min; i--) {
+          if (Character.isWhitespace(str.charAt(i))) {
+            tmp += str.substring(0, i) + "\n";
+            str = str.substring(i + 1);
+            break;
+          } else if(PUNCTUATION.matcher(str.substring(i, i + 1)).matches()) {
+            tmp += str.substring(0, i + 1) + "\n";
+            str = str.substring(i + 1);
+            break;
+          }
+          if (i < min) {
+            for (i = max; i >= min; i--) {
+              if(OPENING_BRACKETS.matcher(str.substring(i, i + 1)).matches()) {
+                tmp += str.substring(0, i - 1) + "\n";
+                str = str.substring(i - 1);
+                break;
+              }
+            }
+          }
+          if (i < min) {
+            tmp += str.substring(0, max) + "\n";
+            str = str.substring(max);
+          }
+        }
+      }
+      out += tmp + str;
+      if (j < txt.length) {
+        out += "\n";
+      }
+    }
+    return out;
+  }
+  
+  /**
    * Shows a message in a dialog box
    * @param txt message to be shown
    */
@@ -197,6 +247,7 @@ public class WtMessageHandler {
   }
 
   static void showMessage(String txt, boolean toLogFile) {
+    txt = wrapText(txt, 20, 160);
     if (toLogFile) {
       printToLogFile(txt);
     }
