@@ -125,7 +125,8 @@ public class WtAiRemote {
     ttsUrl = config.aiTtsUrl();
     if (url.endsWith("/edits/") || url.endsWith("/edits")) {
       aiType = AiType.EDITS;
-    } else if (url.endsWith("/chat/completions/") || url.endsWith("/chat/completions")) {
+    } else if (url.endsWith("/chat/completions/") || url.endsWith("/chat/completions") 
+        || url.endsWith("/chat/") || url.endsWith("/chat")) {
       aiType = AiType.CHAT;
     } else if (url.endsWith("/completions/") || url.endsWith("/completions")) {
       aiType = AiType.COMPLETIONS;

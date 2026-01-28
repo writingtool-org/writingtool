@@ -749,7 +749,7 @@ public class WtConfigurationDialog implements ActionListener {
 
     JComboBox<String> fixedLanguageBox = new JComboBox<>(getPossibleLanguages(false));
     if (config.getFixedLanguage() != null) {
-      fixedLanguageBox.setSelectedItem(config.getFixedLanguage().getTranslatedName(messages));
+      fixedLanguageBox.setSelectedItem(config.getFixedLanguage().getTranslatedName(messages) + " (" + config.getFixedLanguage().getShortCodeWithCountryAndVariant() + ")");
     }
     fixedLanguageBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -2019,7 +2019,8 @@ public class WtConfigurationDialog implements ActionListener {
     motherTonguePanel.add(new JLabel(messages.getString("guiMotherTongue")), cons);
     JComboBox<String> motherTongueBox = new JComboBox<>(getPossibleLanguages(true));
     if (config.getMotherTongue() != null) {
-      motherTongueBox.setSelectedItem(config.getMotherTongue().getTranslatedName(messages));
+      motherTongueBox.setSelectedItem(config.getMotherTongue().getTranslatedName(messages) 
+          + " (" + config.getMotherTongue().getShortCodeWithCountryAndVariant() + ")");
     }
     motherTongueBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -2076,7 +2077,7 @@ public class WtConfigurationDialog implements ActionListener {
       languages.add(NO_SELECTED_LANGUAGE);
     }
     for (Language lang : Languages.get()) {
-      languages.add(lang.getTranslatedName(messages));
+      languages.add(lang.getTranslatedName(messages) + " (" + lang.getShortCodeWithCountryAndVariant() + ")");
       languages.sort(null);
     }
     return languages.toArray(new String[0]);
@@ -2143,7 +2144,7 @@ public class WtConfigurationDialog implements ActionListener {
   @Nullable
   private Language getLanguageForLocalizedName(String languageName) {
     for (Language element : Languages.get()) {
-      if (languageName.equals(element.getTranslatedName(messages))) {
+      if (languageName.equals(element.getTranslatedName(messages) + " (" + element.getShortCodeWithCountryAndVariant() + ")")) {
         return element;
       }
     }
@@ -2931,12 +2932,12 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-        if(apiKey.isEmpty()) {
-          apiKey = null;
-        }
-        if (apiKey != null) {
+//        if(apiKey.isEmpty()) {
+//          apiKey = null;
+//        }
+//        if (apiKey != null) {
           config.setAiApiKey(apiKey);
-        }
+//        }
       }
     });
     
@@ -3169,12 +3170,12 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-        if(apiKey.isEmpty()) {
-          apiKey = null;
-        }
-        if (apiKey != null) {
+//        if(apiKey.isEmpty()) {
+//          apiKey = null;
+//        }
+//        if (apiKey != null) {
           config.setAiImgApiKey(apiKey);
-        }
+//        }
       }
     });
     
@@ -3329,12 +3330,12 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-        if(apiKey.isEmpty()) {
-          apiKey = null;
-        }
-        if (apiKey != null) {
+//        if(apiKey.isEmpty()) {
+//          apiKey = null;
+//        }
+//        if (apiKey != null) {
           config.setAiTtsApiKey(apiKey);
-        }
+//        }
       }
     });
     
