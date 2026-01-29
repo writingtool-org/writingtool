@@ -2517,9 +2517,9 @@ public class WtCheckDialog extends Thread {
           if (debugMode && lt.getLanguage() == null) {
             WtMessageHandler.printToLogFile("CheckDialog: findNextError: LT language == null");
           }
-          lastLang = lang.getTranslatedName(messages);
+          lastLang = WtGeneralTools.getFullNameOfLanguage(lang, messages);
           language.setEnabled(true);
-          language.setSelectedItem(lang.getTranslatedName(messages));
+          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang, messages));
           if (debugMode) {
             WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Language set");
           }
@@ -2584,7 +2584,7 @@ public class WtCheckDialog extends Thread {
         } else {
           language.setEnabled(true);
           Language lang = locale == null || !WtDocumentsHandler.hasLocale(locale)? lt.getLanguage() : WtDocumentsHandler.getLanguage(locale);
-          language.setSelectedItem(lang.getTranslatedName(messages));
+          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang, messages));
           language.setEnabled(false);
           more.setEnabled(false);
           ignoreOnce.setEnabled(false);
@@ -2665,7 +2665,7 @@ public class WtCheckDialog extends Thread {
     private String[] getPossibleLanguages() {
       List<String> languages = new ArrayList<>();
       for (Language lang : Languages.get()) {
-        languages.add(lang.getTranslatedName(messages));
+        languages.add(WtGeneralTools.getFullNameOfLanguage(lang, messages));
         languages.sort(null);
       }
       languages.add(0, messages.getString("loDialogDoNotCheck"));
@@ -2680,7 +2680,7 @@ public class WtCheckDialog extends Thread {
         return new Locale(WtOfficeTools.IGNORE_LANGUAGE, "", "");
       }
       for (Language lang : Languages.get()) {
-        if (translatedName.equals(lang.getTranslatedName(messages))) {
+        if (translatedName.equals(WtGeneralTools.getFullNameOfLanguage(lang, messages))) {
           return (WtLinguisticServices.getLocale(lang));
         }
       }

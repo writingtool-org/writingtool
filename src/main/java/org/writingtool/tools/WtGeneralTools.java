@@ -20,14 +20,18 @@ package org.writingtool.tools;
 
 import org.apache.commons.lang3.StringUtils;
 import org.languagetool.JLanguageTool;
+import org.languagetool.Language;
+import org.languagetool.Languages;
 import org.languagetool.rules.*;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.languagetool.tools.StringTools;
+import org.writingtool.WtLinguisticServices;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.sun.star.lang.Locale;
 
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -46,6 +50,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 import org.apache.commons.lang3.SystemUtils;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * GUI-related tools.
@@ -54,6 +59,8 @@ import org.apache.commons.lang3.SystemUtils;
  */
 public final class WtGeneralTools {
   
+  private static final String NO_SELECTED_LANGUAGE = "---";
+
   public final static int THEME_SYSTEM = 0;
   public final static int THEME_FLATDARK = 1;
   public final static int THEME_FLATLIGHT = 2;
@@ -397,6 +404,55 @@ public final class WtGeneralTools {
       a4[i] = a3.get(i);
     }
     return a4;
+  }
+  
+  /**
+   * Get the translated name of language plus language and country code
+   * e.g. English (en-US)
+   */
+  public static String getFullNameOfLanguage(Language lang, ResourceBundle messages) {
+    return lang.getTranslatedName(messages) + " (" + lang.getShortCodeWithCountryAndVariant() + ")";
+  }
+
+  /**
+   * Get the translated names of all languages plus language and country code
+   * e.g. English (en-US)
+   */
+  public static String[] getAllFullNameOfLanguage(boolean addNoSeletion, ResourceBundle messages) {
+    List<String> languages = new ArrayList<>();
+    if(addNoSeletion) {
+      languages.add(NO_SELECTED_LANGUAGE);
+    }
+    for (Language lang : Languages.get()) {
+      languages.add(getFullNameOfLanguage(lang, messages));
+    }
+    languages.sort(null);
+    return languages.toArray(new String[0]);
+  }
+
+  /**
+   * Get the Language object for the given full language name.
+   */
+  @Nullable
+  public static Language getLanguageForFullName(String languageName, ResourceBundle messages) {
+    for (Language lang : Languages.get()) {
+      if (languageName.equals(getFullNameOfLanguage(lang, messages))) {
+        return lang;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get the Local object for the given full language name.
+   */
+  @Nullable
+  public static Locale getLocalForFullName(String languageName, ResourceBundle messages) {
+    Language lang = getLanguageForFullName(languageName, messages);
+    if (lang == null) {
+      return null;
+    }
+    return (WtLinguisticServices.getLocale(lang));
   }
 
   public static void setJavaLookAndFeel(int theme) throws Exception {

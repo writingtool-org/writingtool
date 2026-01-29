@@ -20,7 +20,6 @@ package org.writingtool.dialogs;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.languagetool.Language;
 import org.languagetool.Languages;
 import org.languagetool.languagemodel.LuceneLanguageModel;
@@ -62,7 +61,6 @@ import java.util.List;
 public class WtConfigurationDialog implements ActionListener {
 
   private static final String COLOR_LABEL = " \u2588\u2588\u2588 ";  // \u2587 is smaller
-  private static final String NO_SELECTED_LANGUAGE = "---";
   private static final String ACTION_COMMAND_OK = "OK";
   private static final String ACTION_COMMAND_CANCEL = "CANCEL";
 
@@ -747,15 +745,16 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiSetLanguageTo")));
     radioButtons[1].setActionCommand("SelectLang");
 
-    JComboBox<String> fixedLanguageBox = new JComboBox<>(getPossibleLanguages(false));
+    JComboBox<String> fixedLanguageBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(false, messages));
     if (config.getFixedLanguage() != null) {
-      fixedLanguageBox.setSelectedItem(config.getFixedLanguage().getTranslatedName(messages) + " (" + config.getFixedLanguage().getShortCodeWithCountryAndVariant() + ")");
+      fixedLanguageBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getFixedLanguage(), messages));
+      
     }
     fixedLanguageBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         Language fixedLanguage;
         if (fixedLanguageBox.getSelectedItem() instanceof String) {
-          fixedLanguage = getLanguageForLocalizedName(fixedLanguageBox.getSelectedItem().toString());
+          fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString(), messages);
         } else {
           fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
         }
@@ -781,7 +780,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setUseDocLanguage(false);
       Language fixedLanguage;
       if (fixedLanguageBox.getSelectedItem() instanceof String) {
-        fixedLanguage = getLanguageForLocalizedName(fixedLanguageBox.getSelectedItem().toString());
+        fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString(), messages);
       } else {
         fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
       }
@@ -2017,16 +2016,15 @@ public class WtConfigurationDialog implements ActionListener {
   private JPanel getMotherTonguePanel(GridBagConstraints cons) {
     JPanel motherTonguePanel = new JPanel();
     motherTonguePanel.add(new JLabel(messages.getString("guiMotherTongue")), cons);
-    JComboBox<String> motherTongueBox = new JComboBox<>(getPossibleLanguages(true));
+    JComboBox<String> motherTongueBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(true, messages));
     if (config.getMotherTongue() != null) {
-      motherTongueBox.setSelectedItem(config.getMotherTongue().getTranslatedName(messages) 
-          + " (" + config.getMotherTongue().getShortCodeWithCountryAndVariant() + ")");
+      motherTongueBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getMotherTongue(), messages));
     }
     motherTongueBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         Language motherTongue;
         if (motherTongueBox.getSelectedItem() instanceof String) {
-          motherTongue = getLanguageForLocalizedName(motherTongueBox.getSelectedItem().toString());
+          motherTongue = WtGeneralTools.getLanguageForFullName(motherTongueBox.getSelectedItem().toString(), messages);
         } else {
           motherTongue = (Language) motherTongueBox.getSelectedItem();
         }
@@ -2069,18 +2067,6 @@ public class WtConfigurationDialog implements ActionListener {
     helpButton.addActionListener(e -> WtGeneralTools.openURL("https://dev.languagetool.org/finding-errors-using-n-gram-data"));
     cons.gridx++;
     panel.add(helpButton, cons);
-  }
-
-  private String[] getPossibleLanguages(boolean addNoSeletion) {
-    List<String> languages = new ArrayList<>();
-    if(addNoSeletion) {
-      languages.add(NO_SELECTED_LANGUAGE);
-    }
-    for (Language lang : Languages.get()) {
-      languages.add(lang.getTranslatedName(messages) + " (" + lang.getShortCodeWithCountryAndVariant() + ")");
-      languages.sort(null);
-    }
-    return languages.toArray(new String[0]);
   }
 
   @Override
@@ -2133,22 +2119,6 @@ public class WtConfigurationDialog implements ActionListener {
         WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionAiSupport"));
       }
     }
-  }
-
-  /**
-   * Get the Language object for the given localized language name.
-   * 
-   * @param languageName e.g. <code>English</code> or <code>German</code> (case is significant)
-   * @return a Language object or <code>null</code> if the language could not be found
-   */
-  @Nullable
-  private Language getLanguageForLocalizedName(String languageName) {
-    for (Language element : Languages.get()) {
-      if (languageName.equals(element.getTranslatedName(messages) + " (" + element.getShortCodeWithCountryAndVariant() + ")")) {
-        return element;
-      }
-    }
-    return null;
   }
 
   static class CategoryComparator implements Comparator<Rule> {

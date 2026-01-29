@@ -77,7 +77,6 @@ import org.languagetool.Language;
 import org.languagetool.Languages;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
-import org.writingtool.WtLinguisticServices;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtDocumentsHandler.WaitDialogThread;
@@ -332,7 +331,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       language.setFont(dialogFont);
       language.setSelectedItem(startLang);
-      translLocale = getLocaleFromLanguageName(startLang);
+      translLocale = WtGeneralTools.getLocalForFullName(startLang, messages);
       selectedLang = startLang;
       language.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -1513,7 +1512,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         WtMessageHandler.printToLogFile("AiDialog: translate: start AI request");
       }
       if (selectedLang != null) {
-        translLocale = getLocaleFromLanguageName(selectedLang);
+        translLocale = WtGeneralTools.getLocalForFullName(selectedLang, messages);
         String instruction = WtAiTranslateDocument.TRANSLATE_INSTRUCTION + translLocale.Language + WtAiTranslateDocument.TRANSLATE_INSTRUCTION_POST;
         WtAiRemote aiRemote = new WtAiRemote(documents, config);
         String text = translationText.getText();
@@ -1957,27 +1956,13 @@ public class WtAiDialog extends Thread implements ActionListener {
   private String[] getPossibleLanguages() {
     List<String> languages = new ArrayList<>();
     for (Language lang : Languages.get()) {
-      languages.add(lang.getTranslatedName(messages));
+      languages.add(WtGeneralTools.getFullNameOfLanguage(lang, messages));
       if("English".equals(lang.getName())) {
-        startLang = new String(lang.getTranslatedName(messages));
+        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang, messages));
       }
     }
     languages.sort(null);
     return languages.toArray(new String[languages.size()]);
   }
-
-  /**
-   * returns the locale from a translated language name 
-   */
-  private Locale getLocaleFromLanguageName(String translatedName) {
-    for (Language lang : Languages.get()) {
-      if (translatedName.equals(lang.getTranslatedName(messages))) {
-        return (WtLinguisticServices.getLocale(lang));
-      }
-    }
-    return null;
-  }
-
-  
 
 }
