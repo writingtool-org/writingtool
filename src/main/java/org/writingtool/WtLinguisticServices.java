@@ -324,7 +324,7 @@ public class WtLinguisticServices extends LinguServices {
       thesaurusRelevantRules = new ArrayList<String>();
     }
     String ruleId = rule.getId();
-    if (!thesaurusRelevantRules.contains(ruleId)) {
+    if (ruleId != null && !thesaurusRelevantRules.contains(ruleId)) {
       thesaurusRelevantRules.add(ruleId);
     }
   }
