@@ -342,7 +342,7 @@ public final class WtGeneralTools {
     if (incorrectExamples.size() > 0) {
       String incorrectExample = incorrectExamples.iterator().next().getExample();
       String sentence = incorrectExample.replace("<marker>", "<span style='background-color:#ff8080'>").replace("</marker>", "</span>");
-      examples.append("<br/>").append(sentence).append("&nbsp;<span style='color:red;font-style:italic;font-weight:bold'>x</span>");
+      examples.append("<br/>").append(sentence).append("&nbsp;<span style='color:red'>❌</span>");
     }
     List<CorrectExample> correctExamples = rule.getCorrectExamples();
     if (correctExamples.size() > 0) {
