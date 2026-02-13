@@ -25,6 +25,8 @@ import org.languagetool.Languages;
 import org.languagetool.languagemodel.LuceneLanguageModel;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
+import org.writingtool.WritingTool;
+import org.writingtool.aisupport.WtAiRemote;
 import org.writingtool.config.WtCategoryNode;
 import org.writingtool.config.WtCheckBoxTreeCellRenderer;
 import org.writingtool.config.WtConfiguration;
@@ -2445,7 +2447,7 @@ public class WtConfigurationDialog implements ActionListener {
     changeButton.setEnabled(!config.onlySingleParagraphMode());
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
-      dialog.setAlwaysOnTop(false);
+//      dialog.setAlwaysOnTop(false);
       try {
 //        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
 //        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -2461,13 +2463,13 @@ public class WtConfigurationDialog implements ActionListener {
                 config.setUnderlineRuleColor(rule.getId(), newColor);
               }
             }
-            dialog.setAlwaysOnTop(true);
+//            dialog.setAlwaysOnTop(true);
           }
         };
         // For cancel selection, change button background to red
         ActionListener cancelActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
-            dialog.setAlwaysOnTop(true);
+//            dialog.setAlwaysOnTop(true);
           }
         };
         JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
@@ -2732,7 +2734,7 @@ public class WtConfigurationDialog implements ActionListener {
     JButton changeButton = new JButton(messages.getString("guiUColorChange"));
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
-      dialog.setAlwaysOnTop(false);
+//      dialog.setAlwaysOnTop(false);
       try {
 //        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
 //        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
@@ -2748,13 +2750,13 @@ public class WtConfigurationDialog implements ActionListener {
                 config.setUnderlineRuleColor(ruleId, newColor);
               }
             }
-            dialog.setAlwaysOnTop(true);
+//            dialog.setAlwaysOnTop(true);
           }
         };
         // For cancel selection, change button background to red
         ActionListener cancelActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
-            dialog.setAlwaysOnTop(true);
+//            dialog.setAlwaysOnTop(true);
           }
         };
         JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
@@ -2972,6 +2974,24 @@ public class WtConfigurationDialog implements ActionListener {
     for (JRadioButton rButton : radioButtons) {
       rButton.setEnabled(config.useAiSupport() && config.aiAutoCorrect());
     }
+    
+    JButton testButton = new JButton(messages.getString("guiAiTestButton"));
+    testButton.addActionListener(e -> {
+      try {
+        testButton.setEnabled(false);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        WtAiRemote aiRemote = new WtAiRemote(WritingTool.getDocumentsHandler(), config, true, dialog);
+        String output = aiRemote.runInstruction("", "hello", 0.7f, 0, new com.sun.star.lang.Locale("en", "US", ""), false, true);
+        testButton.setEnabled(true);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        if (output != null) {
+          WtOptionPane.showMessageDialog(dialog, messages.getString("guiAiTestMessage"));
+        }
+      } catch (Throwable e1) {
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        WtMessageHandler.printException(e1);
+      }
+    });
 
     JLabel experimentalHint = new JLabel(messages.getString("guiAiExperimentalHint"));
     experimentalHint.setForeground(Color.red);
@@ -3015,6 +3035,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridy++;
     cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
+    cons1.gridx++;
+    serverPanel.add(testButton, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridx = 0;
@@ -3162,6 +3184,24 @@ public class WtConfigurationDialog implements ActionListener {
     modelField.setEnabled(config.useAiImgSupport());
     apiKeyField.setEnabled(config.useAiImgSupport());
 
+    JButton testButton = new JButton(messages.getString("guiAiTestButton"));
+    testButton.addActionListener(e -> {
+      try {
+        testButton.setEnabled(false);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        WtAiRemote aiRemote = new WtAiRemote(WritingTool.getDocumentsHandler(), config, true, dialog);
+        String urlString = aiRemote.runImgInstruction("Flower", "", 10, 1, 32, 32, true);
+        testButton.setEnabled(true);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        if (urlString != null) {
+          WtOptionPane.showMessageDialog(dialog, messages.getString("guiAiTestMessage"));
+        }
+      } catch (Throwable e1) {
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        WtMessageHandler.printException(e1);
+      }
+    });
+
     JLabel experimentalHint = new JLabel(messages.getString("guiAiExperimentalHint"));
     experimentalHint.setForeground(Color.red);
     cons.gridy++;
@@ -3204,6 +3244,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridy++;
     cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
+    cons1.gridx++;
+    serverPanel.add(testButton, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridx = 0;
@@ -3322,6 +3364,29 @@ public class WtConfigurationDialog implements ActionListener {
     modelField.setEnabled(config.useAiTtsSupport());
     apiKeyField.setEnabled(config.useAiTtsSupport());
 
+    JButton testButton = new JButton(messages.getString("guiAiTestButton"));
+    testButton.addActionListener(e -> {
+      try {
+        testButton.setEnabled(false);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        WtAiRemote aiRemote = new WtAiRemote(WritingTool.getDocumentsHandler(), config, true, dialog);
+        File file = new File(WtOfficeTools.getWtConfigDir(), "Hello_tmp");
+        String fileName = file.getAbsolutePath();
+        String output = aiRemote.runTtsInstruction("Hello", fileName, true);
+        testButton.setEnabled(true);
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        if (output != null) {
+          WtOptionPane.showMessageDialog(dialog, messages.getString("guiAiTestMessage"));
+        } 
+        if (file.exists()) {
+          file.delete();
+        }
+      } catch (Throwable e1) {
+        dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        WtMessageHandler.printException(e1);
+      }
+    });
+
     JLabel experimentalHint = new JLabel(messages.getString("guiAiExperimentalHint"));
     experimentalHint.setForeground(Color.red);
     cons.gridy++;
@@ -3364,6 +3429,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridy++;
     cons1.insets = new Insets(0, SHIFT2, 0, 0);
     serverPanel.add(apiKeyField, cons1);
+    cons1.gridx++;
+    serverPanel.add(testButton, cons1);
 
     cons.insets = new Insets(0, SHIFT2, 0, 0);
     cons.gridx = 0;

@@ -626,7 +626,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         public void changedUpdate(DocumentEvent e) {
           int num = Integer.parseInt(imageHeightValueField.getText());
           int diff = num % 8;
-          if (diff != 0 || num < 64 || num > 2048) {
+          if (diff != 0 || num < 32 || num > 2048) {
             imageHeightValueField.setForeground(Color.RED);
           } else {
             imageHeightValueField.setForeground(null);

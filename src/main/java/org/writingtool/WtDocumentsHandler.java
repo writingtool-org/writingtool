@@ -2620,11 +2620,13 @@ public class WtDocumentsHandler {
   /**
    * get a wait dialog
    */
-  
   public static WaitDialogThread getWaitDialog(String dialogName, String text) {
-    return new WaitDialogThread(dialogName, text);
+    return new WaitDialogThread(dialogName, text, null);
   }
   
+  public static WaitDialogThread getWaitDialog(String dialogName, String text, Component parent) {
+    return new WaitDialogThread(dialogName, text, parent);
+  }
   
   /**
    *  start a separate thread to add or remove the internal LT dictionary
@@ -2798,14 +2800,16 @@ public class WtDocumentsHandler {
   public static class WaitDialogThread extends Thread {
     private final String dialogName;
     private final String text;
+    private final Component parent;
     private int max;
     private JDialog dialog = null;
     private boolean isCanceled = false;
     private JProgressBar progressBar;
 
-    private WaitDialogThread(String dialogName, String text) {
+    private WaitDialogThread(String dialogName, String text, Component parent) {
       this.dialogName = dialogName;
       this.text = text;
+      this.parent = parent;
       progressBar = new JProgressBar();
       if (!isJavaLookAndFeelSet()) {
         WtDocumentsHandler.setJavaLookAndFeel();
@@ -2821,8 +2825,21 @@ public class WtDocumentsHandler {
           close_intern();
         });
         progressBar.setIndeterminate(true);
-        JFrame frame = new JFrame();
-        dialog = new JDialog(frame);
+        JFrame frame = null;
+        if (parent == null) {
+          frame = new JFrame();
+          dialog = new JDialog(frame);
+        } else {
+          Window window = getWindowForComponent(parent);
+          if (window == null) {
+            frame = new JFrame();
+            dialog = new JDialog(frame);
+          } else if (window instanceof Frame) {
+            dialog = new JDialog((Frame) window);
+          } else {
+            dialog = new JDialog((Dialog) window);
+          }
+        }
         Container contentPane = dialog.getContentPane();
         dialog.setName("InformationThread");
         dialog.setTitle(dialogName);
@@ -2885,8 +2902,10 @@ public class WtDocumentsHandler {
             screenSize.height / 2 - frameSize.height / 2);
         dialog.setAutoRequestFocus(true);
         dialog.setAlwaysOnTop(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false); // prevents minimizing and maximizing
+        if (frame != null) {
+          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+          frame.setResizable(false); // prevents minimizing and maximizing
+        }
         dialog.toFront();
 //        if (debugMode) {
           WtMessageHandler.printToLogFile(dialogName + ": run: Dialog is running");
@@ -2951,6 +2970,15 @@ public class WtDocumentsHandler {
     
     public void setIndeterminate() {
       progressBar.setIndeterminate(true);
+    }
+
+    private Window getWindowForComponent(Component parentComponent)
+        throws HeadlessException {
+        if (parentComponent == null)
+            return null;
+        if (parentComponent instanceof Frame || parentComponent instanceof Dialog)
+            return (Window)parentComponent;
+        return getWindowForComponent(parentComponent.getParent());
     }
   }
 }

@@ -18,6 +18,7 @@
  */
 package org.writingtool.tools;
 
+import java.awt.Component;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.BufferedWriter;
@@ -106,7 +107,7 @@ public class WtMessageHandler {
   /**
    * Show an error in a dialog
    */
-  public static void showError(Throwable e, boolean fromSpellCheck) {
+  public static void showError(Throwable e, boolean fromSpellCheck, Component parent) {
     if (fromSpellCheck) {
       printSpellException(e);
     } else {
@@ -123,7 +124,7 @@ public class WtMessageHandler {
         + System.getProperty("java.version") + " from "
         + System.getProperty("java.vm.vendor");
     msg += metaInfo;
-    WtDialogThread dt = new WtDialogThread(msg, true);
+    WtDialogThread dt = new WtDialogThread(msg, true, parent);
     e.printStackTrace();
     dt.start();
   }
@@ -132,14 +133,22 @@ public class WtMessageHandler {
    * Show a grammar error in a dialog
    */
   public static void showError(Throwable e) {
-    showError(e, false);
+    showError(e, false, null);
+  }
+  
+  public static void showError(Throwable e, Component parent) {
+    showError(e, false, parent);
   }
   
   /**
    * Show a spell error in a dialog
    */
   public static void showSpellError(Throwable e) {
-    showError(e, true);
+    showError(e, true, null);
+  }
+
+  public static void showSpellError(Throwable e, Component parent) {
+    showError(e, true, parent);
   }
 
   /**
@@ -243,15 +252,19 @@ public class WtMessageHandler {
    * @param txt message to be shown
    */
   public static void showMessage(String txt) {
-    showMessage(txt, true);
+    showMessage(txt, true, null);
   }
 
-  static void showMessage(String txt, boolean toLogFile) {
+  public static void showMessage(String txt, Component parent) {
+    showMessage(txt, true, parent);
+  }
+
+  static void showMessage(String txt, boolean toLogFile, Component parent) {
     txt = wrapText(txt, 20, 160);
     if (toLogFile) {
       printToLogFile(txt);
     }
-    WtDialogThread dt = new WtDialogThread(txt, false);
+    WtDialogThread dt = new WtDialogThread(txt, false, parent);
     dt.start();
   }
   
@@ -377,23 +390,29 @@ public class WtMessageHandler {
     private final String text;
     private final boolean closeAtLostFocus;
     private final boolean isException;
+    private final Component parent;
     JDialog dialog;
 /*
     WtDialogThread(String text) {
       this(text, false, false);
     }
-*/
+*//*
     WtDialogThread(String text, boolean isException) {
-      this(text, isException, false);
+      this(text, isException, false, null);
+    }
+*/
+    WtDialogThread(String text, boolean isException, Component parent) {
+      this(text, isException, false, parent);
     }
 
-    WtDialogThread(String text, boolean isException, boolean closeAtLostFocus) {
+    WtDialogThread(String text, boolean isException, boolean closeAtLostFocus, Component parent) {
       if (text == null || text.isBlank()) {
         text = "Error empty text";
       }
       this.text = text;
       this.closeAtLostFocus = closeAtLostFocus;
       this.isException = isException;
+      this.parent = parent;
     }
 
     @Override
@@ -411,9 +430,14 @@ public class WtMessageHandler {
       
     private boolean showDialog() {
       try {
-        JFrame frame = new JFrame();
         JOptionPane pane = new JOptionPane(text, JOptionPane.INFORMATION_MESSAGE);
-        dialog = pane.createDialog(frame, UIManager.getString("OptionPane.messageDialogTitle", null));
+        JFrame frame = null;
+        if (parent == null) {
+          frame = new JFrame();
+          dialog = pane.createDialog(frame, UIManager.getString("OptionPane.messageDialogTitle", null));
+        } else {
+           dialog = pane.createDialog(parent, UIManager.getString("OptionPane.messageDialogTitle", null));
+        }
         dialog.setModal(false);
         dialog.setAutoRequestFocus(true);
         dialog.setAlwaysOnTop(true);
@@ -428,8 +452,10 @@ public class WtMessageHandler {
             }
           }
         });
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false); // prevents minimizing and maximizing
+        if (frame != null) {
+          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+          frame.setResizable(false); // prevents minimizing and maximizing
+        }
         dialog.toFront();
         dialog.setVisible(true);
       } catch (Exception e) {

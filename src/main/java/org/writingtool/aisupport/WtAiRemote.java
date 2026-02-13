@@ -18,6 +18,7 @@
  */
 package org.writingtool.aisupport;
 
+import java.awt.Component;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -59,7 +60,7 @@ public class WtAiRemote {
   
   private final static int REMOTE_TRIALS = 5;
   private final static int BUFFER_SIZE = 20000;
-  private final static int CONNECT_TIMEOUT = 0;
+  private final static int CONNECT_TIMEOUT = 3000;
   private final static int READ_TIMEOUT = 0;
   private final static int WAIT_TIMEOUT = 1000; //  Hundredth of a second
   
@@ -105,6 +106,8 @@ public class WtAiRemote {
   private final String ttsModel;
   private final String ttsUrl;
   private final AiType aiType;
+  private final Component parent;
+  private final boolean testMode;
   
   private String outText;
   private boolean isDone;
@@ -112,8 +115,14 @@ public class WtAiRemote {
   private int oId = 0;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
+    this(documents, config, false, null);
+  }
+
+  public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, boolean testMode, Component parent) throws Throwable {
     this.documents = documents;
     this.config = config;
+    this.testMode = testMode;
+    this.parent = parent;
     apiKey = config.aiApiKey();
     model = config.aiModel();
     url = config.aiUrl();
@@ -188,7 +197,7 @@ public class WtAiRemote {
       results.remove(oId);
       return result;
     } catch (Throwable t) {
-      WtMessageHandler.showError(t);
+      WtMessageHandler.showError(t, parent);
       return null;
     }
   }
@@ -310,7 +319,7 @@ public class WtAiRemote {
     try {
       checkUrl = new URL(url);
     } catch (MalformedURLException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showError(e, parent);
       stopAiRemote();
       return null;
     }
@@ -324,7 +333,11 @@ public class WtAiRemote {
       try {
         conn = getConnection(postData, checkUrl, apiKey);
       } catch (RuntimeException e) {
-        WtMessageHandler.printException(e);
+        if (testMode) {
+          WtMessageHandler.showError(e, parent);
+        } else {
+          WtMessageHandler.printException(e);
+        }
         stopAiRemote();
         return null;
       }
@@ -361,24 +374,32 @@ public class WtAiRemote {
             String msg = "Got error: " + error + " - HTTP response code " + responseCode
                 + "\nurlParameters: " + urlParameters;
             if (responseCode == 404) {
-              WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-              WtMessageHandler.printToLogFile(msg);
+              if (testMode) {
+                WtMessageHandler.showMessage(msg, parent);
+              } else {
+                WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+                WtMessageHandler.printToLogFile(msg);
+              }
               stopAiRemote();
             } else {
-              WtMessageHandler.showMessage(msg);
+              WtMessageHandler.showMessage(msg, parent);
             }
             return null;
           }
         }
       } catch (ConnectException e) {
         if (trials >= REMOTE_TRIALS) {
-          WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-          WtMessageHandler.printException(e);
+          if (testMode) {
+            WtMessageHandler.showError(e, parent);
+          } else {
+            WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+            WtMessageHandler.printException(e);
+          }
           stopAiRemote();
         }
       } catch (Exception e) {
         if (trials >= REMOTE_TRIALS) {
-          WtMessageHandler.showError(e);
+          WtMessageHandler.showError(e, parent);
           stopAiRemote();
         }
       } finally {
@@ -420,7 +441,7 @@ public class WtAiRemote {
     try {
       checkUrl = new URL(imgUrl);
     } catch (MalformedURLException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showError(e, parent);
       stopAiImgRemote();
       return null;
     }
@@ -431,7 +452,11 @@ public class WtAiRemote {
     try {
       conn = getConnection(postData, checkUrl, imgApiKey);
     } catch (RuntimeException e) {
-      WtMessageHandler.printException(e);
+      if (testMode) {
+        WtMessageHandler.showError(e, parent);
+      } else {
+        WtMessageHandler.printException(e);
+      }
       stopAiImgRemote();
       return null;
     }
@@ -451,21 +476,29 @@ public class WtAiRemote {
           String msg = "Got error: " + error + " - HTTP response code " + responseCode
               + "\nurlParameters: " + urlParameters;
           if (responseCode == 404) {
-            WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-            WtMessageHandler.printToLogFile(msg);
+            if (testMode) {
+              WtMessageHandler.showMessage(msg, parent);
+            } else {
+              WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+              WtMessageHandler.printToLogFile(msg);
+            }
             stopAiImgRemote();
           } else {
-            WtMessageHandler.showMessage(msg);
+            WtMessageHandler.showMessage(msg, parent);
           }
           return null;
         }
       }
     } catch (ConnectException e) {
-      WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-      WtMessageHandler.printException(e);
+      if (testMode) {
+        WtMessageHandler.showError(e, parent);
+      } else {
+        WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+        WtMessageHandler.printException(e);
+      }
       stopAiImgRemote();
     } catch (Exception e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showError(e, parent);
       stopAiImgRemote();
     } finally {
       conn.disconnect();
@@ -491,7 +524,7 @@ public class WtAiRemote {
     try {
       checkUrl = new URL(ttsUrl);
     } catch (MalformedURLException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showError(e, parent);
       stopAiTtsRemote();
       return null;
     }
@@ -502,7 +535,11 @@ public class WtAiRemote {
     try {
       conn = getConnection(postData, checkUrl, ttsApiKey);
     } catch (RuntimeException e) {
-      WtMessageHandler.printException(e);
+      if (testMode) {
+        WtMessageHandler.showError(e, parent);
+      } else {
+        WtMessageHandler.printException(e);
+      }
       stopAiTtsRemote();
       return null;
     }
@@ -520,21 +557,29 @@ public class WtAiRemote {
           String msg = "Got error: " + error + " - HTTP response code " + responseCode
               + "\nurlParameters: " + urlParameters;
           if (responseCode == 404) {
-            WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-            WtMessageHandler.printToLogFile(msg);
+            if (testMode) {
+              WtMessageHandler.showMessage(msg, parent);
+            } else {
+              WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+              WtMessageHandler.printToLogFile(msg);
+            }
             stopAiRemote();
           } else {
-            WtMessageHandler.showMessage(msg);
+            WtMessageHandler.showMessage(msg, parent);
           }
           return null;
         }
       }
     } catch (ConnectException e) {
-      WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
-      WtMessageHandler.printException(e);
+      if (testMode) {
+        WtMessageHandler.showError(e, parent);
+      } else {
+        WtMessageHandler.printToLogFile("Could not connect to server at: " + url);
+        WtMessageHandler.printException(e);
+      }
       stopAiTtsRemote();
     } catch (Exception e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.showError(e, parent);
       stopAiTtsRemote();
     } finally {
       conn.disconnect();
@@ -730,7 +775,7 @@ public class WtAiRemote {
         choices = jsonObject.getJSONArray("choices");
       } catch (Throwable t) {
         String error = jsonObject.getString("error");
-        WtMessageHandler.showMessage(error);
+        WtMessageHandler.showMessage(error, parent);
         return null;
       }
       String content;
@@ -770,8 +815,8 @@ public class WtAiRemote {
       }
       return content;
     } catch (Throwable t) {
-      WtMessageHandler.showError(t);
-      WtMessageHandler.showMessage(text);
+      WtMessageHandler.showError(t, parent);
+      WtMessageHandler.showMessage(text, parent);
       return null;
     }
   }
@@ -834,7 +879,7 @@ public class WtAiRemote {
         data = jsonObject.getJSONArray("data");
       } catch (Throwable t) {
         String error = jsonObject.getString("error");
-        WtMessageHandler.showMessage(error);
+        WtMessageHandler.showMessage(error, parent);
         return null;
       }
       JSONObject choice = data.getJSONObject(0);
@@ -845,8 +890,8 @@ public class WtAiRemote {
       }
       return url;
     } catch (Throwable t) {
-      WtMessageHandler.showError(t);
-      WtMessageHandler.showMessage(text);
+      WtMessageHandler.showError(t, parent);
+      WtMessageHandler.showMessage(text, parent);
       return null;
     }
   }
@@ -861,13 +906,15 @@ public class WtAiRemote {
   }
   
   private void stopAiRemote() throws Throwable {
-    config.setUseAiSupport(false);
-    documents.getSidebarContent().setAiSupport(config.useAiSupport());
-    if (documents.getAiCheckQueue() != null) {
-      documents.getAiCheckQueue().setStop();
-      documents.setAiCheckQueue(null);
+    if (!testMode) {
+      config.setUseAiSupport(false);
+      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      if (documents.getAiCheckQueue() != null) {
+        documents.getAiCheckQueue().setStop();
+        documents.setAiCheckQueue(null);
+      }
+      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
     }
-    WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
       aiDialog.closeDialog();
@@ -875,9 +922,11 @@ public class WtAiRemote {
   }
   
   private void stopAiImgRemote() throws Throwable {
-    config.setUseAiImgSupport(false);
-    documents.getSidebarContent().setAiSupport(config.useAiSupport());
-    WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+    if (!testMode) {
+      config.setUseAiImgSupport(false);
+      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
+    }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
       aiDialog.closeDialog();
@@ -885,9 +934,11 @@ public class WtAiRemote {
   }
   
   private void stopAiTtsRemote() throws Throwable {
-    config.setUseAiTtsSupport(false);
-    documents.getSidebarContent().setAiSupport(config.useAiSupport());
-    WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"));
+    if (!testMode) {
+      config.setUseAiTtsSupport(false);
+      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
+    }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
       aiDialog.closeDialog();
@@ -925,7 +976,7 @@ public class WtAiRemote {
           outText = runInstruction_intern(instruction, orgText, temperature, seed, locale, onlyOneParagraph);
           isDone = true;
         } catch (Throwable e) {
-          WtMessageHandler.showError(e);
+          WtMessageHandler.showError(e, parent);
         }
       }
     });
@@ -950,7 +1001,7 @@ public class WtAiRemote {
           outText = runImgInstruction_intern(instruction, exclude, step, seed, height, width);
           isDone = true;
         } catch (Throwable e) {
-          WtMessageHandler.showError(e);
+          WtMessageHandler.showError(e, parent);
         }
       }
     });
@@ -975,7 +1026,7 @@ public class WtAiRemote {
           outText = runTtsInstruction_intern(text, filename);
           isDone = true;
         } catch (Throwable e) {
-          WtMessageHandler.showError(e);
+          WtMessageHandler.showError(e, parent);
         }
       }
     });
@@ -1017,7 +1068,7 @@ public class WtAiRemote {
           }
           isRunning = false;
         } catch (Throwable e) {
-          WtMessageHandler.showError(e);
+          WtMessageHandler.showError(e, parent);
         }
       }
     });
