@@ -155,6 +155,7 @@ public class WtOfficeTools {
   public static final int CHECK_SHAPES_TIME = 1000;       //  time interval to run check for changes in text inside of shapes
   public static final int SPELL_CHECK_MIN_HEAP = 850;     //  Minimal heap space to run LT spell check
   public static int TIME_TOLERANCE = 100;                 //  Minimal milliseconds to show message in TM debug mode
+  public static int TIME_TOLERANCE_AI = 500;              //  Minimal milliseconds to show message in AT debug mode
   
   public static int DEBUG_MODE_SD = 0;            //  Set Debug Mode for SingleDocument
   public static int DEBUG_MODE_SC = 0;            //  Set Debug Mode for SingleCheck
@@ -371,6 +372,17 @@ public class WtOfficeTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;
     }
+  }
+  
+  /**
+   * returns the default locale of the text document
+   */
+  public static Locale getSaveLocale(XComponentContext xContext) {
+    Locale locale = getCursorLocale(xContext);
+    if (locale == null) {
+      return (new Locale("en", "US", ""));
+    }
+    return locale;
   }
   
   /**
@@ -937,7 +949,8 @@ public class WtOfficeTools {
    * Get information about Java as String
    */
   public static String getJavaInformation () {
-    return "Java-Version: " + System.getProperty("java.version") + ", max. Heap-Space: " + ((int) (getMaxHeapSpace()/1048576)) +
+    return "Java-Version: " + System.getProperty("java.version") + "(" + System.getProperty("java.vm.vendor") + 
+        "), max. Heap-Space: " + ((int) (getMaxHeapSpace()/1048576)) +
         " MB, LT Heap Space Limit: " + ((int) (getHeapLimit(getMaxHeapSpace())/1048576)) + " MB";
   }
   
@@ -1428,8 +1441,17 @@ public class WtOfficeTools {
           DEBUG_MODE_SR = true;
         } else if (level.equals("sp")) {
           DEBUG_MODE_SP = true;
-        } else if (level.equals("ta")) {
-          DEBUG_MODE_TA = true;
+        } else if (level.startsWith("ta")) {
+          String[] levelTm = level.split(":");
+          if (levelTm[0].equals("ta")) {
+            DEBUG_MODE_TA = true;
+            if(levelTm.length > 1) {
+              int time = Integer.parseInt(levelTm[1]);
+              if (time >= 0) {
+                TIME_TOLERANCE_AI = time;
+              }
+            }
+          }
         } else if (level.startsWith("tm")) {
           String[] levelTm = level.split(":");
           if (levelTm[0].equals("tm")) {

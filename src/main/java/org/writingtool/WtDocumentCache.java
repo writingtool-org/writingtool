@@ -366,7 +366,7 @@ public class WtDocumentCache implements Serializable {
       document.getMultiDocumentsHandler().runShapeCheck(hasUnsupportedText(), fromWhere);
       if (debugModeTm) {
         long endTime = System.currentTimeMillis();
-        WtMessageHandler.printToLogFile("Time to generate cache(" + fromWhere + "): " + (endTime - startTime));
+        WtMessageHandler.printToLogFile("WtDocumentCache: Time to generate cache(" + fromWhere + "): " + (endTime - startTime));
       }
     } finally {
     }

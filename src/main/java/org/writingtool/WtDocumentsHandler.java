@@ -209,8 +209,17 @@ public class WtDocumentsHandler {
         || !WtSpellChecker.runLTSpellChecker(xContext)) {
       noLtSpeller = true;
     }
-//    handleDictionary = new HandleLtDictionary();
-//    handleDictionary.start();
+    try {
+      Locale locale = WtOfficeTools.getSaveLocale(xContext);
+      docLanguage = getLanguage(locale);
+      config = getConfiguration(docLanguage);
+      WtOfficeTools.setLogLevel(config.getlogLevel());
+      debugMode = WtOfficeTools.DEBUG_MODE_MD;
+      debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+      WtMessageHandler.writeInitialInformation(config);
+    } catch (IOException e) {
+      WtMessageHandler.showError(e);
+    }
     WtHelper wtHelper = new WtHelper();
     wtHelper.start();
   }
@@ -252,6 +261,10 @@ public class WtDocumentsHandler {
    */
   ProofreadingResult getCheckResults(String paraText, Locale locale, ProofreadingResult paRes, 
       PropertyValue[] propertyValues, boolean docReset) throws Throwable {
+    long startTime = 0;
+    if (debugModeTm) {
+      startTime = System.currentTimeMillis();
+    }
     if (!hasLocale(locale)) {
       docLanguage = null;
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Sorry, don't have locale: " + WtOfficeTools.localeToString(locale));
@@ -292,12 +305,24 @@ public class WtDocumentsHandler {
         }
       }
     }
+    if (debugModeTm) {
+      long runTime = System.currentTimeMillis() - startTime;
+      if (runTime > WtOfficeTools.TIME_TOLERANCE) {
+        WtMessageHandler.printToLogFile("WtDocumentsHandler: Time till init Language Tool: " + runTime);
+      }
+    }
     if (debugMode) {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start getNumDoc!");
     }
     docNum = getNumDoc(paRes.aDocumentIdentifier, propertyValues);
     if (isBackgroundCheckOff()) {
       return paRes;
+    }
+    if (debugModeTm) {
+      long runTime = System.currentTimeMillis() - startTime;
+      if (runTime > WtOfficeTools.TIME_TOLERANCE) {
+        WtMessageHandler.printToLogFile("WtDocumentsHandler: Time till get number of document: " + runTime);
+      }
     }
     if (debugMode) {
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start testHeapSpace!");
@@ -355,6 +380,10 @@ public class WtDocumentsHandler {
    *  Get the current used document
    */
   public WtSingleDocument getCurrentDocument() {
+    long startTime = 0;
+    if (debugModeTm) {
+      startTime = System.currentTimeMillis();
+    }
     try {
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       isNotTextDocument = false;
@@ -406,6 +435,12 @@ public class WtDocumentsHandler {
           WtSingleDocument newDocument = new WtSingleDocument(xContext, config, docID, xComponent, this, docLanguage);
           documents.add(newDocument);
           WtMessageHandler.printToLogFile("Document " + (documents.size() - 1) + " created; docID = " + docID);
+          if (debugModeTm) {
+            long runTime = System.currentTimeMillis() - startTime;
+            if (runTime > WtOfficeTools.TIME_TOLERANCE) {
+              WtMessageHandler.printToLogFile("WtDocumentsHandler: Time to get current document: " + runTime);
+            }
+          }
           return newDocument;
         }
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCurrentDocument: Is document, but not a text document!");
@@ -676,11 +711,11 @@ public class WtDocumentsHandler {
       if (documents.size() < 2) {
 //        isHelperDisposed = true;
         if (textLevelQueue != null) {
-          textLevelQueue.setStop();
+          textLevelQueue.setStop(true);
           textLevelQueue = null;
         }
         if (aiQueue != null) {
-          aiQueue.setStop();
+          aiQueue.setStop(true);
           aiQueue = null;
         }
         if (shapeChangeCheck != null) {
@@ -950,11 +985,11 @@ public class WtDocumentsHandler {
     WtDocumentsHandler.config = config;
     this.lt = lt;
     if (textLevelQueue != null && (heapLimitReached || config.getNumParasToCheck() == 0 || !config.useTextLevelQueue())) {
-      textLevelQueue.setStop();
+      textLevelQueue.setStop(false);
       textLevelQueue = null;
     }
     if (aiQueue != null && (config.getNumParasToCheck() == 0 || !config.useAiSupport() || !config.aiAutoCorrect())) {
-      aiQueue.setStop();
+      aiQueue.setStop(false);
       aiQueue = null;
     }
     useQueue = !isBackgroundCheckOff() && !heapLimitReached && !testMode && config.getNumParasToCheck() == 0 ? false : config.useTextLevelQueue();
@@ -1143,9 +1178,9 @@ public class WtDocumentsHandler {
     try {
       config = getConfiguration(currentLanguage == null ? docLanguage : currentLanguage);
       if (this.lt == null) {
-        WtOfficeTools.setLogLevel(config.getlogLevel());
-        debugMode = WtOfficeTools.DEBUG_MODE_MD;
-        debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+//        WtOfficeTools.setLogLevel(config.getlogLevel());
+//        debugMode = WtOfficeTools.DEBUG_MODE_MD;
+//        debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
         if (!noLtSpeller && !WtSpellChecker.isEnoughHeap()) {
           noLtSpeller = true;
           disableLTSpellChecker(xContext, docLanguage);
@@ -1176,7 +1211,7 @@ public class WtDocumentsHandler {
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
         if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-          WtMessageHandler.printToLogFile("Time to init Language Tool: " + runTime);
+          WtMessageHandler.printToLogFile("WtDocumentsHandler: Time to init Language Tool: " + runTime);
         }
       }
       return lt;
@@ -1209,7 +1244,7 @@ public class WtDocumentsHandler {
         aiQueue.setReset();
       }
     } else if (aiQueue != null) {
-      aiQueue.setStop();
+      aiQueue.setStop(false);
       aiQueue = null;
     }
     if (resetCache) {
@@ -1218,7 +1253,7 @@ public class WtDocumentsHandler {
     if (debugModeTm) {
       long runTime = System.currentTimeMillis() - startTime;
       if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-        WtMessageHandler.printToLogFile("Time to init Documents: " + runTime);
+        WtMessageHandler.printToLogFile("WtDocumentsHandler: Time to init Documents: " + runTime);
       }
     }
   }
@@ -1358,11 +1393,11 @@ public class WtDocumentsHandler {
       resetCheck();
     } else {
       if (textLevelQueue != null) {
-        textLevelQueue.setStop();
+        textLevelQueue.setStop(false);
         textLevelQueue = null;
       }
       if (aiQueue != null) {
-        aiQueue.setStop();
+        aiQueue.setStop(false);
         aiQueue = null;
       }
     }
@@ -2157,7 +2192,7 @@ public class WtDocumentsHandler {
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
         if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-          WtMessageHandler.printToLogFile("Time to run trigger: " + runTime);
+          WtMessageHandler.printToLogFile("WtDocumentsHandler: Time to run trigger: " + runTime);
         }
       }
     } catch (Throwable e) {
@@ -2545,22 +2580,23 @@ public class WtDocumentsHandler {
         WtLinguServiceTools.setGrammarAuto(false, xContext);
       }
       return false;
+    } else {
+      if (!isGrammarAuto) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: isLOConfigIncorrect: isGrammarAuto: " + isGrammarAuto +
+            ", confg.noBackgroundCheck(): " + confg.noBackgroundCheck());
+        return true;
+      }
+      locale = getLocaleFromCurrentDocument(currentDocument);
+      boolean isSpellAuto = WtLinguServiceTools.isSpellAuto(xContext);
+      boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : WtLinguServiceTools.isWtSpellServiceActive(xContext, locale);
+      boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
+      if (!isSpellAuto || !isWtSpellActive || !isWtGrammarActive) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: isLOConfigIncorrect: isSpellAuto: " + isSpellAuto +
+            ", isWtSpellActive: " + isWtSpellActive + ", isWtGrammarActive: " + isWtGrammarActive);
+        return true;
+      }
+      return false;
     }
-    if (!isGrammarAuto && !confg.noBackgroundCheck()) {
-      WtMessageHandler.printToLogFile("MultiDocumentsHandler: isLOConfigIncorrect: isGrammarAuto: " + isGrammarAuto +
-          ", confg.noBackgroundCheck(): " + confg.noBackgroundCheck());
-      return true;
-    }
-    locale = getLocaleFromCurrentDocument(currentDocument);
-    boolean isSpellAuto = WtLinguServiceTools.isSpellAuto(xContext);
-    boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : WtLinguServiceTools.isWtSpellServiceActive(xContext, locale);
-    boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
-    if (!isSpellAuto || !isWtSpellActive || !isWtGrammarActive) {
-      WtMessageHandler.printToLogFile("MultiDocumentsHandler: isLOConfigIncorrect: isSpellAuto: " + isSpellAuto +
-          ", isWtSpellActive: " + isWtSpellActive + ", isWtGrammarActive: " + isWtGrammarActive);
-      return true;
-    }
-    return false;
   }
   
   /**

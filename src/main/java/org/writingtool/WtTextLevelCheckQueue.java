@@ -50,6 +50,7 @@ public class WtTextLevelCheckQueue {
   protected List<QueueEntry> textRuleQueue = Collections.synchronizedList(new ArrayList<QueueEntry>());  //  Queue to check text rules in a separate thread
 //  private Object queueWakeup = new Object();
   protected WtDocumentsHandler multiDocHandler;
+  WtSingleDocument document;
 
   private QueueIterator queueIterator = null;
   private TextParagraph lastStart = null;
@@ -192,9 +193,12 @@ public class WtTextLevelCheckQueue {
   /**
    * Set a stop flag to get a definite ending of the iteration
    */
-  public void setStop() throws Throwable {
+  public void setStop(boolean disposed) throws Throwable {
     if (queueRuns) {
       interruptCheck = true;
+      if (disposed && document != null) {
+        document.dispose(true);
+      }
       QueueEntry queueEntry = new QueueEntry();
       queueEntry.setStop();
       if (debugMode) {
@@ -407,18 +411,19 @@ public class WtTextLevelCheckQueue {
    */
   protected void runQueueEntry(QueueEntry qEntry, WtDocumentsHandler multiDocHandler, WtLanguageTool lt) throws Throwable {
     if (testHeapSpace()) {
-      WtSingleDocument document = getSingleDocument(qEntry.docId);
+      document = getSingleDocument(qEntry.docId);
       if (document != null && !document.isDisposed()) {
         if (debugMode) {
           WtMessageHandler.printToLogFile(nameOfQueue() + ": runQueueEntry: nstart = " + qEntry.nStart.number + "; nEnd = "  + qEntry.nEnd.number 
               + "; nCache = "  + qEntry.nCache + "; nCheck = "  + qEntry.nCheck + "; overrideRunning = "  + qEntry.overrideRunning);
         }
         document.runQueueEntry(qEntry.nStart, qEntry.nEnd, qEntry.nCache, qEntry.nCheck, qEntry.overrideRunning, lt);
+        document = null;
         multiDocHandler.setCacheStatusColor(document);
       }
     } else {
       WtMessageHandler.printToLogFile("Warning: Not enough heap space; text level queue stopped!");
-      setStop();
+      setStop(false);
     }
   }
   
@@ -596,7 +601,7 @@ public class WtTextLevelCheckQueue {
                   if (debugModeTm) {
                     long runTime = System.currentTimeMillis() - startTime;
                     if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-                      WtMessageHandler.printToLogFile("Time to run Text Level Check Queue (get Next Queue Entry): " + runTime);
+                      WtMessageHandler.printToLogFile("WtTextLevelCheckQueue: Time to run Text Level Check Queue (get Next Queue Entry): " + runTime);
                     }
                   }
                 } catch (Throwable e) {
@@ -736,7 +741,7 @@ public class WtTextLevelCheckQueue {
                 if (debugModeTm) {
                   long runTime = System.currentTimeMillis() - startTime;
                   if (runTime > WtOfficeTools.TIME_TOLERANCE) {
-                    WtMessageHandler.printToLogFile("Time to run Text Level Check Queue (run Queue Entry): " + runTime);
+                    WtMessageHandler.printToLogFile("WtTextLevelCheckQueue: Time to run Text Level Check Queue (run Queue Entry): " + runTime);
                   }
                 }
               } catch (Throwable e) {

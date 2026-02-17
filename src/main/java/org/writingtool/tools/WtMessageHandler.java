@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import org.languagetool.tools.Tools;
+import org.writingtool.config.WtConfiguration;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -97,6 +98,25 @@ public class WtMessageHandler {
     }
   }
   
+  /**
+   * write initial information to log-file
+   */
+  public static void writeInitialInformation(WtConfiguration config) {
+    try (OutputStream stream = new FileOutputStream(WtOfficeTools.getLogFilePath(false), true);
+        OutputStreamWriter writer = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
+        BufferedWriter br = new BufferedWriter(writer)
+        ) {
+      if (config.useAiSupport()) {
+        writer.write("Use AI Support: true, AI auto correct: " + config.aiAutoCorrect() + logLineBreak);
+        writer.write("AI server: " + config.aiUrl() + logLineBreak);
+        writer.write("AI model: " + config.aiModel() + logLineBreak + logLineBreak);
+      }
+      writer.write("Log-level: " + config.getlogLevel() + logLineBreak + logLineBreak);
+    } catch (Throwable t) {
+      showError(t);
+    }
+  }
+
   /**
    * Initialize MessageHandler
    */

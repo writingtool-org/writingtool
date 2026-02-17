@@ -268,7 +268,7 @@ public class WtSingleDocument {
         //  switch back to single paragraph check mode - save settings in configuration
         if (numParasToCheck != 0) {
           if (config.useTextLevelQueue()) {
-            mDocHandler.getTextLevelCheckQueue().setStop();
+            mDocHandler.getTextLevelCheckQueue().setStop(false);
           }
           numParasToCheck = 0;
           config.setNumParasToCheck(numParasToCheck);

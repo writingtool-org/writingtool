@@ -91,7 +91,7 @@ public class WtAiRemote {
 
   private enum AiType { EDITS, COMPLETIONS, CHAT, GENERATE }
   
-  private boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
 
   private final WtDocumentsHandler documents;
@@ -274,7 +274,7 @@ public class WtAiRemote {
       text = null;
     }
     long startTime = 0;
-    if (debugModeTm) {
+    if (debugModeAiTm) {
       startTime = System.currentTimeMillis();
     }
     if (debugMode > 1) {
@@ -357,7 +357,7 @@ public class WtAiRemote {
             }
             out = filterOutput (out, org, instruction, onlyOneParagraph);
             out = changesQuotesToOriginal(out, org, locale);
-            if (debugModeTm) {
+            if (debugModeAiTm) {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
@@ -910,7 +910,7 @@ public class WtAiRemote {
       config.setUseAiSupport(false);
       documents.getSidebarContent().setAiSupport(config.useAiSupport());
       if (documents.getAiCheckQueue() != null) {
-        documents.getAiCheckQueue().setStop();
+        documents.getAiCheckQueue().setStop(false);
         documents.setAiCheckQueue(null);
       }
       WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);

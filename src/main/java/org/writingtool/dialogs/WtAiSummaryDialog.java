@@ -75,7 +75,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
   private final static int dialogHeight = 400;
 
   private boolean debugMode = WtOfficeTools.DEBUG_MODE_AI > 0;
-  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA || WtOfficeTools.DEBUG_MODE_TM;
+  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA;
 
   private final ResourceBundle messages;
   private WtSingleDocument document;

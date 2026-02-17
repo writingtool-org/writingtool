@@ -56,7 +56,7 @@ public class WtAiErrorDetection {
 
   private static final int MIN_WORD = 4;
   
-  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA || WtOfficeTools.DEBUG_MODE_TM;
+  private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
