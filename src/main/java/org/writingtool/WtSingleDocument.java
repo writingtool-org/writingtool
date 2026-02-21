@@ -191,6 +191,7 @@ public class WtSingleDocument {
         || (mDH.isBackgroundCheckOff() && docType == DocumentType.WRITER)) && ltMenus == null) {
       ltMenus = new WtMenus(xContext, this, config);
     }
+    mDocHandler.readToolbarConfig();
 /*  TODO: in LT 6.5 add dynamic toolbar          
     if (!mDocHandler.isOpenOffice && docType == DocumentType.WRITER) {
       ltToolbar = new LtToolbar(xContext, this, docLanguage);

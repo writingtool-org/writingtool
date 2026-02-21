@@ -141,6 +141,7 @@ public class WtDocumentsHandler {
   private static WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
   private WtSidebarContent sidebarContent;
+  private WtProtocolHandler protocolHandler;
   private static Map<String, Set<String>> disabledRulesUI;  //  Rules disabled by context menu or spell dialog
   private final List<Rule> extraRemoteRules;                //  store of rules supported by remote server but not locally
   private LtCheckDialog ltDialog = null;                    //  WT spelling and grammar check dialog
@@ -209,17 +210,11 @@ public class WtDocumentsHandler {
         || !WtSpellChecker.runLTSpellChecker(xContext)) {
       noLtSpeller = true;
     }
-    try {
-      Locale locale = WtOfficeTools.getSaveLocale(xContext);
-      docLanguage = getLanguage(locale);
-      config = getConfiguration(docLanguage);
-      WtOfficeTools.setLogLevel(config.getlogLevel());
-      debugMode = WtOfficeTools.DEBUG_MODE_MD;
-      debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
-      WtMessageHandler.writeInitialInformation(config);
-    } catch (IOException e) {
-      WtMessageHandler.showError(e);
-    }
+    config = getLastConfiguration();
+    WtOfficeTools.setLogLevel(config.getlogLevel());
+    debugMode = WtOfficeTools.DEBUG_MODE_MD;
+    debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+    WtMessageHandler.writeInitialInformation(config);
     WtHelper wtHelper = new WtHelper();
     wtHelper.start();
   }
@@ -296,6 +291,7 @@ public class WtDocumentsHandler {
         if (initDocs) {
           initDocuments(true);
         }
+        setToolbarButtonState();
       } else {
         if (textLevelQueue == null && useQueue) {
           textLevelQueue = new WtTextLevelCheckQueue(this);
@@ -519,6 +515,20 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * set protocol handler
+   */
+  public void setProtocolHandler(WtProtocolHandler protocolHandler) {
+    this.protocolHandler = protocolHandler;
+  }
+  
+  /**
+   * get protocol handler
+   */
+  public WtProtocolHandler getProtocolHandler() {
+    return protocolHandler;
+  }
+  
+  /**
    * set sidebar content
    */
   public void setTextToSidebarBox(XComponent xComponent) {
@@ -533,6 +543,24 @@ public class WtDocumentsHandler {
   public void setCacheStatusColor(WtSingleDocument document) {
     if (sidebarContent != null) {
       sidebarContent.setCacheStatusColor(document);
+    }
+  }
+  
+  /**
+   * change toolbar button state
+   */
+  public void setToolbarButtonState() {
+    if (protocolHandler != null) {
+      protocolHandler.setButtonState();
+    }
+  }
+  
+  /**
+   * change toolbar button state
+   */
+  public void readToolbarConfig() {
+    if (protocolHandler != null) {
+      protocolHandler.readConfiguration();
     }
   }
   
@@ -730,6 +758,9 @@ public class WtDocumentsHandler {
           aiQueue.interruptCheck(docId, false);
         }
       }
+      if (protocolHandler != null) {
+        protocolHandler.writeCurrentConfiguration();
+      }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     }
@@ -880,6 +911,26 @@ public class WtDocumentsHandler {
     }
     return config;
   }
+  
+  /**
+   *  get Configuration
+   */
+  public WtConfiguration getLastConfiguration() {
+    try {
+      if (config == null) {
+        if (docLanguage == null) {
+          Locale locale = WtOfficeTools.getSaveLocale(xContext);
+          docLanguage = getLanguage(locale);
+        }
+        config = getConfiguration(docLanguage);
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+    return config;
+  }
+  
+
   
   /**
    *  get Configuration for language
@@ -1405,6 +1456,7 @@ public class WtDocumentsHandler {
       sidebarContent.toggleBackgroundCheckButton();
       sidebarContent.setCacheStatusColorInactive();
     }
+    setToolbarButtonState();
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
@@ -1992,6 +2044,7 @@ public class WtDocumentsHandler {
       if (sidebarContent != null) {
         sidebarContent.setAiSupport(config.useAiSupport());
       }
+      setToolbarButtonState();
     }
     javaLookAndFeelSet = -1;
     resetIgnoredMatches();

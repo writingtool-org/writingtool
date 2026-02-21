@@ -68,6 +68,7 @@ import org.writingtool.aisupport.WtAiRemote;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtProofreadingError;
+import org.writingtool.WtProtocolHandler;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -235,20 +236,20 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       
       // Add buttons to container
       int num = 0;
-      addButtonToContainer(num, "nextError", "WTNextSmall.png", "loContextMenuNextError", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_NEXT_ERROR, "WTNextSmall.png", "loContextMenuNextError", buttonContainer);
       num++;
-      addButtonToContainer(num, "checkDialog", "WTCheckSmall.png", "loContextMenuGrammarCheck", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_CHECKDIALOG, "WTCheckSmall.png", "loContextMenuGrammarCheck", buttonContainer);
       num++;
-      addButtonToContainer(num, "checkAgainDialog", "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_CHECKAGAINDIALOG, "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer);
       num++;
-      addButtonToContainer(num, "refreshCheck", "WTRefreshSmall.png", "loContextMenuRefreshCheck", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_REFRESH_CHECK, "WTRefreshSmall.png", "loContextMenuRefreshCheck", buttonContainer);
       num++;
-      addButtonToContainer(num, "configure", "WTOptionsSmall.png", "loContextMenuOptions", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_OPTIONS, "WTOptionsSmall.png", "loContextMenuOptions", buttonContainer);
       num++;
-      addButtonToContainer(num, "about", "WTAboutSmall.png", "loContextMenuAbout", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_ABOUT, "WTAboutSmall.png", "loContextMenuAbout", buttonContainer);
       num++;
-      buttonAutoOnWindow = addButtonToContainer(num, "backgroundCheckOn", "WTBackCheckOnSmall.png", "loMenuEnableBackgroundCheck", buttonContainer);
-      buttonAutoOffWindow = addButtonToContainer(num, "backgroundCheckOff", "WTBackCheckOffSmall.png", "loMenuDisableBackgroundCheck", buttonContainer);
+      buttonAutoOnWindow = addButtonToContainer(num, WtProtocolHandler.WT_BACKGROUND_CHECK_ON, "WTBackCheckOnSmall.png", "loMenuEnableBackgroundCheck", buttonContainer);
+      buttonAutoOffWindow = addButtonToContainer(num, WtProtocolHandler.WT_BACKGROUND_CHECK_OFF, "WTBackCheckOffSmall.png", "loMenuDisableBackgroundCheck", buttonContainer);
       documents = WritingTool.getDocumentsHandler();
       buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
@@ -267,25 +268,25 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       
       // Add buttons to container
       num = 0;
-      buttonStatAnWindow = addButtonToContainer(num, "changeQuotes", "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
+      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
       buttonStatAnWindow.setEnable(true);
       num++;
-      buttonStatAnWindow = addButtonToContainer(num, "statisticalAnalyses", "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
+      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
       buttonStatAnWindow.setEnable(hasStatAn());
       num++;
-      buttonAiGeneralWindow = addButtonToContainer(num, "aiGeneralCommand", "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
+      buttonAiGeneralWindow = addButtonToContainer(num, WtProtocolHandler.WT_AI_GENERAL, "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
       buttonAiGeneralWindow.setEnable(isAiSupport || documents.getConfiguration().useAiImgSupport());
       num++;
-      buttonAiSynonymsOfWord = addButtonToContainer(num, "aiSynonymsOfWord", "WTAiWordSynonymsSmall.png", "loMenuAiSynnomsOfWordCommand", buttonContainer);
+      buttonAiSynonymsOfWord = addButtonToContainer(num, WtProtocolHandler.WT_AI_SYNONYMS_OF_WORD, "WTAiWordSynonymsSmall.png", "loMenuAiSynnomsOfWordCommand", buttonContainer);
       buttonAiSynonymsOfWord.setEnable(isAiSupport);
       num++;
-      buttonAiSummary = addButtonToContainer(num, "aiSummary", "WTAiSummarySmall.png", "loMenuAiSummaryCommand", buttonContainer);
+      buttonAiSummary = addButtonToContainer(num, WtProtocolHandler.WT_AI_SUMMARY, "WTAiSummarySmall.png", "loMenuAiSummaryCommand", buttonContainer);
       buttonAiSummary.setEnable(isAiSupport);
       num++;
-      buttonAiTranslateTextWindow = addButtonToContainer(num, "aiTranslateText", "WTAiTranslateTextSmall.png", "loMenuAiTranslateCommand", buttonContainer);
+      buttonAiTranslateTextWindow = addButtonToContainer(num, WtProtocolHandler.WT_AI_TRANSLATE_TEXT, "WTAiTranslateTextSmall.png", "loMenuAiTranslateCommand", buttonContainer);
       buttonAiTranslateTextWindow.setEnable(isAiSupport);
       num++;
-      buttonAiTextToSpeechWindow = addButtonToContainer(num, "aiTextToSpeech", "WTAiTextToSpeechSmall.png", "loMenuAiTextToSpeechCommand", buttonContainer);
+      buttonAiTextToSpeechWindow = addButtonToContainer(num, WtProtocolHandler.WT_AI_TEXT_TO_SPEECH, "WTAiTextToSpeechSmall.png", "loMenuAiTextToSpeechCommand", buttonContainer);
       buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
       
       // Add Label
@@ -333,11 +334,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
       // Add AI buttons
       num = 0;
-      addButtonToContainer(num, "aiBetterStyle", "WTAiBetterStyleSmall.png", "loMenuAiStyleCommand", buttonContainer, true);
+      addButtonToContainer(num, WtProtocolHandler.WT_AI_BETTER_STYLE, "WTAiBetterStyleSmall.png", "loMenuAiStyleCommand", buttonContainer, true);
       num++;
-      addButtonToContainer(num, "aiReformulateText", "WTAiReformulateSmall.png", "loMenuAiReformulateCommand", buttonContainer, true);
+      addButtonToContainer(num, WtProtocolHandler.WT_AI_REFORMULATE_TEXT, "WTAiReformulateSmall.png", "loMenuAiReformulateCommand", buttonContainer, true);
       num++;
-      addButtonToContainer(num, "aiAdvanceText", "WTAiExpandSmall.png", "loMenuAiExpandCommand", buttonContainer, true);
+      addButtonToContainer(num, WtProtocolHandler.WT_AI_EXPAND_TEXT, "WTAiExpandSmall.png", "loMenuAiExpandCommand", buttonContainer, true);
 
       // Add AI Label
       props.put("FontStyleName", "Bold");
@@ -670,7 +671,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     if (document != null) {
       document.setMenuDocId();
     }
-    WtOfficeTools.dispatchCmd("service:org.writingtool.WritingTool?" + cmd, xContext);
+    WtOfficeTools.dispatchCmd(WtProtocolHandler.WT_PROTOCOL + cmd, xContext);
     setTextToBox();
   }
 

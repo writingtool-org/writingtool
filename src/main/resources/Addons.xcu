@@ -4,7 +4,7 @@
         <node oor:name="Images">
             <node oor:name="org.writingtool.WritingTool.imageLt" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?lt</value>
+                    <value>org.writingtool.WritingTool:lt</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -17,7 +17,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtCheck" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?checkDialog</value>
+                    <value>org.writingtool.WritingTool:checkDialog</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -30,7 +30,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtCheckAgain" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?checkAgainDialog</value>
+                    <value>org.writingtool.WritingTool:checkAgainDialog</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -43,7 +43,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtOptions" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?configure</value>
+                    <value>org.writingtool.WritingTool:configure</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -56,7 +56,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtNext" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?nextError</value>
+                    <value>org.writingtool.WritingTool:nextError</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -69,7 +69,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtRefresh" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?refreshCheck</value>
+                    <value>org.writingtool.WritingTool:refreshCheck</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -82,7 +82,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAbout" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?about</value>
+                    <value>org.writingtool.WritingTool:about</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -95,7 +95,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtStatisticalAnalyses" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?statisticalAnalyses</value>
+                    <value>org.writingtool.WritingTool:statisticalAnalyses</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -109,7 +109,7 @@
 <!--
             <node oor:name="org.writingtool.WritingTool.imageLtStatisticalAnalysesOff" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?offStatisticalAnalyses</value>
+                    <value>org.writingtool.WritingTool:offStatisticalAnalyses</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -123,7 +123,7 @@
 -->
             <node oor:name="org.writingtool.WritingTool.imageLtActivateRules" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?activateRules</value>
+                    <value>org.writingtool.WritingTool:activateRules</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -136,7 +136,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtBackCheckOff" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?backgroundCheckOff</value>
+                    <value>org.writingtool.WritingTool:backgroundCheckOff</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -149,7 +149,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtBackCheckOn" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?backgroundCheckOn</value>
+                    <value>org.writingtool.WritingTool:backgroundCheckOn</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -162,7 +162,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtResetPermanent" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?resetIgnorePermanent</value>
+                    <value>org.writingtool.WritingTool:resetIgnorePermanent</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -175,7 +175,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtProfiles" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?profiles</value>
+                    <value>org.writingtool.WritingTool:profiles</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -188,7 +188,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageChangeQuotes" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?changeQuotes</value>
+                    <value>org.writingtool.WritingTool:changeQuotes</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -201,7 +201,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiGeneralCommand" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiGeneralCommand</value>
+                    <value>org.writingtool.WritingTool:aiGeneralCommand</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -214,7 +214,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiTranslateText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiTranslateText</value>
+                    <value>org.writingtool.WritingTool:aiTranslateText</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -227,7 +227,7 @@
             </node>
              <node oor:name="org.writingtool.WritingTool.imageLtAiTextToSpeech" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiTextToSpeech</value>
+                    <value>org.writingtool.WritingTool:aiTextToSpeech</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -240,7 +240,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiBetterStyle" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiBetterStyle</value>
+                    <value>org.writingtool.WritingTool:aiBetterStyle</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -253,7 +253,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiReformulateText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiReformulateText</value>
+                    <value>org.writingtool.WritingTool:aiReformulateText</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -266,7 +266,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiAdvanceText" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiAdvanceText</value>
+                    <value>org.writingtool.WritingTool:aiAdvanceText</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -279,7 +279,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiSynonymsOfWord" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiSynonymsOfWord</value>
+                    <value>org.writingtool.WritingTool:aiSynonymsOfWord</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -292,7 +292,7 @@
             </node>
             <node oor:name="org.writingtool.WritingTool.imageLtAiSummary" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?aiSummary</value>
+                    <value>org.writingtool.WritingTool:aiSummary</value>
                 </prop>
                 <node oor:name="UserDefinedImages">
                     <prop oor:name="ImageSmallURL">
@@ -308,7 +308,7 @@
             <node oor:name="org.writingtool.WritingTool.toolbar" oor:op="replace">
                 <node oor:name="T1" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?nextError</value>
+                        <value>org.writingtool.WritingTool:nextError</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -327,7 +327,7 @@
                 </node>
                 <node oor:name="T2" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?checkDialog</value>
+                        <value>org.writingtool.WritingTool:checkDialog</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -366,7 +366,7 @@
                 </node>
                 <node oor:name="T3" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?checkAgainDialog</value>
+                        <value>org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -403,7 +403,7 @@
                 </node>
                 <node oor:name="T4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?refreshCheck</value>
+                        <value>org.writingtool.WritingTool:refreshCheck</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -420,7 +420,7 @@
                 </node>
                 <node oor:name="T5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?configure</value>
+                        <value>org.writingtool.WritingTool:configure</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -459,7 +459,7 @@
                 </node>
                 <node oor:name="T6" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?about</value>
+                        <value>org.writingtool.WritingTool:about</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -494,13 +494,58 @@
                     <value xml:lang="sv">Om WritingTool ...</value>
                     </prop>
                 </node>
+                <node oor:name="T7" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:changeQuotes</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Change Quotes...</value>
+                    <value xml:lang="de">Anführungszeichen ändern...</value>
+                    </prop>
+                </node>
+                <node oor:name="T8" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:backgroundCheckOff</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Disable background check</value>
+                    <value xml:lang="de">Hintergrundprüfung ausschalten</value>
+                    </prop>
+                </node>
+                <node oor:name="T9" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:statisticalAnalyses</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Statistical Analysis</value>
+                    <value xml:lang="de">Statistische Analyse</value>
+                    </prop>
+                </node>
             </node>
         </node>
         <node oor:name="OfficeNotebookBar">
             <node oor:name="org.writingtool.WritingTool.notebar" oor:op="replace">
                 <node oor:name="N1" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?nextError</value>
+                        <value>org.writingtool.WritingTool:nextError</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -519,7 +564,7 @@
                 </node>
                 <node oor:name="N2" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?checkDialog</value>
+                        <value>org.writingtool.WritingTool:checkDialog</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -558,7 +603,7 @@
                 </node>
                 <node oor:name="N3" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?checkAgainDialog</value>
+                        <value>org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -595,7 +640,7 @@
                 </node>
                 <node oor:name="N4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?refreshCheck</value>
+                        <value>org.writingtool.WritingTool:refreshCheck</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -612,7 +657,7 @@
                 </node>
                 <node oor:name="N5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?configure</value>
+                        <value>org.writingtool.WritingTool:configure</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -651,7 +696,7 @@
                 </node>
                 <node oor:name="N6" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
-                        <value>service:org.writingtool.WritingTool?about</value>
+                        <value>org.writingtool.WritingTool:about</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
                         <value>_self</value>
@@ -686,7 +731,52 @@
                     <value xml:lang="sv">Om WritingTool ...</value>
                     </prop>
                 </node>
-            </node>
+                 <node oor:name="N7" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:changeQuotes</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Change Quotes...</value>
+                    <value xml:lang="de">Anführungszeichen ändern...</value>
+                    </prop>
+                </node>
+                <node oor:name="N8" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:backgroundCheckOff</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Disable background check</value>
+                    <value xml:lang="de">Hintergrundprüfung ausschalten</value>
+                    </prop>
+                </node>
+                <node oor:name="N9" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:statisticalAnalyses</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Statistical Analysis</value>
+                    <value xml:lang="de">Statistische Analyse</value>
+                    </prop>
+                </node>
+           </node>
         </node>
 
   
@@ -741,7 +831,7 @@
              <node oor:name="Submenu">
                 <node oor:name="M1" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?nextError</value>
+                    <value>org.writingtool.WritingTool:nextError</value>
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
                     <value/>
@@ -760,7 +850,7 @@
                 </node>
                 <node oor:name="M2" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?checkDialog</value>
+                    <value>org.writingtool.WritingTool:checkDialog</value>
 <!--                     <value>.uno:SpellingAndGrammarDialog</value>  -->
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
@@ -801,7 +891,7 @@
                 </node>
                 <node oor:name="M3" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?checkAgainDialog</value>
+                    <value>org.writingtool.WritingTool:checkAgainDialog</value>
 <!--                    <value>.uno:RecheckDocument</value>    -->
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
@@ -840,7 +930,7 @@
                 </node>
                 <node oor:name="M4" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?refreshCheck</value>
+                    <value>org.writingtool.WritingTool:refreshCheck</value>
 <!--                    <value>.uno:RecheckDocument</value>    -->
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
@@ -859,7 +949,7 @@
                 </node>
                 <node oor:name="M6" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?configure</value>
+                    <value>org.writingtool.WritingTool:configure</value>
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
                     <value/>
@@ -899,7 +989,7 @@
                 </node>
                 <node oor:name="M7" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
-                    <value>service:org.writingtool.WritingTool?about</value>
+                    <value>org.writingtool.WritingTool:about</value>
                   </prop>
                   <prop oor:name="Title" oor:type="xs:string">
                     <value/>
