@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
@@ -35,10 +36,12 @@ import org.writingtool.tools.WtVersionInfo;
 import com.sun.star.awt.Point;
 import com.sun.star.awt.Rectangle;
 import com.sun.star.awt.Size;
+import com.sun.star.beans.NamedValue;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.XIndexAccess;
+import com.sun.star.frame.ControlCommand;
 import com.sun.star.frame.DispatchDescriptor;
 import com.sun.star.frame.FeatureStateEvent;
 import com.sun.star.frame.XDispatch;
@@ -48,9 +51,14 @@ import com.sun.star.frame.XLayoutManager;
 import com.sun.star.frame.XStatusListener;
 import com.sun.star.lang.IndexOutOfBoundsException;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ui.DockingArea;
+import com.sun.star.ui.ImageType;
+import com.sun.star.ui.XImageManager;
+import com.sun.star.ui.XModuleUIConfigurationManagerSupplier;
+import com.sun.star.ui.XUIConfigurationManager;
 import com.sun.star.ui.XUIElement;
 import com.sun.star.ui.XUIElementSettings;
 import com.sun.star.uno.UnoRuntime;
@@ -63,6 +71,8 @@ import com.sun.star.util.URL;
  * @author Fred Kruse
  */
 public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XDispatch, XServiceInfo {
+
+  private static final ResourceBundle MESSAGES = WtOfficeTools.getMessageBundle();
 
   public static final String WT_PROTOCOL = "org.writingtool.WritingTool:";
 
@@ -170,23 +180,32 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public void addStatusListener(XStatusListener statusListener, URL url) {
-    if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
-      String path = url.Path;
-      if (path.equals(WT_STATISTICAL_ANALYSES) || path.equals(WT_BACKGROUND_CHECK_OFF)) {
-        List<XStatusListener> xListeners;
-        if (xListenersMap.containsKey(path)) {
-          xListeners = xListenersMap.get(path);
-        } else {
-          xListeners = new ArrayList<>();
+    try {
+      if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
+        String path = url.Path;
+        if (path.equals(WT_STATISTICAL_ANALYSES) || path.equals(WT_BACKGROUND_CHECK_OFF) || path.equals(WT_BACKGROUND_CHECK_ON) 
+            || path.equals(WT_PROFILES)) {
+          List<XStatusListener> xListeners;
+          if (xListenersMap.containsKey(path)) {
+            xListeners = xListenersMap.get(path);
+          } else {
+            xListeners = new ArrayList<>();
+          }
+          xListeners.add(statusListener);
+  //        for (XStatusListener listener : xListeners) {
+  //          WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: listener is " + (listener == null ? "" : "NOT ") + "null");
+  //        }
+          xListenersMap.put(path, xListeners);
+  //        WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+          setButtonState();
+          if (path.equals(WT_PROFILES)){
+            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            makeProfileList(statusListener, url);
+          }
         }
-        xListeners.add(statusListener);
-//        for (XStatusListener listener : xListeners) {
-//          WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: listener is " + (listener == null ? "" : "NOT ") + "null");
-//        }
-        xListenersMap.put(path, xListeners);
-//        WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
-        setButtonState();
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -215,10 +234,20 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public void dispatch(URL url, PropertyValue[] props) {
-//    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Protocol: " + url.Protocol);
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Path: " + url.Path);
     if (url.Protocol.equals(WT_PROTOCOL)) {
+      WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
+      if (url.Path.equals(WT_PROFILES)) {
+        WritingTool.getDocumentsHandler().trigger(handleProfiles(url, props));
+        return;
+      }
+/*      
+      for (PropertyValue propVal : props) {
+        WtMessageHandler.printToLogFile("Property: Name: " + propVal.Name + ", Handle: " + propVal.Handle 
+          + ", Value: " + propVal.Value + ", State: " + propVal.State);
+      }
+*/
       WritingTool.getDocumentsHandler().trigger(url.Path);
     }
   }
@@ -297,7 +326,9 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     URL url = WtOfficeTools.createUrl(xContext, WT_STATISTICAL_ANALYSES_COMMAND);
     changeStateOfButton(url, statAnEnabled, false);
     url = WtOfficeTools.createUrl(xContext, WT_BACKGROUND_CHECK_OFF_COMMAND);
-    changeStateOfButton(url, true, backgroundCheckState);
+    changeStateOfButton(url, !backgroundCheckState, false);
+    url = WtOfficeTools.createUrl(xContext, WT_BACKGROUND_CHECK_ON_COMMAND);
+    changeStateOfButton(url, backgroundCheckState, false);
   }
   
   private void changeStateOfButton(URL url, boolean enabled, boolean state) {
@@ -321,6 +352,24 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 //              WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: new status is set!");
 //            } else {
 //              WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: listener == null");
+            }
+          }
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+  
+  private void changeListOfButton(URL url, String currentProfile, WtConfiguration conf) {
+    try {
+      String path = url.Path;
+      if (xListenersMap.containsKey(path)) {
+        List<XStatusListener> xListeners = xListenersMap.get(path);
+        if (!xListeners.isEmpty()) {
+          for (XStatusListener xStaLis : xListeners) {
+            if (xStaLis != null) {
+              makeProfileList(xStaLis, url, currentProfile, conf);
             }
           }
         }
@@ -450,9 +499,92 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
           layoutManager.hideElement(WT_TOOLBAR_URL);
         }
       }
+/*      
+      XImageManager imageManager = getImageManagerDoc(xContext);
+      for (String imageName : imageManager.getAllImageNames(ImageType.SIZE_DEFAULT)) {
+        WtMessageHandler.printToLogFile("Image Name: " + imageName);
+      }
+*/      
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
   }
+/*
+  private static final String WRITER_SERVICE = "com.sun.star.text.TextDocument";
 
+  public static XUIConfigurationManager getUIConfigManagerDoc(XComponentContext xContext) throws Exception {
+
+    XMultiComponentFactory mcFactory = xContext.getServiceManager();
+  
+    Object o = mcFactory.createInstanceWithContext("com.sun.star.ui.ModuleUIConfigurationManagerSupplier", xContext);     
+    XModuleUIConfigurationManagerSupplier xSupplier = 
+        UnoRuntime.queryInterface(XModuleUIConfigurationManagerSupplier.class, o);
+  
+    return xSupplier.getUIConfigurationManager(WRITER_SERVICE);
+  }
+  
+  public static XImageManager getImageManagerDoc(XComponentContext xContext) throws Exception {
+
+    XUIConfigurationManager confManager = getUIConfigManagerDoc(xContext);
+    
+    return UnoRuntime.queryInterface(XImageManager.class, confManager.getImageManager());
+  }
+*/
+  private void sendCommandTo(XStatusListener statusListener, URL url, String cmd, NamedValue[] args, boolean enabled) throws Throwable {
+    FeatureStateEvent aEvent = new FeatureStateEvent();
+    aEvent.FeatureURL = url;
+    aEvent.Source     = (XDispatch) this;
+    aEvent.IsEnabled  = enabled;
+    aEvent.Requery    = false;
+
+    ControlCommand ctrlCmd = new ControlCommand();
+    ctrlCmd.Command   = cmd;
+    ctrlCmd.Arguments = args;
+
+    aEvent.State = ctrlCmd;
+    statusListener.statusChanged(aEvent);
+  }
+
+  private void makeProfileList(XStatusListener statusListener, URL url) throws Throwable {
+    WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+    String currentProfile = conf.getCurrentProfile();
+    makeProfileList(statusListener, url, currentProfile, conf);
+  }
+
+  private void makeProfileList(XStatusListener statusListener, URL url, String currentProfile, WtConfiguration conf) throws Throwable {
+    List<String> definedProfiles = new ArrayList<>(conf.getDefinedProfiles());
+    definedProfiles.sort(null);
+    definedProfiles.add(0, MESSAGES.getString("guiUserProfile"));
+    if (currentProfile != null && !currentProfile.isEmpty()) {
+      definedProfiles.remove(currentProfile);
+      definedProfiles.add(0, currentProfile);
+    }
+    String[] contextMenu = new String[definedProfiles.size()];
+    for (int i = 0; i < definedProfiles.size(); i++) {
+      contextMenu[i] = definedProfiles.get(i);
+    }
+    NamedValue[] args = new NamedValue[1];
+    args[0] = new NamedValue();
+    args[0].Name = "List";
+    args[0].Value = contextMenu;
+    sendCommandTo(statusListener, url, "SetList", args, true);
+    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
+  }
+
+  private String handleProfiles(URL url, PropertyValue[] props) {
+    for (PropertyValue propVal : props) {
+      if (propVal.Name.equals("Text")) {
+        String text = new String((String) propVal.Value);
+        if (text.equals(MESSAGES.getString("guiUserProfile"))) {
+          text = "";
+        }
+        WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+        changeListOfButton(url, text, conf);
+        return WT_PROFILE + text;
+      }
+    }
+    return WT_PROFILES;
+  }
+
+  
 }

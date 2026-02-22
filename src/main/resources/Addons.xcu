@@ -526,6 +526,21 @@
                 </node>
                 <node oor:name="T9" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:backgroundCheckOn</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Enable background check</value>
+                    <value xml:lang="de">Hintergrundprüfung einschalten</value>
+                    </prop>
+                </node>
+                <node oor:name="T10" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:statisticalAnalyses</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
@@ -535,8 +550,26 @@
                         <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
-                    <value xml:lang="en-US">Statistical Analysis</value>
-                    <value xml:lang="de">Statistische Analyse</value>
+  	                  <value xml:lang="en-US">Statistical Analysis</value>
+    	              <value xml:lang="de">Statistische Analyse</value>
+                    </prop>
+                </node>
+                <node oor:name="T11" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:profiles</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">Change Profile to:</value>
+    	                <value xml:lang="de">Ändere Profil zu:</value>
+                    </prop>
+                    <prop oor:name="ControlType" oor:type="xs:string">
+                        <value>ToggleDropdownButton</value>
                     </prop>
                 </node>
             </node>
@@ -763,6 +796,21 @@
                 </node>
                 <node oor:name="N9" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:backgroundCheckOn</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Enable background check</value>
+                    <value xml:lang="de">Hintergrundprüfung einschalten</value>
+                    </prop>
+                </node>
+                <node oor:name="N10" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:statisticalAnalyses</value>
                     </prop>
                     <prop oor:name="Target" oor:type="xs:string">
@@ -776,6 +824,26 @@
                     <value xml:lang="de">Statistische Analyse</value>
                     </prop>
                 </node>
+<!--                
+                <node oor:name="N11" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:profiles</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">Change Profile to:</value>
+    	                <value xml:lang="de">Ändere Profil zu:</value>
+                    </prop>
+                    <prop oor:name="ControlType" oor:type="xs:string">
+                        <value>ToggleDropdownButton</value>
+                    </prop>
+                </node>
+-->
            </node>
         </node>
 
