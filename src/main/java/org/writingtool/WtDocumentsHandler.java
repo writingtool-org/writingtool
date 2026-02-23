@@ -291,7 +291,7 @@ public class WtDocumentsHandler {
         if (initDocs) {
           initDocuments(true);
         }
-        setToolbarButtonState();
+        updateButtons();
       } else {
         if (textLevelQueue == null && useQueue) {
           textLevelQueue = new WtTextLevelCheckQueue(this);
@@ -549,19 +549,20 @@ public class WtDocumentsHandler {
   /**
    * change toolbar button state
    */
-  public void setToolbarButtonState() {
-    if (protocolHandler != null) {
-      protocolHandler.setButtonState();
-    }
-  }
-  
-  /**
-   * change toolbar button state
-   */
   public void readToolbarConfig() {
     if (protocolHandler != null) {
       protocolHandler.readConfiguration();
     }
+  }
+  
+  /**
+   * update all button states
+   */
+  public void updateButtons() {
+    if (protocolHandler != null) {
+      protocolHandler.setButtonState();
+    }
+    // TODO: Update sidebar button states
   }
   
   /**
@@ -1456,7 +1457,7 @@ public class WtDocumentsHandler {
       sidebarContent.toggleBackgroundCheckButton();
       sidebarContent.setCacheStatusColorInactive();
     }
-    setToolbarButtonState();
+    updateButtons();
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
@@ -1470,7 +1471,14 @@ public class WtDocumentsHandler {
    * Set docID used within menu
    */
   public void setMenuDocId(String docId) {
-    menuDocId = docId;
+    if (docId == null) {
+      WtSingleDocument document = getCurrentDocument();
+      if (document != null) {
+        menuDocId = document.getDocID();
+      }
+    } else {
+      menuDocId = docId;
+    }
   }
 
   /**
@@ -1732,6 +1740,7 @@ public class WtDocumentsHandler {
         config.saveConfiguration(getCurrentDocument().getLanguage());
         resetConfiguration();
       }
+      updateButtons();
     } catch (IOException e) {
       WtMessageHandler.showError(e);
     }
@@ -1742,6 +1751,7 @@ public class WtDocumentsHandler {
    */
   public void activateRule(String ruleId) {
     activateRule(WtOfficeTools.localeToString(locale), ruleId);
+    updateButtons();
   }
   
   public void activateRule(String langcode, String ruleId) {
@@ -1875,6 +1885,7 @@ public class WtDocumentsHandler {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: deactivateRule: Rule " + (reactivate ? "enabled: " : "disabled: ") 
               + (ruleId == null ? "null" : ruleId));
         }
+        updateButtons();
       } catch (Throwable e) {
         WtMessageHandler.printException(e);
       }
@@ -2044,7 +2055,7 @@ public class WtDocumentsHandler {
       if (sidebarContent != null) {
         sidebarContent.setAiSupport(config.useAiSupport());
       }
-      setToolbarButtonState();
+      updateButtons();
     }
     javaLookAndFeelSet = -1;
     resetIgnoredMatches();
@@ -2066,7 +2077,7 @@ public class WtDocumentsHandler {
    */
   public void trigger(String sEvent) {
     try {
-//      WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
+      WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
       if ("noAction".equals(sEvent)) {  //  special dummy action
         return;
       }
@@ -2104,14 +2115,6 @@ public class WtDocumentsHandler {
       } else if ("toggleNoBackgroundCheck".equals(sEvent) || "backgroundCheckOn".equals(sEvent) || "backgroundCheckOff".equals(sEvent)) {
         if (toggleNoBackgroundCheck()) {
           resetCheck();
-/*  TODO: in LT 6.5 add dynamic toolbar          
-          for (SingleDocument document : documents) {
-            LtToolbar ltToolbar = document.getLtToolbar();
-            if (ltToolbar != null) {
-              ltToolbar.makeToolbar(document.getLanguage());
-            }
-          }
-*/
         }
       } else if ("ignoreOnce".equals(sEvent)) {
         ignoreOnce();

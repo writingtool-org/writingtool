@@ -37,31 +37,17 @@ import com.sun.star.awt.Point;
 import com.sun.star.awt.Rectangle;
 import com.sun.star.awt.Size;
 import com.sun.star.beans.NamedValue;
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.XPropertySet;
-import com.sun.star.container.XIndexAccess;
 import com.sun.star.frame.ControlCommand;
 import com.sun.star.frame.DispatchDescriptor;
 import com.sun.star.frame.FeatureStateEvent;
 import com.sun.star.frame.XDispatch;
 import com.sun.star.frame.XDispatchProvider;
-import com.sun.star.frame.XFrame;
 import com.sun.star.frame.XLayoutManager;
 import com.sun.star.frame.XStatusListener;
-import com.sun.star.lang.IndexOutOfBoundsException;
-import com.sun.star.lang.WrappedTargetException;
-import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XServiceInfo;
 import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.ui.DockingArea;
-import com.sun.star.ui.ImageType;
-import com.sun.star.ui.XImageManager;
-import com.sun.star.ui.XModuleUIConfigurationManagerSupplier;
-import com.sun.star.ui.XUIConfigurationManager;
-import com.sun.star.ui.XUIElement;
-import com.sun.star.ui.XUIElementSettings;
-import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.URL;
 
@@ -166,6 +152,11 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   
   private boolean statAnEnabled = false;
   private boolean backgroundCheckState = true;
+  private Map<String, String> deactivatedRulesMap = null;
+  private List<String> definedProfiles = null;
+  private WtConfiguration conf = null;
+  String currentProfile = null;
+  
 
   public WtProtocolHandler(XComponentContext xContext) {
     this.xContext = xContext;
@@ -184,7 +175,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
         String path = url.Path;
         if (path.equals(WT_STATISTICAL_ANALYSES) || path.equals(WT_BACKGROUND_CHECK_OFF) || path.equals(WT_BACKGROUND_CHECK_ON) 
-            || path.equals(WT_PROFILES)) {
+            || path.equals(WT_PROFILES) || path.equals(WT_ACTIVATE_RULES)) {
           List<XStatusListener> xListeners;
           if (xListenersMap.containsKey(path)) {
             xListeners = xListenersMap.get(path);
@@ -199,8 +190,12 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   //        WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
           setButtonState();
           if (path.equals(WT_PROFILES)){
-            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+//            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
             makeProfileList(statusListener, url);
+          } else if (path.equals(WT_PROFILES)){
+//            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            makeActivateRulesList(statusListener, url);
           }
         }
       }
@@ -237,17 +232,16 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Protocol: " + url.Protocol);
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Path: " + url.Path);
     if (url.Protocol.equals(WT_PROTOCOL)) {
-      WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
+//      WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
+      WritingTool.getDocumentsHandler().setMenuDocId(null);
       if (url.Path.equals(WT_PROFILES)) {
         WritingTool.getDocumentsHandler().trigger(handleProfiles(url, props));
         return;
+      } else if (url.Path.equals(WT_ACTIVATE_RULES)) {
+        WritingTool.getDocumentsHandler().trigger(handleActivateRules(url, props));
+        changeListOfButton(url);
+        return;
       }
-/*      
-      for (PropertyValue propVal : props) {
-        WtMessageHandler.printToLogFile("Property: Name: " + propVal.Name + ", Handle: " + propVal.Handle 
-          + ", Value: " + propVal.Value + ", State: " + propVal.State);
-      }
-*/
       WritingTool.getDocumentsHandler().trigger(url.Path);
     }
   }
@@ -262,12 +256,6 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: URL.Protocol: " + url.Protocol);
     if (url.Protocol.equals(WT_PROTOCOL)) {
 //      WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: return this");
-/*
-      if (url.Path.equals("about")) {
-        WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: add this to listener");
-        this.addStatusListener(this, url);
-      }
-*/
       return this;
     }
     return null;
@@ -314,9 +302,11 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   public void setButtonState() {
     if (!WritingTool.getDocumentsHandler().isOpenOffice) {
       statAnEnabled = WtOfficeTools.hasStatisticalStyleRules(xContext);
-      WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+      conf = WritingTool.getDocumentsHandler().getLastConfiguration();
       if (conf != null) {
         backgroundCheckState = conf.noBackgroundCheck();
+        definedProfiles = conf.getDefinedProfiles();
+        deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
       }
       changeButtonStatus();
     }
@@ -329,6 +319,20 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     changeStateOfButton(url, !backgroundCheckState, false);
     url = WtOfficeTools.createUrl(xContext, WT_BACKGROUND_CHECK_ON_COMMAND);
     changeStateOfButton(url, backgroundCheckState, false);
+    url = WtOfficeTools.createUrl(xContext, WT_PROFILES_COMMAND);
+    if (definedProfiles == null || definedProfiles.isEmpty()) {
+      changeStateOfButton(url, false, false);
+    } else {
+      changeStateOfButton(url, true, false);
+      changeListOfButton(url);
+    }
+    url = WtOfficeTools.createUrl(xContext, WT_ACTIVATE_RULES_COMMAND);
+    if (deactivatedRulesMap == null || deactivatedRulesMap.isEmpty()) {
+      changeStateOfButton(url, false, false);
+    } else {
+      changeStateOfButton(url, true, false);
+      changeListOfButton(url);
+    }
   }
   
   private void changeStateOfButton(URL url, boolean enabled, boolean state) {
@@ -361,7 +365,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     }
   }
   
-  private void changeListOfButton(URL url, String currentProfile, WtConfiguration conf) {
+  private void changeListOfButton(URL url) {
     try {
       String path = url.Path;
       if (xListenersMap.containsKey(path)) {
@@ -369,7 +373,11 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
         if (!xListeners.isEmpty()) {
           for (XStatusListener xStaLis : xListeners) {
             if (xStaLis != null) {
-              makeProfileList(xStaLis, url, currentProfile, conf);
+              if (url.Path.equals(WT_PROFILES)) {
+                makeProfileList(xStaLis, url);
+              } else if (url.Path.equals(WT_ACTIVATE_RULES)) {
+                makeActivateRulesList(xStaLis, url);
+              }
             }
           }
         }
@@ -499,37 +507,11 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
           layoutManager.hideElement(WT_TOOLBAR_URL);
         }
       }
-/*      
-      XImageManager imageManager = getImageManagerDoc(xContext);
-      for (String imageName : imageManager.getAllImageNames(ImageType.SIZE_DEFAULT)) {
-        WtMessageHandler.printToLogFile("Image Name: " + imageName);
-      }
-*/      
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
   }
-/*
-  private static final String WRITER_SERVICE = "com.sun.star.text.TextDocument";
 
-  public static XUIConfigurationManager getUIConfigManagerDoc(XComponentContext xContext) throws Exception {
-
-    XMultiComponentFactory mcFactory = xContext.getServiceManager();
-  
-    Object o = mcFactory.createInstanceWithContext("com.sun.star.ui.ModuleUIConfigurationManagerSupplier", xContext);     
-    XModuleUIConfigurationManagerSupplier xSupplier = 
-        UnoRuntime.queryInterface(XModuleUIConfigurationManagerSupplier.class, o);
-  
-    return xSupplier.getUIConfigurationManager(WRITER_SERVICE);
-  }
-  
-  public static XImageManager getImageManagerDoc(XComponentContext xContext) throws Exception {
-
-    XUIConfigurationManager confManager = getUIConfigManagerDoc(xContext);
-    
-    return UnoRuntime.queryInterface(XImageManager.class, confManager.getImageManager());
-  }
-*/
   private void sendCommandTo(XStatusListener statusListener, URL url, String cmd, NamedValue[] args, boolean enabled) throws Throwable {
     FeatureStateEvent aEvent = new FeatureStateEvent();
     aEvent.FeatureURL = url;
@@ -546,12 +528,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   }
 
   private void makeProfileList(XStatusListener statusListener, URL url) throws Throwable {
-    WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
-    String currentProfile = conf.getCurrentProfile();
-    makeProfileList(statusListener, url, currentProfile, conf);
-  }
-
-  private void makeProfileList(XStatusListener statusListener, URL url, String currentProfile, WtConfiguration conf) throws Throwable {
+    currentProfile = conf.getCurrentProfile();
     List<String> definedProfiles = new ArrayList<>(conf.getDefinedProfiles());
     definedProfiles.sort(null);
     definedProfiles.add(0, MESSAGES.getString("guiUserProfile"));
@@ -564,11 +541,16 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       contextMenu[i] = definedProfiles.get(i);
     }
     NamedValue[] args = new NamedValue[1];
+    // set list
     args[0] = new NamedValue();
     args[0].Name = "List";
     args[0].Value = contextMenu;
     sendCommandTo(statusListener, url, "SetList", args, true);
-    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
+    // set check to actual profile
+    args[0].Name = "Pos";
+    args[0].Value = 0;
+    sendCommandTo(statusListener, url, "CheckItemPos", args, true);
+//    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
   }
 
   private String handleProfiles(URL url, PropertyValue[] props) {
@@ -578,12 +560,44 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
         if (text.equals(MESSAGES.getString("guiUserProfile"))) {
           text = "";
         }
-        WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
-        changeListOfButton(url, text, conf);
+        conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+        changeListOfButton(url);
         return WT_PROFILE + text;
       }
     }
     return WT_PROFILES;
+  }
+
+  private void makeActivateRulesList(XStatusListener statusListener, URL url) throws Throwable {
+    deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
+    String[] contextMenu = new String[deactivatedRulesMap.keySet().size()];
+    int i = 0;
+    for (String ruleId : deactivatedRulesMap.keySet()) {
+      contextMenu[i] = deactivatedRulesMap.get(ruleId);
+      i++;
+    }
+    NamedValue[] args = new NamedValue[1];
+    // set list
+    args[0] = new NamedValue();
+    args[0].Name = "List";
+    args[0].Value = contextMenu;
+    sendCommandTo(statusListener, url, "SetList", args, true);
+//    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
+  }
+
+  private String handleActivateRules(URL url, PropertyValue[] props) {
+    for (PropertyValue propVal : props) {
+      if (propVal.Name.equals("Text")) {
+        String text = new String((String) propVal.Value);
+        deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
+        for (String ruleId : deactivatedRulesMap.keySet()) {
+          if (text.equals(deactivatedRulesMap.get(ruleId))) {
+            return WT_ACTIVATE_RULE + ruleId;
+          }
+        }
+      }
+    }
+    return WT_ACTIVATE_RULES;
   }
 
   

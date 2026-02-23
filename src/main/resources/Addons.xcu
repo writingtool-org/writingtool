@@ -572,6 +572,24 @@
                         <value>ToggleDropdownButton</value>
                     </prop>
                 </node>
+                <node oor:name="T12" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:activateRules</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">Activate Rule:</value>
+    	                <value xml:lang="de">Activiere Regel:</value>
+                    </prop>
+                    <prop oor:name="ControlType" oor:type="xs:string">
+                        <value>ToggleDropdownButton</value>
+                    </prop>
+                </node>
             </node>
         </node>
         <node oor:name="OfficeNotebookBar">
