@@ -1819,6 +1819,9 @@ public class WtDocumentsHandler {
           initDocuments(false);
           removeRuleError(ruleId);
         }
+        if (sidebarContent != null) {
+          sidebarContent.resetActivateRulesBox();
+        }
         if (debugMode) {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: deactivateRule: Rule " + (reactivate ? "enabled: " : "disabled: ") 
               + (ruleId == null ? "null" : ruleId));
@@ -1990,7 +1993,7 @@ public class WtDocumentsHandler {
     if (config != null) {
       noBackgroundCheck = config.noBackgroundCheck();
       if (sidebarContent != null) {
-        sidebarContent.setAiSupport(config.useAiSupport());
+        sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
     }
     javaLookAndFeelSet = -1;

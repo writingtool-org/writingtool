@@ -908,7 +908,8 @@ public class WtAiRemote {
   private void stopAiRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiSupport(false);
-      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+          config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       if (documents.getAiCheckQueue() != null) {
         documents.getAiCheckQueue().setStop(false);
         documents.setAiCheckQueue(null);
@@ -924,7 +925,8 @@ public class WtAiRemote {
   private void stopAiImgRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiImgSupport(false);
-      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+          config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
     }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
@@ -936,7 +938,8 @@ public class WtAiRemote {
   private void stopAiTtsRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiTtsSupport(false);
-      documents.getSidebarContent().setAiSupport(config.useAiSupport());
+      documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+          config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
     }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
