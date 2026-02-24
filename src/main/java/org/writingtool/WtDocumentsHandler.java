@@ -2607,6 +2607,11 @@ public class WtDocumentsHandler {
    */
   private boolean enableWtSpellAndGrammarChecker(WtSingleDocument currentDocument) {
     try {
+      boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
+      if (!isWtGrammarActive) {
+        WtMessageHandler.showMessage(messages.getString("loWtIsDisabledMessage"));
+        return false;
+      }
       WtConfiguration confg = new WtConfiguration(WtOfficeTools.getWtConfigDir(xContext), 
           WtOfficeTools.CONFIG_FILE, null, true);
       if (confg.noBackgroundCheck()) {
@@ -2619,7 +2624,6 @@ public class WtDocumentsHandler {
       boolean isSpellAuto = WtLinguServiceTools.isSpellAuto(xContext);
       boolean isGrammarAuto = WtLinguServiceTools.isGrammarAuto(xContext);
       boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : WtLinguServiceTools.isWtSpellServiceActive(xContext, locale);
-      boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
       if (isSpellAuto && isGrammarAuto && isWtSpellActive && isWtGrammarActive) {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: enableWtSpellAndGrammarChecker: isSpellAuto: " + isSpellAuto +
             ", isGrammarAuto: " + isGrammarAuto + ", isWtSpellActive: " + isWtSpellActive + ", isWtGrammarActive: " + isWtGrammarActive);
@@ -2630,6 +2634,7 @@ public class WtDocumentsHandler {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: enableWtSpellAndGrammarChecker: setGrammarAuto: true");
         return false;
       }
+/*
       if (isSpellAuto) {
         WtLinguServiceTools.setSpellAuto(false, xContext);
       }
@@ -2646,6 +2651,7 @@ public class WtDocumentsHandler {
               + WtOfficeTools.localeToString(locale) + ", isWtGrammarServiceActive: " + isWtGrammarActive);
         WtLinguServiceTools.setWtAsGrammarService(xContext);
       }
+*/
       WtLinguServiceTools.setGrammarAuto(true, xContext);
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: enableWtSpellAndGrammarChecker: setGrammarAuto: true");
       WtLinguServiceTools.setSpellAuto(true, xContext);
