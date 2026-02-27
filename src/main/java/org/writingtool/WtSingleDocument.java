@@ -132,10 +132,8 @@ public class WtSingleDocument {
   private boolean isOnUnload = false;             //  Document will be closed
   private String lastSinglePara = null;           //  stores the last paragraph which is checked as single paragraph
   private Language docLanguage;                   //  docLanguage (usually the Language of the first paragraph)
-//  private Locale docLocale;                       //  docLanguage as Locale
   private final Language fixedLanguage;           //  fixed language (by configuration); if null: use language of document (given by LO/OO)
   private WtMenus ltMenus = null;                 //  LT menus (tools menu and context menu)
-//  TODO: add in 6.5   private LtToolbar ltToolbar = null;             //  LT dynamic toolbar
   private WtResultCache statAnCache = null;         //  Cache for results of statistical analysis
   private String statAnRuleId = null;             //  RuleId of current statistical rule tested
 
@@ -192,11 +190,9 @@ public class WtSingleDocument {
       ltMenus = new WtMenus(xContext, this, config);
     }
     mDocHandler.readToolbarConfig();
-/*  TODO: in LT 6.5 add dynamic toolbar          
-    if (!mDocHandler.isOpenOffice && docType == DocumentType.WRITER) {
-      ltToolbar = new LtToolbar(xContext, this, docLanguage);
+    if (mDocHandler.getSidebarContent() != null) {
+      mDocHandler.getSidebarContent().resetActivateRulesBox();
     }
-*/
   }
   
   /**  get the result for a check of a single document 

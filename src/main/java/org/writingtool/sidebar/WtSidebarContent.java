@@ -24,6 +24,7 @@ import java.awt.SystemColor;
 import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -31,15 +32,19 @@ import java.util.TreeMap;
 import com.sun.star.accessibility.XAccessible;
 import com.sun.star.awt.ActionEvent;
 import com.sun.star.awt.ImagePosition;
+import com.sun.star.awt.ItemEvent;
 import com.sun.star.awt.PosSize;
 import com.sun.star.awt.Rectangle;
 import com.sun.star.awt.WindowEvent;
 import com.sun.star.awt.XActionListener;
 import com.sun.star.awt.XButton;
+import com.sun.star.awt.XComboBox;
 import com.sun.star.awt.XControl;
 import com.sun.star.awt.XControlContainer;
 import com.sun.star.awt.XControlModel;
 import com.sun.star.awt.XFixedText;
+import com.sun.star.awt.XItemListener;
+import com.sun.star.awt.XListBox;
 import com.sun.star.awt.XTextComponent;
 import com.sun.star.awt.XTextListener;
 import com.sun.star.awt.XToolkit;
@@ -65,6 +70,7 @@ import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote;
+import org.writingtool.config.WtConfiguration;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtProofreadingError;
@@ -83,6 +89,8 @@ import org.writingtool.tools.WtViewCursorTools;
 public class WtSidebarContent extends ComponentBase implements XToolPanel, XSidebarPanel {
 
   public static final String CSS_AWT_UNO_CONTROL_BUTTON = "com.sun.star.awt.UnoControlButton";
+  public static final String CSS_AWT_UNO_CONTROL_COMBO_BOX = "com.sun.star.awt.UnoControlComboBox";
+  public static final String CSS_AWT_UNO_CONTROL_LIST_BOX = "com.sun.star.awt.UnoControlListBox";
   public static final String CSS_AWT_UNO_CONTROL_FIXED_TEXT = "com.sun.star.awt.UnoControlFixedText";
   public static final String CSS_AWT_UNO_CONTROL_EDIT = "com.sun.star.awt.UnoControlEdit";
   public static final String CSS_AWT_UNO_CONTROL_CONTAINER = "com.sun.star.awt.UnoControlContainer";
@@ -103,13 +111,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private final static int MINIMAL_WIDTH = 300;
 
-  private final static int BUTTON_MARGIN_TOP = 5;
-  private final static int BUTTON_MARGIN_BOTTOM = 5;
-  private final static int BUTTON_MARGIN_LEFT = 5;
-  private final static int BUTTON_MARGIN_RIGHT = 5;
-  private final static int BUTTON_MARGIN_BETWEEN = 5;
+  private final static int BUTTON_MARGIN_TOP = 3;
+  private final static int BUTTON_MARGIN_BOTTOM = 3;
+  private final static int BUTTON_MARGIN_LEFT = 3;
+  private final static int BUTTON_MARGIN_RIGHT = 3;
+  private final static int BUTTON_MARGIN_BETWEEN = 3;
 
-  private final static int BUTTON_WIDTH = 32;
+  private final static int BUTTON_WIDTH = 28;
+  private final static int LIST_BUTTON_WIDTH = 4 * BUTTON_WIDTH + 3 * BUTTON_MARGIN_BETWEEN;
+  
   private final static int BUTTON_CONTAINER_WIDTH = MINIMAL_WIDTH - BUTTON_MARGIN_LEFT - BUTTON_MARGIN_RIGHT;
   private final static int BUTTON_CONTAINER_HEIGHT = BUTTON_WIDTH + BUTTON_MARGIN_TOP + BUTTON_MARGIN_BOTTOM;
 
@@ -124,11 +134,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private final static int CACHE_STATUS_BOTTOM = 0;
   private final static int STATUS_CONTAINER_HEIGHT = CACHE_STATUS_HEIGHT + CACHE_STATUS_TOP + CACHE_STATUS_BOTTOM;
 
-  private final static int CONTAINER_MARGIN_TOP = 5;
-  private final static int CONTAINER_MARGIN_BOTTOM = 5;
-  private final static int CONTAINER_MARGIN_LEFT = 5;
-  private final static int CONTAINER_MARGIN_RIGHT = 5;
-  private final static int CONTAINER_MARGIN_BETWEEN = 5;
+  private final static int CONTAINER_MARGIN_TOP = 3;
+  private final static int CONTAINER_MARGIN_BOTTOM = 3;
+  private final static int CONTAINER_MARGIN_LEFT = 3;
+  private final static int CONTAINER_MARGIN_RIGHT = 3;
+  private final static int CONTAINER_MARGIN_BETWEEN = 3;
   private final static int CONTAINER_TOP = CONTAINER_MARGIN_TOP + LABEL_TOP + LABEL_HEIGHT;
   private final static int MIN_CONTAINER_HEIGHT = 40;
 
@@ -145,6 +155,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow contentWindow;                //  the window of the control container
   private XWindow buttonContainer1Window;       //  the window of the first row button container
   private XWindow buttonContainer2Window;       //  the window of the second row button container
+  private XWindow buttonContainer3Window;       //  the window of the third row button container
   private XWindow buttonContainerAiWindow;      //  the window of the button container for AI action
   private XWindow cacheStatusContainerWindow;   //  the window of the container for cache status label
   private XWindow paragraphLabelWindow;         //  the window of the paragraph label
@@ -155,6 +166,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow buttonAutoOnWindow;           //  the window of button for auto check on
   private XWindow buttonAutoOffWindow;          //  the window of button for auto check off
   private XWindow buttonStatAnWindow;           //  the window of button for statistical Analysis
+  private XWindow buttonProfilesWindow;         //  the window of button for profiles
+  private XWindow buttonActivateRulesWindow;    //  the window of button for activate disabled rules
   private XWindow buttonAiGeneralWindow;        //  the window of button for AI general
   private XWindow buttonAiSynonymsOfWord;       //  the window of button for AI generate synonyms of word
   private XWindow buttonAiSummary;              //  the window of button for AI create summary
@@ -167,13 +180,20 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XControl xAiBox;                      //  Box to show AI result text
   private XTextComponent aiResultBox;           //  Text component of box to show AI result text
   private XFixedText aiLabelText;               //  Text of Label for AI result text
+  private XListBox xProfilesBox;
+  private XListBox xActivateRulesBox;
 
   private List<XControl> xCacheSizeLabel;       //  Labels to show status of cache
   
   private String paragraphText;                 //  Text of the current paragraph
   private String aiResultText;                  //  result Text of AI operation
   private TextParagraph tPara;                  //  Number and type of the current paragraph
+
+  private final List<String> profiles = new ArrayList<>();
+  private Map<String, String> deactivatedRulesMap = null;
+  private String[] rulesList;
   
+  boolean isAnyAiSupport = false;
   boolean isAiSupport = false;
   
   public WtSidebarContent(XComponentContext context, XWindow parentWindow) {
@@ -253,8 +273,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       documents = WritingTool.getDocumentsHandler();
       buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
+      num++;
+      addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
+      num++;
+      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
+      buttonStatAnWindow.setEnable(hasStatAn());
       
-      isAiSupport = documents.getConfiguration().useAiSupport();
+      WtConfiguration conf = documents.getConfiguration();
+      isAiSupport = conf.useAiSupport();
+      isAnyAiSupport = conf.useAiSupport() || conf.useAiImgSupport() || conf.useAiTtsSupport();
 
       // Add second row button container
       xButtonContainer = createControlContainer(xMCF, context, 
@@ -268,12 +295,23 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       
       // Add buttons to container
       num = 0;
-      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
-      buttonStatAnWindow.setEnable(true);
+      buttonProfilesWindow = addProfileListBoxToContainer(num, buttonContainer);
+      buttonProfilesWindow.setEnable(profiles != null && !profiles.isEmpty());
       num++;
-      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
-      buttonStatAnWindow.setEnable(hasStatAn());
-      num++;
+      buttonActivateRulesWindow = addActivateRulesListBoxToContainer(num, buttonContainer);
+      buttonActivateRulesWindow.setEnable(deactivatedRulesMap != null && !deactivatedRulesMap.isEmpty());
+
+      // Add third row button container
+      xButtonContainer = createControlContainer(xMCF, context, 
+          new Rectangle(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
+              BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
+      buttonContainer = UnoRuntime.queryInterface(XControlContainer.class,xButtonContainer);
+      controlContainer.addControl("buttonContainer3", xButtonContainer);
+      buttonContainer3Window = UnoRuntime.queryInterface(XWindow.class, xButtonContainer);
+      buttonContainer3Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + 2 * BUTTON_CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN, 
+          BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+      
+      num = 0;
       buttonAiGeneralWindow = addButtonToContainer(num, WtProtocolHandler.WT_AI_GENERAL, "WTAiGeneralSmall.png", "loMenuAiGeneralCommand", buttonContainer);
       buttonAiGeneralWindow.setEnable(isAiSupport || documents.getConfiguration().useAiImgSupport());
       num++;
@@ -440,9 +478,17 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   /**
    * set AI support
    */
-  public void setAiSupport(boolean isAiSupport) {
+  public void setAiSupport(boolean isAiSupport, boolean isAnyAiSupport) {
     this.isAiSupport = isAiSupport;
+    this.isAnyAiSupport = isAnyAiSupport;
     resizeContainer();
+  }
+  
+  /**
+   * reset list of deactivated rules
+   */
+  public void resetActivateRulesBox() {
+    this.setActivateRulesListToListBox();
   }
   
   /**
@@ -518,6 +564,40 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       button.addActionListener(listener);
     }
     return buttonCtrl;
+  }
+
+  /**
+   * Create a combo box with options and item listener.
+   */
+  public static XControl createCombobox(XMultiComponentFactory xMCF, XComponentContext context, String text,
+      XItemListener listener, XTextListener textListener, Rectangle size, SortedMap<String, Object> props)
+  {
+    XControl ctrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_COMBO_BOX, props, size);
+    XTextComponent txt = UnoRuntime.queryInterface(XTextComponent.class, ctrl);
+    txt.setText(text);
+    if (textListener != null) {
+      txt.addTextListener(textListener);
+    }
+    XComboBox cmb = UnoRuntime.queryInterface(XComboBox.class, ctrl);
+    if (listener != null) {
+      cmb.addItemListener(listener);
+    }
+    cmb.setDropDownLineCount((short) 10);
+
+    return ctrl;
+  }
+
+  /**
+   * Create a list box with an item listener.
+   */
+  public static XControl createListBox(XMultiComponentFactory xMCF, XComponentContext context,
+      XItemListener listener, Rectangle size, SortedMap<String, Object> props)
+  {
+    XControl ctrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_LIST_BOX, props, size);
+    if (listener != null) {
+      UnoRuntime.queryInterface(XComboBox.class, ctrl).addItemListener(listener);
+    }
+    return ctrl;
   }
 
   /**
@@ -624,6 +704,119 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return xWindow;
   }
   
+  private void setProfileListToListBox() {
+    WtConfiguration conf = documents.getConfiguration();
+    profiles.clear();
+    profiles.addAll(conf.getDefinedProfiles());
+    profiles.sort(null);
+    profiles.add(0, messages.getString("guiUserProfile"));
+    String currentProfile = conf.getCurrentProfile();
+    if (currentProfile != null && !currentProfile.isEmpty()) {
+      profiles.remove(currentProfile);
+      profiles.add(0, currentProfile);
+    }
+    short n = xProfilesBox.getItemCount();
+    short beg = 0;
+    xProfilesBox.removeItems(beg, n);
+    xProfilesBox.addItems(profiles.toArray(new String[0]), beg);
+    xProfilesBox.selectItemPos(beg, true);
+    if (buttonProfilesWindow != null) {
+      buttonProfilesWindow.setEnable(profiles != null && !profiles.isEmpty());
+    }
+  }
+  
+  private XWindow addProfileListBoxToContainer(int num, XControlContainer buttonContainer) {
+    SortedMap<String, Object> bProps = new TreeMap<>();
+    bProps.put("ImageURL", "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTProfilesSmall.png");
+    bProps.put("HelpText", messages.getString("loMenuChangeProfiles"));
+    bProps.put("ImagePosition", ImagePosition.Centered);
+    bProps.put("Dropdown", true);
+    XControl listBox = createListBox(xMCF, xContext, null, new Rectangle(0, 0, 16, 16), bProps);
+    xProfilesBox = UnoRuntime.queryInterface(XListBox.class, listBox);
+    setProfileListToListBox();
+    XItemListener itemListener = new XItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent event) {
+        try {
+          if(event.Selected > 0) {
+            if (profiles.get(event.Selected).equals(messages.getString("guiUserProfile"))) {
+              runGeneralDispatchCmd("profileChangeTo_");
+            } else {
+              runGeneralDispatchCmd("profileChangeTo_" + profiles.get(event.Selected));
+            }
+          }
+        } catch (Throwable e1) {
+          WtMessageHandler.showError(e1);
+        }
+      }
+      @Override
+      public void disposing(EventObject event) { }
+    };
+    xProfilesBox.addItemListener(itemListener);
+    buttonContainer.addControl("profiles", listBox);
+    XWindow xWindow = UnoRuntime.queryInterface(XWindow.class, listBox);
+    xWindow.setPosSize(BUTTON_MARGIN_LEFT + num * (LIST_BUTTON_WIDTH + BUTTON_MARGIN_BETWEEN), 
+        BUTTON_MARGIN_TOP, LIST_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);
+    return xWindow;
+  }
+  
+  private void setActivateRulesListToListBox() {
+    deactivatedRulesMap = documents.getDisabledRulesMap(null);
+    rulesList = new String[deactivatedRulesMap.keySet().size() + 1];
+    rulesList[0] = new String(messages.getString("loContextMenuActivateRule"));
+    int i = 1;
+    for (String ruleId : deactivatedRulesMap.keySet()) {
+      rulesList[i] = deactivatedRulesMap.get(ruleId);
+      i++;
+    }
+    short n = xActivateRulesBox.getItemCount();
+    short beg = 0;
+    xActivateRulesBox.removeItems(beg, n);
+    xActivateRulesBox.addItems(rulesList, beg);
+    xActivateRulesBox.selectItemPos(beg, true);
+    if (buttonActivateRulesWindow != null) {
+      buttonActivateRulesWindow.setEnable(deactivatedRulesMap != null && !deactivatedRulesMap.isEmpty());
+    }
+  }
+  
+  private XWindow addActivateRulesListBoxToContainer(int num, XControlContainer buttonContainer) {
+    SortedMap<String, Object> bProps = new TreeMap<>();
+    bProps.put("ImageURL", "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTActivateRulesSmall.png");
+    bProps.put("HelpText", messages.getString("loContextMenuActivateRule"));
+    bProps.put("ImagePosition", ImagePosition.Centered);
+    bProps.put("Dropdown", true);
+    XControl listBox = createListBox(xMCF, xContext, null, new Rectangle(0, 0, 16, 16), bProps);
+    xActivateRulesBox = UnoRuntime.queryInterface(XListBox.class, listBox);
+    setActivateRulesListToListBox();
+    XItemListener itemListener = new XItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent event) {
+        try {
+          if(event.Selected > 0) {
+            String text = rulesList[event.Selected];
+            deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
+            for (String ruleId : deactivatedRulesMap.keySet()) {
+              if (text.equals(deactivatedRulesMap.get(ruleId))) {
+                runGeneralDispatchCmd("activateRule_" + ruleId);
+                return;
+              }
+            }
+          }
+        } catch (Throwable e1) {
+          WtMessageHandler.showError(e1);
+        }
+      }
+      @Override
+      public void disposing(EventObject event) { }
+    };
+    xActivateRulesBox.addItemListener(itemListener);
+    buttonContainer.addControl("profiles", listBox);
+    XWindow xWindow = UnoRuntime.queryInterface(XWindow.class, listBox);
+    xWindow.setPosSize(BUTTON_MARGIN_LEFT + num * (LIST_BUTTON_WIDTH + BUTTON_MARGIN_BETWEEN), 
+        BUTTON_MARGIN_TOP, LIST_BUTTON_WIDTH, BUTTON_WIDTH, PosSize.POSSIZE);
+    return xWindow;
+  }
+  
   private void runAICommand(String cmd) {
     try {
       WtAiRemote aiRemote = new WtAiRemote(documents, documents.getConfiguration());
@@ -681,7 +874,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   public void resizeContainer() {
     Rectangle rect = contentWindow.getPosSize();
-    containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BETWEEN - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM;
+    containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BETWEEN - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM
+        - (isAnyAiSupport ? (BUTTON_CONTAINER_HEIGHT + BUTTON_MARGIN_BETWEEN) : 0);
 //    WtMessageHandler.printToLogFile("rect.Height: " + rect.Height + ", containerHeight: " + containerHeight);
     if (isAiSupport) {
       containerHeight = (containerHeight - 2 * BUTTON_CONTAINER_HEIGHT - 4 * CONTAINER_MARGIN_BETWEEN - LABEL_HEIGHT) / 2;
@@ -694,9 +888,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
     buttonContainer2Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + BUTTON_CONTAINER_HEIGHT + CONTAINER_MARGIN_BETWEEN, 
         BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
-    paragraphLabelWindow.setPosSize(LABEL_LEFT, LABEL_TOP, LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
+    if (isAnyAiSupport) {
+      buttonContainer3Window.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_MARGIN_TOP + 2 * BUTTON_CONTAINER_HEIGHT + 2 * CONTAINER_MARGIN_BETWEEN, 
+          BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
+    }
+    buttonContainer3Window.setVisible(isAnyAiSupport);
+    int labelTop = LABEL_TOP + (isAnyAiSupport ? (BUTTON_CONTAINER_HEIGHT + BUTTON_MARGIN_BETWEEN) : 0);
+    paragraphLabelWindow.setPosSize(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
     int paraBoxX = CONTAINER_MARGIN_LEFT;
-    int paraBoxY = CONTAINER_TOP;
+    int paraBoxY = CONTAINER_TOP + (isAnyAiSupport ? (BUTTON_CONTAINER_HEIGHT + BUTTON_MARGIN_BETWEEN) : 0);
     int paraBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
     int paraBoxHeight = containerHeight;
     paragraphBoxWindow.setPosSize(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight, PosSize.POSSIZE);
@@ -709,14 +909,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     buttonAiTranslateTextWindow.setEnable(isAiSupport);
     buttonAiTextToSpeechWindow.setEnable(documents.getConfiguration().useAiTtsSupport());
     if (isAiSupport) {
-      OverrideButtonTop = CONTAINER_TOP + 2* containerHeight + 
-          3 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
-      buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, CONTAINER_TOP + containerHeight + CONTAINER_MARGIN_BETWEEN, 
+      OverrideButtonTop = CONTAINER_TOP + 2 * containerHeight + 
+          4 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + 2 * BUTTON_CONTAINER_HEIGHT;
+      buttonContainerAiWindow.setPosSize(CONTAINER_MARGIN_LEFT, 
+          CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT, 
           BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT, PosSize.POSSIZE);
-      aiLabelWindow.setPosSize(LABEL_LEFT, CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT, 
+      aiLabelWindow.setPosSize(LABEL_LEFT, CONTAINER_TOP + containerHeight + 3 * CONTAINER_MARGIN_BETWEEN + 2 * BUTTON_CONTAINER_HEIGHT, 
           LABEL_WIDTH, LABEL_HEIGHT, PosSize.POSSIZE);
       int aiBoxX = CONTAINER_MARGIN_LEFT;
-      int aiBoxY = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + BUTTON_CONTAINER_HEIGHT;
+      int aiBoxY = CONTAINER_TOP + containerHeight + 3 * CONTAINER_MARGIN_BETWEEN + LABEL_HEIGHT + 2 * BUTTON_CONTAINER_HEIGHT;
       int aiBoxWidth = rect.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
       int aiBoxHeight = containerHeight;
       aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
@@ -729,6 +930,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     aiResultBoxWindow.setVisible(isAiSupport);
     overrideButtonWindow.setVisible(isAiSupport);
     cacheAiStatusWindow.setVisible(isAiSupport);
+    setProfileListToListBox();
+    setActivateRulesListToListBox();
   }
   
   private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara, WtSingleDocument document) {
