@@ -222,8 +222,9 @@ public class WtFlatParagraphTools {
         num++;
       }
       if (xFlatPara == null) {
-        WtMessageHandler.printToLogFile("FlatParagraphTools: getFlatParagraphAt: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
-        return null;
+//        WtMessageHandler.printToLogFile("FlatParagraphTools: getFlatParagraphAt: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
+        throw new RuntimeException("FlatParagraphTools: getFlatParagraphAt: FlatParagraph == null; n = " + num + "; nPara = " + nPara);
+//        return null;
       }
       return xFlatPara;
     } catch (Throwable t) {
