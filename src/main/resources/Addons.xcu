@@ -592,6 +592,130 @@
                 </node>
             </node>
         </node>
+        <node oor:name="OfficeToolBar">
+            <node oor:name="org.writingtool.WritingTool.aitoolbar" oor:op="replace">
+                <node oor:name="AT1" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiGeneralCommand</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: General paragraph changes</value>
+	                    <value xml:lang="de">KI: Allgemeine Absatzänderungen</value>
+                    </prop>
+                </node>
+                <node oor:name="AT2" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiBetterStyle</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Revise paragraph stylistically</value>
+	                    <value xml:lang="de">KI: Überarbeite Absatz stilistisch</value>
+                    </prop>
+                </node>
+                <node oor:name="AT3" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiReformulateText</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Reformulate paragraph</value>
+	                    <value xml:lang="de">KI: Absatz neu formulieren</value>
+                    </prop>
+                </node>
+                <node oor:name="AT4" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiAdvanceText</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Expand paragraph</value>
+	                    <value xml:lang="de">KI: Abstaz erweitern</value>
+                    </prop>
+                </node>
+                <node oor:name="AT5" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiSynonymsOfWord</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Synonyms of word</value>
+	                    <value xml:lang="de">KI: Synonyme für ein Wort</value>
+                    </prop>
+                </node>
+                <node oor:name="AT6" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiSummary</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Summary</value>
+	                    <value xml:lang="de">KI: Zusammenfassung</value>
+                    </prop>
+                </node>
+                <node oor:name="AT7" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiTranslateText</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Translation</value>
+	                    <value xml:lang="de">KI: Übersetzung</value>
+                    </prop>
+                </node>
+                <node oor:name="AT8" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:aiTextToSpeech</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+	                    <value xml:lang="en-US">AI: Document to speech</value>
+	                    <value xml:lang="de">KI: Dokument zu Sprache</value>
+                    </prop>
+                </node>
+            </node>
+        </node>
         <node oor:name="OfficeNotebookBar">
             <node oor:name="org.writingtool.WritingTool.notebar" oor:op="replace">
                 <node oor:name="N1" oor:op="replace">

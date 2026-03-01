@@ -740,9 +740,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         try {
           if(event.Selected > 0) {
             if (profiles.get(event.Selected).equals(messages.getString("guiUserProfile"))) {
-              runGeneralDispatchCmd("profileChangeTo_");
+              runGeneralDispatchCmd(WtProtocolHandler.WT_PROFILE);
             } else {
-              runGeneralDispatchCmd("profileChangeTo_" + profiles.get(event.Selected));
+              runGeneralDispatchCmd(WtProtocolHandler.WT_PROFILE + profiles.get(event.Selected));
             }
           }
         } catch (Throwable e1) {
@@ -797,7 +797,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
             deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
             for (String ruleId : deactivatedRulesMap.keySet()) {
               if (text.equals(deactivatedRulesMap.get(ruleId))) {
-                runGeneralDispatchCmd("activateRule_" + ruleId);
+                runGeneralDispatchCmd(WtProtocolHandler.WT_ACTIVATE_RULE + ruleId);
                 return;
               }
             }

@@ -152,10 +152,12 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   
   private boolean statAnEnabled = false;
   private boolean backgroundCheckState = true;
+  private boolean isAnyAiSupport = false;
+  private boolean isManualAiVisible = true;
   private Map<String, String> deactivatedRulesMap = null;
   private List<String> definedProfiles = null;
   private WtConfiguration conf = null;
-  String currentProfile = null;
+  private String currentProfile = null;
   
 
   public WtProtocolHandler(XComponentContext xContext) {
@@ -175,7 +177,11 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
         String path = url.Path;
         if (path.equals(WT_STATISTICAL_ANALYSES) || path.equals(WT_BACKGROUND_CHECK_OFF) || path.equals(WT_BACKGROUND_CHECK_ON) 
-            || path.equals(WT_PROFILES) || path.equals(WT_ACTIVATE_RULES)) {
+            || path.equals(WT_PROFILES) || path.equals(WT_ACTIVATE_RULES)
+            || path.equals(WT_AI_GENERAL) || path.equals(WT_AI_BETTER_STYLE) || path.equals(WT_AI_REFORMULATE_TEXT) 
+            || path.equals(WT_AI_EXPAND_TEXT) || path.equals(WT_AI_SYNONYMS_OF_WORD) || path.equals(WT_AI_SUMMARY) 
+            || path.equals(WT_AI_TRANSLATE_TEXT) || path.equals(WT_AI_TEXT_TO_SPEECH)
+            ) {
           List<XStatusListener> xListeners;
           if (xListenersMap.containsKey(path)) {
             xListeners = xListenersMap.get(path);
@@ -333,6 +339,37 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       changeStateOfButton(url, true, false);
       changeListOfButton(url);
     }
+    boolean anyAiSupport = conf.useAiSupport() || conf.useAiImgSupport() || conf.useAiTtsSupport();
+    url = WtOfficeTools.createUrl(xContext, WT_AI_GENERAL_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport() || conf.useAiImgSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_BETTER_STYLE_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_REFORMULATE_TEXT_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_EXPAND_TEXT_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_SYNONYMS_OF_WORD_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_SUMMARY_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_TRANSLATE_TEXT_COMMAND);
+    changeStateOfButton(url, conf.useAiSupport(), false);
+    url = WtOfficeTools.createUrl(xContext, WT_AI_TEXT_TO_SPEECH_COMMAND);
+    changeStateOfButton(url, conf.useAiTtsSupport(), false);
+    if (anyAiSupport != isAnyAiSupport) {
+      XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
+      if (layoutManager != null) {
+        if (isAnyAiSupport) {
+          isManualAiVisible = layoutManager.isElementVisible(WT_AI_TOOLBAR_URL);
+          layoutManager.hideElement(WT_AI_TOOLBAR_URL);
+        } else {
+          if(isManualAiVisible) {
+            layoutManager.showElement(WT_AI_TOOLBAR_URL);
+          }
+        }
+      }
+      isAnyAiSupport = anyAiSupport;
+    }
   }
   
   private void changeStateOfButton(URL url, boolean enabled, boolean state) {
@@ -389,6 +426,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   
   private String WT_TB_FILE_NAME = "toolbar.cfg";
   private String WT_TOOLBAR_URL = "private:resource/toolbar/addon_org.writingtool.WritingTool.toolbar";
+  private String WT_AI_TOOLBAR_URL = "private:resource/toolbar/addon_org.writingtool.WritingTool.aitoolbar";
 
   private String WT_TB_ISVISIBLE = "WT_TB_IsVisible";
   private String WT_TB_ISDOCKED = "WT_TB_IsDocked";
@@ -397,6 +435,14 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   private String WT_TB_SIZE = "WT_TB_Size";
   private String WT_TB_DOCK_AREA = "WT_TB_DockingArea";
 
+  private String WT_AI_TB_ISVISIBLE = "WT_AI_TB_IsVisible";
+  private String WT_AI_TB_ISDOCKED = "WT_AI_TB_IsDocked";
+  private String WT_AI_TB_ISLOCKED = "WT_AI_TB_IsLocked";
+  private String WT_AI_TB_POS = "WT_AI_TB_Pos";
+  private String WT_AI_TB_SIZE = "WT_AI_TB_Size";
+  private String WT_AI_TB_DOCK_AREA = "WT_AI_TB_DockingArea";
+  private String WT_AI_TB_MANUAL_VISIBLE = "WT_AI_TB_Manual_Visible";
+
   public void writeCurrentConfiguration() {
     if (!WritingTool.getDocumentsHandler().isOpenOffice) {
       try {
@@ -404,8 +450,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
         XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
         
         Rectangle rect = layoutManager.getCurrentDockingArea();
-  //      String sRect = rect.X + "," + rect.Y + "," + rect.Width + "," + rect.Height;
-    
+        //  WT-toolbar
         props.setProperty(WT_TB_ISVISIBLE, Boolean.toString(layoutManager.isElementVisible(WT_TOOLBAR_URL)));
         props.setProperty(WT_TB_ISDOCKED, Boolean.toString(layoutManager.isElementDocked(WT_TOOLBAR_URL)));
         props.setProperty(WT_TB_ISLOCKED, Boolean.toString(layoutManager.isElementLocked(WT_TOOLBAR_URL)));
@@ -428,9 +473,32 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
           }
         }
         props.setProperty(WT_TB_DOCK_AREA, Integer.toString(dockingArea));
+        //  WT-AI-support-toolbar
+        props.setProperty(WT_AI_TB_ISVISIBLE, Boolean.toString(layoutManager.isElementVisible(WT_AI_TOOLBAR_URL)));
+        props.setProperty(WT_AI_TB_ISDOCKED, Boolean.toString(layoutManager.isElementDocked(WT_AI_TOOLBAR_URL)));
+        props.setProperty(WT_AI_TB_ISLOCKED, Boolean.toString(layoutManager.isElementLocked(WT_AI_TOOLBAR_URL)));
+        point = layoutManager.getElementPos(WT_AI_TOOLBAR_URL);
+        sPoint = point.X + "," + point.Y;
+        props.setProperty(WT_AI_TB_POS, sPoint);
+        size = layoutManager.getElementSize(WT_AI_TOOLBAR_URL);
+        sPoint = size.Width + "," + size.Height;
+        props.setProperty(WT_AI_TB_SIZE, sPoint);
+        dockingArea = 0;
+        if (size.Width > size.Height) {
+          if (rect.Y < point.Y * size.Height) {
+            dockingArea = 1;
+          }
+        } else {
+          if (rect.X >= size.Width) {
+            dockingArea = 2;
+          } else {
+            dockingArea = 3;
+          }
+        }
+        props.setProperty(WT_AI_TB_DOCK_AREA, Integer.toString(dockingArea));
         
-  //      props.setProperty("rect", sRect);
-    
+        props.setProperty(WT_AI_TB_MANUAL_VISIBLE, Boolean.toString(isManualAiVisible));
+        
         File tbConfigFile = new File(WtOfficeTools.getWtConfigDir(xContext), WT_TB_FILE_NAME);
         
         try (FileOutputStream fos = new FileOutputStream(tbConfigFile)) {
@@ -476,6 +544,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
       Properties props = new Properties();
       props.load(fis);
+      //  WT-toolbar
       String sProp = (String) props.get(WT_TB_POS);
       Point point = null;
       if (sProp != null) {
@@ -506,6 +575,42 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
         } else {
           layoutManager.hideElement(WT_TOOLBAR_URL);
         }
+      }
+      //  WT-AI-support-toolbar
+      sProp = (String) props.get(WT_TB_POS);
+      point = null;
+      if (sProp != null) {
+        String[] sPoint = sProp.split(",");
+        if (sPoint.length == 2) {
+          point = new Point(Integer.parseInt(sPoint[0]), Integer.parseInt(sPoint[1]));
+          layoutManager.setElementPos(WT_AI_TOOLBAR_URL, point);
+        }
+      }
+      dockingArea = -1;
+      sProp = (String) props.get(WT_AI_TB_DOCK_AREA);
+      if (sProp != null) {
+        dockingArea = Integer.parseInt(sProp);
+      }
+      sProp = (String) props.get(WT_AI_TB_ISDOCKED);
+      if (sProp != null) {
+        if(Boolean.parseBoolean(sProp)) {
+          if (point != null && dockingArea >= 0) {
+            layoutManager.dockWindow(WT_AI_TOOLBAR_URL, getDockingArea(dockingArea), point);
+          }
+          layoutManager.lockWindow(WT_AI_TOOLBAR_URL);
+        }
+      }
+      sProp = (String) props.get(WT_AI_TB_ISVISIBLE);
+      if (sProp != null) {
+        if(Boolean.parseBoolean(sProp)) {
+          layoutManager.showElement(WT_AI_TOOLBAR_URL);
+        } else {
+          layoutManager.hideElement(WT_AI_TOOLBAR_URL);
+        }
+      }
+      sProp = (String) props.get(WT_AI_TB_MANUAL_VISIBLE);
+      if (sProp != null) {
+        isManualAiVisible = Boolean.parseBoolean(sProp);
       }
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
