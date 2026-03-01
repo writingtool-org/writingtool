@@ -321,7 +321,7 @@ public class WtLinguisticServices extends LinguServices {
   @Override
   public void setThesaurusRelevantRule (Rule rule) {
     if (thesaurusRelevantRules == null) {
-      thesaurusRelevantRules = new ArrayList<String>();
+      thesaurusRelevantRules = Collections.synchronizedList(new ArrayList<String>());
     }
     String ruleId = rule.getId();
     if (ruleId != null && !thesaurusRelevantRules.contains(ruleId)) {
