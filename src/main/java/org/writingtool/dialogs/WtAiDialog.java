@@ -611,6 +611,26 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
       });
       
+      imageWidthValueField.addKeyListener(new KeyListener() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
+          }
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+      });
+      
       imageHeightValueField.getDocument().addDocumentListener(new DocumentListener() {
         @Override
         public void insertUpdate(DocumentEvent e) {
@@ -632,6 +652,26 @@ public class WtAiDialog extends Thread implements ActionListener {
             imageHeightValueField.setForeground(null);
             imageHeight = num;
           }
+        }
+      });
+      
+      imageHeightValueField.addKeyListener(new KeyListener() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
+          }
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {
         }
       });
       
