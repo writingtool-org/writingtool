@@ -1295,6 +1295,18 @@ public class WtOfficeTools {
   }
 
   /**
+   * get formated information about new WritingTool version
+   */
+  public static String getFormatedNewVersionInformation(String WtName, String oxtUrl) {
+    return "<html>"
+        + "<font color=\"blue\">"
+        + "<p>New Version available: "
+        + "<a href=\"" + oxtUrl + "\">" + WtName + "</a><p>"
+        + "</font>"
+        + "</html>";
+  }
+
+  /**
    * get HTML formated version information
    */
   public static String getFormatedHtmlVersionInformation() {

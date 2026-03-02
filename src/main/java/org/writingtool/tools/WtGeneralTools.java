@@ -24,7 +24,6 @@ import org.languagetool.Language;
 import org.languagetool.Languages;
 import org.languagetool.rules.*;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
-import org.languagetool.tools.StringTools;
 import org.writingtool.WtLinguisticServices;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
@@ -111,32 +110,32 @@ public final class WtGeneralTools {
 
   /**
    * Show the exception (with stacktrace) in a dialog and print it to STDERR.
-   */
+   *//*
   public static void showError(Exception e) {
     String stackTrace = org.languagetool.tools.Tools.getFullStackTrace(e);
     String msg = "<html><p style='width: 600px;'>" + StringTools.escapeHTML(stackTrace);
     WtOptionPane.showMessageDialog(null, msg, "Error", WtOptionPane.ERROR_MESSAGE);
     e.printStackTrace();
   }
-
+*/
   /**
    * Show the exception (message without stacktrace) in a dialog and print the
    * stacktrace to STDERR.
-   */
+   *//*
   public static void showErrorMessage(Exception e, Component parent) {
     String msg = e.getMessage();
     WtOptionPane.showMessageDialog(parent, msg, "Error", WtOptionPane.ERROR_MESSAGE);
     e.printStackTrace();
   }
-
+*/
   /**
    * Show the exception (message without stacktrace) in a dialog and print the
    * stacktrace to STDERR.
-   */
+   *//*
   public static void showErrorMessage(Exception e) {
     showErrorMessage(e, null);
   }
-
+*/
   /**
    * LibO shortens menu items with more than ~100 characters by dropping text in the middle.
    * That isn't really sensible, so we shorten the text here in order to preserve the important parts.
@@ -258,7 +257,30 @@ public final class WtGeneralTools {
     try {
       openURL(new URL(url));
     } catch (MalformedURLException ex) {
-      WtGeneralTools.showError(ex);
+      WtMessageHandler.showError(ex);
+    }
+  }
+
+  /**
+   * Launches the default file manager to display a directory.
+   * @since 26.4
+   */
+  public static void openDir(File dir) {
+    if (Desktop.isDesktopSupported() 
+        && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+      try {
+        Desktop.getDesktop().open(dir);
+      } catch (Exception ex) {
+        WtMessageHandler.showError(ex);
+      }
+    } else if(SystemUtils.IS_OS_LINUX) {
+      //handle the case where Desktop.browse() is not supported, e.g. kubuntu
+      //without libgnome
+      try {
+        Runtime.getRuntime().exec(new String[] { "xdg-open", dir.toString() });
+      } catch (Exception ex) {
+        WtMessageHandler.showError(ex);
+      }
     }
   }
 
@@ -274,7 +296,7 @@ public final class WtGeneralTools {
       try {
         Desktop.getDesktop().browse(url.toURI());
       } catch (Exception ex) {
-        WtGeneralTools.showError(ex);
+        WtMessageHandler.showError(ex);
       }
     } else if(SystemUtils.IS_OS_LINUX) {
       //handle the case where Desktop.browse() is not supported, e.g. kubuntu
@@ -282,7 +304,7 @@ public final class WtGeneralTools {
       try {
         Runtime.getRuntime().exec(new String[] { "xdg-open", url.toString() });
       } catch (Exception ex) {
-        WtGeneralTools.showError(ex);
+        WtMessageHandler.showError(ex);
       }
     }
   }
@@ -324,7 +346,7 @@ public final class WtGeneralTools {
 
 //      WtGeneralTools.setJavaLookAndFeel(theme);
     } catch (Exception ex) {
-      WtGeneralTools.showErrorMessage(ex);
+      WtMessageHandler.showError(ex);
     }
   }
 

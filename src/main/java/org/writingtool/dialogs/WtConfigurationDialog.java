@@ -1624,7 +1624,7 @@ public class WtConfigurationDialog implements ActionListener {
               popup.show(tree, e.getX(), e.getY());
 //              WtGeneralTools.setJavaLookAndFeel(theme);
             } catch (Exception ex) {
-              WtGeneralTools.showErrorMessage(ex);
+              WtMessageHandler.showError(ex);
             }
           }
         }
@@ -2055,7 +2055,7 @@ public class WtConfigurationDialog implements ActionListener {
           config.setNgramDirectory(newDir);
           ngramDirButton.setText(StringUtils.abbreviate(newDir.getAbsolutePath(), maxDirDisplayLength));
         } catch (Exception ex) {
-          WtGeneralTools.showErrorMessage(ex);
+          WtMessageHandler.showError(ex);
         }
       } else {
         // not the best UI, but this way user can turn off ngram feature without another checkbox
