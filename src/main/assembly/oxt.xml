@@ -18,6 +18,7 @@
                 <include>description.xml</include>
                 <include>description/**</include>
                 <include>Addons.xcu</include>
+                <include>ProtocolHandler.xcu</include>
                 <include>Accelerators.xcu</include>
                 <include>Factories.xcu</include>
                 <include>Sidebar.xcu</include>

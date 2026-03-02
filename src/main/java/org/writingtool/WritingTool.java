@@ -21,7 +21,6 @@ package org.writingtool;
 import com.sun.star.lang.*;
 
 import org.writingtool.sidebar.WtSidebarFactory;
-import org.writingtool.tools.WtOfficeTools;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lib.uno.helper.Factory;
@@ -31,7 +30,6 @@ import com.sun.star.linguistic2.XLinguServiceEventBroadcaster;
 import com.sun.star.linguistic2.XLinguServiceEventListener;
 import com.sun.star.linguistic2.XProofreader;
 import com.sun.star.registry.XRegistryKey;
-import com.sun.star.task.XJobExecutor;
 import com.sun.star.uno.XComponentContext;
 
 /**
@@ -39,21 +37,24 @@ import com.sun.star.uno.XComponentContext;
  *
  * @author Marcin Miłkowski, Fred Kruse
  */
-public class WritingTool extends WeakBase implements XJobExecutor,
+public class WritingTool extends WeakBase implements
     XServiceDisplayName, XServiceInfo, XProofreader,
     XLinguServiceEventBroadcaster, XEventListener {
 
   // Service name required by the OOo API && our own name.
   private static final String[] SERVICE_NAMES = {
-      "com.sun.star.linguistic2.Proofreader",
-      WtOfficeTools.WT_SERVICE_NAME };
+      "com.sun.star.frame.ProtocolHandler",
+      "com.sun.star.linguistic2.Proofreader" /*,
+      WtOfficeTools.WT_SERVICE_NAME */};
 
   private XComponentContext xContext;
   private static WtDocumentsHandler documents;
+//  private static WtProtocolHandler protocolHandler;
 
   public WritingTool(XComponentContext xCompContext) {
     changeContext(xCompContext);
     documents = new WtDocumentsHandler(xContext, this, this);
+//    protocolHandler = new WtProtocolHandler(xContext, documents, this);
   }
   
   public static WtDocumentsHandler getDocumentsHandler() {
@@ -192,6 +193,8 @@ public class WritingTool extends WeakBase implements XJobExecutor,
       xFactory = new WtSingletonFactory(WtSingletonFactory.serviceType.Spellchecking);
     } else if (sImplName.equals(WtSidebarFactory.class.getName())) {
       xFactory = new WtSingletonFactory(WtSingletonFactory.serviceType.Sidebar);
+    } else if (sImplName.equals(WtProtocolHandler.class.getName())) {
+      return Factory.createComponentFactory(WtProtocolHandler.class, WtProtocolHandler.getServiceNames());
     }
     return xFactory;
   }
@@ -206,6 +209,7 @@ public class WritingTool extends WeakBase implements XJobExecutor,
       ret = Factory.writeRegistryServiceInfo(WritingTool.class.getName(), WritingTool.getServiceNames(), regKey);
       ret = ret && Factory.writeRegistryServiceInfo(WtSpellChecker.class.getName(), WtSpellChecker.getServiceNames(), regKey);
       ret = ret && Factory.writeRegistryServiceInfo(WtSidebarFactory.class.getName(), WtSidebarFactory.getServiceNames(), regKey);
+      ret = ret && Factory.writeRegistryServiceInfo(WtProtocolHandler.class.getName(), WtProtocolHandler.getServiceNames(), regKey);
     } catch (java.lang.Exception e) {
       System.err.println(e);
     }
@@ -215,7 +219,7 @@ public class WritingTool extends WeakBase implements XJobExecutor,
   /**
    * Triggers a registered event
    * interface: XJobExecutor
-   */
+   *//*
   @Override
   public void trigger(String sEvent) {
     if (Thread.currentThread().getContextClassLoader() == null) {
@@ -223,7 +227,7 @@ public class WritingTool extends WeakBase implements XJobExecutor,
     }
     documents.trigger(sEvent);
   }
-
+*/
   /**
    * Will throw exception instead of showing errors as dialogs - use only for test cases.
    * @since 2.9
@@ -278,15 +282,4 @@ public class WritingTool extends WeakBase implements XJobExecutor,
   public void disposing(EventObject source) {
     documents.disposing(source);
   }
-/*
-  @Override
-  public boolean isValid(String word, Locale locale, PropertyValue[] Properties) throws IllegalArgumentException {
-    return documents.isValid(word, locale, Properties);
-  }
-
-  @Override
-  public XSpellAlternatives spell(String word, Locale locale, PropertyValue[] properties) throws IllegalArgumentException {
-    return documents.spell(word, locale, properties);
-  }
-*/
 }

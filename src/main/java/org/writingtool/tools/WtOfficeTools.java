@@ -72,6 +72,7 @@ import com.sun.star.lang.DisposedException;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
+import com.sun.star.lang.XMultiServiceFactory;
 import com.sun.star.linguistic2.SingleProofreadingError;
 import com.sun.star.linguistic2.XProofreadingIterator;
 import com.sun.star.linguistic2.XSearchableDictionaryList;
@@ -82,6 +83,7 @@ import com.sun.star.ui.XUIElement;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import com.sun.star.util.XCloseable;
+import com.sun.star.util.XURLTransformer;
 
 /**
  * Some tools to get information of LibreOffice/OpenOffice document context
@@ -236,6 +238,35 @@ public class WtOfficeTools {
       if (printException) {
         WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       }
+      return null;           // Return null as method failed
+    }
+  }
+
+  @Nullable
+  public static com.sun.star.util.URL createUrl(XComponentContext xContext, String fullPath) {
+    try {
+      if (xContext == null) {
+        return null;
+      }
+      XMultiServiceFactory xMSF = UnoRuntime.queryInterface(XMultiServiceFactory.class, xContext.getServiceManager());
+      if (xMSF == null) {
+        return null;
+      }
+      Object transformer = xMSF.createInstance("com.sun.star.util.URLTransformer");
+      if (transformer == null) {
+        return null;
+      }
+      XURLTransformer xParser = UnoRuntime.queryInterface (XURLTransformer.class, transformer);
+      if (xParser == null) {
+        return null;
+      }
+      com.sun.star.util.URL[] parseURL = new com.sun.star.util.URL[1];
+      parseURL[0] = new com.sun.star.util.URL();
+      parseURL[0].Complete = fullPath;
+      xParser.parseStrict(parseURL);
+      return parseURL[0];
+    } catch (Throwable t) {
+        WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     }
   }
@@ -519,6 +550,26 @@ public class WtOfficeTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     }
+  }
+  
+  /**
+   * get Layout Manager
+   */
+  public static XLayoutManager getLayoutManager(XComponentContext xContext) {
+    try {
+      XFrame frame = getCurrentFrame(xContext);
+      if (frame == null) {
+        return null;
+      }
+      XPropertySet propSet = UnoRuntime.queryInterface(XPropertySet.class, frame);
+      if (propSet == null) {
+        return null;
+      }
+      return UnoRuntime.queryInterface(XLayoutManager.class,  propSet.getPropertyValue("LayoutManager"));
+    } catch (Exception e) {
+      WtMessageHandler.printException(e);
+    }
+    return null;
   }
 
   /**
