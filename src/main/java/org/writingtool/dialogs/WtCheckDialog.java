@@ -379,6 +379,7 @@ public class WtCheckDialog extends Thread {
       WtDocumentCursorTools docCursor = new WtDocumentCursorTools(xComponent);
       WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
       int yFlat = getCurrentFlatParagraphNumber(viewCursor, docCache);
+      inf.close();
       if (yFlat < 0) {
         WtMessageHandler.showClosingInformationDialog(messages.getString("loNextErrorUnsupported"));
         return;
