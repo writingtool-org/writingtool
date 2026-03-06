@@ -77,10 +77,10 @@ public class WtConfigurationDialog implements ActionListener {
   private final Frame owner;
   private final Image ltImage;
   private String dialogTitle;
-  private boolean configChanged = false;
   private boolean profileChanged = true;
   private boolean restartShow = false;
   private boolean firstSelection = true;
+  private ChangedOptions changedOptions = new ChangedOptions();
 
   private JDialog dialog;
   private JTree[] configTree;
@@ -180,20 +180,19 @@ public class WtConfigurationDialog implements ActionListener {
     return ret;
   }
 
-  public boolean show(List<Rule> rules) {
+  public ChangedOptions show(List<Rule> rules) {
     restartShow = false;
     do {
       showPanel(rules);
     } while (restartShow);
-    return configChanged;
+    return changedOptions;
   }
     
   public void close() {
     dialog.setVisible(false);
   }
 
-  public boolean showPanel(List<Rule> rules) {
-    configChanged = false;
+  public ChangedOptions showPanel(List<Rule> rules) {
     if (original != null && !restartShow) {
       config.restoreState(original);
     }
@@ -541,7 +540,7 @@ public class WtConfigurationDialog implements ActionListener {
 //    dialog.setAlwaysOnTop(true);
     dialog.toFront();
     dialog.setVisible(true);
-    return configChanged;
+    return changedOptions;
   }
 
   private JPanel getOfficeDefaultColorPanel() {
@@ -634,6 +633,7 @@ public class WtConfigurationDialog implements ActionListener {
             underlineLabels[n].setForeground(newColor);
             defaultColors.set(n, newColor);
             config.setUnderlineDefaultColor(defaultColors);
+            changedOptions.colorsChanged = true;
           }
 //          WtGeneralTools.setJavaLookAndFeel(theme);
         } catch (Exception e1) {
@@ -663,6 +663,7 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiWTColorPalette")));
     radioButtons[0].addActionListener(e -> {
       config.setColorSelection(0);
+      changedOptions.colorsChanged = true;
       for (JButton button : changeButtons) {
         button.setEnabled(false);
       }
@@ -670,6 +671,7 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiBlueColorPalette")));
     radioButtons[1].addActionListener(e -> {
       config.setColorSelection(1);
+      changedOptions.colorsChanged = true;
       for (JButton button : changeButtons) {
         button.setEnabled(false);
       }
@@ -677,6 +679,7 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiLTColorPalette")));
     radioButtons[2].addActionListener(e -> {
       config.setColorSelection(2);
+      changedOptions.colorsChanged = true;
       for (JButton button : changeButtons) {
         button.setEnabled(false);
       }
@@ -684,6 +687,7 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiDarkColorPalette")));
     radioButtons[3].addActionListener(e -> {
       config.setColorSelection(3);
+      changedOptions.colorsChanged = true;
       for (JButton button : changeButtons) {
         button.setEnabled(false);
       }
@@ -691,6 +695,7 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[4] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiCustomColorPalete") + ":"));
     radioButtons[4].addActionListener(e -> {
       config.setColorSelection(99);
+      changedOptions.colorsChanged = true;
       for (JButton button : changeButtons) {
         button.setEnabled(true);
       }
@@ -762,6 +767,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
         config.setFixedLanguage(fixedLanguage);
         config.setUseDocLanguage(false);
+        changedOptions.ltRulesChanged = true;
         radioButtons[1].setSelected(true);
       }
     });
@@ -776,7 +782,10 @@ public class WtConfigurationDialog implements ActionListener {
       radioButtons[1].setSelected(true);
     }
 
-    radioButtons[0].addActionListener(e -> config.setUseDocLanguage(true));
+    radioButtons[0].addActionListener(e -> {
+        config.setUseDocLanguage(true);
+        changedOptions.ltRulesChanged = true;
+    });
     
     radioButtons[1].addActionListener(e -> {
       config.setUseDocLanguage(false);
@@ -787,6 +796,7 @@ public class WtConfigurationDialog implements ActionListener {
         fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
       }
       config.setFixedLanguage(fixedLanguage);
+      changedOptions.ltRulesChanged = true;
     });
     languagePanel.add(radioButtons[0], cons1);
     cons1.gridy++;
@@ -958,33 +968,12 @@ public class WtConfigurationDialog implements ActionListener {
         if (config.isValidServerUrl(serverName)) {
           otherServerNameField.setForeground(Color.BLACK);
           config.setOtherServerUrl(serverName);
+          changedOptions.ltRulesChanged = true;
         } else {
           otherServerNameField.setForeground(Color.RED);
         }
       }
     });
-/*
-    JCheckBox useServerBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUseServer")) + " ");
-    useServerBox.setSelected(config.useOtherServer());
-    useServerBox.addItemListener(e -> {
-      int select = WtOptionPane.OK_OPTION;
-      boolean selected = useServerBox.isSelected();
-      if(selected && firstSelection) {
-        select = showRemoteServerHint(useServerBox, true);
-        firstSelection = false;
-      } else {
-        firstSelection = true;
-      }
-      if(select == WtOptionPane.OK_OPTION) {
-        useServerBox.setSelected(selected);
-        config.setUseOtherServer(useServerBox.isSelected());
-        otherServerNameField.setEnabled(useServerBox.isSelected());
-      } else {
-        useServerBox.setSelected(false);
-        firstSelection = true;
-      }
-    });
-*/
     JLabel usernameLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("guiPremiumUsername")));
 
     JTextField usernameField = new JTextField(config.getRemoteUsername() ==  null ? "" : config.getRemoteUsername(), 25);
@@ -1007,6 +996,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
         if (username != null) {
           config.setRemoteUsername(username);
+          changedOptions.ltRulesChanged = true;
         }
       }
     });
@@ -1033,21 +1023,10 @@ public class WtConfigurationDialog implements ActionListener {
         }
         if (apiKey != null) {
           config.setRemoteApiKey(apiKey);
+          changedOptions.ltRulesChanged = true;
         }
       }
     });
-/*
-    JCheckBox isPremiumBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiUsePremiumAccount")) + " ");
-    isPremiumBox.setSelected(config.isPremium());
-    isPremiumBox.addItemListener(e -> {
-      boolean selected = isPremiumBox.isSelected();
-      config.setPremium(selected);
-      usernameLabel.setEnabled(selected);
-      usernameField.setEnabled(selected);
-      apiKeyLabel.setEnabled(selected);
-      apiKeyField.setEnabled(selected);
-    });
-*/    
 
     if (config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode()) {
       config.setMultiThreadLO(false);
@@ -1106,6 +1085,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setRemoteCheck(true);
       config.setPremium(false);
       config.setUseOtherServer(false);
+      changedOptions.ltRulesChanged = true;
     });
     remoteCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUsePremiumAccount")));
     remoteCheckButtons[1].addActionListener(e -> {
@@ -1118,6 +1098,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setRemoteCheck(true);
       config.setPremium(true);
       config.setUseOtherServer(false);
+      changedOptions.ltRulesChanged = true;
     });
     remoteCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseOtherServer")));
     remoteCheckButtons[2].addActionListener(e -> {
@@ -1139,6 +1120,7 @@ public class WtConfigurationDialog implements ActionListener {
         config.setRemoteCheck(true);
         config.setPremium(false);
         config.setUseOtherServer(true);
+        changedOptions.ltRulesChanged = true;
       } else {
         localeRemoteCheckButtons[0].setSelected(true);
         firstSelection = true;
@@ -1165,6 +1147,7 @@ public class WtConfigurationDialog implements ActionListener {
       for (int i = 0; i < 3; i++) {
         remoteCheckButtons[i].setEnabled(false);
       }
+      changedOptions.ltRulesChanged = true;
     });
     localeRemoteCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiUseRemoteServer")));
     localeRemoteCheckButtons[1].addActionListener(e -> {
@@ -1191,6 +1174,7 @@ public class WtConfigurationDialog implements ActionListener {
         for (int i = 0; i < 3; i++) {
           remoteCheckButtons[i].setEnabled(true);
         }
+        changedOptions.ltRulesChanged = true;
       } else {
         localeRemoteCheckButtons[0].setSelected(true);
         firstSelection = true;
@@ -1299,53 +1283,7 @@ public class WtConfigurationDialog implements ActionListener {
     serverExampleLabel.setEnabled(false);
     cons.gridy++;
     panel.add(serverExampleLabel, cons);
-    
-    
-/*
-    JPanel serverPanel = new JPanel();
-    serverPanel.setLayout(new GridBagLayout());
-    GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, SHIFT2, 0, 0);
-    cons1.gridx = 0;
-    cons1.gridy = 0;
-    cons1.anchor = GridBagConstraints.WEST;
-    cons1.fill = GridBagConstraints.NONE;
-    cons1.weightx = 0.0f;
-    serverPanel.add(useServerBox, cons1);
-    cons1.gridx++;
-    serverPanel.add(otherServerNameField, cons1);
-    JLabel serverExampleLabel = new JLabel(" " + WtGeneralTools.getLabel(messages.getString("guiUseServerExample")));
-    serverExampleLabel.setEnabled(false);
-    cons1.gridy++;
-    serverPanel.add(serverExampleLabel, cons1);
-    cons.gridx = 0;
-    cons.gridy++;
-    panel.add(serverPanel, cons);
-*/
-/*
-    JPanel premiumPanel = new JPanel();
-    premiumPanel.setLayout(new GridBagLayout());
-    cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, SHIFT2, 0, 0);
-    cons1.gridx = 0;
-    cons1.gridy = 0;
-    cons1.anchor = GridBagConstraints.WEST;
-    cons1.fill = GridBagConstraints.NONE;
-    cons1.weightx = 0.0f;
-    premiumPanel.add(isPremiumBox, cons1);
-    cons1.insets = new Insets(0, SHIFT3, 0, 0);
-    cons1.gridy++;
-    premiumPanel.add(usernameLabel, cons1);
-    cons1.gridy++;
-    premiumPanel.add(usernameField, cons1);
-    cons1.gridy++;
-    premiumPanel.add(apiKeyLabel, cons1);
-    cons1.gridy++;
-    premiumPanel.add(apiKeyField, cons1);
-    cons.gridx = 0;
-    cons.gridy++;
-    panel.add(premiumPanel, cons);
-*/
+
     paragraphModeBox.setSelected(config.getNumParasToCheck() == 0 || config.onlySingleParagraphMode());
     paragraphModeBox.setEnabled(!config.onlySingleParagraphMode());
     paragraphModeBox.addItemListener(e1 -> {
@@ -1366,6 +1304,7 @@ public class WtConfigurationDialog implements ActionListener {
           }
         }
       }
+      changedOptions.ltRulesChanged = true;
     });
     saveCacheBox.setSelected(config.saveLoCache() && !config.onlySingleParagraphMode());
     saveCacheBox.setEnabled(!config.onlySingleParagraphMode());
@@ -1405,6 +1344,7 @@ public class WtConfigurationDialog implements ActionListener {
     }
     useLtSpellCheckerBox.addItemListener(e -> {
       config.setUseLtSpellChecker(useLtSpellCheckerBox.isSelected());
+      changedOptions.spellCheckChanged = true;
     });
     cons.gridy++;
     portPanel.add(useLtSpellCheckerBox, cons);
@@ -1413,13 +1353,17 @@ public class WtConfigurationDialog implements ActionListener {
     useLongMessagesBox.setSelected(config.useLongMessages());
     useLongMessagesBox.addItemListener(e -> {
       config.setUseLongMessages(useLongMessagesBox.isSelected());
+      changedOptions.ltRulesChanged = true;
     });
     cons.gridy++;
     portPanel.add(useLongMessagesBox, cons);
 
     JCheckBox markSingleCharBold = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiMarkSingleCharBold")));
     markSingleCharBold.setSelected(config.markSingleCharBold());
-    markSingleCharBold.addItemListener(e -> config.setMarkSingleCharBold(markSingleCharBold.isSelected()));
+    markSingleCharBold.addItemListener(e -> {
+      config.setMarkSingleCharBold(markSingleCharBold.isSelected());
+      changedOptions.colorsChanged = true;
+    });
     cons.gridy++;
     portPanel.add(markSingleCharBold, cons);
 
@@ -1435,6 +1379,7 @@ public class WtConfigurationDialog implements ActionListener {
     includeTrackedChangesBox.setSelected(config.includeTrackedChanges());
     includeTrackedChangesBox.addItemListener(e -> {
       config.setIncludeTrackedChanges(includeTrackedChangesBox.isSelected());
+      changedOptions.ltRulesChanged = true;
     });
     cons.gridy++;
     portPanel.add(includeTrackedChangesBox, cons);
@@ -1443,6 +1388,7 @@ public class WtConfigurationDialog implements ActionListener {
     enableTmpOffRulesBox.setSelected(config.enableTmpOffRules());
     enableTmpOffRulesBox.addItemListener(e -> {
       config.setEnableTmpOffRules(enableTmpOffRulesBox.isSelected());
+      changedOptions.ltRulesChanged = true;
     });
     cons.gridy++;
     portPanel.add(enableTmpOffRulesBox, cons);
@@ -1451,6 +1397,7 @@ public class WtConfigurationDialog implements ActionListener {
     enableGoalSpecificRulesBox.setSelected(config.enableGoalSpecificRules());
     enableGoalSpecificRulesBox.addItemListener(e -> {
       config.setEnableGoalSpecificRules(enableGoalSpecificRulesBox.isSelected());
+      changedOptions.ltRulesChanged = true;
     });
     cons.gridy++;
     portPanel.add(enableGoalSpecificRulesBox, cons);
@@ -1489,24 +1436,17 @@ public class WtConfigurationDialog implements ActionListener {
 
     JCheckBox noBackgroundCheckBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("guiNoBackgroundCheck")));
     noBackgroundCheckBox.setSelected(config.noBackgroundCheck());
-    noBackgroundCheckBox.addItemListener(e -> config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected()));
+    noBackgroundCheckBox.addItemListener(e -> {
+      config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected());
+      changedOptions.ltRulesChanged = true;
+      changedOptions.aiSettingsChanged = true;
+    });
     cons.gridy++;
     portPanel.add(noBackgroundCheckBox, cons);
-/*
-    cons.gridy++;
-    portPanel.add(new JLabel(" "), cons);
-    
-    cons.gridy++;
-    portPanel.add(new JLabel(" "), cons);
-   
-    addOfficeTextruleElements(cons, portPanel);
-*/    
     cons.insets = new Insets(0, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
-    
-//    addOfficeTechnicalElements(cons, portPanel);
   }
   
   private int showRemoteServerHint(Component component, boolean otherServer) {
@@ -1548,6 +1488,7 @@ public class WtConfigurationDialog implements ActionListener {
               config.getDisabledRuleIds().add(o.getRule().getId());
             }
           }
+          changedOptions.ltRulesChanged = true;
           updateProfileRules(rules);
         }
         if (node instanceof WtCategoryNode) {
@@ -1567,6 +1508,7 @@ public class WtConfigurationDialog implements ActionListener {
               config.getDisabledCategoryNames().add(o.getCategory().getName());
             }
           }
+          changedOptions.ltRulesChanged = true;
         }
       }
       @Override
@@ -1691,6 +1633,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
       }
     }
+    changedOptions.ltRulesChanged = true;
     updateProfileRules(rules);
   }
 
@@ -1828,6 +1771,8 @@ public class WtConfigurationDialog implements ActionListener {
               config.setCurrentProfile((String) e.getItem());
             }
             config.addProfiles(saveProfiles);
+            changedOptions.ltRulesChanged = true;
+            changedOptions.aiSettingsChanged = true;
             restartShow = true;
             dialog.setVisible(false);
           } catch (IOException e1) {
@@ -1897,6 +1842,8 @@ public class WtConfigurationDialog implements ActionListener {
       config.addProfiles(saveProfiles);
       config.setCurrentProfile(saveCurrent);
       restartShow = true;
+      changedOptions.ltRulesChanged = true;
+      changedOptions.aiSettingsChanged = true;
       dialog.setVisible(false);
     });
     cons.gridx = 0;
@@ -1918,6 +1865,8 @@ public class WtConfigurationDialog implements ActionListener {
       config.addProfiles(saveProfiles);
       config.removeProfile((String)profileBox.getSelectedItem());
       restartShow = true;
+      changedOptions.ltRulesChanged = true;
+      changedOptions.aiSettingsChanged = true;
       dialog.setVisible(false);
     });
     cons.gridx++;
@@ -1992,6 +1941,8 @@ public class WtConfigurationDialog implements ActionListener {
             config.setCurrentProfile(profileName);
             config.addProfile(profileName);
             config.saveConfiguration(null);
+            changedOptions.ltRulesChanged = true;
+            changedOptions.aiSettingsChanged = true;
           } else {
             config.restoreState(saveConfig);;
           }
@@ -2031,6 +1982,7 @@ public class WtConfigurationDialog implements ActionListener {
           motherTongue = (Language) motherTongueBox.getSelectedItem();
         }
         config.setMotherTongue(motherTongue);
+        changedOptions.ltRulesChanged = true;
       }
     });
     motherTonguePanel.add(motherTongueBox, cons);
@@ -2100,7 +2052,7 @@ public class WtConfigurationDialog implements ActionListener {
           return;
         }
       }
-      configChanged = true;
+      changedOptions.doChange = true;
       dialog.setVisible(false);
     } else if (ACTION_COMMAND_CANCEL.equals(e.getActionCommand())) {
       dialog.setVisible(false);
@@ -2231,6 +2183,7 @@ public class WtConfigurationDialog implements ActionListener {
               config.getDisabledRuleIds().add(ruleCheckbox.getName());
               updateRulesTrees(rules);
             }
+            changedOptions.ltRulesChanged = true;
           });
           cons.gridx = 0;
           cons.gridy++;
@@ -2287,111 +2240,6 @@ public class WtConfigurationDialog implements ActionListener {
   }
 
   /**  Panel to choose underline Colors
-   *   @since 4.2
-   *//*
-  private JPanel getUnderlineColorPanel(List<Rule> rules) {
-    JPanel panel = new JPanel();
-
-    panel.setLayout(new GridBagLayout());
-    GridBagConstraints cons = new GridBagConstraints();
-    cons.gridx = 0;
-    cons.gridy = 0;
-    cons.weightx = 0.0f;
-    cons.fill = GridBagConstraints.NONE;
-    cons.anchor = GridBagConstraints.NORTHWEST;
-
-    List<String> categories = new ArrayList<>();
-    List<Boolean> isDefault = new ArrayList<>();
-    for (Rule rule : rules) {
-      String category = rule.getCategory().getName();
-      boolean contain = false;
-      for(String c : categories) {
-        if (c.equals(category)) {
-          contain = true;
-          break;
-        }
-      }
-      if (!contain) {
-        categories.add(category);
-        isDefault.add(!rule.getCategory().isDefaultOff());
-      }
-    }
-    List<JLabel> categoryLabel = new ArrayList<>();
-    List<JLabel> underlineLabel = new ArrayList<>();
-    List<JButton> changeButton = new ArrayList<>();
-    List<JButton> defaultButton = new ArrayList<>();
-    List<JComboBox<String>> underlineType  = new ArrayList<>();
-    for(int nCat = 0; nCat < categories.size(); nCat++) {
-      categoryLabel.add(new JLabel(categories.get(nCat) + " "));
-      underlineLabel.add(new JLabel(" \u2588\u2588\u2588 "));  // \u2587 is smaller
-      underlineLabel.get(nCat).setForeground(config.getUnderlineColor(categories.get(nCat), null, isDefault.get(nCat)));
-      underlineLabel.get(nCat).setBackground(config.getUnderlineColor(categories.get(nCat), null, isDefault.get(nCat)));
-      JLabel uLabel = underlineLabel.get(nCat);
-      String cLabel = categories.get(nCat);
-      boolean iLabel = isDefault.get(nCat);
-      panel.add(categoryLabel.get(nCat), cons);
-
-      underlineType.add(new JComboBox<>(getUnderlineTypes()));
-      JComboBox<String> uLineType = underlineType.get(nCat);
-      uLineType.setSelectedIndex(getUnderlineType(cLabel, null));
-      uLineType.addItemListener(e -> {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          setUnderlineType(uLineType.getSelectedIndex(), cLabel, null);
-        }
-      });
-      cons.gridx++;
-      panel.add(uLineType, cons);
-      cons.gridx++;
-      panel.add(underlineLabel.get(nCat), cons);
-
-      changeButton.add(new JButton(messages.getString("guiUColorChange")));
-      changeButton.get(nCat).addActionListener(e -> {
-        Color oldColor = uLabel.getForeground();
-        dialog.setAlwaysOnTop(false);
-        
-        WtColorChooser colorChooser = new WtColorChooser(oldColor);
-        ActionListener okActionListener = new ActionListener() {
-          public void actionPerformed(ActionEvent actionEvent) {
-            Color newColor = colorChooser.getColor();
-            if(newColor != null && newColor != oldColor) {
-              uLabel.setForeground(newColor);
-              config.setUnderlineColor(cLabel, newColor);
-            }
-            dialog.setAlwaysOnTop(true);
-          }
-        };
-        // For cancel selection, change button background to red
-        ActionListener cancelActionListener = new ActionListener() {
-          public void actionPerformed(ActionEvent actionEvent) {
-            dialog.setAlwaysOnTop(true);
-          }
-        };
-        JDialog colorDialog = WtColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
-            colorChooser, okActionListener, cancelActionListener);
-        colorDialog.setAlwaysOnTop(true);
-        colorDialog.toFront();
-        colorDialog.setVisible(true);
-      });
-      cons.gridx++;
-      panel.add(changeButton.get(nCat), cons);
-  
-      defaultButton.add(new JButton(messages.getString("guiUColorDefault")));
-      defaultButton.get(nCat).addActionListener(e -> {
-        config.setDefaultUnderlineColor(cLabel);
-        uLabel.setForeground(config.getUnderlineColor(cLabel, null, iLabel));
-        config.setDefaultUnderlineType(cLabel);
-        uLineType.setSelectedIndex(getUnderlineType(cLabel, null));
-      });
-      cons.gridx++;
-      panel.add(defaultButton.get(nCat), cons);
-      cons.gridx = 0;
-      cons.gridy++;
-    }
-    
-    return panel;
-  }
-*/
-  /**  Panel to choose underline Colors
    *   and rule options (if exists)
    *   @since 5.3
    */
@@ -2436,6 +2284,7 @@ public class WtConfigurationDialog implements ActionListener {
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         setUnderlineType(underlineType.getSelectedIndex(), category, (rule == null ? null : rule.getId()));
+        changedOptions.colorsChanged = true;
       }
     });
     cons1.gridx++;
@@ -2462,6 +2311,7 @@ public class WtConfigurationDialog implements ActionListener {
               } else {
                 config.setUnderlineRuleColor(rule.getId(), newColor);
               }
+              changedOptions.colorsChanged = true;
             }
 //            dialog.setAlwaysOnTop(true);
           }
@@ -2502,6 +2352,7 @@ public class WtConfigurationDialog implements ActionListener {
       }
       underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
       config.removeConfigurableValue(ruleId);
+      changedOptions.colorsChanged = true;
     });
     cons1.gridx++;
     colorPanel.add(defaultButton);
@@ -2724,6 +2575,7 @@ public class WtConfigurationDialog implements ActionListener {
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         setUnderlineType(underlineType.getSelectedIndex(), category, ruleId);
+        changedOptions.colorsChanged = true;
       }
     });
     cons1.gridx++;
@@ -2734,29 +2586,25 @@ public class WtConfigurationDialog implements ActionListener {
     JButton changeButton = new JButton(messages.getString("guiUColorChange"));
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
-//      dialog.setAlwaysOnTop(false);
       try {
-//        int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-//        WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
         JColorChooser colorChooser = new JColorChooser(oldColor);
         ActionListener okActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
             Color newColor = colorChooser.getColor();
-            if(newColor != null && newColor != oldColor) {
+            if(newColor != null && !newColor.equals(oldColor)) {
               underlineLabel.setForeground(newColor);
               if (ruleId == null) {
                 config.setUnderlineColor(category, newColor);
               } else {
                 config.setUnderlineRuleColor(ruleId, newColor);
               }
+              changedOptions.colorsChanged = true;
             }
-//            dialog.setAlwaysOnTop(true);
           }
         };
         // For cancel selection, change button background to red
         ActionListener cancelActionListener = new ActionListener() {
           public void actionPerformed(ActionEvent actionEvent) {
-//            dialog.setAlwaysOnTop(true);
           }
         };
         JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
@@ -2764,7 +2612,6 @@ public class WtConfigurationDialog implements ActionListener {
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
         colorDialog.setVisible(true);
-//        WtGeneralTools.setJavaLookAndFeel(theme);
       } catch (Exception e1) {
         WtMessageHandler.printException(e1);
       }
@@ -2787,6 +2634,7 @@ public class WtConfigurationDialog implements ActionListener {
       }
       underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
       config.removeConfigurableValue(ruleId);
+      changedOptions.colorsChanged = true;
     });
     cons1.gridx++;
     colorPanel.add(defaultButton);
@@ -2854,7 +2702,8 @@ public class WtConfigurationDialog implements ActionListener {
         }
         if (config.isValidAiServerUrl(serverName)) {
           aiUrlField.setForeground(null);
-          config.setAiUrl(serverName);;
+          config.setAiUrl(serverName);
+          changedOptions.aiSettingsChanged = true;
         } else {
           aiUrlField.setForeground(Color.RED);
         }
@@ -2883,6 +2732,7 @@ public class WtConfigurationDialog implements ActionListener {
         }
         if (model != null) {
           config.setAiModel(model);
+          changedOptions.aiSettingsChanged = true;
         }
       }
     });
@@ -2904,12 +2754,8 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-//        if(apiKey.isEmpty()) {
-//          apiKey = null;
-//        }
-//        if (apiKey != null) {
-          config.setAiApiKey(apiKey);
-//        }
+        config.setAiApiKey(apiKey);
+        changedOptions.aiSettingsChanged = true;
       }
     });
     
@@ -2918,14 +2764,17 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiAiShowNoStylisticChanges")));
     radioButtons[0].addActionListener(e -> {
       config.setAiShowStylisticChanges(0);
+      changedOptions.aiSettingsChanged = true;
     });
     radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiAiShowSmallStylisticChanges")));
     radioButtons[1].addActionListener(e -> {
       config.setAiShowStylisticChanges(1);
+      changedOptions.aiSettingsChanged = true;
     });
     radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiAiShowAllStylisticChanges")));
     radioButtons[2].addActionListener(e -> {
       config.setAiShowStylisticChanges(2);
+      changedOptions.aiSettingsChanged = true;
     });
 
     for (int i = 0; i < 3; i++) {
@@ -2941,12 +2790,14 @@ public class WtConfigurationDialog implements ActionListener {
     aiAutoSuggestionBox.setSelected(config.aiAutoSuggestion());
     aiAutoSuggestionBox.addItemListener(e -> {
       config.setAiAutoSuggestion(aiAutoSuggestionBox.isSelected());
+      changedOptions.aiSettingsChanged = true;
     });
 
     JCheckBox autoCorrectBox = new JCheckBox(messages.getString("guiAiAutoCorrect"));
     autoCorrectBox.setSelected(config.aiAutoCorrect());
     autoCorrectBox.addItemListener(e -> {
       config.setAiAutoCorrect(autoCorrectBox.isSelected());
+      changedOptions.aiSettingsChanged = true;
       for (JRadioButton rButton : radioButtons) {
         rButton.setEnabled(autoCorrectBox.isSelected());
       }
@@ -2957,6 +2808,7 @@ public class WtConfigurationDialog implements ActionListener {
     useAiSupportBox.setSelected(config.useAiSupport());
     useAiSupportBox.addItemListener(e -> {
       config.setUseAiSupport(useAiSupportBox.isSelected());
+      changedOptions.aiSettingsChanged = true;
       aiUrlField.setEnabled(useAiSupportBox.isSelected());
       modelField.setEnabled(useAiSupportBox.isSelected());
       apiKeyField.setEnabled(useAiSupportBox.isSelected());
@@ -3452,4 +3304,11 @@ public class WtConfigurationDialog implements ActionListener {
     return tabbedpane;
   }
   
+  public class ChangedOptions {
+    public boolean ltRulesChanged = false;
+    public boolean spellCheckChanged = false;
+    public boolean colorsChanged = false;
+    public boolean aiSettingsChanged = false;
+    public boolean doChange = false;
+  }
 }

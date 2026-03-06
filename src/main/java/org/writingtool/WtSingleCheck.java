@@ -460,6 +460,46 @@ public class WtSingleCheck {
   }
   
   /**
+   * remark all paragraphs
+   * override existing marks
+   */
+  public void remarkAllParagraphs(WtLanguageTool lt) throws Throwable {
+    if (!isDisposed() && !mDocHandler.isBackgroundCheckOff() && (!isDialogRequest || isIntern) && docCache != null) {
+      try {
+        Map <Integer, List<SentenceErrors>> changedParasMap = new HashMap<>();
+        List <TextParagraph> toRemarkTextParas = new ArrayList<>();
+        for (int i = 0; i < docCache.size(); i++) {
+          if (!singleDocument.isRunning(i)) {
+            List<SentenceErrors> sentencesErrors = getSentencesErrosAsList(i, lt, LoErrorType.GRAMMAR, config.filterOverlappingMatches());
+            if (sentencesErrors.size() > 0) {
+              changedParasMap.put(i, sentencesErrors);
+            }
+          }
+        }
+        for (int i = 0; i < docCache.size(); i++) {
+          if (!(singleDocument).isRunning(i)) {
+            toRemarkTextParas.add(docCache.getNumberOfTextParagraph(i));
+          }
+        }
+        WtDocumentCursorTools docCursor = singleDocument.getDocumentCursorTools();
+        if (!isDisposed() && !toRemarkTextParas.isEmpty()) {
+          if (docCursor != null) {
+            docCursor.removeMarks(toRemarkTextParas);
+          }
+        }
+        if (!isDisposed()) {
+          WtFlatParagraphTools flatPara = singleDocument.getFlatParagraphTools();
+          if (flatPara != null && docCursor != null) {
+            flatPara.markParagraphs(filterChangedParasMap(changedParasMap, docCursor));
+          }
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
+      }
+    }
+  }
+  
+  /**
    *  return last single paragraph (not text paragraph)
    */
   public String getLastSingleParagraph () {
@@ -789,7 +829,6 @@ public class WtSingleCheck {
     }
     aError.nErrorStart = ruleMatch.getFromPos() + startIndex;
     aError.nErrorLength = ruleMatch.getToPos() - ruleMatch.getFromPos();
-    aError.aRuleIdentifier = ruleMatch.getRule().getId();
     // LibreOffice since version 3.5 supports an URL that provides more information about the error,
     // LibreOffice since version 6.2 supports the change of underline color (key: "LineColor", value: int (RGB))
     // LibreOffice since version 6.2 supports the change of underline style (key: "LineType", value: short (DASHED = 5))
@@ -810,14 +849,24 @@ public class WtSingleCheck {
         ruleId = WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID;
       }
     }
-    Color underlineColor = aError.nErrorType != TextMarkupType.SPELLCHECK 
-                            ? config.getUnderlineColor(category, ruleId) : Color.red;
-    short underlineType = aError.nErrorType != TextMarkupType.SPELLCHECK 
-                            ? config.getUnderlineType(category, ruleId) : WtConfiguration.UNDERLINE_WAVE;
+    aError.aRuleIdentifier = ruleId;
+    aError.category = category;
     URL url = ruleMatch.getUrl();
     if (url == null) {                      // match URL overrides rule URL 
       url = ruleMatch.getRule().getUrl();
     }
+    setPropertiesToError (aError, url == null ? null : url.toString(), config);
+    return aError;
+  }
+  
+  /**
+   * Set Properties to Error
+   */
+  public static WtProofreadingError setPropertiesToError (WtProofreadingError aError, String url, WtConfiguration config) {
+    Color underlineColor = aError.nErrorType != TextMarkupType.SPELLCHECK 
+        ? config.getUnderlineColor(aError.category, aError.aRuleIdentifier) : Color.red;
+    short underlineType = aError.nErrorType != TextMarkupType.SPELLCHECK 
+            ? config.getUnderlineType(aError.category, aError.aRuleIdentifier) : WtConfiguration.UNDERLINE_WAVE;
     int nDim = 0;
     if (url != null) {
       nDim++;
@@ -836,24 +885,24 @@ public class WtSingleCheck {
       WtPropertyValue[] propertyValues = new WtPropertyValue[nDim];
       int n = 0;
       if (url != null) {
-        propertyValues[n] = new WtPropertyValue("FullCommentURL", url.toString());
+        propertyValues[n] = new WtPropertyValue("FullCommentURL", url);
         n++;
       }
       if (aError.nErrorType == TextMarkupType.SPELLCHECK) {
         int ucolor = Color.red.getRGB() & 0xFFFFFF;
         propertyValues[n] = new WtPropertyValue("LineColor", ucolor);
         n++;
-/*        
+      /*        
       } else if (ruleMatch.getRule() instanceof WtAiDetectionRule) {
         int ucolor;
         if (ruleMatch.getType() == Type.Hint) {
-          ucolor = WtAiDetectionRule.RULE_HINT_COLOR.getRGB() & 0xFFFFFF;
-        } else {
-          ucolor = WtAiDetectionRule.RULE_OTHER_COLOR.getRGB() & 0xFFFFFF;
-        }
+        ucolor = WtAiDetectionRule.RULE_HINT_COLOR.getRGB() & 0xFFFFFF;
+      } else {
+        ucolor = WtAiDetectionRule.RULE_OTHER_COLOR.getRGB() & 0xFFFFFF;
+      }
         propertyValues[n] = new PropertyValue("LineColor", -1, ucolor, PropertyState.DIRECT_VALUE);
         n++;
-*/
+      */
       } else {
         if (underlineColor != Color.blue) {
           int ucolor = underlineColor.getRGB() & 0xFFFFFF;
@@ -868,7 +917,7 @@ public class WtSingleCheck {
       }
       aError.aProperties = propertyValues;
     } else {
-        aError.aProperties = new WtPropertyValue[0];
+      aError.aProperties = new WtPropertyValue[0];
     }
     return aError;
   }

@@ -352,7 +352,7 @@ public class WtResultCache implements Serializable {
   }
 
   /**
-   * get Proofreading errors of on paragraph from cache
+   * get Proofreading errors of one paragraph from cache
    */
   public WtProofreadingError[] getMatches(int numberOfParagraph, LoErrorType errType) {
     rwLock.readLock().lock();

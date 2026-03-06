@@ -262,7 +262,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       num++;
       addButtonToContainer(num, WtProtocolHandler.WT_CHECKAGAINDIALOG, "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer);
       num++;
-      addButtonToContainer(num, WtProtocolHandler.WT_REFRESH_CHECK, "WTRefreshSmall.png", "loContextMenuRefreshCheck", buttonContainer);
+      addButtonToContainer(num, WtProtocolHandler.WT_REFRESH_CHECK, "WTRefreshResultsSmall.png", "loContextMenuRefreshCheck", buttonContainer);
+      num++;
+      addButtonToContainer(num, WtProtocolHandler.WT_REFRESH_MARKUPS, "WTRefreshMarkupsSmall.png", "loContextMenuRefreshMarkups", buttonContainer);
       num++;
       addButtonToContainer(num, WtProtocolHandler.WT_OPTIONS, "WTOptionsSmall.png", "loContextMenuOptions", buttonContainer);
       num++;
@@ -275,9 +277,6 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
       num++;
       addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
-      num++;
-      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
-      buttonStatAnWindow.setEnable(hasStatAn());
       
       WtConfiguration conf = documents.getConfiguration();
       isAiSupport = conf.useAiSupport();
@@ -300,6 +299,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       num++;
       buttonActivateRulesWindow = addActivateRulesListBoxToContainer(num, buttonContainer);
       buttonActivateRulesWindow.setEnable(deactivatedRulesMap != null && !deactivatedRulesMap.isEmpty());
+      num = 8;
+      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
+      buttonStatAnWindow.setEnable(hasStatAn());
 
       // Add third row button container
       xButtonContainer = createControlContainer(xMCF, context, 

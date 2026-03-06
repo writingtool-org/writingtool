@@ -30,6 +30,7 @@ import org.writingtool.tools.WtVersionInfo;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.dialogs.WtConfigurationDialog;
+import org.writingtool.dialogs.WtConfigurationDialog.ChangedOptions;
 
 /**
  * A thread that shows the configuration dialog which lets the
@@ -73,20 +74,36 @@ public class WtConfigThread extends Thread {
       List<Rule> allRules = lt.getAllRules();
       Set<String> disabledRulesUI = WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant());
       config.addDisabledRuleIds(disabledRulesUI);
-      boolean configChanged = cfgDialog.show(allRules);
-      if (configChanged) {
-        Set<String> disabledRules = config.getDisabledRuleIds();
-        Set<String> tmpDisabledRules = new HashSet<>(disabledRulesUI);
-        for (String ruleId : tmpDisabledRules) {
-          if(!disabledRules.contains(ruleId)) {
-            disabledRulesUI.remove(ruleId);
+      ChangedOptions changedOptions = cfgDialog.show(allRules);
+//      WtMessageHandler.printToLogFile("WtConfigThread: run: changedOptions: doChange: " + changedOptions.doChange + 
+//          ", ltRulesChanged: " + changedOptions.ltRulesChanged + ", aiSettingsChanged: " + changedOptions.aiSettingsChanged +
+//          ", colorsChanged: " + changedOptions.colorsChanged);
+      if (changedOptions.doChange) {
+        if (changedOptions.ltRulesChanged) {
+          Set<String> disabledRules = config.getDisabledRuleIds();
+          Set<String> tmpDisabledRules = new HashSet<>(disabledRulesUI);
+          for (String ruleId : tmpDisabledRules) {
+            if(!disabledRules.contains(ruleId)) {
+              disabledRulesUI.remove(ruleId);
+            }
           }
+          documents.setDisabledRules(docLanguage.getShortCodeWithCountryAndVariant(), disabledRulesUI);
+          config.removeDisabledRuleIds(disabledRulesUI);
+          config.saveConfiguration(docLanguage);
+          documents.resetDocumentCaches();
+          documents.resetGrammarCheckConfiguration();
+        } else {
+          config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
+          config.saveConfiguration(docLanguage);
         }
-        documents.setDisabledRules(docLanguage.getShortCodeWithCountryAndVariant(), disabledRulesUI);
-        config.removeDisabledRuleIds(disabledRulesUI);
-        config.saveConfiguration(docLanguage);
-        documents.resetDocumentCaches();
-        documents.resetConfiguration();
+        if (changedOptions.aiSettingsChanged) {
+          documents.resetAiResultCaches();
+          documents.getAiCheckQueue().setReset();
+        }
+        if (changedOptions.colorsChanged) {
+          documents.changePropertiesOfAllErrors();
+          documents.remarkAllParagraphs();
+        }
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
       }

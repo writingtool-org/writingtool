@@ -175,7 +175,7 @@ public class WtSingleDocument {
     if (config != null) {
       setConfigValues(config);
     }
-    resetResultCache(true);
+    resetAllResultCache();
     ignoredMatches = new WtIgnoredMatches();
     permanentIgnoredMatches = new WtIgnoredMatches();
     docCache = new WtDocumentCache(docType);
@@ -451,19 +451,6 @@ public class WtSingleDocument {
           sidebarContent.resizeContainer();
         }
       }
-/*  TODO: in LT 6.5 add dynamic toolbar          
-      if (!mDocHandler.isOpenOffice && docType == DocumentType.WRITER && docCache != null && docCache.getDocumentLocale() != null
-          && docLocale != null && !OfficeTools.isEqualLocale(docLocale, docCache.getDocumentLocale())) {
-        docLocale = docCache.getDocumentLocale();
-        ltToolbar.makeToolbar(getLanguage());
-      }
-*/
-/*
-      if (proofInfo == WtOfficeTools.PROOFINFO_MARK_PARAGRAPH) {
-        paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(
-            filterOverlappingErrors(WtOfficeTools.proofreadingToWtErrors(paRes.aErrors), config.filterOverlappingMatches()));
-      }
-*/
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     } finally {
@@ -508,13 +495,6 @@ public class WtSingleDocument {
     return ltMenus;
   }
   
-  /** Get LanguageTool toolbar
-   */
-  /*  TODO: in LT 6.5 add dynamic toolbar          
-  LtToolbar getLtToolbar() {
-    return ltToolbar;
-  }
-*/  
   /**
    * set menu ID to MultiDocumentsHandler
    */
@@ -592,12 +572,6 @@ public class WtSingleDocument {
    */
   void setLanguage(Language language) {
     docLanguage = language;
-//    docLocale = WtLinguisticServices.getLocale(language);
-/*  TODO: in LT 6.5 add dynamic toolbar          
-    if (ltToolbar != null) {
-      ltToolbar.makeToolbar(language);
-    }
-*/
   }
   
   /** 
@@ -804,11 +778,63 @@ public class WtSingleDocument {
   /** 
    * Reset all caches of the document
    */
-  public void resetResultCache(boolean withSingleParagraph) {
-    for (int i = withSingleParagraph ? 0 : 1; i < WtOfficeTools.NUMBER_CACHE; i++) {
+  public void resetAllResultCache() {
+    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paragraphsCache.get(i).removeAll();
     }
     aiSuggestionCache.removeAll();
+  }
+  
+  /** 
+   * Reset all grammar check caches of the document
+   */
+  public void resetGrammarResultCache() {
+    for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
+      paragraphsCache.get(i).removeAll();
+    }
+  }
+  
+  /** 
+   * Reset all text level check caches (not single paragraph cache) of the document
+   */
+  public void resetTextlevelResultCache() {
+    for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
+      paragraphsCache.get(i).removeAll();
+    }
+  }
+  
+  /** 
+   * Reset all text level check caches (not single paragraph cache) of the document
+   */
+  public void resetAiResultCache() {
+    paragraphsCache.get(WtOfficeTools.CACHE_AI).removeAll();
+    aiSuggestionCache.removeAll();
+  }
+  
+  /**
+   * change the colors of one paragraph
+   */
+  private void changeColorsOfOneParagraph(int nFPara) {
+    for(int i = 0; i < WtOfficeTools.NUMBER_CACHE; i ++) {
+      WtProofreadingError[] errors = paragraphsCache.get(i).getSafeMatches(nFPara);
+      if (errors != null) {
+        for (WtProofreadingError error : errors) {
+          String url = error.getURL();
+          WtSingleCheck.setPropertiesToError (error, url, config);
+        }
+      }
+    }
+  }
+  
+  /**
+   * change the colors of one paragraph
+   */
+  public void changeColorsOfAllParagraphs() {
+    if (docCache != null) {
+      for(int i = 0; i < docCache.size(); i ++) {
+        changeColorsOfOneParagraph(i);
+      }
+    }
   }
   
   /**
@@ -1146,6 +1172,23 @@ public class WtSingleDocument {
         WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage, docLanguage, 
             numParasToCheck, false, false, isIntern);
         singleCheck.remarkChangedParagraphs(changedParas, toRemarkParas, mDocHandler.getLanguageTool());
+        closeDocumentCursor();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+
+  /**
+   * set marks for all paragraphs
+   * before: remove all marks of all paragraphs
+   */
+  public void remarkAllParagraphs() {
+    try {
+      if (!disposed) {
+        WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage, docLanguage, 
+            numParasToCheck, false, false, false);
+        singleCheck.remarkAllParagraphs(mDocHandler.getLanguageTool());
         closeDocumentCursor();
       }
     } catch (Throwable t) {

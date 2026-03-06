@@ -40,6 +40,7 @@ public class WtProofreadingError implements Serializable {
   public String aFullComment;
   public String aRuleIdentifier;
   public String aShortComment;
+  public String category;
   public String[] aSuggestions;
   public WtPropertyValue[] aProperties = null;
   
@@ -53,6 +54,7 @@ public class WtProofreadingError implements Serializable {
     aFullComment = error.aFullComment;
     aRuleIdentifier = error.aRuleIdentifier;
     aShortComment = error.aShortComment;
+    category = error.category;
     aSuggestions = error.aSuggestions;
     bDefaultRule = error.bDefaultRule;
     bStyleRule = error.bStyleRule;
@@ -99,6 +101,34 @@ public class WtProofreadingError implements Serializable {
       error.aProperties = null;
     }
     return error;
+  }
+  
+  /**
+   * get the url of the error
+   */
+  public String getURL() {
+    if (aProperties != null) {
+      for (WtPropertyValue property : aProperties) {
+        if ("FullCommentURL".equals(property.name)) {
+          return (String) property.value;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * get a property of the error by name
+   */
+  public Object getProperty(String name) {
+    if (aProperties != null) {
+      for (WtPropertyValue property : aProperties) {
+        if (name.equals(property.name)) {
+          return property.value;
+        }
+      }
+    }
+    return null;
   }
 
   /**

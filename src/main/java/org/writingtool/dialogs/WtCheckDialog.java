@@ -311,10 +311,10 @@ public class WtCheckDialog extends Thread {
           }
         }
         if (!isSame) {
-          document.resetResultCache(true);
+          document.resetAllResultCache();
         }
       } else {
-        document.resetResultCache(true);
+        document.resetAllResultCache();
       }
     }
   }

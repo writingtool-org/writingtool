@@ -367,7 +367,8 @@ public class WtMenus {
           config.setCurrentProfile(profile);
           config.addProfiles(saveProfiles);
           config.saveConfiguration(document.getLanguage());
-          document.getMultiDocumentsHandler().resetConfiguration();
+          document.getMultiDocumentsHandler().resetAiResultCaches();
+          document.getMultiDocumentsHandler().resetGrammarCheckConfiguration();
         } catch (IOException e) {
           WtMessageHandler.showError(e);
         }
@@ -1029,6 +1030,12 @@ public class WtMenus {
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
       xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuRefreshCheck"));
       xNewSubMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_REFRESH_CHECK_COMMAND);
+      xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
+      j++;
+      xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
+          xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
+      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuRefreshMarkups"));
+      xNewSubMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_REFRESH_MARKUPS_COMMAND);
       xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
       
       Map<String, String> deactivatedRulesMap = document.getMultiDocumentsHandler().getDisabledRulesMap(null);

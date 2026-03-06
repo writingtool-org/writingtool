@@ -84,6 +84,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   public static final String WT_BACKGROUND_CHECK_ON = "backgroundCheckOn";
   public static final String WT_BACKGROUND_CHECK_OFF = "backgroundCheckOff";
   public static final String WT_REFRESH_CHECK = "refreshCheck";
+  public static final String WT_REFRESH_MARKUPS = "refreshAllMarkups";
   public static final String WT_ABOUT = "about";
   public static final String WT_LANGUAGETOOL = "lt";
   public static final String WT_OPTIONS = "configure";
@@ -124,6 +125,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   public static final String WT_BACKGROUND_CHECK_ON_COMMAND = WT_PROTOCOL + WT_BACKGROUND_CHECK_ON;
   public static final String WT_BACKGROUND_CHECK_OFF_COMMAND = WT_PROTOCOL + WT_BACKGROUND_CHECK_OFF;
   public static final String WT_REFRESH_CHECK_COMMAND = WT_PROTOCOL + WT_REFRESH_CHECK;
+  public static final String WT_REFRESH_MARKUPS_COMMAND = WT_PROTOCOL + WT_REFRESH_MARKUPS;
   public static final String WT_ABOUT_COMMAND = WT_PROTOCOL + WT_ABOUT;
   public static final String WT_LANGUAGETOOL_COMMAND = WT_PROTOCOL + WT_LANGUAGETOOL;
   public static final String WT_OPTIONS_COMMAND = WT_PROTOCOL + WT_OPTIONS;

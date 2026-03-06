@@ -1300,7 +1300,7 @@ public class WtDocumentsHandler {
       aiQueue = null;
     }
     if (resetCache) {
-      resetResultCaches(true);
+      resetAllResultCaches();
     }
     if (debugModeTm) {
       long runTime = System.currentTimeMillis() - startTime;
@@ -1311,6 +1311,26 @@ public class WtDocumentsHandler {
   }
   
   /**
+   * change colors / underline style of all errors
+   */
+  public void changePropertiesOfAllErrors() {
+//    WtMessageHandler.printToLogFile("WtDocumentHandler: run changePropertiesOfAllErrors");
+    for (WtSingleDocument document : documents) {
+      document.changeColorsOfAllParagraphs();
+    }
+  }
+
+  /**
+   * remark all paragraphs
+   */
+  public void remarkAllParagraphs() {
+//    WtMessageHandler.printToLogFile("WtDocumentHandler: run remarkAllParagraphs");
+    for (WtSingleDocument document : documents) {
+      document.remarkAllParagraphs();
+    }
+  }
+
+  /**
    * Reset ignored matches
    */
   void resetIgnoredMatches() {
@@ -1320,11 +1340,29 @@ public class WtDocumentsHandler {
   }
 
   /**
-   * Reset result caches
+   * Reset All result caches
    */
-  void resetResultCaches(boolean withSingleParagraph) {
+  public void resetAllResultCaches() {
     for (WtSingleDocument document : documents) {
-      document.resetResultCache(withSingleParagraph);
+      document.resetAllResultCache();
+    }
+  }
+
+  /**
+   * Reset Grammar result caches
+   */
+  public void resetGrammarResultCaches() {
+    for (WtSingleDocument document : documents) {
+      document.resetGrammarResultCache();
+    }
+  }
+
+  /**
+   * Reset AI result caches
+   */
+  public void resetAiResultCaches() {
+    for (WtSingleDocument document : documents) {
+      document.resetAiResultCache();
     }
   }
 
@@ -1738,7 +1776,8 @@ public class WtDocumentsHandler {
         config.setCurrentProfile(profile);
         config.addProfiles(saveProfiles);
         config.saveConfiguration(getCurrentDocument().getLanguage());
-        resetConfiguration();
+        resetGrammarCheckConfiguration();
+        resetAiResultCaches();
       }
       updateButtons();
     } catch (IOException e) {
@@ -2051,19 +2090,29 @@ public class WtDocumentsHandler {
   /**
    * Configuration has be changed
    */
-  public void resetConfiguration() {
-    linguServices = null;
-    if (config != null) {
-      noBackgroundCheck = config.noBackgroundCheck();
-      if (sidebarContent != null) {
-        sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+  public void resetGrammarCheckConfiguration() {
+    try {
+      linguServices = null;
+      if (config != null) {
+        noBackgroundCheck = config.noBackgroundCheck();
+        if (sidebarContent != null) {
+          sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+        }
+        updateButtons();
       }
-      updateButtons();
+      javaLookAndFeelSet = -1;
+      resetIgnoredMatches();
+      resetGrammarResultCaches();
+      resetDocument();
+      if (useQueue) {
+        if (textLevelQueue == null) {
+          textLevelQueue = new WtTextLevelCheckQueue(this);
+        }
+        textLevelQueue.setReset();
+      }
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
     }
-    javaLookAndFeelSet = -1;
-    resetIgnoredMatches();
-    resetResultCaches(true);
-    resetDocument();
   }
 
   /**
@@ -2080,7 +2129,9 @@ public class WtDocumentsHandler {
    */
   public void trigger(String sEvent) {
     try {
-      WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
+      }
       if ("noAction".equals(sEvent)) {  //  special dummy action
         return;
       }
@@ -2145,6 +2196,8 @@ public class WtDocumentsHandler {
         WtDictionary.addWordToDictionary(sArray[0], sArray[1].replace(WtOfficeTools.SOFT_HYPHEN, ""), xContext);;
       } else if ("renewMarkups".equals(sEvent)) {
         renewMarkups();
+      } else if ("refreshAllMarkups".equals(sEvent)) {
+        remarkAllParagraphs();
       } else if ("checkDialog".equals(sEvent) || "checkAgainDialog".equals(sEvent)) {
         if (useOrginalCheckDialog) {
           if ("checkDialog".equals(sEvent) ) {
@@ -2205,7 +2258,7 @@ public class WtDocumentsHandler {
         }
         resetIgnoredMatches();
         resetDocumentCaches();
-        resetResultCaches(true);
+        resetAllResultCaches();
         WtSpellChecker.resetSpellCache();
         resetDocument();
       } else if ("statisticalAnalyses".equals(sEvent)) {
@@ -2428,7 +2481,7 @@ public class WtDocumentsHandler {
         setConfigValues(config, lt);
         WtMessageHandler.showMessage(messages.getString("loExtHeapMessage"));
         for (WtSingleDocument document : documents) {
-          document.resetResultCache(true);
+          document.resetAllResultCache();
           document.resetDocumentCache();
         }
         return false;
