@@ -612,7 +612,7 @@
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
 	                    <value xml:lang="en-US">Activate Rule:</value>
-    	                <value xml:lang="de">Activiere Regel:</value>
+    	                <value xml:lang="de">Aktiviere Regel:</value>
                     </prop>
                     <prop oor:name="ControlType" oor:type="xs:string">
                         <value>ToggleDropdownButton</value>
