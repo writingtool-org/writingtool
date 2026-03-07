@@ -363,12 +363,20 @@ public class WtSingleCheck {
     for (SentenceErrors errors : changedParasMap.get(nPara)) {
       if (errors.sentenceEnd > paraLen) {
         changedParasMap.remove(nPara);
+        if (debugMode > 0) {
+          WtMessageHandler.printToLogFile("SingleCheck: filterOneChangedParasMap: errors.sentenceEnd(" +
+              errors.sentenceEnd + ") > paraLen(" + paraLen + "): remove nPara: " + nPara); 
+        }
         return;
       }
     }
     for (WtResultCache cache : paragraphsCache) {
       if (cache.errorLenthExceedsParagraphLength(nPara, paraLen)) {
         changedParasMap.remove(nPara);
+        if (debugMode > 0) {
+          WtMessageHandler.printToLogFile("SingleCheck: filterOneChangedParasMap: errorLenthExceedsParagraphLength: nPara: " +
+              nPara + ", paraLen: " + paraLen); 
+        }
         return;
       }
     }
@@ -385,7 +393,13 @@ public class WtSingleCheck {
         TextParagraph tPara = docCache.getNumberOfTextParagraph(para);
         XParagraphCursor xPara = tPara == null ? null : docCursor.getParagraphCursor(tPara);
         if (xPara != null) {
+          xPara.gotoStartOfParagraph(false);
+          xPara.gotoEndOfParagraph(true);
           int paraLen = xPara.getString().length();
+          if (debugMode > 1) {
+            WtMessageHandler.printToLogFile("SingleCheck: filterChangedParasMap: tPara: number: " + tPara.number +
+                ", type: " + tPara.type + ", xPara: " + xPara.getString());
+          }
           filterOneChangedParasMap (para, paraLen, changedParasMap);
         }
       }
@@ -762,10 +776,10 @@ public class WtSingleCheck {
     } else {
       aError.nErrorType = TextMarkupType.PROOFREADING;
     }
-    if (ruleMatch.getRule().isDefaultOff()) {
-      aError.bDefaultRule = false;
-    } else {
+    if (!ruleMatch.getRule().isOfficeDefaultOff() && (!ruleMatch.getRule().isDefaultOff() || ruleMatch.getRule().isOfficeDefaultOn())) {
       aError.bDefaultRule = true;
+    } else {
+      aError.bDefaultRule = false;
     }
     
     // the API currently has no support for formatting text in comments
@@ -844,9 +858,13 @@ public class WtSingleCheck {
       } else if (ruleMatch.getType() == Type.Hint) {
         category = WtOfficeTools.AI_GRAMMAR_CATEGORY;
         ruleId = WtOfficeTools.AI_GRAMMAR_HINT_RULE_ID;
+        aError.bDefaultRule = true;
+        aError.bStyleRule = false;
       } else {
         category = WtOfficeTools.AI_STYLE_CATEGORY;
         ruleId = WtOfficeTools.AI_GRAMMAR_OTHER_RULE_ID;
+        aError.bDefaultRule = false;
+        aError.bStyleRule = true;
       }
     }
     aError.aRuleIdentifier = ruleId;

@@ -1766,9 +1766,9 @@ public class WtSingleDocument {
    * is rule a AI rule
    */
   public static boolean isAiRule(WtProofreadingError error) {
-    return error.aRuleIdentifier.equals(WtOfficeTools.AI_GRAMMAR_RULE_ID);
+    return error.aRuleIdentifier.startsWith(WtOfficeTools.AI_GRAMMAR_RULE_ID);
   }
-  
+
   /**
    * Filter overlapping errors
    * Splits overlapping errors
@@ -1832,10 +1832,12 @@ public class WtSingleDocument {
           WtProofreadingError error1 = new WtProofreadingError(errors[k]);
           for(int j = 0; j < overlaps.size(); j++) {
             int l = overlaps.get(j);
-            WtProofreadingError error2 = errors[l];
+            WtProofreadingError error2 = new WtProofreadingError(errors[l]);
             if (k != l && isOverlappingError(error1, error2)) {
-              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule && !isAiRule(error1);
-              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule && !isAiRule(error2);
+//              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule && !isAiRule(error1);
+//              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule && !isAiRule(error2);
+              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule;
+              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule;
               if(isErr1Default && !isErr2Default) {
                 filtered.add(l);
               } else if(isErr2Default && !isErr1Default) {
