@@ -39,6 +39,13 @@ import com.sun.star.uno.XComponentContext;
  */
 public class WtLinguServiceTools {
   
+  public enum SpellServiceState {
+    NO_SPELLSERVICE,    //  No spell service configured for locale
+    NO_WT_SPELLSERVICE, //  No WritingTool spell service configured for locale
+    IS_RUNNING,         //  LO and WritingTool spell services are running
+    IS_ERROR            //  An error occurred during testing
+  }
+  
   //  fast handles defined in LibeOffice source: unotools/source/config/lingucfg.cxx
 //  private static int FH_IS_SPELL_AUTO = 8;
   private static String IS_SPELL_AUTO = "IsSpellAuto";
@@ -280,21 +287,31 @@ public class WtLinguServiceTools {
     return false;
   }
   
-  public static boolean isWtSpellServiceActive(XComponentContext xContext, Locale locale) {
+  public static SpellServiceState getWtSpellServiceState(XComponentContext xContext, Locale locale) {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
-        return false;
+        WtMessageHandler.printToLogFile("LinguisticServices: isWtSpellServiceActive: XLinguServiceManager == null");
+        return SpellServiceState.IS_ERROR;
       }
       String[] configuredServices = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.SpellChecker", locale);
+      if (configuredServices.length == 0) {
+        return SpellServiceState.NO_SPELLSERVICE;
+      }
+/*      
+      WtMessageHandler.printToLogFile("LinguisticServices: isWtSpellServiceActive: number of configured services: "
+          + configuredServices.length + ", locale: " + WtOfficeTools.localeToString(locale));
+      for (String service : configuredServices) {
+        WtMessageHandler.printToLogFile("LinguisticServices: isWtSpellServiceActive: service: " + service);
+      }
+*/
       for (String service : configuredServices) {
         if (service.equals(WtSpellChecker.IMPLEMENTATION_NAME)) {
-          return true;
+          return SpellServiceState.IS_RUNNING;
         }
       }
     }
-    return false;
+    return SpellServiceState.NO_WT_SPELLSERVICE;
   }
   
   /**

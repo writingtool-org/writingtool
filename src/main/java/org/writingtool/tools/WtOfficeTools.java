@@ -408,7 +408,7 @@ public class WtOfficeTools {
   /**
    * returns the default locale of the text document
    */
-  public static Locale getSaveLocale(XComponentContext xContext) {
+  public static Locale getSafeLocale(XComponentContext xContext) {
     Locale locale = getCursorLocale(xContext);
     if (locale == null) {
       return (new Locale("en", "US", ""));

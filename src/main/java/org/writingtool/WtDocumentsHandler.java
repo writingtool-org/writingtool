@@ -74,6 +74,7 @@ import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.config.WtConfigThread;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtLinguServiceTools;
+import org.writingtool.tools.WtLinguServiceTools.SpellServiceState;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeDrawTools;
 import org.writingtool.tools.WtOfficeSpreadsheetTools;
@@ -180,6 +181,7 @@ public class WtDocumentsHandler {
 //  private final HandleLtDictionary handleDictionary;
   private boolean isNotTextDocument = false;
   private int heapCheckInterval = HEAP_CHECK_INTERVAL;
+  private boolean noSpellService = false;
   private boolean testMode = false;
   private static int javaLookAndFeelSet = -1;
 //  private boolean isHelperDisposed = false;
@@ -920,7 +922,7 @@ public class WtDocumentsHandler {
     try {
       if (config == null) {
         if (docLanguage == null) {
-          Locale locale = WtOfficeTools.getSaveLocale(xContext);
+          Locale locale = WtOfficeTools.getSafeLocale(xContext);
           docLanguage = getLanguage(locale);
         }
         config = getConfiguration(docLanguage);
@@ -2146,6 +2148,9 @@ public class WtDocumentsHandler {
         WtMessageHandler.printToLogFile("Current document is null: return! Event: " + sEvent);
         return;
       }
+      if (noSpellService && !"configure".equals(sEvent) && !"about".equals(sEvent)) {
+        return;
+      }
       long startTime = 0;
       if (debugModeTm) {
         startTime = System.currentTimeMillis();
@@ -2699,8 +2704,15 @@ public class WtDocumentsHandler {
         return true;
       }
       locale = getLocaleFromCurrentDocument(currentDocument);
+      noSpellService = false;
+      SpellServiceState spellServiceState = WtLinguServiceTools.getWtSpellServiceState(xContext, locale);
+      if (spellServiceState == SpellServiceState.NO_SPELLSERVICE || spellServiceState == SpellServiceState.IS_ERROR) {
+        WtMessageHandler.showMessage(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
+        noSpellService = true;
+        return false;
+      }
+      boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : spellServiceState == SpellServiceState.IS_RUNNING;
       boolean isSpellAuto = WtLinguServiceTools.isSpellAuto(xContext);
-      boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : WtLinguServiceTools.isWtSpellServiceActive(xContext, locale);
       boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
       if (!isSpellAuto || !isWtSpellActive || !isWtGrammarActive) {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: isLOConfigIncorrect: isSpellAuto: " + isSpellAuto +
@@ -2730,9 +2742,14 @@ public class WtDocumentsHandler {
         return false;
       }
       locale = getLocaleFromCurrentDocument(currentDocument);
+      SpellServiceState spellServiceState = WtLinguServiceTools.getWtSpellServiceState(xContext, locale);
+      if (spellServiceState == SpellServiceState.NO_SPELLSERVICE || spellServiceState == SpellServiceState.IS_ERROR) {
+        noSpellService = true;
+        return false;
+      }
+      boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : spellServiceState == SpellServiceState.IS_RUNNING;
       boolean isSpellAuto = WtLinguServiceTools.isSpellAuto(xContext);
       boolean isGrammarAuto = WtLinguServiceTools.isGrammarAuto(xContext);
-      boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : WtLinguServiceTools.isWtSpellServiceActive(xContext, locale);
       if (isSpellAuto && isGrammarAuto && isWtSpellActive && isWtGrammarActive) {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: enableWtSpellAndGrammarChecker: isSpellAuto: " + isSpellAuto +
             ", isGrammarAuto: " + isGrammarAuto + ", isWtSpellActive: " + isWtSpellActive + ", isWtGrammarActive: " + isWtGrammarActive);
