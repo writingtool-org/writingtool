@@ -135,8 +135,8 @@ public class WtDocumentsHandler {
   private Language fixedLanguage = null;
   private Language langForShortName;
   private Locale locale;                            //  locale for grammar check
-  private final XEventListener xEventListener;
-  private final XProofreader xProofreader;
+  private XEventListener xEventListener;
+  private XProofreader xProofreader;
   private static File configDir;
   private static String configFile;
   private static WtConfiguration config = null;
@@ -219,6 +219,15 @@ public class WtDocumentsHandler {
     WtMessageHandler.writeInitialInformation(config);
     WtHelper wtHelper = new WtHelper();
     wtHelper.start();
+  }
+  
+  /**
+   * set proofreader and event listener
+   */
+  
+  public void setProofreader(XProofreader xProofreader, XEventListener xEventListener) {
+    this.xEventListener = xEventListener;
+    this.xProofreader = xProofreader;
   }
   
   /**

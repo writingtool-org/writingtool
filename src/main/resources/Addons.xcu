@@ -545,7 +545,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Disable background check</value>
@@ -560,7 +560,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Enable background check</value>
@@ -575,7 +575,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
   	                  <value xml:lang="en-US">Statistical Analysis</value>
@@ -590,7 +590,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
 	                    <value xml:lang="en-US">Change Profile to:</value>
@@ -608,7 +608,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
 	                    <value xml:lang="en-US">Activate Rule:</value>
@@ -972,7 +972,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Disable background check</value>
@@ -987,7 +987,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Enable background check</value>
@@ -1002,7 +1002,7 @@
                         <value>_self</value>
                     </prop>
                     <prop oor:name="Context" oor:type="xs:string">
-                        <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
+                        <value>com.sun.star.text.TextDocument</value>
                     </prop>
                     <prop oor:name="Title" oor:type="xs:string">
                     <value xml:lang="en-US">Statistical Analysis</value>

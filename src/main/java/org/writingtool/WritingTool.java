@@ -53,7 +53,12 @@ public class WritingTool extends WeakBase implements
 
   public WritingTool(XComponentContext xCompContext) {
     changeContext(xCompContext);
-    documents = new WtDocumentsHandler(xContext, this, this);
+    if (documents == null) {
+      documents = new WtDocumentsHandler(xContext, this, this);
+    } else {
+      documents.setProofreader(this, this);
+    }
+    
 //    protocolHandler = new WtProtocolHandler(xContext, documents, this);
   }
   
@@ -61,7 +66,10 @@ public class WritingTool extends WeakBase implements
     return documents;
   }
   
-
+  public static void setDocumentsHandler(WtDocumentsHandler docs) {
+    documents = docs;
+  }
+  
   /**
    * Changes the XComponentContext
    */

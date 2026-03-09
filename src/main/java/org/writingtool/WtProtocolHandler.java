@@ -32,6 +32,7 @@ import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtVersionInfo;
+import org.writingtool.tools.WtOfficeTools.DocumentType;
 
 import com.sun.star.awt.Point;
 import com.sun.star.awt.Rectangle;
@@ -164,9 +165,12 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 
   public WtProtocolHandler(XComponentContext xContext) {
     this.xContext = xContext;
-    if (WritingTool.getDocumentsHandler() != null) {
-      WritingTool.getDocumentsHandler().setProtocolHandler(this);
+    WtDocumentsHandler documents = WritingTool.getDocumentsHandler();
+    if (documents == null) {
+      documents = new WtDocumentsHandler(xContext, null, null);
+      WritingTool.setDocumentsHandler(documents);
     }
+    documents.setProtocolHandler(this);
   }
   
   /**
@@ -446,8 +450,10 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   private String WT_AI_TB_MANUAL_VISIBLE = "WT_AI_TB_Manual_Visible";
 
   public void writeCurrentConfiguration() {
-    if (!WritingTool.getDocumentsHandler().isOpenOffice) {
-      try {
+    try {
+      List<WtSingleDocument> documents = WritingTool.getDocumentsHandler().getDocuments();
+      if (!WritingTool.getDocumentsHandler().isOpenOffice 
+          && documents.size() > 0 && documents.get(0).getDocumentType() == DocumentType.WRITER) {
         Properties props = new Properties();
         XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
         
@@ -508,9 +514,9 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
         } catch (Throwable t) {
           WtMessageHandler.printException(t);
         }
-      } catch (Throwable t) {
-        WtMessageHandler.printException(t);
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
     }
   }
 
