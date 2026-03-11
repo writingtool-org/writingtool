@@ -85,6 +85,9 @@ import org.writingtool.tools.WtOfficeTools.LoErrorType;
 import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.frame.TerminationVetoException;
+import com.sun.star.frame.XDesktop;
+import com.sun.star.frame.XTerminateListener;
 import com.sun.star.lang.EventObject;
 import com.sun.star.lang.Locale;
 import com.sun.star.lang.XComponent;
@@ -154,6 +157,7 @@ public class WtDocumentsHandler {
   private static WtStatAnDialog statAnDialog = null;        //  dialog for statistical analysis
   private static WtQuotesChangeDialog quotesChangeDialog = null;  //  dialog to change quotes
   private static WaitDialogThread waitDialog = null;        //  window for initialization of dialogs
+  private WtHelper wtHelper = null;                         //  Helper to check for Impress and Calc documents
   private boolean dialogIsRunning = false;                  //  The dialog was started
 
   
@@ -217,7 +221,9 @@ public class WtDocumentsHandler {
     debugMode = WtOfficeTools.DEBUG_MODE_MD;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
     WtMessageHandler.writeInitialInformation(config);
-    WtHelper wtHelper = new WtHelper();
+    XDesktop desktop = WtOfficeTools.getDesktop(xContext);
+    desktop.addTerminateListener(new WtTerminateListener());
+    wtHelper = new WtHelper();
     wtHelper.start();
   }
   
@@ -415,7 +421,9 @@ public class WtDocumentsHandler {
         if (prefix != null) {
           String docID = createOtherDocId(prefix);
           try {
-            xComponent.addEventListener(xEventListener);
+            if (xEventListener != null) {
+              xComponent.addEventListener(xEventListener);
+            }
           } catch (Throwable t1) {
             WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCurrentDocument: Error: Document (ID: " + docID + ") has no XComponent -> Internal space will not be deleted when document disposes");
             xComponent = null;
@@ -748,21 +756,7 @@ public class WtDocumentsHandler {
       if (debugMode) {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareUnload for docId: " + docId);
       }
-      if (documents.size() < 2) {
-//        isHelperDisposed = true;
-        if (textLevelQueue != null) {
-          textLevelQueue.setStop(true);
-          textLevelQueue = null;
-        }
-        if (aiQueue != null) {
-          aiQueue.setStop(true);
-          aiQueue = null;
-        }
-        if (shapeChangeCheck != null) {
-          shapeChangeCheck.stopLoop();
-          shapeChangeCheck = null;
-        }
-      } else if (documents.size() > 1) {
+      if (documents.size() > 0) {
         if (textLevelQueue != null) {
           textLevelQueue.interruptCheck(docId, false);
         }
@@ -772,6 +766,36 @@ public class WtDocumentsHandler {
       }
       if (protocolHandler != null) {
         protocolHandler.writeCurrentConfiguration();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+  
+  /**
+   *  stop all queues before termination of LO
+   */
+  public void prepareTermination() {
+    try {
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareTermination");
+      }
+      if (textLevelQueue != null) {
+        textLevelQueue.setStop(true);
+        textLevelQueue = null;
+      }
+      if (aiQueue != null) {
+        aiQueue.setStop(true);
+        aiQueue = null;
+      }
+      if (shapeChangeCheck != null) {
+        shapeChangeCheck.stopLoop();
+        shapeChangeCheck = null;
+      }
+      if (wtHelper != null) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareUnload: stop wtHelper!");
+        wtHelper.exit();
+        wtHelper = null;
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -1098,7 +1122,9 @@ public class WtDocumentsHandler {
             WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Error: Document (ID: " + docID + ") has no XComponent -> Internal space will not be deleted when document disposes");
           } else {
             try {
-              xComponent.addEventListener(xEventListener);
+              if (xEventListener != null) {
+                xComponent.addEventListener(xEventListener);
+              }
             } catch (Throwable t) {
               WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Error: Document (ID: " + docID + ") has no XComponent -> Internal space will not be deleted when document disposes");
               xComponent = null;
@@ -1155,7 +1181,9 @@ public class WtDocumentsHandler {
           }
         }
         try {
-          xComponent.addEventListener(xEventListener);
+          if (xEventListener != null) {
+            xComponent.addEventListener(xEventListener);
+          }
         } catch (Throwable e) {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Error: Document (ID: " + docID + ") has no XComponent -> Internal space will not be deleted when document disposes");
           xComponent = null;
@@ -2878,6 +2906,26 @@ public class WtDocumentsHandler {
   }
 */
   /**
+   * class to listen for termination of LO
+   */
+  public class WtTerminateListener implements XTerminateListener {
+
+    @Override
+    public void disposing(EventObject arg0) {
+    }
+
+    @Override
+    public void notifyTermination(EventObject arg0) {
+    }
+
+    @Override
+    public void queryTermination(EventObject arg0) throws TerminationVetoException {
+      prepareTermination();
+    }
+    
+  }
+
+  /**
    * class to test for text changes in shapes 
    */
   private class ShapeChangeCheck extends Thread {
@@ -2917,14 +2965,17 @@ public class WtDocumentsHandler {
    */
   private class WtHelper extends Thread {
     private boolean isFirstRun = true;
+    private boolean runHelper = true;
     
     @Override
     public void run() {
       try {
-        boolean runHelper = true;
         WtSingleDocument currentDocument = null;
         while (runHelper) {
           Thread.sleep(250);
+          if (!runHelper) {
+            break;
+          }
           DocumentStatus docStat = isKnownDocument();
           if (docStat == DocumentStatus.DISPOSED) {
             break;
@@ -2966,11 +3017,15 @@ public class WtDocumentsHandler {
             }
           }
         }
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: WtHelper stoped running!");
       } catch (Throwable e) {
         WtMessageHandler.showError(e);
       }
     }
-    
+
+    public void exit() {
+      runHelper = false;
+    }
   }
 
   /**

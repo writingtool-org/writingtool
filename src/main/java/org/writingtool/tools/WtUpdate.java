@@ -35,7 +35,9 @@ import java.util.List;
  * @author Fred Kruse
  */
 public class WtUpdate {
-  
+
+  private static boolean debugMode = false;
+
   private final static String WT_RELEASE_URL = "https://writingtool.org/writingtool/releases/";
   private final static String WT_FILENAME_PREFIX = "WritingTool";
   private final static String WT_FILENAME_POSTFIX = "oxt";
@@ -45,7 +47,12 @@ public class WtUpdate {
     try {
       lastReleaseVersion = getLastRelease();
     } catch (Throwable e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+      if (debugMode) {
+        WtMessageHandler.showError(e);
+      }
+    }
+    if (lastReleaseVersion == null) {
       lastReleaseVersion = new WTReleaseVersion();
     }
   }
@@ -72,8 +79,10 @@ public class WtUpdate {
   }
   
   public boolean isNewVersion(String version) {
-    WtMessageHandler.printToLogFile("WtUpdate: isNewVersion: last Release Version: " + lastReleaseVersion.fileName
-        + ", Running Version: " + version);
+    if (lastReleaseVersion != null && lastReleaseVersion.fileName != null) {
+      WtMessageHandler.printToLogFile("WtUpdate: isNewVersion: last Release Version: " + lastReleaseVersion.fileName
+          + ", Running Version: " + version);
+    }
     String[] vVersion = version.split("-");
     vVersion = vVersion[0].split("\\.");
     if (vVersion.length < 2 || vVersion.length > 3) {
@@ -126,7 +135,10 @@ public class WtUpdate {
         }
       } catch (IOException e) {
         //  stream is suddenly closed -> return null
-        WtMessageHandler.printToLogFile("WtUpdate: readStreamToList: IOException: " + e.getMessage());
+        WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtUpdate: readStreamToList: IOException: " + e.getMessage());
+        }
         return null;
       }
     }
@@ -144,7 +156,10 @@ public class WtUpdate {
         }
       } catch (IOException e) {
         //  stream is suddenly closed -> return null
-        WtMessageHandler.printToLogFile("WtUpdate: readStream: IOException: " + e.getMessage());
+        WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtUpdate: readStream: IOException: " + e.getMessage());
+        }
         return null;
       }
     }
@@ -197,14 +212,20 @@ public class WtUpdate {
     try {
       dirUrl = new URL(WT_RELEASE_URL);
     } catch (MalformedURLException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+      if (debugMode) {
+        WtMessageHandler.showError(e);
+      }
       return null;
     }
     HttpURLConnection conn = null;
     try {
       conn = getConnection(dirUrl);
     } catch (RuntimeException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+      if (debugMode) {
+        WtMessageHandler.showError(e);
+      }
       return null;
     }
     try {
@@ -222,17 +243,29 @@ public class WtUpdate {
           String error = readStream(inputStream, "utf-8");
           String msg = "Got error: " + error + " - HTTP response code " + responseCode;
           if (responseCode == 404) {
+            WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+            if (debugMode) {
               WtMessageHandler.showMessage(msg);
+            }
           } else {
-            WtMessageHandler.showMessage(msg);
+            WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+            if (debugMode) {
+              WtMessageHandler.showMessage(msg);
+            }
           }
           return null;
         }
       }
     } catch (ConnectException e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+      if (debugMode) {
+        WtMessageHandler.showError(e);
+      }
     } catch (Exception e) {
-      WtMessageHandler.showError(e);
+      WtMessageHandler.printToLogFile("WtUpdate: Can't get update information!");
+      if (debugMode) {
+        WtMessageHandler.showError(e);
+      }
     } finally {
       conn.disconnect();
     }
