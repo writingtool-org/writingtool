@@ -46,8 +46,6 @@ import javax.swing.JTextPane;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
-import org.writingtool.tools.WtUpdate;
-import org.writingtool.tools.WtVersionInfo;
 
 import com.sun.star.uno.XComponentContext;
 
@@ -68,8 +66,8 @@ public class WtAboutDialog {
   public void show(XComponentContext xContext) {
     try {
       
-      WtUpdate wtUpdate = new WtUpdate();
-      boolean newUpdate = wtUpdate.isNewVersion(WtVersionInfo.wtVersion);
+//      WtUpdate wtUpdate = new WtUpdate();
+//      boolean newUpdate = wtUpdate.isNewVersion(WtVersionInfo.wtVersion);
       
       String aboutText = WtGeneralTools.getLabel(messages.getString("guiMenuAbout"));
       
@@ -113,7 +111,7 @@ public class WtAboutDialog {
       techPane.setEditable(false);
       techPane.setOpaque(false);
       techPane.setText(WtOfficeTools.getFormatedHtmlVersionInformation());
-
+/*
       JTextPane upDatePane = null;
       if (newUpdate) {
         upDatePane = new JTextPane();
@@ -125,7 +123,7 @@ public class WtAboutDialog {
         upDatePane.setText(WtOfficeTools.getFormatedNewVersionInformation(wtUpdate.getLastVersionFilename(), wtUpdate.getLastVersionUrl()));
         WtGeneralTools.addHyperlinkListener(upDatePane);
       }
-
+*/
       JTextPane aboutPane = new JTextPane();
       aboutPane.setBackground(new Color(0, 0, 0, 0));
       aboutPane.setBorder(BorderFactory.createEmptyBorder());
@@ -236,9 +234,11 @@ public class WtAboutDialog {
       panel.add(headerPanel);
       panel.add(licensePane);
       panel.add(versionButtonPanel);
+/*
       if (newUpdate) {
         panel.add(upDatePane);
       }
+*/
       panel.add(techPane);
       panel.add(aboutPane);
       panel.add(scrollPane);

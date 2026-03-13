@@ -1014,9 +1014,9 @@ public class WtOfficeTools {
     String[] aVersion = version.split("\\.");
     int iVersion = Integer.parseInt(aVersion[0]);
     if (iVersion < WT_MIN_JAVA_VERSION) {
+      WtMessageHandler.showMessage("Error: WritingTool requires Java " + WT_MIN_JAVA_VERSION + " or later. Current version: " + version);
       return false;
     }
-    WtMessageHandler.showMessage("Error: WritingTool requires Java " + WT_MIN_JAVA_VERSION + " or later. Current version: " + version);
     return true;
   }
   
