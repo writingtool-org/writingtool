@@ -196,6 +196,7 @@ public class WtDocumentsHandler {
     this.xEventListener = xEventListener;
     this.xProofreader = xProofreader;
     xEventListeners = new ArrayList<>();
+//    WtOfficeTools.javaVersionOkay();
     WtVersionInfo.init(xContext);
     WtOfficeTools.renameOldLtFiles();     // This has to be deleted in later versions 
     if (WtVersionInfo.ooName == null || WtVersionInfo.ooName.equals("OpenOffice")) {
@@ -2463,7 +2464,7 @@ public class WtDocumentsHandler {
 
   /**
    * Test if the needed java version is installed
-   */
+   *//*
   public boolean javaVersionOkay() {
     String version = System.getProperty("java.version");
     if (version != null
@@ -2476,7 +2477,7 @@ public class WtDocumentsHandler {
     }
     return true;
   }
-  
+*/
   /** Set Look and Feel for Java Swing Components
    * 
    */

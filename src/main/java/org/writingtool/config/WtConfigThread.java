@@ -63,7 +63,7 @@ public class WtConfigThread extends Thread {
 
   @Override
   public void run() {
-    if(!documents.javaVersionOkay()) {
+    if(!WtOfficeTools.javaVersionOkay()) {
       return;
     }
     if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {

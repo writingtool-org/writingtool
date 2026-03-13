@@ -113,6 +113,7 @@ public class WtOfficeTools {
   }
     
   public static final String WT_NAME = "WritingTool";
+  public static final int WT_MIN_JAVA_VERSION = 17;
 
   public static final String AI_GRAMMAR_CATEGORY = "AI_GRAMMAR_CATEGORY";
   public static final String AI_STYLE_CATEGORY = "AI_STYLE_CATEGORY";
@@ -1003,6 +1004,20 @@ public class WtOfficeTools {
     return "Java-Version: " + System.getProperty("java.version") + "(" + System.getProperty("java.vm.vendor") + 
         "), max. Heap-Space: " + ((int) (getMaxHeapSpace()/1048576)) +
         " MB, LT Heap Space Limit: " + ((int) (getHeapLimit(getMaxHeapSpace())/1048576)) + " MB";
+  }
+  
+  /**
+   * Test if the needed java version is installed
+   */
+  public static boolean javaVersionOkay() {
+    String version = System.getProperty("java.version");
+    String[] aVersion = version.split("\\.");
+    int iVersion = Integer.parseInt(aVersion[0]);
+    if (iVersion < WT_MIN_JAVA_VERSION) {
+      return false;
+    }
+    WtMessageHandler.showMessage("Error: WritingTool requires Java " + WT_MIN_JAVA_VERSION + " or later. Current version: " + version);
+    return true;
   }
   
   /**

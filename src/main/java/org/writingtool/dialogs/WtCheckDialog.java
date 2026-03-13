@@ -215,7 +215,7 @@ public class WtCheckDialog extends Thread {
     inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("loWaitMessage"));
     inf.start();
     locale = WtLinguisticServices.getLocale(language);
-    if(!documents.javaVersionOkay()) {
+    if(!WtOfficeTools.javaVersionOkay()) {
       return;
     }
     if (documents.noLtSpeller()) {
