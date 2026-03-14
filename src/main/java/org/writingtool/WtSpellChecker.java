@@ -374,7 +374,10 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
           alternatives = new String[0];
           return;
         }
-        
+        if (word.endsWith(".")) {
+          word = word.substring(0, word.length() - 1);
+//          this.word = word;
+        }
         if (lastWrongWords.hasWord(word, locale)) {
           alternatives = lastWrongWords.getSuggestions(word, locale);
           if (alternatives == null) {
@@ -405,6 +408,12 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
 
     @Override
     public String[] getAlternatives() {
+      if (DEBUG_MODE) {
+        WtMessageHandler.printToSpellLogFile("LtSpellChecker: LTSpellAlternatives for word \"" + word + "\":");
+        for (String alternativ : alternatives) {
+          WtMessageHandler.printToSpellLogFile(alternativ);
+        }
+      }
       return alternatives;
     }
 
