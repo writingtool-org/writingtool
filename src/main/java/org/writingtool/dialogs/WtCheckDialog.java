@@ -35,10 +35,14 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,6 +108,7 @@ import org.writingtool.tools.WtOfficeTools.DocumentType;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 import org.writingtool.tools.WtVersionInfo;
 
+import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyState;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
@@ -3322,9 +3327,36 @@ public class WtCheckDialog extends Thread {
       }
       Object obj = xMCF.createInstanceWithContext("com.sun.star.util.PathSettings", xContext);
       XPropertySet xPathSettings = UnoRuntime.queryInterface(XPropertySet.class, obj);
+/*
+      for (Property prop : xPathSettings.getPropertySetInfo().getProperties()) {
+        WtMessageHandler.printToLogFile("Property: Name: " + prop.Name + ", Type: " + prop.Type);
+      }
+      WtMessageHandler.printToLogFile("Property: AutoCorrect: " + (String) xPathSettings.getPropertyValue("AutoCorrect"));
+      WtMessageHandler.printToLogFile("Property: Template: " + (String) xPathSettings.getPropertyValue("Template"));
+      WtMessageHandler.printToLogFile("Property: AutoCorrect_internal: ");
+      for (String str : (String[]) xPathSettings.getPropertyValue("AutoCorrect_internal")) {
+        WtMessageHandler.printToLogFile(str);
+      }
+*/
       String aCorrPathUri = (String) xPathSettings.getPropertyValue("AutoCorrect_writable");
       URI aCorrUri = new URI(aCorrPathUri);
       String aCorrFile = aCorrUri.getPath() + "/" + ACORR_PREFIX + locale.Language + "-" + locale.Country + ACORR_SUFFIX;
+      File fCorrFile = new File(aCorrFile);
+      if (!fCorrFile.exists()) {
+        String[] intACorr = (String[]) xPathSettings.getPropertyValue("AutoCorrect_internal");
+        URI aIntCorrUri = new URI(intACorr[0]);
+        String aIntCorrFile = aIntCorrUri.getPath() + "/" + ACORR_PREFIX + locale.Language + "-" + locale.Country + ACORR_SUFFIX;
+        fCorrFile = new File(aIntCorrFile);
+        if (!fCorrFile.exists()) {
+          aIntCorrFile = aIntCorrUri.getPath() + "/" + ACORR_PREFIX + locale.Language + ACORR_SUFFIX;
+          fCorrFile = new File(aIntCorrFile);
+          if (!fCorrFile.exists()) {
+            WtMessageHandler.showMessage("Can't do AutoCorrect.\nNo AutoCorrect file exist for " + locale.Language);
+            return;
+          }
+        }
+        copy(fCorrFile, aCorrFile);
+      }
       String aCorrTmpFile = aCorrUri.getPath() + "/" + ACORR_PREFIX + locale.Language + "-" + locale.Country + "_tmp" + ACORR_SUFFIX;
       WtMessageHandler.printToLogFile("AutoCorrect path: " + aCorrFile);
       String tmpDir = aCorrUri.getPath() + "/tmp";
@@ -3347,6 +3379,19 @@ public class WtCheckDialog extends Thread {
           }
       }
       return directory.delete();
+    }
+    
+    private void copy(File original, String copyPath) throws IOException {
+      File copied = new File(copyPath);
+      try ( InputStream in = new BufferedInputStream(new FileInputStream(original));
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(copied)) ) {
+        byte[] buffer = new byte[1024];
+        int lengthRead;
+        while ((lengthRead = in.read(buffer)) > 0) {
+          out.write(buffer, 0, lengthRead);
+          out.flush();
+        }
+      }
     }
     
     private void unzipACorr(String destDirPath, String zipFilePath) throws IOException {
