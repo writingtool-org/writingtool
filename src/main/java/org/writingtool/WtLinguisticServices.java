@@ -184,7 +184,8 @@ public class WtLinguisticServices extends LinguServices {
     }
     Locale locale = new Locale();
     locale.Language = lang.getShortCode();
-    if ((lang.getCountries() == null || lang.getCountries().length != 1) && lang.getDefaultLanguageVariant() != null) {
+    if ((lang.getCountries() == null || lang.getCountries().length != 1)
+        && lang.getDefaultLanguageVariant() != null && lang.getDefaultLanguageVariant().getCountries().length > 0) {
       locale.Country = lang.getDefaultLanguageVariant().getCountries()[0];
     } else if (lang.getCountries() != null && lang.getCountries().length > 0) {
       locale.Country = lang.getCountries()[0];

@@ -1051,12 +1051,15 @@ public class WtDocumentsHandler {
    */
   public final static boolean hasLocale(Locale locale) {
     try {
-      for (Language element : Languages.get()) {
+      for (Language lang : Languages.get()) {
         if (locale.Language.equalsIgnoreCase(LIBREOFFICE_SPECIAL_LANGUAGE_TAG)
-            && element.getShortCodeWithCountryAndVariant().equals(locale.Variant)) {
+            && lang.getShortCodeWithCountryAndVariant().equals(locale.Variant)) {
           return true;
         }
-        if (element.getShortCode().equals(locale.Language)) {
+        if (lang.getShortCode().equals(locale.Language)) {
+          if (lang.getCountries().length != 0 && locale.Country.isBlank()) {
+            return false;
+          }
           return true;
         }
       }
@@ -1503,7 +1506,7 @@ public class WtDocumentsHandler {
     config.saveNoBackgroundCheck(noBackgroundCheck, docLanguage);
     WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
     if (!isBackgroundCheckOff()) {
-      checkLOWtConfig(getCurrentDocument());
+      checkLOWtConfig(getCurrentDocument(), true);
       useQueue = config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
       if (useQueue) {
         if (textLevelQueue == null) {
@@ -2058,7 +2061,7 @@ public class WtDocumentsHandler {
             } else {
               locale = new Locale(lang.getShortCode(), country, "");
             }
-            if (locales != null && !WtOfficeTools.containsLocale(locales, locale)) {
+            if (locales != null && !WtOfficeTools.containsLocale(locales, locale) && !country.isBlank()) {
               locales.add(locale);
             }
           }
@@ -2178,10 +2181,12 @@ public class WtDocumentsHandler {
      
       WtSingleDocument currentDocument = getCurrentDocument();
       if ("enableWt".equals(sEvent)) {  //  enable WT spell and grammar checker
-        checkLOWtConfig(currentDocument);
+        checkLOWtConfig(currentDocument, false);
         return;
       }
-      checkLOWtConfig(currentDocument);
+      if (!"about".equals(sEvent) && !"configure".equals(sEvent)) {
+        checkLOWtConfig(currentDocument, true);
+      }
       if (getCurrentDocument() == null) {
         WtMessageHandler.printToLogFile("Current document is null: return! Event: " + sEvent);
         return;
@@ -2714,8 +2719,8 @@ public class WtDocumentsHandler {
   * restart LibreOffice if needed
   * @throws Throwable 
   */
-  private void checkLOWtConfig(WtSingleDocument currentDocument) throws Throwable {
-    if (isLOConfigIncorrect(currentDocument)) {
+  private void checkLOWtConfig(WtSingleDocument currentDocument, boolean showNoSpellchecker) throws Throwable {
+    if (isLOConfigIncorrect(currentDocument, showNoSpellchecker)) {
       if (enableWtSpellAndGrammarChecker(getCurrentDocument())) {
         WtOptionPane.showCloseLoMessageDialog(messages.getString("loEnableLoDefaultSettingsMessage"), xContext);
       }
@@ -2726,7 +2731,7 @@ public class WtDocumentsHandler {
    * test if some settings are incompatible between LO and WT
    * @throws Throwable 
    */
-  private boolean isLOConfigIncorrect(WtSingleDocument currentDocument) throws Throwable {
+  private boolean isLOConfigIncorrect(WtSingleDocument currentDocument, boolean showNoSpellchecker) throws Throwable {
     WtConfiguration confg = new WtConfiguration(WtOfficeTools.getWtConfigDir(xContext), 
         WtOfficeTools.CONFIG_FILE, null, true);
     boolean isGrammarAuto = WtLinguServiceTools.isGrammarAuto(xContext);
@@ -2742,11 +2747,15 @@ public class WtDocumentsHandler {
         return true;
       }
       locale = getLocaleFromCurrentDocument(currentDocument);
-      noSpellService = false;
+//      noSpellService = false;
       SpellServiceState spellServiceState = WtLinguServiceTools.getWtSpellServiceState(xContext, locale);
       if (spellServiceState == SpellServiceState.NO_SPELLSERVICE || spellServiceState == SpellServiceState.IS_ERROR) {
-        WtMessageHandler.showMessage(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
-        noSpellService = true;
+        if (showNoSpellchecker) {
+          WtMessageHandler.showMessage(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
+        } else {
+          WtMessageHandler.printToLogFile(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
+        }
+//        noSpellService = true;
         return false;
       }
       boolean isWtSpellActive = !confg.useLtSpellChecker() ? true : spellServiceState == SpellServiceState.IS_RUNNING;
@@ -2987,7 +2996,7 @@ public class WtDocumentsHandler {
           }
           if (currentDocument != null) {
             if (isFirstRun) {
-              if (isLOConfigIncorrect(currentDocument)) {
+              if (isLOConfigIncorrect(currentDocument, false)) {
                 String cmd = "service:" + WtOfficeTools.WT_SERVICE_NAME + "?enableWt";
                 while (!WtOfficeTools.dispatchCmd(cmd, xContext)) {
                   Thread.sleep(250);
