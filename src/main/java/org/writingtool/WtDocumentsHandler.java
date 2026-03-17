@@ -1504,6 +1504,11 @@ public class WtDocumentsHandler {
     }
     noBackgroundCheck = !noBackgroundCheck;
     config.saveNoBackgroundCheck(noBackgroundCheck, docLanguage);
+    if (isBackgroundCheckOff()) {
+      for (WtSingleDocument document : documents) {
+        document.removeAllMarks();
+      }
+    }
     WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
     if (!isBackgroundCheckOff()) {
       checkLOWtConfig(getCurrentDocument(), true);

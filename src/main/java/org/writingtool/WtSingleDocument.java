@@ -1166,6 +1166,28 @@ public class WtSingleDocument {
    * set marks for a given list of changed paragraphs
    * before: remove all marks of all paragraphs of a list of paragraphs to remark
    */
+  public void removeAllMarks() {
+    try {
+      if (!disposed) {
+        WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage, docLanguage, 
+            numParasToCheck, false, false, false);
+        List<Integer> changedParas = new ArrayList<>();
+        List<Integer> toRemarkParas = new ArrayList<>();
+        for (int i = 0; i < docCache.size(); i++) {
+          toRemarkParas.add(i);
+        }
+        singleCheck.remarkChangedParagraphs(changedParas, toRemarkParas, mDocHandler.getLanguageTool());
+        closeDocumentCursor();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
+  }
+
+  /**
+   * set marks for a given list of changed paragraphs
+   * before: remove all marks of all paragraphs of a list of paragraphs to remark
+   */
   public void remarkChangedParagraphs(List<Integer> changedParas, List<Integer> toRemarkParas, boolean isIntern) {
     try {
       if (!disposed) {

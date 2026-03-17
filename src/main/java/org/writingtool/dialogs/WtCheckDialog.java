@@ -108,7 +108,6 @@ import org.writingtool.tools.WtOfficeTools.DocumentType;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 import org.writingtool.tools.WtVersionInfo;
 
-import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyState;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
