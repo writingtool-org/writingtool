@@ -1635,9 +1635,11 @@ public class WtAiDialog extends Thread implements ActionListener {
         height = (int) (imageFrame.getWidth() * factor);
         width = imageFrame.getWidth();
       }
-      WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
-          + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
-          + " imageFrame.getHeight(): " + imageFrame.getHeight());
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
+            + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
+            + " imageFrame.getHeight(): " + imageFrame.getHeight());
+      }
       imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
       imageFrame.setIcon(imageIcon);
       imageFrame.setMaximumSize(new Dimension(width, height));
