@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.languagetool.Language;
+import org.writingtool.WtDocumentsHandler.BackgroundCheck;
 import org.writingtool.aisupport.WtAiErrorDetection;
 import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiTextToSpeech;
@@ -516,7 +517,8 @@ public class WtMenus {
         }
         document.setMenuDocId();
         if (event.MenuId == switchOffId) {
-          if (document.getMultiDocumentsHandler().toggleNoBackgroundCheck()) {
+          BackgroundCheck check = document.getMultiDocumentsHandler().isBackgroundCheckOff() ? BackgroundCheck.ON : BackgroundCheck.OFF;
+          if (document.getMultiDocumentsHandler().toggleNoBackgroundCheck(check)) {
             document.getMultiDocumentsHandler().resetCheck(); 
           }
         } else if (event.MenuId == switchOffId - 1) {

@@ -65,7 +65,9 @@ import com.sun.star.linguistic2.ProofreadingResult;
 import com.sun.star.linguistic2.SingleProofreadingError;
 import com.sun.star.text.TextMarkupType;
 import com.sun.star.text.XFlatParagraph;
+import com.sun.star.text.XText;
 import com.sun.star.text.XTextCursor;
+import com.sun.star.text.XTextDocument;
 import com.sun.star.text.XTextRange;
 import com.sun.star.ui.ContextMenuExecuteEvent;
 import com.sun.star.uno.UnoRuntime;
@@ -2174,6 +2176,20 @@ public class WtSingleDocument {
     }
   }
 */
+  
+  public void addDummyText() {
+    if (docType == DocumentType.WRITER) {
+      XTextDocument xDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
+      XText xText = xDoc.getText();
+      XTextCursor cursor = xText.createTextCursor();
+      cursor.gotoEnd(false);
+      xText.insertString(cursor, " ", false);
+      cursor.gotoEnd(false);
+      cursor.goLeft((short) 1, true);
+      xText.insertString(cursor, "", true);
+    }
+  }
+
   private void setDokumentListener(XComponent xComponent) {
     try {
       if (!disposed && xComponent != null && eventListener == null) {

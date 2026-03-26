@@ -28,6 +28,7 @@ import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtVersionInfo;
 import org.writingtool.WtDocumentsHandler;
+import org.writingtool.WtDocumentsHandler.BackgroundCheck;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.dialogs.WtConfigurationDialog;
 import org.writingtool.dialogs.WtConfigurationDialog.ChangedOptions;
@@ -92,13 +93,17 @@ public class WtConfigThread extends Thread {
           config.saveConfiguration(docLanguage);
           documents.resetDocumentCaches();
           documents.resetGrammarCheckConfiguration();
+          BackgroundCheck check = config.noBackgroundCheck() ? BackgroundCheck.OFF : BackgroundCheck.ON;
+          documents.toggleNoBackgroundCheck(check);
         } else {
           config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
           config.saveConfiguration(docLanguage);
         }
         if (changedOptions.aiSettingsChanged) {
           documents.resetAiResultCaches();
-          documents.getAiCheckQueue().setReset();
+          if (documents.getAiCheckQueue() != null) {
+            documents.getAiCheckQueue().setReset();
+          }
         }
         if (changedOptions.colorsChanged) {
           documents.changePropertiesOfAllErrors();

@@ -122,6 +122,12 @@ public class WtDocumentsHandler {
     UNKNOWN,    //  unknown document
     DISPOSED    //  disposed document
   }
+  
+  public enum BackgroundCheck {
+    ON,
+    OFF,
+    TOGGLE
+  }
 
   private ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
   
@@ -1495,7 +1501,12 @@ public class WtDocumentsHandler {
    *  Toggle Switch Off / On of LT
    *  return true if toggle was done 
    */
-  public boolean toggleNoBackgroundCheck() throws Throwable {
+  public boolean toggleNoBackgroundCheck(BackgroundCheck check) throws Throwable {
+    if (check == BackgroundCheck.ON && !noBackgroundCheck) {
+      return false;
+    } else if (check == BackgroundCheck.OFF && noBackgroundCheck) {
+      return false;
+    }
     if (docLanguage == null) {
       docLanguage = getCurrentLanguage();
     }
@@ -1505,13 +1516,10 @@ public class WtDocumentsHandler {
     noBackgroundCheck = !noBackgroundCheck;
     config.saveNoBackgroundCheck(noBackgroundCheck, docLanguage);
     if (isBackgroundCheckOff()) {
-      for (WtSingleDocument document : documents) {
-        document.removeAllMarks();
-      }
     }
-    WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
     if (!isBackgroundCheckOff()) {
-      checkLOWtConfig(getCurrentDocument(), true);
+      WtLinguServiceTools.setGrammarAuto(true, xContext);
+//      checkLOWtConfig(getCurrentDocument(), true);
       useQueue = config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
       if (useQueue) {
         if (textLevelQueue == null) {
@@ -1529,6 +1537,9 @@ public class WtDocumentsHandler {
       }
       setRecheck();
       resetCheck();
+      for (WtSingleDocument document : documents) {
+        document.addDummyText();
+      }
     } else {
       if (textLevelQueue != null) {
         textLevelQueue.setStop(false);
@@ -1538,6 +1549,10 @@ public class WtDocumentsHandler {
         aiQueue.setStop(false);
         aiQueue = null;
       }
+      for (WtSingleDocument document : documents) {
+        document.removeAllMarks();
+      }
+      WtLinguServiceTools.setGrammarAuto(false, xContext);
     }
     if (sidebarContent != null) {
       sidebarContent.toggleBackgroundCheckButton();
@@ -1547,9 +1562,6 @@ public class WtDocumentsHandler {
     for (WtSingleDocument document : documents) {
       document.setConfigValues(config);
     }
-//    if (isBackgroundCheckOff()) {
-//      resetResultCaches(true);
-//    }
     return true;
   }
 
@@ -2115,6 +2127,8 @@ public class WtDocumentsHandler {
    * Inform listener that the document should be rechecked for grammar and style check.
    */
   public boolean resetCheck() {
+//    resetCheck(LinguServiceEventFlags.SPELL_WRONG_WORDS_AGAIN);
+//    resetCheck(LinguServiceEventFlags.SPELL_CORRECT_WORDS_AGAIN);
     return resetCheck(LinguServiceEventFlags.PROOFREAD_AGAIN);
   }
 
@@ -2151,6 +2165,7 @@ public class WtDocumentsHandler {
       javaLookAndFeelSet = -1;
       resetIgnoredMatches();
       resetGrammarResultCaches();
+      WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
       resetDocument();
       if (useQueue) {
         if (textLevelQueue == null) {
@@ -2168,8 +2183,10 @@ public class WtDocumentsHandler {
    * the doc should be rechecked.
    */
   public void resetDocument() {
-    setRecheck();
-    resetCheck();
+    if (!noBackgroundCheck) {
+      setRecheck();
+      resetCheck();
+    }
   }
 
   /**
@@ -2219,8 +2236,16 @@ public class WtDocumentsHandler {
         aboutThread.start();
       } else if ("moreInfo".equals(sEvent)) {
         moreInfo();
-      } else if ("toggleNoBackgroundCheck".equals(sEvent) || "backgroundCheckOn".equals(sEvent) || "backgroundCheckOff".equals(sEvent)) {
-        if (toggleNoBackgroundCheck()) {
+      } else if ("backgroundCheckOn".equals(sEvent)) {
+        if (toggleNoBackgroundCheck(BackgroundCheck.ON)) {
+          resetCheck();
+        }
+      } else if ("backgroundCheckOff".equals(sEvent)) {
+        if (toggleNoBackgroundCheck(BackgroundCheck.OFF)) {
+          resetCheck();
+        }
+      } else if ("toggleNoBackgroundCheck".equals(sEvent)) {
+        if (toggleNoBackgroundCheck(BackgroundCheck.TOGGLE)) {
           resetCheck();
         }
       } else if ("ignoreOnce".equals(sEvent)) {
@@ -2993,7 +3018,8 @@ public class WtDocumentsHandler {
           }
           DocumentStatus docStat = isKnownDocument();
           if (docStat == DocumentStatus.DISPOSED) {
-            break;
+            WtMessageHandler.printToLogFile("MultiDocumentsHandler: DocumentStatus.DISPOSED");
+            continue;
           }
           boolean isUnknownDocument = docStat == DocumentStatus.UNKNOWN ? true : false;
           if ((isFirstRun || isUnknownDocument)) {
@@ -3039,6 +3065,7 @@ public class WtDocumentsHandler {
     }
 
     public void exit() {
+      WtMessageHandler.printToLogFile("MultiDocumentsHandler: exit");
       runHelper = false;
     }
   }
