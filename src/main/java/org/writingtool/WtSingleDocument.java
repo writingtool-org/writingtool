@@ -1857,28 +1857,32 @@ public class WtSingleDocument {
           for(int j = 0; j < overlaps.size(); j++) {
             int l = overlaps.get(j);
             WtProofreadingError error2 = new WtProofreadingError(errors[l]);
-            if (k != l && isOverlappingError(error1, error2)) {
+            if (!filtered.contains(l) && k != l && isOverlappingError(error1, error2)) {
 //              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule && !isAiRule(error1);
 //              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule && !isAiRule(error2);
               boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule;
               boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule;
               if(isErr1Default && !isErr2Default) {
-                filtered.add(l);
+//                filtered.add(l);
               } else if(isErr2Default && !isErr1Default) {
-                filtered.add(k);
+//                filtered.add(k);
                 error1 = error2;
               } else {
-                if (error1.aSuggestions.length == 1 && error2.aSuggestions.length != 1) {
-                  filtered.add(l);
-                } else if (error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
-                  filtered.add(k);
+                if (error1.aSuggestions.length < error2.aSuggestions.length) {
+//                  filtered.add(k);
                   error1 = error2;
-                } else if (error2.aSuggestions.length == 0 && error1.aSuggestions.length > 0) {
-                  filtered.add(l);
+                } else if (error2.aSuggestions.length > error1.aSuggestions.length) {
+//                  filtered.add(l);
                 } else {
-                  filtered.add(k);
+//                  filtered.add(k);
                   error1 = error2;
                 }
+              }
+              if (!filtered.contains(l)) {
+                filtered.add(l);
+              }
+              if (!filtered.contains(k)) {
+                filtered.add(k);
               }
 /*
               if (error2.bDefaultRule && error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
