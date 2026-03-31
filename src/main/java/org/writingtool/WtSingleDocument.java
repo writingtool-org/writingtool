@@ -1913,8 +1913,8 @@ public class WtSingleDocument {
               error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;
               filteredErrors.add(error1);
               error1 = tmpError;
-              int diff = error2.nErrorStart + error2.nErrorLength - error1.nErrorStart;
-              error1.nErrorStart += (diff + 1);
+              int diff = error2.nErrorStart + error2.nErrorLength + 1 - error1.nErrorStart;
+              error1.nErrorStart += diff;
               error1.nErrorLength -= diff;
             } else {
               error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;

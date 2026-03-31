@@ -1025,12 +1025,12 @@ public class WtFlatParagraphTools {
           int i = 0;
           for (; i < errors.sentenceErrors.length; i++) {
             WtProofreadingError pError = errors.sentenceErrors[i];
-            if (pError.nErrorStart >= paraLen) {
+            if (pError.nErrorStart + pError.nErrorLength > paraLen) {
 //              if (debugMode) {
                 WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: pError.nErrorStart >= paraLen: (" + 
                     pError.nErrorStart + "/" + paraLen + ") : paragraph: " + flatPara.getText());
 //              }
-              return;
+              continue;
             }
             props = flatPara.getMarkupInfoContainer();
             WtPropertyValue[] properties = pError.aProperties;
