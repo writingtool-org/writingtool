@@ -1013,6 +1013,10 @@ public class WtFlatParagraphTools {
       }
       int paraLen = flatPara.getText().length();
       XMultiTextMarkup xMultiTextMarkup = UnoRuntime.queryInterface(XMultiTextMarkup.class, flatPara);
+      if (xMultiTextMarkup == null) {
+        WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: xMultiTextMarkup == null");
+        return;
+      }
       for (SentenceErrors errors : errorList) {
         //  commit all errors of one sentence
         if (errors.sentenceEnd <= paraLen) {
@@ -1058,6 +1062,13 @@ public class WtFlatParagraphTools {
             props = flatPara.getMarkupInfoContainer();
             markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
                 errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor.length: " + markupDescriptor.length);
+              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor[i] is " + (markupDescriptor[i] == null ?
+                  "null" : "not null"));
+              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: props is " + (props == null ?
+                  "null" : "not null"));
+            }
             xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor);
           }
         } else {
