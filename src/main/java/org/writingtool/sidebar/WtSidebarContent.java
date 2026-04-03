@@ -490,7 +490,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * reset list of deactivated rules
    */
   public void resetActivateRulesBox() {
-    this.setActivateRulesListToListBox();
+    setActivateRulesListToListBox();
+  }
+  
+  /**
+   * reset list of profiles
+   */
+  public void resetProfileListBox() {
+    setProfileListToListBox();;
   }
   
   /**

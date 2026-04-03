@@ -90,14 +90,11 @@ public class WtConfigThread extends Thread {
           }
           documents.setDisabledRules(docLanguage.getShortCodeWithCountryAndVariant(), disabledRulesUI);
           config.removeDisabledRuleIds(disabledRulesUI);
-          config.saveConfiguration(docLanguage);
           documents.resetDocumentCaches();
-          documents.resetGrammarCheckConfiguration();
           BackgroundCheck check = config.noBackgroundCheck() ? BackgroundCheck.OFF : BackgroundCheck.ON;
           documents.toggleNoBackgroundCheck(check);
         } else {
           config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
-          config.saveConfiguration(docLanguage);
         }
         if (changedOptions.aiSettingsChanged) {
           documents.resetAiResultCaches();
@@ -109,6 +106,8 @@ public class WtConfigThread extends Thread {
           documents.changePropertiesOfAllErrors();
           documents.remarkAllParagraphs();
         }
+        config.saveConfiguration(docLanguage);
+        documents.resetGrammarCheckConfiguration();
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
       }

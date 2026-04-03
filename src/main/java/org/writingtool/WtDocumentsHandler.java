@@ -589,7 +589,18 @@ public class WtDocumentsHandler {
     if (protocolHandler != null) {
       protocolHandler.setButtonState();
     }
-    // TODO: Update sidebar button states
+  }
+  
+  /**
+   * update all button states
+   */
+  public void updateSidebar() {
+    if (sidebarContent != null) {
+      sidebarContent.toggleBackgroundCheckButton();
+      sidebarContent.resetActivateRulesBox();
+      sidebarContent.resetProfileListBox();
+      sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+    }
   }
   
   /**
@@ -2158,9 +2169,7 @@ public class WtDocumentsHandler {
       linguServices = null;
       if (config != null) {
         noBackgroundCheck = config.noBackgroundCheck();
-        if (sidebarContent != null) {
-          sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
-        }
+        updateSidebar();
         updateButtons();
       }
       javaLookAndFeelSet = -1;
@@ -2168,12 +2177,13 @@ public class WtDocumentsHandler {
       resetGrammarResultCaches();
       WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
       resetDocument();
-      if (useQueue) {
+      if (!noBackgroundCheck && useQueue) {
         if (textLevelQueue == null) {
           textLevelQueue = new WtTextLevelCheckQueue(this);
         }
         textLevelQueue.setReset();
-      }
+      } else  if (textLevelQueue != null) {
+        textLevelQueue.setStop(false);      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
