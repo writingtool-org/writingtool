@@ -227,6 +227,7 @@ public class WtDocumentsHandler {
     WtOfficeTools.setLogLevel(config.getlogLevel());
     debugMode = WtOfficeTools.DEBUG_MODE_MD;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+    noBackgroundCheck = config.noBackgroundCheck();
     WtMessageHandler.writeInitialInformation(config);
     XDesktop desktop = WtOfficeTools.getDesktop(xContext);
     desktop.addTerminateListener(new WtTerminateListener());
