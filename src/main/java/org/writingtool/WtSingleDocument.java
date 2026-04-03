@@ -1795,9 +1795,8 @@ public class WtSingleDocument {
 
   /**
    * Filter overlapping errors
-   * Splits overlapping errors
    */
-  public WtProofreadingError[] filterOverlappingErrors (WtProofreadingError[] errors, boolean filterOverlap) {
+  public WtProofreadingError[] filterOverlappingErrors_(WtProofreadingError[] errors) {
     if (errors == null || errors.length < 2) {
       return errors;
     }
@@ -1817,95 +1816,45 @@ public class WtSingleDocument {
       return errors;
     }
     if (debugMode > 0) {
-      WtMessageHandler.printToLogFile("overlaps: " + overlaps.size() + ", filterOverlap: " + filterOverlap);
+      WtMessageHandler.printToLogFile("WtSingleDocument: filterOverlappingErrors_: overlaps: " + overlaps.size());
     }
     List<WtProofreadingError> filteredErrors = new ArrayList<>();
-    if (!filterOverlap) {
-      for (int i = 0; i < overlaps.size(); i++) {
-        int k = overlaps.get(i);
+    List<Integer> filtered = new ArrayList<>();
+    for (int i = 0; i < overlaps.size(); i++) {
+      int k = overlaps.get(i);
+      if (!filtered.contains(k)) {
         WtProofreadingError error1 = new WtProofreadingError(errors[k]);
-        for(int j = 0; j < errors.length; j++) {
-          WtProofreadingError error2 = errors[j];
-          if (k != j) {
-            if (error2.nErrorStart == error1.nErrorStart && error2.nErrorLength < error1.nErrorLength) {
-              int diff = error2.nErrorStart + error2.nErrorLength + 1 - error1.nErrorStart;
-              error1.nErrorStart += diff;
-              error1.nErrorLength -= diff;
-            } else if (error2.nErrorStart > error1.nErrorStart && error2.nErrorStart < error1.nErrorStart + error1.nErrorLength) {
-              if (error2.nErrorStart + error2.nErrorLength < error1.nErrorStart + error1.nErrorLength) {
-                WtProofreadingError tmpError = new WtProofreadingError(error1);
-                error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;
-                filteredErrors.add(error1);
-                error1 = tmpError;
-                int diff = error2.nErrorStart + error2.nErrorLength - error1.nErrorStart;
-                error1.nErrorStart += (diff + 1);
-                error1.nErrorLength -= diff;
+        for(int j = 0; j < overlaps.size(); j++) {
+          int l = overlaps.get(j);
+          WtProofreadingError error2 = new WtProofreadingError(errors[l]);
+          if (!filtered.contains(l) && k != l && isOverlappingError(error1, error2)) {
+            boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule;
+            boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule;
+            if(isErr1Default && !isErr2Default) {
+            } else if(isErr2Default && !isErr1Default) {
+              error1 = error2;
+            } else {
+              if (error1.aSuggestions.length < error2.aSuggestions.length) {
+                error1 = error2;
+              } else if (error2.aSuggestions.length > error1.aSuggestions.length) {
               } else {
-                error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;
+                error1 = error2;
               }
+            }
+            if (!filtered.contains(l)) {
+              filtered.add(l);
+            }
+            if (!filtered.contains(k)) {
+              filtered.add(k);
             }
           }
         }
         filteredErrors.add(error1);
       }
-    } else {
-      List<Integer> filtered = new ArrayList<>();
-      for (int i = 0; i < overlaps.size(); i++) {
-        int k = overlaps.get(i);
-        if (!filtered.contains(k)) {
-          WtProofreadingError error1 = new WtProofreadingError(errors[k]);
-          for(int j = 0; j < overlaps.size(); j++) {
-            int l = overlaps.get(j);
-            WtProofreadingError error2 = new WtProofreadingError(errors[l]);
-            if (k != l && isOverlappingError(error1, error2)) {
-//              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule && !isAiRule(error1);
-//              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule && !isAiRule(error2);
-              boolean isErr1Default = error1.bDefaultRule && !error1.bStyleRule;
-              boolean isErr2Default = error2.bDefaultRule && !error2.bStyleRule;
-              if(isErr1Default && !isErr2Default) {
-                filtered.add(l);
-              } else if(isErr2Default && !isErr1Default) {
-                filtered.add(k);
-                error1 = error2;
-              } else {
-                if (error1.aSuggestions.length == 1 && error2.aSuggestions.length != 1) {
-                  filtered.add(l);
-                } else if (error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
-                  filtered.add(k);
-                  error1 = error2;
-                } else if (error2.aSuggestions.length == 0 && error1.aSuggestions.length > 0) {
-                  filtered.add(l);
-                } else {
-                  filtered.add(k);
-                  error1 = error2;
-                }
-              }
-/*
-              if (error2.bDefaultRule && error2.aSuggestions.length == 1 && error1.aSuggestions.length != 1) {
-                filtered.add(k);
-                error1 = error2;
-              } else if (!error1.bDefaultRule && error2.bDefaultRule) {
-                filtered.add(k);
-                error1 = error2;
-              } else if (isAiRule(error1) && error2.bDefaultRule && error2.aSuggestions.length > 0) { 
-                filtered.add(k);
-                error1 = error2;
-              } else if (error1.aSuggestions.length < error2.aSuggestions.length) { 
-                filtered.add(k);
-                error1 = error2;
-              } else {
-                filtered.add(l);
-              }
- */
-            }
-          }
-          filteredErrors.add(error1);
-        }
-      }
-      if (debugMode > 0) {
-        for (int i : filtered) {
-          WtMessageHandler.printToLogFile("Filtered Rule: " + errors[i].aRuleIdentifier);
-        }
+    }
+    if (debugMode > 0) {
+      for (int i : filtered) {
+        WtMessageHandler.printToLogFile("Filtered Rule: " + errors[i].aRuleIdentifier);
       }
     }
     for(int i = 0; i < errors.length; i++) {
@@ -1914,10 +1863,79 @@ public class WtSingleDocument {
       }
     }
     WtProofreadingError[] fErrors = filteredErrors.toArray(new WtProofreadingError[0]);
-    if (!filterOverlap) {
-      Arrays.sort(fErrors, new WtErrorPositionComparator());
-    }
     return fErrors;
+  }
+
+  /**
+   * Filter overlapping errors
+   * Splits overlapping errors
+   */
+  public WtProofreadingError[] filterOverlappingErrors(WtProofreadingError[] errors, boolean filterOverlap) {
+    if (errors == null || errors.length < 2) {
+      return errors;
+    }
+    if (filterOverlap) {
+      return filterOverlappingErrors_(errors);
+    }
+    List<Integer> overlaps = new ArrayList<>();
+    for(int i = 0; i < errors.length; i++) {
+      WtProofreadingError error1 = errors[i];
+      for(int j = 0; j < errors.length; j++) {
+        WtProofreadingError error2 = errors[j];
+        if (i != j && isOverlappingError(error1, error2)) {
+          if (!overlaps.contains(i)) {
+            overlaps.add(i);
+          }
+        }
+      }
+    }
+    if (overlaps.isEmpty()) {
+      return errors;
+    }
+    if (debugMode > 0) {
+      WtMessageHandler.printToLogFile("WtSingleDocument: filterOverlappingErrors: overlaps: " + overlaps.size() 
+          + ", filterOverlap: " + filterOverlap);
+    }
+    List<WtProofreadingError> filteredErrors = new ArrayList<>();
+    for (int i = 0; i < overlaps.size(); i++) {
+      int k = overlaps.get(i);
+      WtProofreadingError error1 = new WtProofreadingError(errors[k]);
+      for(int j = 0; j < errors.length; j++) {
+        WtProofreadingError error2 = errors[j];
+        if (k != j) {
+          if (error2.nErrorStart == error1.nErrorStart && error2.nErrorLength < error1.nErrorLength) {
+            int diff = error2.nErrorStart + error2.nErrorLength + 1 - error1.nErrorStart;
+            error1.nErrorStart += diff;
+            error1.nErrorLength -= diff;
+          } else if (error2.nErrorStart > error1.nErrorStart && error2.nErrorStart < error1.nErrorStart + error1.nErrorLength) {
+            if (error2.nErrorStart + error2.nErrorLength < error1.nErrorStart + error1.nErrorLength) {
+              WtProofreadingError tmpError = new WtProofreadingError(error1);
+              error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;
+              filteredErrors.add(error1);
+              error1 = tmpError;
+              int diff = error2.nErrorStart + error2.nErrorLength + 1 - error1.nErrorStart;
+              error1.nErrorStart += diff;
+              error1.nErrorLength -= diff;
+            } else {
+              error1.nErrorLength = error2.nErrorStart - error1.nErrorStart - 1;
+            }
+          }
+        }
+      }
+      filteredErrors.add(error1);
+    }
+    for(int i = 0; i < errors.length; i++) {
+      if (!overlaps.contains(i)) {
+        filteredErrors.add(errors[i]);
+      }
+    }
+    for(int i = filteredErrors.size() - 1; i >= 0; i--) {
+      if (filteredErrors.get(i).nErrorLength < 1) {
+        filteredErrors.remove(i);
+      }
+    }
+    WtProofreadingError[] fErrors = filteredErrors.toArray(new WtProofreadingError[0]);
+    return filterOverlappingErrors_(fErrors);
   }
 
   /**
