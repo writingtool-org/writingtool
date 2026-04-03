@@ -1268,10 +1268,19 @@ public class WtOfficeTools {
 /**
  * convert array of WtProofreadingError to array of SingleProofreadingError
  */
-  public static SingleProofreadingError[] wtErrorsToProofreading(WtProofreadingError[] errors) {
-    SingleProofreadingError[] sErrors = new SingleProofreadingError[errors.length];
+  public static SingleProofreadingError[] wtErrorsToProofreading(WtProofreadingError[] errors, int paraLen) {
+    int len = 0;
     for (int i = 0; i < errors.length; i++) {
-      sErrors[i] = errors[i].toSingleProofreadingError();
+      if (errors[i].nErrorStart + errors[i].nErrorLength <= paraLen) {
+        len++;
+      }
+    }
+    SingleProofreadingError[] sErrors = new SingleProofreadingError[len];
+    for (int i = 0, j = 0; i < errors.length; i++) {
+      if (errors[i].nErrorStart + errors[i].nErrorLength <= paraLen) {
+        sErrors[j] = errors[i].toSingleProofreadingError();
+        j++;
+      }
     }
     return sErrors;
   }

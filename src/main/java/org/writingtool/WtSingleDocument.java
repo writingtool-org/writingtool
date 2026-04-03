@@ -304,7 +304,7 @@ public class WtSingleDocument {
           WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage,
               docLanguage, numParasToCheck, true, isMouseRequest, false);
           paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(singleCheck.checkParaRules(paraText, locale, 
-                            footnotePositions, nFPara, paRes.nStartOfSentencePosition, lt, 0, 0, false, false, errType));
+                            footnotePositions, nFPara, paRes.nStartOfSentencePosition, lt, 0, 0, false, false, errType), paraText.length());
 //          if (paRes.aErrors != null && paRes.aErrors.length > 0) {
 //            WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: errors[0]: " + paRes.aErrors[0].aRuleIdentifier);
 //          }
@@ -410,7 +410,7 @@ public class WtSingleDocument {
       WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache, fixedLanguage,
           docLanguage, numParasToCheck, isDialogRequest, isMouseRequest, isIntern);
       paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(singleCheck.getCheckResults(paraText, footnotePositions, locale, lt, paraNum, 
-          paRes.nStartOfSentencePosition, textIsChanged, changeFrom, changeTo, lastSinglePara, lastChangedPara, errType));
+          paRes.nStartOfSentencePosition, textIsChanged, changeFrom, changeTo, lastSinglePara, lastChangedPara, errType), paraText.length());
 //    MessageHandler.printToLogFile("Single document: Check Paragraph: " + paraNum + " done");
 //      MessageHandler.printToLogFile("Single document: Check Paragraph: resultCache for Para " + paraNum + ": "
 //          + (paragraphsCache.get(0).getCacheEntry(paraNum) == null 
@@ -430,7 +430,7 @@ public class WtSingleDocument {
         }
       }
       if (proofInfo == WtOfficeTools.PROOFINFO_GET_PROOFRESULT || isIntern) {
-        addStatAnalysisErrors (paRes, paraNum);
+        addStatAnalysisErrors (paRes, paraNum, paraText.length());
         if (debugModeTm) {
           startTime = System.currentTimeMillis();
         }
@@ -2127,13 +2127,13 @@ public class WtSingleDocument {
       errors.add(paragraphsCache.get(cacheNum).getMatches(nFPara, LoErrorType.GRAMMAR));
     }
     WtProofreadingError[] pErrors = mergeErrors(errors, nFPara, false);
-    paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(pErrors);
+    paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(pErrors, para.length());
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleDocument: getErrorsFromCache: Sentence: start: " + paRes.nStartOfSentencePosition
           + ", end: " + paRes.nBehindEndOfSentencePosition + ", next: " + paRes.nStartOfNextSentencePosition 
           + ", num errors: " + paRes.aErrors.length);
     }
-    addStatAnalysisErrors(paRes, nFPara);
+    addStatAnalysisErrors(paRes, nFPara, para.length());
     addSynonyms(paRes, para, locale, lt);
     return paRes;
   }
@@ -2263,12 +2263,12 @@ public class WtSingleDocument {
     return errorList.toArray(new WtProofreadingError[errorList.size()]);
   }
   
-  private void addStatAnalysisErrors(ProofreadingResult paRes, int nFPara) {
+  private void addStatAnalysisErrors(ProofreadingResult paRes, int nFPara, int paraLen) {
     if (statAnCache != null && statAnRuleId != null) {
       WtProofreadingError[] statAnErrors = statAnCache.getSafeMatches(nFPara);
       if (statAnErrors != null && statAnErrors.length > 0) {
         paRes.aErrors = WtOfficeTools.wtErrorsToProofreading(
-            addStatAnalysisErrors (WtOfficeTools.proofreadingToWtErrors(paRes.aErrors), statAnErrors, statAnRuleId));
+            addStatAnalysisErrors (WtOfficeTools.proofreadingToWtErrors(paRes.aErrors), statAnErrors, statAnRuleId), paraLen);
       }
     }
   }
