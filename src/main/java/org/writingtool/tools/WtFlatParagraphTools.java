@@ -1021,9 +1021,9 @@ public class WtFlatParagraphTools {
         //  commit all errors of one sentence
         if (errors.sentenceEnd <= paraLen) {
           XStringKeyMap props;
-          TextMarkupDescriptor[] markupDescriptor = new TextMarkupDescriptor[errors.sentenceErrors.length + 1];
-          int i = 0;
-          for (; i < errors.sentenceErrors.length; i++) {
+          List<TextMarkupDescriptor> markupDescriptor = new ArrayList<>();
+          int j = 0;
+          for (int i = 0; i < errors.sentenceErrors.length; i++) {
             WtProofreadingError pError = errors.sentenceErrors[i];
             if (pError.nErrorStart + pError.nErrorLength > paraLen) {
 //              if (debugMode) {
@@ -1049,27 +1049,25 @@ public class WtFlatParagraphTools {
             if (type > 0) {
               props.insertValue("LineType", type);
             }
-            int errLen = pError.nErrorLength;
-            if (errLen + pError.nErrorStart >= paraLen) {
-              errLen = paraLen - pError.nErrorStart;
-            }
-            if (errLen > 0) {
-              markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
-                  pError.nErrorStart, errLen, props);
+            if (pError.nErrorLength > 0) {
+              markupDescriptor.add(new TextMarkupDescriptor(TextMarkupType.PROOFREADING, pError.aRuleIdentifier, 
+                  pError.nErrorStart, pError.nErrorLength, props));
+              j++;
             }
           }
-          if (i == errors.sentenceErrors.length) {
+          if (j > 0) {
             props = flatPara.getMarkupInfoContainer();
-            markupDescriptor[i] = new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
-                errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props);
+            markupDescriptor.add(new TextMarkupDescriptor(TextMarkupType.SENTENCE, "Sentence", 
+                errors.sentenceStart, errors.sentenceEnd - errors.sentenceStart, props));
             if (debugMode) {
-              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor.length: " + markupDescriptor.length);
-              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor[i] is " + (markupDescriptor[i] == null ?
+              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor.length: " + markupDescriptor.size());
+              WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: markupDescriptor[i] is " 
+                  + (markupDescriptor.get(markupDescriptor.size() - 1) == null ?
                   "null" : "not null"));
               WtMessageHandler.printToLogFile("FlatParagraphTools: addMarksToOneParagraph: props is " + (props == null ?
                   "null" : "not null"));
             }
-            xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor);
+            xMultiTextMarkup.commitMultiTextMarkup(markupDescriptor.toArray(new TextMarkupDescriptor[0]));
           }
         } else {
 //        if (debugMode) {

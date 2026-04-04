@@ -107,7 +107,9 @@ public class WtConfigThread extends Thread {
           documents.remarkAllParagraphs();
         }
         config.saveConfiguration(docLanguage);
-        documents.resetGrammarCheckConfiguration();
+        if (changedOptions.ltRulesChanged || changedOptions.aiSettingsChanged) {
+          documents.resetGrammarCheckConfiguration();
+        }
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
       }
