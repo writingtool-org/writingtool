@@ -96,19 +96,16 @@ public class WtConfigThread extends Thread {
         } else {
           config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
         }
-        if (changedOptions.aiSettingsChanged) {
-          documents.resetAiResultCaches();
-          if (documents.getAiCheckQueue() != null) {
-            documents.getAiCheckQueue().setReset();
-          }
-        }
         if (changedOptions.colorsChanged) {
           documents.changePropertiesOfAllErrors();
           documents.remarkAllParagraphs();
         }
         config.saveConfiguration(docLanguage);
-        if (changedOptions.ltRulesChanged || changedOptions.aiSettingsChanged) {
+        if (changedOptions.ltRulesChanged) {
           documents.resetGrammarCheckConfiguration();
+        }
+        if (changedOptions.aiSettingsChanged) {
+          documents.resetAiCheckConfiguration();
         }
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));

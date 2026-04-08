@@ -2162,28 +2162,57 @@ public class WtDocumentsHandler {
   }
 
   /**
-   * Configuration has be changed
+   * Grammar check configuration has be changed
    */
   public void resetGrammarCheckConfiguration() {
     try {
       linguServices = null;
       if (config != null) {
         noBackgroundCheck = config.noBackgroundCheck();
+        useQueue = !noBackgroundCheck && config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
         updateSidebar();
         updateButtons();
       }
       javaLookAndFeelSet = -1;
       resetIgnoredMatches();
       resetGrammarResultCaches();
+      remarkAllParagraphs();
       WtLinguServiceTools.setGrammarAuto(!noBackgroundCheck, xContext);
       resetDocument();
-      if (!noBackgroundCheck && useQueue) {
+      if (useQueue) {
         if (textLevelQueue == null) {
           textLevelQueue = new WtTextLevelCheckQueue(this);
         }
         textLevelQueue.setReset();
       } else  if (textLevelQueue != null) {
         textLevelQueue.setStop(false);      }
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+  }
+
+  /**
+   * AI check configuration has be changed
+   */
+  public void resetAiCheckConfiguration() {
+    try {
+      boolean useAiQueue = false;
+      if (config != null) {
+        noBackgroundCheck = config.noBackgroundCheck();
+        useAiQueue = !noBackgroundCheck && config.getNumParasToCheck() != 0 && config.useAiSupport() && config.aiAutoCorrect();
+        updateSidebar();
+        updateButtons();
+      }
+      resetAiResultCaches();
+      remarkAllParagraphs();
+      if (useAiQueue) {
+        if (aiQueue == null) {
+          aiQueue = new WtAiCheckQueue(this);
+        }
+        aiQueue.setReset();
+      } else  if (aiQueue != null) {
+        aiQueue.setStop(false);
+      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
