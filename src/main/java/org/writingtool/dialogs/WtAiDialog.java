@@ -173,6 +173,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private final JButton changeImage;
   private final JButton newImage;
+  private final JButton translateFirst;
   private final JButton removeImage;
   private final JButton saveImage;
   private final JButton insertImage;
@@ -290,6 +291,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     
     changeImage = new JButton (messages.getString("loAiDialogImgChangeImageButton"));
     newImage = new JButton (messages.getString("loAiDialogImgNewImageButton"));
+    translateFirst = new JButton (messages.getString("loAiDialogImgTranslateFirstButton"));
     removeImage = new JButton (messages.getString("loAiDialogImgRemoveButton"));
     saveImage = new JButton (messages.getString("loAiDialogImgSaveButton"));
     insertImage = new JButton (messages.getString("loAiDialogImgInsertButton"));
@@ -740,6 +742,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       newImage.addActionListener(this);
       newImage.setActionCommand("newImage");
       
+      translateFirst.setFont(dialogFont);
+      translateFirst.addActionListener(this);
+      translateFirst.setActionCommand("translateFirst");
+      
       removeImage.setFont(dialogFont);
       removeImage.addActionListener(this);
       removeImage.setActionCommand("removeImage");
@@ -1120,6 +1126,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons21.weightx = 1.0f;
       cons21.weighty = 0.0f;
       cons21.gridy++;
+      rightPanel1.add(translateFirst, cons21);
+      cons21.gridy++;
       rightPanel1.add(changeImage, cons21);
       cons21.gridy++;
       rightPanel1.add(newImage, cons21);
@@ -1457,6 +1465,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     imageFrame.setEnabled(enabled);
     changeImage.setEnabled(noImgInst ? false : enabled);
     newImage.setEnabled(noImgInst ? false : enabled);
+    translateFirst.setEnabled(noImgInst ? false : enabled);
     removeImage.setEnabled(image == null ? false : enabled);
     saveImage.setEnabled(image == null ? false : enabled);
     insertImage.setEnabled(image == null ? false : enabled);
@@ -1699,6 +1708,8 @@ public class WtAiDialog extends Thread implements ActionListener {
                   createText();
                 } else if (action.getActionCommand().equals("translate")) {
                   translate();
+                } else if (action.getActionCommand().equals("translateFirst")) {
+                  translateTextBeforeCreateImage();
                 } else if (action.getActionCommand().equals("createImage")) {
                   createImageFromText();
                 } else if (action.getActionCommand().equals("changeImage")) {
@@ -1797,6 +1808,15 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       text = instructionPanel.getSelectedIndex() == 0 ? paragraph.getText() : directInstruction.getText();
     }
+    createImageAfterTranslation(text);
+  }
+
+  private void translateTextBeforeCreateImage() throws Throwable {
+    String text = imgInstruction.getText();
+    createImageAfterTranslation(text);
+  }
+
+  private void createImageAfterTranslation(String text) throws Throwable {
     String orgText = text;
     if (!locale.Language.equals("en")) {
       setAtWorkState(true);
