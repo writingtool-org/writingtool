@@ -89,7 +89,7 @@ public class WtAiRemote {
   private static int lastOid = 0;
   private static boolean hasPrintedInfo = false;
 
-  private enum AiType { EDITS, COMPLETIONS, CHAT, GENERATE }
+  private enum AiType { EDITS, COMPLETIONS, CHAT, GENERATE, RESPONSES }
   
   private boolean debugModeAiTm = WtOfficeTools.DEBUG_MODE_TA;
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;
@@ -141,6 +141,8 @@ public class WtAiRemote {
       aiType = AiType.COMPLETIONS;
     } else if (url.endsWith("/generate/") || url.endsWith("/generate")) {
       aiType = AiType.GENERATE;
+    } else if (url.endsWith("/v1/responses/") || url.endsWith("/v1/responses")) {
+      aiType = AiType.RESPONSES;
     } else {
       aiType = AiType.CHAT;
     }
@@ -304,6 +306,10 @@ public class WtAiRemote {
           + "\"instruction\": \"" + instruction + "\","
           + "\"input\": \"" + text + "\", "
 //          + "\"seed\": 1, "
+          + "\"temperature\": " + temperature + "}";
+    } else if (aiType == AiType.RESPONSES) {
+      urlParameters = "{\"model\": \"" + model + "\", " 
+          + "\"input\": \"" + instruction + (text == null ? "" : ": {" + text + "}") + "\", "
           + "\"temperature\": " + temperature + "}";
     } else {
       urlParameters = "{\"model\": \"" + model + "\", " 
@@ -598,7 +604,7 @@ public class WtAiRemote {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("charset", "utf-8");
-        conn.setRequestProperty("Authorization", apiKey);
+        conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setRequestProperty("Content-Length", Integer.toString(postData.length));
         int connectTimeout = conn.getConnectTimeout();
         int readTimeout = conn.getReadTimeout();
@@ -772,7 +778,11 @@ public class WtAiRemote {
         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + text);
       }
       try {
-        choices = jsonObject.getJSONArray("choices");
+        if (aiType == AiType.RESPONSES) {
+          choices = jsonObject.getJSONArray("output");
+        } else {
+          choices = jsonObject.getJSONArray("choices");
+        }
       } catch (Throwable t) {
         String error = jsonObject.getString("error");
         WtMessageHandler.showMessage(error, parent);
