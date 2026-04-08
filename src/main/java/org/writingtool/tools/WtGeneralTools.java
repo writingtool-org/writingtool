@@ -27,6 +27,7 @@ import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.writingtool.WtLinguisticServices;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
+import org.writingtool.dialogs.WtTextContextMenu;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -37,6 +38,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.JTextComponent;
 
 import java.awt.*;
 import java.io.File;
@@ -519,4 +521,45 @@ public final class WtGeneralTools {
       break;
     }
   }
+  
+//Source - https://stackoverflow.com/a/28969818
+//Posted by Kevin Rahe
+//Retrieved 2026-04-08, License - CC BY-SA 3.0
+
+  public static void installDefaultTextContextMenus(Container aContainer) {
+    if ( aContainer != null ) {
+      if ( aContainer instanceof JFrame ) {
+        aContainer = ((JFrame)aContainer).getContentPane();
+      }
+      else if ( aContainer instanceof JDialog ) {
+        aContainer = ((JDialog)aContainer).getContentPane();
+      }
+      Component[] lComponents = aContainer.getComponents();
+      for ( int lCompNum = 0; lCompNum < lComponents.length; ++lCompNum ) {
+        lComponents[ lCompNum ].getClass();
+        if ( ( lComponents[ lCompNum ] instanceof JPanel ) ||
+             ( lComponents[ lCompNum ] instanceof JInternalFrame ) ||
+             ( lComponents[ lCompNum ] instanceof JScrollPane ) ||
+             ( lComponents[ lCompNum ] instanceof JSplitPane ) ||
+             ( lComponents[ lCompNum ] instanceof JTabbedPane ) ||
+             ( lComponents[ lCompNum ] instanceof Panel ) ||
+             ( lComponents[ lCompNum ] instanceof ScrollPane ) ||
+             ( lComponents[ lCompNum ] instanceof JViewport ) ||
+             ( lComponents[ lCompNum ] instanceof JFrame ) ||
+             ( lComponents[ lCompNum ] instanceof JDialog ) ) {
+            installDefaultTextContextMenus( (Container)lComponents[ lCompNum ] );
+        }
+        else if ( lComponents[ lCompNum ] instanceof JTextComponent ) {
+          ((JTextComponent)lComponents[ lCompNum ]).setComponentPopupMenu( WtTextContextMenu.INSTANCE );
+        }
+        else if ( lComponents[ lCompNum ] instanceof JComboBox ) {
+          Component lEditorComp = ((JComboBox<?>)lComponents[ lCompNum ]).getEditor().getEditorComponent();
+          if ( lEditorComp instanceof JTextComponent ) {
+            ((JTextComponent)lEditorComp).setComponentPopupMenu( WtTextContextMenu.INSTANCE );
+          }
+        }
+      }
+    }
+  }
+
 }

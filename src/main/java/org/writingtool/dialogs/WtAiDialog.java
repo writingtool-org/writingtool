@@ -103,7 +103,7 @@ import com.sun.star.lang.XComponent;
  */
 public class WtAiDialog extends Thread implements ActionListener {
   
-  private final static String TRANSLATE_INSTRUCTION = "Print the translation of the following text in English (without comments)";
+  private final static String TRANSLATE_INSTRUCTION = "Print the translation of the following text in English (no comments)";
   
   private final static float DEFAULT_TEMPERATURE = 0.7f;
   private final static int DEFAULT_STEP = 30;
@@ -1255,6 +1255,8 @@ public class WtAiDialog extends Thread implements ActionListener {
 //      contentPane.add(generalButtonPanel, cons);
 //      cons.gridy++;
       contentPane.add(checkProgressPanel, cons);
+      
+      WtGeneralTools.installDefaultTextContextMenus(dialog);
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
