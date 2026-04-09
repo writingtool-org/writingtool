@@ -521,6 +521,8 @@ public class WtConfigurationDialog implements ActionListener {
 //    cons.anchor = GridBagConstraints.EAST;
     contentPane.add(buttonPanel, cons);
 
+    WtGeneralTools.installDefaultTextContextMenus(dialog);
+
     dialog.pack();
     // center on screen:
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
