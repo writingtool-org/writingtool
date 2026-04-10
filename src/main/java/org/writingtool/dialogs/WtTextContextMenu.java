@@ -20,12 +20,17 @@ package org.writingtool.dialogs;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ResourceBundle;
+
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+
+import org.writingtool.tools.WtOfficeTools;
 
 public class WtTextContextMenu extends JPopupMenu implements ActionListener {
   private static final long serialVersionUID = 1L;
   public static final WtTextContextMenu INSTANCE = new WtTextContextMenu();
+  private final ResourceBundle messages;
   private final JMenuItem itemCut;
   private final JMenuItem itemCopy;
   private final JMenuItem itemPaste;
@@ -33,13 +38,15 @@ public class WtTextContextMenu extends JPopupMenu implements ActionListener {
   private final JMenuItem itemSelectAll;
 
   private WtTextContextMenu() {
-    itemCut = newItem("Cut", 'T');
-    itemCopy = newItem("Copy", 'C');
-    itemPaste = newItem("Paste", 'P');
-    itemDelete = newItem("Delete", 'D');
+    messages = WtOfficeTools.getMessageBundle();
+    itemCut = newItem(messages.getString("textFieldContextMenuCut"), 'T');
+    itemCopy = newItem(messages.getString("textFieldContextMenuCopy"), 'C');
+    itemPaste = newItem(messages.getString("textFieldContextMenuPaste"), 'P');
+    itemDelete = newItem(messages.getString("textFieldContextMenuDelete"), 'D');
     addSeparator();
-    itemSelectAll = newItem("Select All", 'A');
+    itemSelectAll = newItem(messages.getString("textFieldContextMenuSelectAll"), 'A');
   }
+  
 
   private JMenuItem newItem(String text, char mnemonic) {
     JMenuItem item = new JMenuItem(text, mnemonic);
