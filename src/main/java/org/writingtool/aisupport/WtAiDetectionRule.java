@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedToken;
 import org.languagetool.AnalyzedTokenReadings;
+import org.languagetool.JLanguageTool;
 import org.languagetool.Tag;
 import org.languagetool.rules.Categories;
 import org.languagetool.rules.ITSIssueType;
@@ -90,7 +91,7 @@ public class WtAiDetectionRule extends TextLevelRule {
     ruleMessageWordConfusion = messages.getString("loAiRuleMessageWordConfusion");
     ruleMessageMisspelling = messages.getString("loAiRuleMessageMisspelling");
     
-    setCategory(Categories.STYLE.getCategory(messages));
+    setCategory(Categories.STYLE.getCategory(JLanguageTool.getMessageBundle()));
     setLocQualityIssueType(ITSIssueType.Grammar);
     setTags(Collections.singletonList(Tag.picky));
     

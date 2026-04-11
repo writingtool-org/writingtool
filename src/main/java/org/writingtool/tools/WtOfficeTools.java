@@ -18,7 +18,7 @@
  */
 package org.writingtool.tools;
 
-import static org.languagetool.JLanguageTool.MESSAGE_BUNDLE;
+// import static org.languagetool.JLanguageTool.MESSAGE_BUNDLE;
 
 import java.awt.Image;
 import java.io.File;
@@ -1197,7 +1197,7 @@ public class WtOfficeTools {
 
   public static boolean hasStatisticalStyleRules(Language lang) {
     try {
-      for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, new ArrayList<>())) {
+      for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), null, lang, new ArrayList<>())) {
         if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
             rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
           return true; 
@@ -1226,23 +1226,24 @@ public class WtOfficeTools {
   public static ResourceBundle getMessageBundle(Language lang) {
     java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
     ResourceBundle wtBundle = null;
-    ResourceBundle ltBundle = null;
+//    ResourceBundle ltBundle = null;
     ResourceBundle wtFallbackBundle = null;
     try {
       wtBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
     } catch (MissingResourceException ex) {
     }
-    try {
-      ltBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
-    } catch (MissingResourceException ex) {
-    }
+//    try {
+//      ltBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
+//    } catch (MissingResourceException ex) {
+//    }
     locale = java.util.Locale.ENGLISH;
     try {
       wtFallbackBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
     } catch (MissingResourceException ex) {
     }
-    ResourceBundle fallbackBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
-    return new WtResourceBundle(wtBundle, wtFallbackBundle, ltBundle, fallbackBundle);
+//    ResourceBundle fallbackBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
+//    return new WtResourceBundle(wtBundle, wtFallbackBundle, ltBundle, fallbackBundle);
+    return new WtResourceBundle(wtBundle, wtFallbackBundle);
   }
 
   /**
