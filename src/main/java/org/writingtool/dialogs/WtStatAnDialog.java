@@ -410,7 +410,7 @@ public class WtStatAnDialog extends Thread  {
     cons1.anchor = GridBagConstraints.WEST;
     cons1.weightx = 1.0f;
     cons1.weighty = 0.0f;
-    JButton helpButton = new JButton(MESSAGES.getString("guiHelpButton"));
+    JButton helpButton = new JButton(MESSAGES.getString("allDialogButtonHelp"));
     helpButton.addActionListener(e -> {
       WtGeneralTools.openURL(WtOfficeTools.getUrl("StatisticalAnalysis"));
     });

@@ -122,7 +122,7 @@ public class WtAiTranslationDialog implements ActionListener {
     temperatureLabel = new JLabel(messages.getString("loAiDialogTranslateFreedom") + ":");
     temperatureSlider = new JSlider(0, 100, (int)(DEFAULT_TEMPERATURE*100));
     translate = new JButton (messages.getString("loAiDialogTranslateButton")); 
-    cancel = new JButton (messages.getString("guiCancelButton"));
+    cancel = new JButton (messages.getString("allDialogButtonCancel"));
     mainPanel = new JPanel();
     
 //    checkProgress.setStringPainted(true);

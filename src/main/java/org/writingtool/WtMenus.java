@@ -780,7 +780,7 @@ public class WtMenus {
               } else if (SPEll_DIALOG_URL.equals(str)) {
                 XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
                     xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-                xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("checkTextShortDesc"));
+                xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuCheckText"));
                 xNewMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_CHECKDIALOG_COMMAND);
                 xContextMenu.removeByIndex(n);
                 xContextMenu.insertByIndex(n, xNewMenuEntry);
@@ -900,7 +900,7 @@ public class WtMenus {
         n++;
         xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("guiOOoIgnoreButton"));
+        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("checkDialogIgnoreButton"));
         xNewMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_IGNORE_ONCE_COMMAND);
         xContextMenu.insertByIndex(n, xNewMenuEntry);
       }
@@ -914,7 +914,7 @@ public class WtMenus {
       if (error != null) {
         XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("guiOOoIgnoreAllButton"));
+        xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("checkDialogIgnoreAllButton"));
         xNewMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_IGNORE_ALL_COMMAND);
         xContextMenu.insertByIndex(n + 2, xNewMenuEntry);
       }
@@ -959,7 +959,7 @@ public class WtMenus {
       
       XPropertySet xNewMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("guiMore"));
+      xNewMenuEntry.setPropertyValue("Text", MESSAGES.getString("allDialogButtonMore"));
       xNewMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_MORE_INFO_COMMAND);
       xContextMenu.insertByIndex(1, xNewMenuEntry);
     }
@@ -980,7 +980,7 @@ public class WtMenus {
       if (showAll) {
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("checkTextShortDesc"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loContextMenuCheckText"));
         xNewSubMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_CHECKDIALOG_COMMAND);
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;

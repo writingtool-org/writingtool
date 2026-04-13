@@ -39,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 
+import org.languagetool.JLanguageTool;
 import org.languagetool.rules.Category;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.patterns.FalseFriendPatternRule;
@@ -63,12 +64,12 @@ public class WtMoreInfoDialog {
   private final ResourceBundle messages;
   private final String lang;
 
-  public WtMoreInfoDialog(String title, String message, Rule rule, URL matchUrl, ResourceBundle messages, String lang) {
+  public WtMoreInfoDialog(String title, String message, Rule rule, URL matchUrl, String lang) {
     this.title = title;
     this.message = message;
     this.rule = rule;
     this.matchUrl = matchUrl;
-    this.messages = messages;
+    this.messages = JLanguageTool.getMessageBundle();
     this.lang = lang;
   }
 
@@ -119,7 +120,7 @@ public class WtMoreInfoDialog {
         }
       });
       
-      JButton close = new JButton(messages.getString("guiOOoCloseButton"));
+      JButton close = new JButton(messages.getString("checkDialogCloseButton"));
       close.addActionListener(e -> {
         close();
       });

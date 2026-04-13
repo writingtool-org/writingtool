@@ -93,7 +93,7 @@ public class WtAiTranslateDocument extends Thread {
       }
       if (isDocModified()) {
         int ret = WtOptionPane.showConfirmDialog(null, messages.getString("loAiDialogSaveFileMessage"), 
-            messages.getString("guiOOSaveDocument"), WtOptionPane.OK_CANCEL_OPTION);
+            messages.getString("allDialogButtonSaveDocument"), WtOptionPane.OK_CANCEL_OPTION);
         if (ret == WtOptionPane.CANCEL_OPTION) {
           return;
         }

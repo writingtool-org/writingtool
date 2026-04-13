@@ -134,34 +134,34 @@ public class WtCheckDialog extends Thread {
   private static boolean debugModeTm = WtOfficeTools.DEBUG_MODE_TM;       //  should be false except for testing
 
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
-  private static final String spellingError = messages.getString("desc_spelling");
+  private static final String spellingError = messages.getString("checkDialogPossibleSpellingMistake");
   private static final String spellRuleId = "LO_SPELLING_ERROR";
   
   private final static int DIALOG_LOOPS = 20;
   private final static int LOOP_WAIT_TIME = 50;
   private final static int TEST_LOOPS = 10;
   
-  private final static String dialogName = messages.getString("guiOOoCheckDialogName");
-  private final static String labelLanguage = messages.getString("textLanguage");
-  private final static String labelSuggestions = messages.getString("guiOOosuggestions"); 
-  private final static String moreButtonName = messages.getString("guiMore"); 
-  private final static String ignoreButtonName = messages.getString("guiOOoIgnoreButton"); 
-  private final static String ignoreAllButtonName = messages.getString("guiOOoIgnoreAllButton"); 
+  private final static String dialogName = messages.getString("checkDialogCheckDialogName");
+  private final static String labelLanguage = messages.getString("checkDialogTextLanguage");
+  private final static String labelSuggestions = messages.getString("checkDialogsuggestions"); 
+  private final static String moreButtonName = messages.getString("allDialogButtonMore"); 
+  private final static String ignoreButtonName = messages.getString("checkDialogIgnoreButton"); 
+  private final static String ignoreAllButtonName = messages.getString("checkDialogIgnoreAllButton"); 
   private final static String ignorePermanentButtonName = messages.getString("loContextMenuIgnorePermanent"); 
   private final static String resetIgnorePermanentButtonName = messages.getString("loMenuResetIgnorePermanent"); 
-  private final static String ignoreRuleButtonName = messages.getString("guiOOoIgnoreRuleButton"); 
+  private final static String ignoreRuleButtonName = messages.getString("checkDialogIgnoreRuleButton"); 
   private final static String deactivateRuleButtonName = messages.getString("loContextMenuDeactivateRule"); 
-  private final static String addToDictionaryName = messages.getString("guiOOoaddToDictionary");
-  private final static String changeButtonName = messages.getString("guiOOoChangeButton"); 
-  private final static String changeAllButtonName = messages.getString("guiOOoChangeAllButton"); 
-  private final static String autoCorrectButtonName = messages.getString("guiOOoAutoCorrectButton"); 
-  private final static String helpButtonName = messages.getString("guiOOoHelpButton"); 
-  private final static String optionsButtonName = messages.getString("guiOOoOptionsButton"); 
-  private final static String undoButtonName = messages.getString("guiUndo");
-  private final static String closeButtonName = messages.getString("guiOOoCloseButton");
-  private final static String changeLanguageList[] = { messages.getString("guiOOoChangeLanguageRequest"),
-                                                messages.getString("guiOOoChangeLanguageMatch"),
-                                                messages.getString("guiOOoChangeLanguageParagraph") };
+  private final static String addToDictionaryName = messages.getString("checkDialogaddToDictionary");
+  private final static String changeButtonName = messages.getString("checkDialogChangeButton"); 
+  private final static String changeAllButtonName = messages.getString("checkDialogChangeAllButton"); 
+  private final static String autoCorrectButtonName = messages.getString("checkDialogAutoCorrectButton"); 
+  private final static String helpButtonName = messages.getString("checkDialogHelpButton"); 
+  private final static String optionsButtonName = messages.getString("checkDialogOptionsButton"); 
+  private final static String undoButtonName = messages.getString("allDialogButtonUndo");
+  private final static String closeButtonName = messages.getString("checkDialogCloseButton");
+  private final static String changeLanguageList[] = { messages.getString("checkDialogChangeLanguageRequest"),
+                                                messages.getString("checkDialogChangeLanguageMatch"),
+                                                messages.getString("checkDialogChangeLanguageParagraph") };
   private final static String languageHelp = messages.getString("loDialogLanguageHelp");
   private final static String changeLanguageHelp = messages.getString("loDialogChangeLanguageHelp");
   private final static String matchDescriptionHelp = messages.getString("loDialogMatchDescriptionHelp");
@@ -1219,7 +1219,7 @@ public class WtCheckDialog extends Thread {
       sentenceIncludeError = new JTextPane();
       suggestionsLabel = new JLabel(labelSuggestions);
       suggestions = new JList<String>();
-      checkTypeLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("guiOOoCheckTypeLabel")));
+      checkTypeLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("checkDialogCheckTypeLabel")));
       checkTypeButtons = new JRadioButton[CHECK_TYPE_NUM];
       checkTypeGroup = new ButtonGroup();
       help = new JButton (helpButtonName);
@@ -1407,7 +1407,7 @@ public class WtCheckDialog extends Thread {
           return;
         }
         
-        checkTypeButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOOoCheckAllButton")));
+        checkTypeButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("checkDialogCheckAllButton")));
         checkTypeButtons[0].setSelected(true);
         checkTypeButtons[0].addActionListener(e -> {
           setAtWorkButtonState();
@@ -1426,7 +1426,7 @@ public class WtCheckDialog extends Thread {
           });
           t.start();
         });
-        checkTypeButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOOoCheckSpellingButton")));
+        checkTypeButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("checkDialogCheckSpellingButton")));
         checkTypeButtons[1].addActionListener(e -> {
           setAtWorkButtonState();
           checkType = 1;
@@ -1444,7 +1444,7 @@ public class WtCheckDialog extends Thread {
           });
           t.start();
         });
-        checkTypeButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOOoCheckGrammarButton")));
+        checkTypeButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("checkDialogCheckGrammarButton")));
         checkTypeButtons[2].addActionListener(e -> {
           setAtWorkButtonState();
           checkType = 2;
@@ -1462,7 +1462,7 @@ public class WtCheckDialog extends Thread {
           });
           t.start();
         });
-        checkTypeButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiOOoCheckOnlyRuleButton")));
+        checkTypeButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("checkDialogCheckOnlyRuleButton")));
         checkTypeButtons[3].addActionListener(e -> {
           if (checkType != 3) {
             checkType = 3;

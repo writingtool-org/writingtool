@@ -273,12 +273,12 @@ public class WtConfigurationDialog implements ActionListener {
     okButton.setMnemonic(WtGeneralTools.getMnemonic(messages.getString("guiOKButton")));
     okButton.setActionCommand(ACTION_COMMAND_OK);
     okButton.addActionListener(this);
-    JButton cancelButton = new JButton(WtGeneralTools.getLabel(messages.getString("guiCancelButton")));
-    cancelButton.setMnemonic(WtGeneralTools.getMnemonic(messages.getString("guiCancelButton")));
+    JButton cancelButton = new JButton(WtGeneralTools.getLabel(messages.getString("allDialogButtonCancel")));
+    cancelButton.setMnemonic(WtGeneralTools.getMnemonic(messages.getString("allDialogButtonCancel")));
     cancelButton.setActionCommand(ACTION_COMMAND_CANCEL);
     cancelButton.addActionListener(this);
-    JButton helpButton = new JButton(WtGeneralTools.getLabel(messages.getString("guiHelpButton")));
-    helpButton.setMnemonic(WtGeneralTools.getMnemonic(messages.getString("guiHelpButton")));
+    JButton helpButton = new JButton(WtGeneralTools.getLabel(messages.getString("allDialogButtonHelp")));
+    helpButton.setMnemonic(WtGeneralTools.getMnemonic(messages.getString("allDialogButtonHelp")));
     helpButton.setActionCommand("Help");
     helpButton.addActionListener(this);
     cons = new GridBagConstraints();
@@ -1561,8 +1561,7 @@ public class WtConfigurationDialog implements ActionListener {
                   lang = Languages.getLanguageForLocale(Locale.getDefault());
                 }
                 WtGeneralTools.showRuleInfoDialog(tree, messages.getString("guiAboutRuleTitle"),
-                        rule.getDescription(), rule, rule.getUrl(), messages,
-                        lang.getShortCodeWithCountryAndVariant());
+                        rule.getDescription(), rule, rule.getUrl(), lang.getShortCodeWithCountryAndVariant());
               });
               popup.add(aboutRuleMenuItem);
               popup.show(tree, e.getX(), e.getY());
@@ -3300,8 +3299,8 @@ public class WtConfigurationDialog implements ActionListener {
   
   private JTabbedPane getOfficeAiElements() {
     JTabbedPane tabbedpane = new JTabbedPane();
-    tabbedpane.add(messages.getString("guiAiText"), getOfficeAiTextElements());
-    tabbedpane.add(messages.getString("guiAiImages"), getOfficeAiImgElements());
+    tabbedpane.add(messages.getString("loAiDialogTabText"), getOfficeAiTextElements());
+    tabbedpane.add(messages.getString("loAiDialogTabImages"), getOfficeAiImgElements());
     tabbedpane.add(messages.getString("guiAiTextToSpeech"), getOfficeAiTtsElements());
     return tabbedpane;
   }

@@ -69,7 +69,7 @@ public class WtAboutDialog {
 //      WtUpdate wtUpdate = new WtUpdate();
 //      boolean newUpdate = wtUpdate.isNewVersion(WtVersionInfo.wtVersion);
       
-      String aboutText = WtGeneralTools.getLabel(messages.getString("guiMenuAbout"));
+      String aboutText = WtGeneralTools.getLabel(messages.getString("aboutDialogTitle"));
       
       dialog.setName(aboutText);
       dialog.setTitle(aboutText);
@@ -192,7 +192,7 @@ public class WtAboutDialog {
         WtGeneralTools.openDir(logDir);
       });
       
-      JButton close = new JButton(messages.getString("guiOOoCloseButton"));
+      JButton close = new JButton(messages.getString("checkDialogCloseButton"));
       close.addActionListener(e -> {
         close();
       });

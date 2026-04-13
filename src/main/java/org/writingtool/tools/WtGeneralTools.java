@@ -311,11 +311,11 @@ public final class WtGeneralTools {
     }
   }
 
-  public static void showRuleInfoDialog(Component parent, String title, String message, Rule rule, URL matchUrl, ResourceBundle messages, String lang) {
+  public static void showRuleInfoDialog(Component parent, String title, String message, Rule rule, URL matchUrl, String lang) {
     try {
 //      int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
 //      WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-
+      ResourceBundle messages = JLanguageTool.getMessageBundle();
       int dialogWidth = 320;
       JTextPane textPane = new JTextPane();
       textPane.setEditable(false);

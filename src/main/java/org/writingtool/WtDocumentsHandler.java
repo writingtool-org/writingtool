@@ -2679,7 +2679,7 @@ public class WtDocumentsHandler {
     @Override
     public void run() {
       try {
-        infoDialog = new WtMoreInfoDialog(title, message, rule, matchUrl, messages, lang);
+        infoDialog = new WtMoreInfoDialog(title, message, rule, matchUrl, lang);
         infoDialog.show();
       } catch (Throwable t) {
         WtMessageHandler.showError(t);
@@ -3137,7 +3137,7 @@ public class WtDocumentsHandler {
     public void run() {
       try {
         JLabel textLabel = new JLabel(text);
-        JButton cancelBottom = new JButton(messages.getString("guiCancelButton"));
+        JButton cancelBottom = new JButton(messages.getString("allDialogButtonCancel"));
         cancelBottom.addActionListener(e -> {
           close_intern();
         });
