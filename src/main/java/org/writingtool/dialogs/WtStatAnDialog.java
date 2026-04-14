@@ -54,6 +54,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import org.jetbrains.annotations.NotNull;
+import org.languagetool.JLanguageTool;
 import org.languagetool.Language;
 import org.languagetool.Languages;
 import org.languagetool.UserConfig;
@@ -92,7 +93,7 @@ public class WtStatAnDialog extends Thread  {
   
   private final static ResourceBundle MESSAGES = WtOfficeTools.getMessageBundle();
   private final static boolean debugMode = false;
-  private final static String dialogName = MESSAGES.getString("loStatisticalAnalysis");
+  private final static String dialogName = MESSAGES.getString("statAnalysisDialog");
   private final static int MIN_DIALOG_WIDTH = 640;
   private final static int MIN_DIALOG_HEIGHT = 420;
 //  private final static int dialogWidth = 640;
@@ -153,7 +154,7 @@ public class WtStatAnDialog extends Thread  {
     if (lang != null) {
       try {
         Map<String, Object[]> ruleValues = new HashMap<>();
-        for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), null, lang, null)) {
+        for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), null, lang, null)) {
           if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
               rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
             Object[] o = new Object[1];
@@ -162,7 +163,7 @@ public class WtStatAnDialog extends Thread  {
           }
         }
         UserConfig userConfig = new UserConfig(ruleValues);
-        for (Rule rule : lang.getRelevantRules(WtOfficeTools.getMessageBundle(), userConfig, lang, null)) {
+        for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), userConfig, lang, null)) {
           if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
               (rule instanceof ReadabilityRule && !hasReadabilityRule()) || rule instanceof AbstractStyleTooOftenUsedWordRule) {
             rules.add((TextLevelRule)rule);
@@ -304,7 +305,7 @@ public class WtStatAnDialog extends Thread  {
       closeDialog();
     }
 
-    optionLabel = new JLabel (MESSAGES.getString("loStatisticalAnalysisOptionsLabel") + ":");
+    optionLabel = new JLabel (MESSAGES.getString("statAnalysisDialogOptionsLabel") + ":");
     optionLabel.createToolTip().updateUI();
     
     // main pane
@@ -359,7 +360,7 @@ public class WtStatAnDialog extends Thread  {
     cons.weighty = 0.0f;
     cons.fill = GridBagConstraints.NONE;
     cons.anchor = GridBagConstraints.NORTHWEST;
-    JLabel functionLabel = new JLabel(MESSAGES.getString("loStatisticalAnalysisAnalysisLabel") + ":");
+    JLabel functionLabel = new JLabel(MESSAGES.getString("statAnalysisDialogAnalysisLabel") + ":");
     contentPane.add(functionLabel, cons);
     cons.gridy++;
     function = new JComboBox<String>(getAllRuleNames());
@@ -417,7 +418,7 @@ public class WtStatAnDialog extends Thread  {
     buttonPanel.add(helpButton, cons1);
     cons1.anchor = GridBagConstraints.EAST;
     cons1.gridx++;
-    JButton closeButton = new JButton(MESSAGES.getString("loStatisticalAnalysisCloseButton"));
+    JButton closeButton = new JButton(MESSAGES.getString("statAnalysisDialogCloseButton"));
     closeButton.addActionListener(e -> {
       closeDialog();
     });
@@ -461,7 +462,7 @@ public class WtStatAnDialog extends Thread  {
     cons11.fill = GridBagConstraints.HORIZONTAL;
     cons11.weightx = 0.0;
     cons11.weighty = 0.0;
-    leftPanel.add(new JLabel(MESSAGES.getString("loStatisticalAnalysisChapterLabel") + ":"), cons11);
+    leftPanel.add(new JLabel(MESSAGES.getString("statAnalysisDialogChapterLabel") + ":"), cons11);
     cons11.gridy++;
     cons11.weightx = 0.0;
     cons11.weighty = 0.0;
@@ -479,7 +480,7 @@ public class WtStatAnDialog extends Thread  {
     cons11.weightx = 0.0f;
     cons11.weighty = 0.0;
     cons11.insets = new Insets(14, 6, 2, 6);
-    JLabel subChapterLabel = new JLabel(MESSAGES.getString("loStatisticalAnalysisSubchapterLabel") + ":");
+    JLabel subChapterLabel = new JLabel(MESSAGES.getString("statAnalysisDialogSubchapterLabel") + ":");
     leftPanel.add(subChapterLabel, cons11);
     cons11.gridy++;
     cons11.weightx = 1.0f;
@@ -516,7 +517,7 @@ public class WtStatAnDialog extends Thread  {
       cons11.fill = GridBagConstraints.HORIZONTAL;
       cons11.weightx = 0.0;
       cons11.weighty = 0.0;
-      leftPanel.add(new JLabel(MESSAGES.getString("loStatisticalAnalysisMostUsedWords") + ":"), cons11);
+      leftPanel.add(new JLabel(MESSAGES.getString("statAnalysisDialogMostUsedWords") + ":"), cons11);
       String[] mostUsedWords = null;
       mostUsedWords = usedWordRule.getMostUsedWords();
       usedWords = new JComboBox<String>(mostUsedWords);
@@ -549,7 +550,7 @@ public class WtStatAnDialog extends Thread  {
       cons11.fill = GridBagConstraints.HORIZONTAL;
       cons11.weightx = 0.0;
       cons11.weighty = 0.0;
-      leftPanel.add(new JLabel(MESSAGES.getString("loStatisticalAnalysisChapterLabel") + ":"), cons11);
+      leftPanel.add(new JLabel(MESSAGES.getString("statAnalysisDialogChapterLabel") + ":"), cons11);
       cons11.gridy++;
       cons11.weightx = 0.0;
       cons11.weighty = 0.0;
@@ -563,7 +564,7 @@ public class WtStatAnDialog extends Thread  {
       cons11.weightx = 0.0f;
       cons11.weighty = 0.0;
       cons11.insets = new Insets(14, 6, 2, 6);
-      JLabel subChapterLabel = new JLabel(MESSAGES.getString("loStatisticalAnalysisSubchapterLabel") + ":");
+      JLabel subChapterLabel = new JLabel(MESSAGES.getString("statAnalysisDialogSubchapterLabel") + ":");
       leftPanel.add(subChapterLabel, cons11);
       cons11.gridy++;
       cons11.weightx = 1.0f;
@@ -606,7 +607,7 @@ public class WtStatAnDialog extends Thread  {
     cons21.weightx = 0.0;
     cons21.weighty = 0.0;
     optionPanel.add(optionLabel, cons21);
-    withoutDirectSpeech = new JCheckBox(MESSAGES.getString("loStatisticalAnalysisWithoutDirectSpreech"));
+    withoutDirectSpeech = new JCheckBox(MESSAGES.getString("statAnalysisDialogWithoutDirectSpreech"));
     if (config == null) {
       WtMessageHandler.showMessage("config == null");
     }
@@ -622,10 +623,10 @@ public class WtStatAnDialog extends Thread  {
     cons22.anchor = GridBagConstraints.NORTHWEST;
     cons22.weightx = 0.0;
     cons22.weighty = 0.0;
-    stepLabel1 = new JLabel(MESSAGES.getString("loStatisticalAnalysisLevels") + ": ");
+    stepLabel1 = new JLabel(MESSAGES.getString("statAnalysisDialogLevels") + ": ");
     stepField = new JTextField("", 3);
     stepLabel2 = new JLabel();
-    setButton = new JButton(MESSAGES.getString("loStatisticalAnalysisSetButton"));
+    setButton = new JButton(MESSAGES.getString("statAnalysisDialogSetButton"));
     stepPanel.add(stepLabel1, cons22);
     cons22.gridx++;
     stepPanel.add(stepField, cons22);
@@ -641,7 +642,7 @@ public class WtStatAnDialog extends Thread  {
     cons21.gridy++;
     optionPanel.add(withoutDirectSpeech, cons21);
     cons21.gridx++;
-    defaultButton = new JButton(MESSAGES.getString("loStatisticalAnalysisDefaultButton"));
+    defaultButton = new JButton(MESSAGES.getString("statAnalysisDialogDefaultButton"));
     optionPanel.add(defaultButton, cons21);
     rightPanel.add(optionPanel, cons20);
 
@@ -650,8 +651,8 @@ public class WtStatAnDialog extends Thread  {
     } else {
       cons20.gridx = 0;
       cons20.gridy++;
-      ignore = new JButton(MESSAGES.getString("loStatisticalAnalysisIgnoreWordButton"));
-      removeAllIgnored = new JButton(MESSAGES.getString("loStatisticalAnalysisResetIgnoredWordsButton"));
+      ignore = new JButton(MESSAGES.getString("statAnalysisDialogIgnoreWordButton"));
+      removeAllIgnored = new JButton(MESSAGES.getString("statAnalysisDialogResetIgnoredWordsButton"));
       removeAllIgnored.setEnabled(config.getExcludedWords(selectedRule).size() > 0);
       rightPanel.add(removeAllIgnored, cons20);
       cons20.gridy++;
@@ -661,10 +662,10 @@ public class WtStatAnDialog extends Thread  {
 
     cons20.gridy++;
     showAdditionalOptions = new JCheckBox("Show additional Options");
-//    showAdditionalOptions = new JCheckBox(MESSAGES.getString("loStatisticalAnalysisWithoutDirectSpreech"));
+//    showAdditionalOptions = new JCheckBox(MESSAGES.getString("statAnalysisDialogWithoutDirectSpreech"));
 
     showParagraphsWithoutMatch = new JCheckBox("Show paragraphs without matches");
-//  showParagraphsWithoutMatch = new JCheckBox(MESSAGES.getString("loStatisticalAnalysisWithoutDirectSpreech"));
+//  showParagraphsWithoutMatch = new JCheckBox(MESSAGES.getString("statAnalysisDialogWithoutDirectSpreech"));
     showParagraphsWithoutMatch.setVisible(false);
 
     showAdditionalOptions.setSelected(config.showAdditionalOptions());
@@ -888,7 +889,7 @@ public class WtStatAnDialog extends Thread  {
   @Override
   public void run() {
     try {
-      waitdialog = WtDocumentsHandler.getWaitDialog("Please wait", MESSAGES.getString("loWaitMessage"));
+      waitdialog = WtDocumentsHandler.getWaitDialog("Please wait", MESSAGES.getString("messageDialogWaitMessage"));
       waitdialog.start();
       runDialog();
       waitdialog.close();
@@ -1023,7 +1024,7 @@ public class WtStatAnDialog extends Thread  {
     int weight;
     if (chapter == null) {
       weight = getWeight(0, cache.size());
-      chapterTitle = MESSAGES.getString("loStatisticalAnalysisEntireDocument");
+      chapterTitle = MESSAGES.getString("statAnalysisDialogEntireDocument");
     } else {
       weight = getWeight(chapter.from + 1, chapter.to);
       chapterTitle = chapter.name;
@@ -1133,7 +1134,7 @@ public class WtStatAnDialog extends Thread  {
     String txt = WtUsedWordRule.isUsedWordRule(selectedRule) ? 
         usedWordRule.getMessageOfLevel(weight) : levelRule.getMessageOfLevel(weight);
     if (txt == null) {
-      txt = MESSAGES.getString("loStatisticalAnalysisNotAnalyzed");
+      txt = MESSAGES.getString("statAnalysisDialogNotAnalyzed");
     }
 //    return "<html><div style='color:black;'>" + txt + "</html>";
     return "<html>" + txt + "</html>";
@@ -1272,10 +1273,10 @@ public class WtStatAnDialog extends Thread  {
   
   private String[] getUnderlineTypes() {
     String[] types = {
-        MESSAGES.getString("guiUTypeWave"),
-        MESSAGES.getString("guiUTypeBoldWave"),
-        MESSAGES.getString("guiUTypeBold"),
-        MESSAGES.getString("guiUTypeDash")};
+        MESSAGES.getString("allDialogUTypeWave"),
+        MESSAGES.getString("allDialogUTypeBoldWave"),
+        MESSAGES.getString("allDialogUTypeBold"),
+        MESSAGES.getString("allDialogUTypeDash")};
     return types;
   }
 
@@ -1325,7 +1326,7 @@ public class WtStatAnDialog extends Thread  {
     cons1.fill = GridBagConstraints.NONE;
     cons1.anchor = GridBagConstraints.NORTHWEST;
 
-    JLabel underlineStyle = new JLabel(MESSAGES.getString("guiUColorStyleLabel") + " ");
+    JLabel underlineStyle = new JLabel(MESSAGES.getString("allDialogUColorStyleLabel") + " ");
     colorPanel.add(underlineStyle);
 
     JLabel underlineLabel = new JLabel(" \u2588\u2588\u2588 ");  // \u2587 is smaller
@@ -1369,7 +1370,7 @@ public class WtStatAnDialog extends Thread  {
     cons12.weightx = 0.0f;
     cons12.fill = GridBagConstraints.NONE;
     cons12.anchor = GridBagConstraints.NORTHWEST;
-    JButton changeButton = new JButton(MESSAGES.getString("guiUColorChange"));
+    JButton changeButton = new JButton(MESSAGES.getString("allDialogUColorChange"));
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
 //      dialog.setAlwaysOnTop(false);
@@ -1396,7 +1397,7 @@ public class WtStatAnDialog extends Thread  {
 //          dialog.setAlwaysOnTop(true);
         }
       };
-      JDialog colorDialog = JColorChooser.createDialog(dialog, MESSAGES.getString("guiUColorDialogHeader"), true,
+      JDialog colorDialog = JColorChooser.createDialog(dialog, MESSAGES.getString("allDialogUColorDialogHeader"), true,
           colorChooser, okActionListener, cancelActionListener);
       colorDialog.setAlwaysOnTop(true);
       colorDialog.toFront();
@@ -1404,7 +1405,7 @@ public class WtStatAnDialog extends Thread  {
     });
     buttonPanel.add(changeButton, cons12);
   
-    JButton defaultButton = new JButton(MESSAGES.getString("guiUColorDefault"));
+    JButton defaultButton = new JButton(MESSAGES.getString("allDialogUColorDefault"));
     defaultButton.addActionListener(e -> {
       config.setDefaultUnderlineColor();
       underlineLabel.setForeground(config.getUnderlineColor());

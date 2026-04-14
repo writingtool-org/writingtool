@@ -644,7 +644,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     currentProfile = conf.getCurrentProfile();
     List<String> definedProfiles = new ArrayList<>(conf.getDefinedProfiles());
     definedProfiles.sort(null);
-    definedProfiles.add(0, MESSAGES.getString("guiUserProfile"));
+    definedProfiles.add(0, MESSAGES.getString("allDialogDefaultProfile"));
     if (currentProfile != null && !currentProfile.isEmpty()) {
       definedProfiles.remove(currentProfile);
       definedProfiles.add(0, currentProfile);
@@ -670,7 +670,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     for (PropertyValue propVal : props) {
       if (propVal.Name.equals("Text")) {
         String text = new String((String) propVal.Value);
-        if (text.equals(MESSAGES.getString("guiUserProfile"))) {
+        if (text.equals(MESSAGES.getString("allDialogDefaultProfile"))) {
           text = "";
         }
         conf = WritingTool.getDocumentsHandler().getLastConfiguration();

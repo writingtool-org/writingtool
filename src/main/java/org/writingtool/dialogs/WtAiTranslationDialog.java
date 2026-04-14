@@ -75,7 +75,6 @@ public class WtAiTranslationDialog implements ActionListener {
   private boolean debugMode = false;
   private boolean debugModeTm = false;
   
-  private final ResourceBundle messages;
   private final JDialog dialog;
   private final Container contentPane;
   private final Image ltImage;
@@ -102,7 +101,6 @@ public class WtAiTranslationDialog implements ActionListener {
    * the constructor of the class creates all elements of the dialog
    */
   public WtAiTranslationDialog(WtSingleDocument document, ResourceBundle messages) {
-    this.messages = messages;
     long startTime = 0;
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
@@ -117,11 +115,11 @@ public class WtAiTranslationDialog implements ActionListener {
     JFrame frame = new JFrame();
     dialog = new JDialog(frame);
     contentPane = dialog.getContentPane();
-    languageLabel = new JLabel(messages.getString("loAiDialogLanguageLabel") + ":");
+    languageLabel = new JLabel(messages.getString("aiDialogLanguageLabel") + ":");
     language = new JComboBox<String>(getPossibleLanguages());
-    temperatureLabel = new JLabel(messages.getString("loAiDialogTranslateFreedom") + ":");
+    temperatureLabel = new JLabel(messages.getString("aiDialogTranslateFreedom") + ":");
     temperatureSlider = new JSlider(0, 100, (int)(DEFAULT_TEMPERATURE*100));
-    translate = new JButton (messages.getString("loAiDialogTranslateButton")); 
+    translate = new JButton (messages.getString("aiDialogTranslateButton")); 
     cancel = new JButton (messages.getString("allDialogButtonCancel"));
     mainPanel = new JPanel();
     
@@ -135,7 +133,7 @@ public class WtAiTranslationDialog implements ActionListener {
       if (dialog == null) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
       }
-      String dialogName = messages.getString("loAiTranslationDialogTitle");
+      String dialogName = messages.getString("aiTranslationDialogTitle");
       dialog.setName(dialogName);
 //      dialog.setTitle(dialogName);
       dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
@@ -151,7 +149,7 @@ public class WtAiTranslationDialog implements ActionListener {
 
       language.setFont(dialogFont);
       language.setSelectedItem(startLang);
-      locale = WtGeneralTools.getLocalForFullName(startLang, messages);
+      locale = WtGeneralTools.getLocalForFullName(startLang);
       selectedLang = startLang;
 //      language.setToolTipText(formatToolTipText(languageHelp));
       language.addItemListener(e -> {
@@ -403,7 +401,7 @@ public class WtAiTranslationDialog implements ActionListener {
    */
   private void translate() {
     if (selectedLang != null) {
-      locale = WtGeneralTools.getLocalForFullName(selectedLang, messages);
+      locale = WtGeneralTools.getLocalForFullName(selectedLang);
     } else {
       locale = null;
     }
@@ -428,9 +426,9 @@ public class WtAiTranslationDialog implements ActionListener {
   private String[] getPossibleLanguages() {
     List<String> languages = new ArrayList<>();
     for (Language lang : Languages.get()) {
-      languages.add(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+      languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
       if("English".equals(lang.getName())) {
-        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang));
       }
     }
     languages.sort(null);

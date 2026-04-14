@@ -83,13 +83,13 @@ public class WtAiDetectionRule extends TextLevelRule {
     this.showStylisticHints = showStylisticHints;
     this.linguServices = linguServices;
     this.locale = locale;
-    ruleMessage = messages.getString("loAiRuleMessage");
-    ruleMessageOtherPunctuation = messages.getString("loAiRuleMessageOtherPunctuation");
-    ruleMessageMissingPunctuation = messages.getString("loAiRuleMessageMissingPunctuation");
-    ruleMessageUnnecessaryPunctuation = messages.getString("loAiRuleMessageUnnecessaryPunctuation");
-    ruleMessageGrammar = messages.getString("loAiRuleMessageGrammar");
-    ruleMessageWordConfusion = messages.getString("loAiRuleMessageWordConfusion");
-    ruleMessageMisspelling = messages.getString("loAiRuleMessageMisspelling");
+    ruleMessage = messages.getString("aiRuleMessage");
+    ruleMessageOtherPunctuation = messages.getString("aiRuleMessageOtherPunctuation");
+    ruleMessageMissingPunctuation = messages.getString("aiRuleMessageMissingPunctuation");
+    ruleMessageUnnecessaryPunctuation = messages.getString("aiRuleMessageUnnecessaryPunctuation");
+    ruleMessageGrammar = messages.getString("aiRuleMessageGrammar");
+    ruleMessageWordConfusion = messages.getString("aiRuleMessageWordConfusion");
+    ruleMessageMisspelling = messages.getString("aiRuleMessageMisspelling");
     
     setCategory(Categories.STYLE.getCategory(JLanguageTool.getMessageBundle()));
     setLocQualityIssueType(ITSIssueType.Grammar);
@@ -714,7 +714,7 @@ public class WtAiDetectionRule extends TextLevelRule {
 
   @Override
   public String getDescription() {
-    return messages.getString("loAiRuleDescription");
+    return messages.getString("aiRuleDescription");
   }
   
   class AiRuleMatch {

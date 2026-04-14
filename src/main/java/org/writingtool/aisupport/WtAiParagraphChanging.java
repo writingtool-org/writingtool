@@ -59,8 +59,8 @@ public class WtAiParagraphChanging extends Thread {
 
   private int debugMode = WtOfficeTools.DEBUG_MODE_AI;   //  should be 0 except for testing
 
-  public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
-  public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
+  public final static String WAIT_TITLE = messages.getString("aiWaitDialogTitle");
+  public final static String WAIT_MESSAGE = messages.getString("aiWaitDialogMessage");
 
   public final static WtSuggestionStore lastWords = new WtSuggestionStore(MAX_WORDS);
   

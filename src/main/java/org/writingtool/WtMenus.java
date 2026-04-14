@@ -227,7 +227,7 @@ public class WtMenus {
           }
         }
         if (hasStatisticalStyleRules) {
-          ltMenu.insertItem(switchOffId, MESSAGES.getString("loStatisticalAnalysis") + " ...", 
+          ltMenu.insertItem(switchOffId, MESSAGES.getString("statAnalysisDialog") + " ...", 
               (short)0, switchOffPos);
           ltMenu.setCommand(switchOffId, WtProtocolHandler.WT_STATISTICAL_ANALYSES_COMMAND);
           switchOffId++;
@@ -328,7 +328,7 @@ public class WtMenus {
         xProfileMenu.removeItem((short)0, xProfileMenu.getItemCount());
         short nId = (short) (switchOffId + SUBMENU_ID_DIFF);
         short nPos = 0;
-        xProfileMenu.insertItem(nId, MESSAGES.getString("guiUserProfile"), (short) 0, nPos);
+        xProfileMenu.insertItem(nId, MESSAGES.getString("allDialogDefaultProfile"), (short) 0, nPos);
         xProfileMenu.setCommand(nId, WtProtocolHandler.WT_PROFILE_COMMAND);
         if (currentProfile == null || currentProfile.isEmpty()) {
           xProfileMenu.enableItem(nId , false);
@@ -988,7 +988,7 @@ public class WtMenus {
       if (hasStatisticalStyleRules) {
         xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
             xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("loStatisticalAnalysis"));
+        xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("statAnalysisDialog"));
         xNewSubMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_STATISTICAL_ANALYSES_COMMAND);
         xSubMenuContainer.insertByIndex(j, xNewSubMenuEntry);
         j++;
@@ -1207,7 +1207,7 @@ public class WtMenus {
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerContainer"));
       xNewSubMenuEntry = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTrigger"));
-      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("guiUserProfile"));
+      xNewSubMenuEntry.setPropertyValue("Text", MESSAGES.getString("allDialogDefaultProfile"));
       xNewSubMenuEntry.setPropertyValue("CommandURL", WtProtocolHandler.WT_PROFILE_COMMAND);
       xRuleMenuContainer.insertByIndex(0, xNewSubMenuEntry);
       for (int i = 0; i < definedProfiles.size(); i++) {

@@ -162,32 +162,32 @@ public class WtCheckDialog extends Thread {
   private final static String changeLanguageList[] = { messages.getString("checkDialogChangeLanguageRequest"),
                                                 messages.getString("checkDialogChangeLanguageMatch"),
                                                 messages.getString("checkDialogChangeLanguageParagraph") };
-  private final static String languageHelp = messages.getString("loDialogLanguageHelp");
-  private final static String changeLanguageHelp = messages.getString("loDialogChangeLanguageHelp");
-  private final static String matchDescriptionHelp = messages.getString("loDialogMatchDescriptionHelp");
-  private final static String matchParagraphHelp = messages.getString("loDialogMatchParagraphHelp");
-  private final static String suggestionsHelp = messages.getString("loDialogSuggestionsHelp");
-  private final static String checkTypeHelp = messages.getString("loDialogCheckTypeHelp");
-  private final static String helpButtonHelp = messages.getString("loDialogHelpButtonHelp"); 
-  private final static String optionsButtonHelp = messages.getString("loDialogOptionsButtonHelp"); 
-  private final static String undoButtonHelp = messages.getString("loDialogUndoButtonHelp");
-  private final static String closeButtonHelp = messages.getString("loDialogCloseButtonHelp");
-  private final static String moreButtonHelp = messages.getString("loDialogMoreButtonHelp"); 
-  private final static String ignoreButtonHelp = messages.getString("loDialogIgnoreButtonHelp"); 
-  private final static String ignoreAllButtonHelp = messages.getString("loDialogIgnoreAllButtonHelp"); 
-  private final static String ignorePermanentButtonHelp = messages.getString("loDialogIgnorePermanentButtonHelp"); 
-  private final static String resetIgnorePermanentButtonHelp = messages.getString("loDialogResetIgnorePermanentButtonHelp"); 
-  private final static String deactivateRuleButtonHelp = messages.getString("loDialogDeactivateRuleButtonHelp"); 
-  private final static String activateRuleButtonHelp = messages.getString("loDialogActivateRuleButtonHelp"); 
-  private final static String addToDictionaryHelp = messages.getString("loDialogAddToDictionaryButtonHelp");
-  private final static String changeButtonHelp = messages.getString("loDialogChangeButtonHelp"); 
-  private final static String changeAllButtonHelp = messages.getString("loDialogChangeAllButtonHelp"); 
-  private final static String autoCorrectButtonHelp = messages.getString("loDialogAutoCorrectButtonHelp"); 
-  private final static String checkStatusInitialization = messages.getString("loCheckStatusInitialization"); 
-  private final static String checkStatusCheck = messages.getString("loCheckStatusCheck"); 
-  private final static String labelCheckProgress = messages.getString("loLabelCheckProgress");
-  private final static String loBusyMessage = messages.getString("loBusyMessage");
-//  private final static String loWaitMessage = messages.getString("loWaitMessage");
+  private final static String languageHelp = messages.getString("checkDialogLanguageHelp");
+  private final static String changeLanguageHelp = messages.getString("checkDialogChangeLanguageHelp");
+  private final static String matchDescriptionHelp = messages.getString("checkDialogMatchDescriptionHelp");
+  private final static String matchParagraphHelp = messages.getString("checkDialogMatchParagraphHelp");
+  private final static String suggestionsHelp = messages.getString("checkDialogSuggestionsHelp");
+  private final static String checkTypeHelp = messages.getString("checkDialogCheckTypeHelp");
+  private final static String helpButtonHelp = messages.getString("checkDialogHelpButtonHelp"); 
+  private final static String optionsButtonHelp = messages.getString("checkDialogOptionsButtonHelp"); 
+  private final static String undoButtonHelp = messages.getString("checkDialogUndoButtonHelp");
+  private final static String closeButtonHelp = messages.getString("checkDialogCloseButtonHelp");
+  private final static String moreButtonHelp = messages.getString("checkDialogMoreButtonHelp"); 
+  private final static String ignoreButtonHelp = messages.getString("checkDialogIgnoreButtonHelp"); 
+  private final static String ignoreAllButtonHelp = messages.getString("checkDialogIgnoreAllButtonHelp"); 
+  private final static String ignorePermanentButtonHelp = messages.getString("checkDialogIgnorePermanentButtonHelp"); 
+  private final static String resetIgnorePermanentButtonHelp = messages.getString("checkDialogResetIgnorePermanentButtonHelp"); 
+  private final static String deactivateRuleButtonHelp = messages.getString("checkDialogDeactivateRuleButtonHelp"); 
+  private final static String activateRuleButtonHelp = messages.getString("checkDialogActivateRuleButtonHelp"); 
+  private final static String addToDictionaryHelp = messages.getString("checkDialogAddToDictionaryButtonHelp");
+  private final static String changeButtonHelp = messages.getString("checkDialogChangeButtonHelp"); 
+  private final static String changeAllButtonHelp = messages.getString("checkDialogChangeAllButtonHelp"); 
+  private final static String autoCorrectButtonHelp = messages.getString("checkDialogAutoCorrectButtonHelp"); 
+  private final static String checkStatusInitialization = messages.getString("checkDialogStatusInitialization"); 
+  private final static String checkStatusCheck = messages.getString("checkDialogStatusCheck"); 
+  private final static String labelCheckProgress = messages.getString("checkDialogLabelCheckProgress");
+  private final static String messageDialogBusyMessage = messages.getString("messageDialogBusyMessage");
+//  private final static String messageDialogWaitMessage = messages.getString("messageDialogWaitMessage");
   
   private static int nLastFlat = 0;
   
@@ -216,7 +216,7 @@ public class WtCheckDialog extends Thread {
     this.xContext = xContext;
     this.documents = documents;
     lastLanguage = language;
-    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("loWaitMessage"));
+    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("messageDialogWaitMessage"));
     inf.start();
     locale = WtLinguisticServices.getLocale(language);
     if(!WtOfficeTools.javaVersionOkay()) {
@@ -268,7 +268,7 @@ public class WtCheckDialog extends Thread {
           WtMessageHandler.printToLogFile("CheckDialog: run: close busy: currentDocument: " + (currentDocument != null? "NOT " : "") 
               + "null, " + (docCache == null ? "docCache == null" : "docCache.size: " + docCache.size()));
         }
-        WtMessageHandler.showMessage(loBusyMessage);
+        WtMessageHandler.showMessage(messageDialogBusyMessage);
         documents.setLtDialogIsRunning(false);
         return;
       }
@@ -385,7 +385,7 @@ public class WtCheckDialog extends Thread {
       int yFlat = getCurrentFlatParagraphNumber(viewCursor, docCache);
       inf.close();
       if (yFlat < 0) {
-        WtMessageHandler.showClosingInformationDialog(messages.getString("loNextErrorUnsupported"));
+        WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogNextErrorUnsupported"));
         return;
       }
       int x = viewCursor.getViewCursorCharacter();
@@ -397,7 +397,7 @@ public class WtCheckDialog extends Thread {
         x = 0;
         yFlat++;
       }
-      WtMessageHandler.showClosingInformationDialog(messages.getString("guiCheckComplete"));
+      WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogMessageComplete"));
   } catch (Throwable t) {
     WtMessageHandler.showError(t);
   }
@@ -1240,9 +1240,9 @@ public class WtCheckDialog extends Thread {
       checkRuleBox = new JComboBox<String> ();
       checkProgressLabel = new JLabel(labelCheckProgress);
       cacheStatusLabel = new JLabel(" █ ");
-      cacheStatusLabel.setToolTipText(messages.getString("loDialogCacheLabel"));
+      cacheStatusLabel.setToolTipText(messages.getString("allDialogCacheLabel"));
       cacheAiStatusLabel = new JLabel(" █ ");
-      cacheAiStatusLabel.setToolTipText(messages.getString("loDialogAiCacheLabel"));
+      cacheAiStatusLabel.setToolTipText(messages.getString("allDialogAiCacheLabel"));
       checkProgress = new JProgressBar(0, 100);
 
       try {
@@ -2056,13 +2056,13 @@ public class WtCheckDialog extends Thread {
       } else {
         size = 100;
       }
-      cacheStatusLabel.setToolTipText(messages.getString("loDialogCacheLabel") + ": " + size + "%");
+      cacheStatusLabel.setToolTipText(messages.getString("allDialogCacheLabel") + ": " + size + "%");
       cacheStatusLabel.setForeground(WtSidebarContent.getCacheStatusColor(size));
       if (useAi && docType == DocumentType.WRITER) {
         cacheAiStatusLabel.setVisible(true);
         pSize = currentDocument.getParagraphsCache().get(WtOfficeTools.CACHE_AI).size() + nAuto;
         size = WtSidebarContent.getCacheStatusSize(pSize, fullSize);
-        cacheAiStatusLabel.setToolTipText(messages.getString("loDialogAiCacheLabel") + ": " + size + "%");
+        cacheAiStatusLabel.setToolTipText(messages.getString("allDialogAiCacheLabel") + ": " + size + "%");
         cacheAiStatusLabel.setForeground(WtSidebarContent.getCacheStatusColor(size));
       } else {
         cacheAiStatusLabel.setVisible(false);
@@ -2108,7 +2108,7 @@ public class WtCheckDialog extends Thread {
       } else {
         size = 100;
       }
-      cacheStatusLabel.setToolTipText(messages.getString("loDialogCacheLabel") + ": " + size + "%");
+      cacheStatusLabel.setToolTipText(messages.getString("allDialogCacheLabel") + ": " + size + "%");
       if (size < 25) {
         cacheStatusLabel.setForeground(new Color(fitToColorboundaries(145 + 4 * size), 0, 0));
       } else if (size < 50) {
@@ -2128,7 +2128,7 @@ public class WtCheckDialog extends Thread {
     }
 */    
     void errorReturn() {
-      WtMessageHandler.showMessage(loBusyMessage);
+      WtMessageHandler.showMessage(messageDialogBusyMessage);
       closeDialog();
     }
 
@@ -2227,7 +2227,7 @@ public class WtCheckDialog extends Thread {
           }
         } else {
           closeDialog();
-          WtMessageHandler.showClosingInformationDialog(messages.getString("loDialogUnsupported"));
+          WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogUnsupported"));
           return false;
         }
       } else {
@@ -2522,9 +2522,9 @@ public class WtCheckDialog extends Thread {
           if (debugMode && lt.getLanguage() == null) {
             WtMessageHandler.printToLogFile("CheckDialog: findNextError: LT language == null");
           }
-          lastLang = WtGeneralTools.getFullNameOfLanguage(lang, messages);
+          lastLang = WtGeneralTools.getFullNameOfLanguage(lang);
           language.setEnabled(true);
-          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang));
           if (debugMode) {
             WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Language set");
           }
@@ -2589,7 +2589,7 @@ public class WtCheckDialog extends Thread {
         } else {
           language.setEnabled(true);
           Language lang = locale == null || !WtDocumentsHandler.hasLocale(locale)? lt.getLanguage() : WtDocumentsHandler.getLanguage(locale);
-          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+          language.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(lang));
           language.setEnabled(false);
           more.setEnabled(false);
           ignoreOnce.setEnabled(false);
@@ -2670,10 +2670,10 @@ public class WtCheckDialog extends Thread {
     private String[] getPossibleLanguages() {
       List<String> languages = new ArrayList<>();
       for (Language lang : Languages.get()) {
-        languages.add(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+        languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
         languages.sort(null);
       }
-      languages.add(0, messages.getString("loDialogDoNotCheck"));
+      languages.add(0, messages.getString("checkDialogDoNotCheck"));
       return languages.toArray(new String[languages.size()]);
     }
 
@@ -2681,11 +2681,11 @@ public class WtCheckDialog extends Thread {
      * returns the locale from a translated language name 
      */
     private Locale getLocaleFromLanguageName(String translatedName) {
-      if (translatedName.equals(messages.getString("loDialogDoNotCheck"))) {
+      if (translatedName.equals(messages.getString("checkDialogDoNotCheck"))) {
         return new Locale(WtOfficeTools.IGNORE_LANGUAGE, "", "");
       }
       for (Language lang : Languages.get()) {
-        if (translatedName.equals(WtGeneralTools.getFullNameOfLanguage(lang, messages))) {
+        if (translatedName.equals(WtGeneralTools.getFullNameOfLanguage(lang))) {
           return (WtLinguisticServices.getLocale(lang));
         }
       }
@@ -2755,7 +2755,7 @@ public class WtCheckDialog extends Thread {
       }
       if (currentDocument == null) {
         WtMessageHandler.printToLogFile("CheckDialog: getNextError: currentDocument == null: close dialog");
-        WtMessageHandler.showMessage(messages.getString("loDialogErrorCloseMessage"));
+        WtMessageHandler.showMessage(messages.getString("checkDialogErrorCloseMessage"));
         closeDialog();
         return null;
       }
@@ -2763,7 +2763,7 @@ public class WtCheckDialog extends Thread {
       WtDocumentCursorTools docCursor = new WtDocumentCursorTools(xComponent);
       if (docCache.size() <= 0) {
         WtMessageHandler.printToLogFile("CheckDialog: getNextError: docCache size == 0: close dialog");
-        WtMessageHandler.showMessage(messages.getString("loDialogErrorCloseMessage"));
+        WtMessageHandler.showMessage(messages.getString("checkDialogErrorCloseMessage"));
         closeDialog();
         return null;
       }
@@ -2791,7 +2791,7 @@ public class WtCheckDialog extends Thread {
         }
         if (y < 0 || y >= docCache.size()) {
           WtMessageHandler.printToLogFile("CheckDialog: getNextError: y (= " + y + ") >= text size (= " + docCache.size() + "): close dialog");
-          WtMessageHandler.showMessage(messages.getString("loDialogErrorCloseMessage"));
+          WtMessageHandler.showMessage(messages.getString("checkDialogErrorCloseMessage"));
           closeDialog();
           return null;
         }
@@ -2880,13 +2880,13 @@ public class WtCheckDialog extends Thread {
             }
             y++;
           }
-          endOfDokumentMessage = messages.getString("guiCheckComplete");
+          endOfDokumentMessage = messages.getString("checkDialogMessageComplete");
           setProgressValue(docCache.size() - 1, true);
           if (!hasUncheckedParas) {
             break;
           }
         } else {
-          endOfDokumentMessage = messages.getString("guiSelectionCheckComplete");
+          endOfDokumentMessage = messages.getString("checkDialogMessageSelectionComplete");
           setProgressValue(endOfRange - 1, false);
           break;
         }
@@ -2917,7 +2917,7 @@ public class WtCheckDialog extends Thread {
           } else if (action.getActionCommand().equals("options")) {
             documents.runOptionsDialog();
           } else if (action.getActionCommand().equals("help")) {
-            WtMessageHandler.showMessage(messages.getString("loDialogHelpText"));
+            WtMessageHandler.showMessage(messages.getString("checkDialogHelpText"));
           } else {
             Thread t = new Thread(new Runnable() {
               public void run() {

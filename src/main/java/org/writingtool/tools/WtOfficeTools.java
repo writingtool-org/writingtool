@@ -1303,7 +1303,7 @@ public class WtOfficeTools {
   public static String getFormatedWtHeader(ResourceBundle messages) {
     return "<html><FONT SIZE=\"+2\"><b>"
         + WtOfficeTools.WT_NAME + " - " 
-        + messages.getString("loAboutLtDesc") + "</b></FONT></html>";
+        + messages.getString("aboutDialogWtDescription") + "</b></FONT></html>";
   }
 
   /**

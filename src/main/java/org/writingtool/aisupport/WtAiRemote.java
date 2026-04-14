@@ -926,7 +926,7 @@ public class WtAiRemote {
         documents.getAiCheckQueue().setStop(false);
         documents.setAiCheckQueue(null);
       }
-      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
+      WtMessageHandler.showMessage(messages.getString("aiMessageServerConnectionError"), parent);
     }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
@@ -941,7 +941,7 @@ public class WtAiRemote {
         documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
             config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
-      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
+      WtMessageHandler.showMessage(messages.getString("aiMessageServerConnectionError"), parent);
     }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
@@ -956,7 +956,7 @@ public class WtAiRemote {
         documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
             config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
-      WtMessageHandler.showMessage(messages.getString("loAiServerConnectionError"), parent);
+      WtMessageHandler.showMessage(messages.getString("aiMessageServerConnectionError"), parent);
     }
     WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {

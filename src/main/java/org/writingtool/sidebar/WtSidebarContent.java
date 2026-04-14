@@ -98,8 +98,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
   
-  private static final String TEXT_CACHE_LABEL = messages.getString("loDialogCacheLabel");
-  private static final String AI_CACHE_LABEL = messages.getString("loDialogAiCacheLabel");
+  private static final String TEXT_CACHE_LABEL = messages.getString("allDialogCacheLabel");
+  private static final String AI_CACHE_LABEL = messages.getString("allDialogAiCacheLabel");
   private static final Color CACHE_INACTIVE_COLOR = Color.gray;
   
   private final static String WAIT_TEXT = ">>> Please wait <<<";
@@ -142,7 +142,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private final static int CONTAINER_TOP = CONTAINER_MARGIN_TOP + LABEL_TOP + LABEL_HEIGHT;
   private final static int MIN_CONTAINER_HEIGHT = 40;
 
-  private final static int OVERRIDE_BUTTON_WIDTH = 8 * messages.getString("loAiDialogOverrideButton").length();
+  private final static int OVERRIDE_BUTTON_WIDTH = 8 * messages.getString("aiDialogOverrideButton").length();
 
   private int containerHeight = MIN_CONTAINER_HEIGHT;
   private int OverrideButtonTop = CONTAINER_TOP + 2* MIN_CONTAINER_HEIGHT + 
@@ -300,7 +300,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       buttonActivateRulesWindow = addActivateRulesListBoxToContainer(num, buttonContainer);
       buttonActivateRulesWindow.setEnable(deactivatedRulesMap != null && !deactivatedRulesMap.isEmpty());
       num = 8;
-      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "loStatisticalAnalysis", buttonContainer);
+      buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "statAnalysisDialog", buttonContainer);
       buttonStatAnWindow.setEnable(hasStatAn());
 
       // Add third row button container
@@ -331,7 +331,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       
       // Add Label
       props.put("FontStyleName", "Bold");
-      XControl xParagraphLabel = createLabel(xMCF, context, messages.getString("loSidebarParagraphLabel") + ":", 
+      XControl xParagraphLabel = createLabel(xMCF, context, messages.getString("sidebarParagraphLabel") + ":", 
           new Rectangle(LABEL_LEFT, LABEL_TOP, LABEL_WIDTH, LABEL_HEIGHT), props); 
       controlContainer.addControl("paragraphBoxLabel", xParagraphLabel);
       paragraphLabelWindow = UnoRuntime.queryInterface(XWindow.class, xParagraphLabel);
@@ -383,7 +383,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       // Add AI Label
       props.put("FontStyleName", "Bold");
       int labelTop = CONTAINER_TOP + containerHeight + 2 * CONTAINER_MARGIN_BETWEEN + BUTTON_CONTAINER_HEIGHT;
-      XControl xAiLabel = createLabel(xMCF, context, messages.getString("loAiDialogResultLabel") + ":", 
+      XControl xAiLabel = createLabel(xMCF, context, messages.getString("aiDialogResultLabel") + ":", 
           new Rectangle(LABEL_LEFT, labelTop, LABEL_WIDTH, LABEL_HEIGHT), props); 
       controlContainer.addControl("aiLabel", xAiLabel);
       aiLabelWindow = UnoRuntime.queryInterface(XWindow.class, xAiLabel);
@@ -410,7 +410,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       aiResultBoxWindow.setPosSize(aiBoxX, aiBoxY, aiBoxWidth, aiBoxHeight, PosSize.POSSIZE);
       
       // Add override button
-      XControl overrideButton = createButton(xMCF, context, messages.getString("loAiDialogOverrideButton"), null, 
+      XControl overrideButton = createButton(xMCF, context, messages.getString("aiDialogOverrideButton"), null, 
           new Rectangle(CONTAINER_MARGIN_LEFT, OverrideButtonTop, OVERRIDE_BUTTON_WIDTH, BUTTON_WIDTH), null);
       XButton xOverrideButton = UnoRuntime.queryInterface(XButton.class, overrideButton);
       XActionListener xoverrideButtonAction = new XActionListener() {
@@ -718,7 +718,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     profiles.clear();
     profiles.addAll(conf.getDefinedProfiles());
     profiles.sort(null);
-    profiles.add(0, messages.getString("guiUserProfile"));
+    profiles.add(0, messages.getString("allDialogDefaultProfile"));
     String currentProfile = conf.getCurrentProfile();
     if (currentProfile != null && !currentProfile.isEmpty()) {
       profiles.remove(currentProfile);
@@ -748,7 +748,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       public void itemStateChanged(ItemEvent event) {
         try {
           if(event.Selected > 0) {
-            if (profiles.get(event.Selected).equals(messages.getString("guiUserProfile"))) {
+            if (profiles.get(event.Selected).equals(messages.getString("allDialogDefaultProfile"))) {
               runGeneralDispatchCmd(WtProtocolHandler.WT_PROFILE);
             } else {
               runGeneralDispatchCmd(WtProtocolHandler.WT_PROFILE + profiles.get(event.Selected));
@@ -1017,15 +1017,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         instruction = "";
       }
       if (instruction.startsWith(WtAiRemote.CORRECT_INSTRUCTION)) {
-        aiLabelText.setText(messages.getString("loAiDialogResultLabelGrammar"));
+        aiLabelText.setText(messages.getString("aiDialogResultLabelGrammar"));
       } else if (instruction.startsWith(WtAiRemote.STYLE_INSTRUCTION)) {
-        aiLabelText.setText(messages.getString("loAiDialogResultLabelStyle"));
+        aiLabelText.setText(messages.getString("aiDialogResultLabelStyle"));
       } else if (instruction.startsWith(WtAiRemote.REFORMULATE_INSTRUCTION)) {
-        aiLabelText.setText(messages.getString("loAiDialogResultLabelRephrase"));
+        aiLabelText.setText(messages.getString("aiDialogResultLabelRephrase"));
       } else if (instruction.startsWith(WtAiRemote.EXPAND_INSTRUCTION)) {
-        aiLabelText.setText(messages.getString("loAiDialogResultLabelExpand"));
+        aiLabelText.setText(messages.getString("aiDialogResultLabelExpand"));
       } else {
-        aiLabelText.setText(messages.getString("loAiDialogResultLabel"));
+        aiLabelText.setText(messages.getString("aiDialogResultLabel"));
       }
     } catch (Throwable e1) {
       WtMessageHandler.showError(e1);

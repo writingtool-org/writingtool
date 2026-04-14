@@ -362,7 +362,7 @@ public class WtDocumentsHandler {
     setCacheStatusColor(documents.get(docNum));
     if (!isBackgroundCheckOff() && lt.doReset()) {
       // langTool.doReset() == true: if server connection is broken ==> switch to internal check
-      WtMessageHandler.showMessage(messages.getString("loRemoteSwitchToLocal"));
+      WtMessageHandler.showMessage(messages.getString("remoteInfoSwitchToLocal"));
       config.setRemoteCheck(false);
       try {
         config.saveConfiguration(docLanguage);
@@ -1297,7 +1297,7 @@ public class WtDocumentsHandler {
         if (!noLtSpeller && !WtSpellChecker.isEnoughHeap()) {
           noLtSpeller = true;
           disableLTSpellChecker(xContext, docLanguage);
-          WtMessageHandler.showMessage(messages.getString("guiSpellCheckerWarning"));
+          WtMessageHandler.showMessage(messages.getString("messageDialogSpellCheckerWarning"));
         }
       }
       long startTime = 0;
@@ -1955,7 +1955,7 @@ public class WtDocumentsHandler {
     }
     URL url = sUrl == null? null : new URL(sUrl);
     MoreInfoDialogThread infoThread = new MoreInfoDialogThread(msg, error.aFullComment, rule, url,
-        messages, lt.getLanguage().getShortCodeWithCountryAndVariant());
+        lt.getLanguage().getShortCodeWithCountryAndVariant());
     infoThread.start();
   }
 
@@ -2357,7 +2357,7 @@ public class WtDocumentsHandler {
         checkDialog.start();
       } else if ("nextError".equals(sEvent)) {
         if (isBackgroundCheckOff()) {
-          WtMessageHandler.showMessage(messages.getString("loExtSwitchOffMessage"));
+          WtMessageHandler.showMessage(messages.getString("messageDialogSwitchOffMessage"));
           return;
         }
         if (useOrginalCheckDialog) {
@@ -2371,7 +2371,7 @@ public class WtDocumentsHandler {
           ltDialog.closeDialog();
         } 
         if (isBackgroundCheckOff()) {
-          WtMessageHandler.showMessage(messages.getString("loExtSwitchOffMessage"));
+          WtMessageHandler.showMessage(messages.getString("messageDialogSwitchOffMessage"));
           return;
         }
         resetIgnoredMatches();
@@ -2411,10 +2411,10 @@ public class WtDocumentsHandler {
         runAiSummaryDialog();
       } else if ("remoteHint".equals(sEvent)) {
         if (getConfiguration().useOtherServer()) {
-          WtMessageHandler.showMessage(MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), 
+          WtMessageHandler.showMessage(MessageFormat.format(messages.getString("remoteInfoOtherServer"), 
               getConfiguration().getServerUrl()));
         } else {
-          WtMessageHandler.showMessage(messages.getString("loRemoteInfoDefaultServer"));
+          WtMessageHandler.showMessage(messages.getString("remoteInfoDefaultServer"));
         }
       } else {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Sorry, don't know what to do, sEvent = " + sEvent);
@@ -2497,7 +2497,7 @@ public class WtDocumentsHandler {
           }
           return false;
         } else if (!hasLocale(locale)) {
-          String message = Tools.i18n(messages, "language_not_supported", locale.Language);
+          String message = Tools.i18n(messages, "messageDialogLanguageNotSupported", locale.Language);
           WtMessageHandler.showMessage(message);
           return false;
         }
@@ -2525,7 +2525,7 @@ public class WtDocumentsHandler {
         } else {
           resetCheck();
           if (showMessage) {
-            WtMessageHandler.showMessage(messages.getString("loNoGrammarCheckWarning"));
+            WtMessageHandler.showMessage(messages.getString("messageDialogNoGrammarCheckWarning"));
           }
           return false;
         }
@@ -2597,7 +2597,7 @@ public class WtDocumentsHandler {
       if (heapRatio >= 1.0) {
         heapLimitReached = true;
         setConfigValues(config, lt);
-        WtMessageHandler.showMessage(messages.getString("loExtHeapMessage"));
+        WtMessageHandler.showMessage(messages.getString("messageDialogExtHeapMessage"));
         for (WtSingleDocument document : documents) {
           document.resetAllResultCache();
           document.resetDocumentCache();
@@ -2664,15 +2664,13 @@ public class WtDocumentsHandler {
     private final String message;
     private final Rule rule;
     private final URL matchUrl;
-    private final ResourceBundle messages;
     private final String lang;
 
-    MoreInfoDialogThread(String title, String message, Rule rule, URL matchUrl, ResourceBundle messages, String lang) {
+    MoreInfoDialogThread(String title, String message, Rule rule, URL matchUrl, String lang) {
       this.title = title;
       this.message = message;
       this.rule = rule;
       this.matchUrl = matchUrl;
-      this.messages = messages;
       this.lang = lang;
     }
 
@@ -2792,7 +2790,7 @@ public class WtDocumentsHandler {
   private void checkLOWtConfig(WtSingleDocument currentDocument, boolean showNoSpellchecker) throws Throwable {
     if (isLOConfigIncorrect(currentDocument, showNoSpellchecker)) {
       if (enableWtSpellAndGrammarChecker(getCurrentDocument())) {
-        WtOptionPane.showCloseLoMessageDialog(messages.getString("loEnableLoDefaultSettingsMessage"), xContext);
+        WtOptionPane.showCloseLoMessageDialog(messages.getString("messageDialogEnableLoDefaultSettings"), xContext);
       }
     }
   }
@@ -2821,9 +2819,9 @@ public class WtDocumentsHandler {
       SpellServiceState spellServiceState = WtLinguServiceTools.getWtSpellServiceState(xContext, locale);
       if (spellServiceState == SpellServiceState.NO_SPELLSERVICE || spellServiceState == SpellServiceState.IS_ERROR) {
         if (showNoSpellchecker) {
-          WtMessageHandler.showMessage(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
+          WtMessageHandler.showMessage(messages.getString("messageDialogSpellCheckIsDisabled") + " " + WtOfficeTools.localeToString(locale));
         } else {
-          WtMessageHandler.printToLogFile(messages.getString("loSpellCheckIsDisabledMessage") + " " + WtOfficeTools.localeToString(locale));
+          WtMessageHandler.printToLogFile(messages.getString("messageDialogSpellCheckIsDisabled") + " " + WtOfficeTools.localeToString(locale));
         }
 //        noSpellService = true;
         return false;
@@ -2847,7 +2845,7 @@ public class WtDocumentsHandler {
     try {
       boolean isWtGrammarActive = WtLinguServiceTools.isWtGrammarServiceActive(xContext, locale);
       if (!isWtGrammarActive) {
-        WtMessageHandler.showMessage(messages.getString("loWtIsDisabledMessage"));
+        WtMessageHandler.showMessage(messages.getString("messageDialogWtIsDisabled"));
         return false;
       }
       WtConfiguration confg = new WtConfiguration(WtOfficeTools.getWtConfigDir(xContext), 

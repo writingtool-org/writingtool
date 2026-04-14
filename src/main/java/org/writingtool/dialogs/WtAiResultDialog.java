@@ -110,7 +110,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
-//    resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
+//    resultLabel = new JLabel(messages.getString("aiDialogResultLabel") + ":");
     resultLabel = new JLabel(labelText);
     result = new JTextPane();
     resultList = new JList<String>();
@@ -120,8 +120,8 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     } else {
       result.setVisible(false);
     }
-    overrideParagraph = new JButton (messages.getString("loAiDialogOverrideButton")); 
-    close = new JButton (messages.getString("loAiDialogCloseButton"));
+    overrideParagraph = new JButton (messages.getString("aiDialogOverrideButton")); 
+    close = new JButton (messages.getString("aiDialogCloseButton"));
     mainPanel = new JPanel();
     
 //    checkProgress.setStringPainted(true);
@@ -134,7 +134,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       if (dialog == null) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
       }
-      String dialogName = messages.getString("loAiResultDialogTitle");
+      String dialogName = messages.getString("aiResultDialogTitle");
       dialog.setName(dialogName);
       dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

@@ -175,7 +175,7 @@ public class WtAboutDialog {
       JScrollPane scrollPane = new JScrollPane(maintainersPane);
       scrollPane.setBorder(BorderFactory.createEmptyBorder());
       
-      JButton copyToClipboard = new JButton(messages.getString("loCopyToClipBoardDesc"));
+      JButton copyToClipboard = new JButton(messages.getString("aboutDialogCopyToClipBoard"));
       copyToClipboard.addActionListener(e -> {
         String str = WtOfficeTools.getFormatedHtmlVersionInformation();
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -185,7 +185,7 @@ public class WtAboutDialog {
         close();
       });
 
-      JButton OpenLogFilePath = new JButton(messages.getString("loOpenLogFolderDesc"));
+      JButton OpenLogFilePath = new JButton(messages.getString("aboutDialogOpenLogFolder"));
       OpenLogFilePath.addActionListener(e -> {
         File logDir = WtOfficeTools.getWtConfigDir();
         close();
@@ -207,7 +207,7 @@ public class WtAboutDialog {
       cons.fill = GridBagConstraints.NONE;
       cons.weightx = 1.0f;
       cons.weighty = 1.0f;
-      JLabel versionLabel = new JLabel(messages.getString("loVersionInformation") + ": ");
+      JLabel versionLabel = new JLabel(messages.getString("aboutDialogVersionInformation") + ": ");
       Font f = versionLabel.getFont();
       versionLabel.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
       versionButtonPanel.add(versionLabel, cons);

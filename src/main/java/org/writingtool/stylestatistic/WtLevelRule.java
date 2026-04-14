@@ -257,11 +257,11 @@ public class WtLevelRule {
     } else {
       int percent = optimalNumberWords + (3 - level) * procentualStep;
       if (level == 0) {
-        sLevel = MESSAGES.getString("loStatisticalAnalysisNumber") + ": &gt " + percent + getUnitString();
+        sLevel = MESSAGES.getString("statAnalysisDialogNumber") + ": &gt " + percent + getUnitString();
       } else if (level >= 1 && level <= 5) {
-        sLevel = MESSAGES.getString("loStatisticalAnalysisNumber") + ": " + (percent - procentualStep) + " - " + percent + getUnitString();
+        sLevel = MESSAGES.getString("statAnalysisDialogNumber") + ": " + (percent - procentualStep) + " - " + percent + getUnitString();
       } else if (level == 6) {
-        sLevel = MESSAGES.getString("loStatisticalAnalysisNumber") + ": 0" + getUnitString();
+        sLevel = MESSAGES.getString("statAnalysisDialogNumber") + ": 0" + getUnitString();
       }
       return sLevel;
     }

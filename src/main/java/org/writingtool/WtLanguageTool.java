@@ -95,7 +95,7 @@ public class WtLanguageTool {
       rlt = new WtRemoteLanguageTool(language, motherTongue, config, extraRemoteRules, userConfig);
       //  TODO: CleanOverlappingMatches
       if (!rlt.remoteRun()) {
-        WtMessageHandler.showMessage(MESSAGES.getString("loRemoteSwitchToLocal"));
+        WtMessageHandler.showMessage(MESSAGES.getString("remoteInfoSwitchToLocal"));
         isRemote = false;
         isMultiThread = false;
       } else {

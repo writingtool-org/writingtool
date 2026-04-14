@@ -52,8 +52,8 @@ public class WtAiTextToSpeech extends Thread {
   private final static String ParaEndSign = ".";   //  Sign to force speech to make a small pause
   private final static String PauseSign = " - . - . - .";
 
-  public final static String WAIT_TITLE = messages.getString("loAiWaitDialogTitle");
-  public final static String WAIT_MESSAGE = messages.getString("loAiWaitDialogMessage");
+  public final static String WAIT_TITLE = messages.getString("aiWaitDialogTitle");
+  public final static String WAIT_MESSAGE = messages.getString("aiWaitDialogMessage");
   
   public final static String TMP_DIRNAME = "audioOut";
   public final static String FILE_EXTENSION = ".wav";

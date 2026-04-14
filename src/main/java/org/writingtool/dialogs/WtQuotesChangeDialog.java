@@ -122,13 +122,13 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
-    changeQuotesToLabel = new JLabel(messages.getString("loQuotesDialogChangeToLabel") + ":");
+    changeQuotesToLabel = new JLabel(messages.getString("quotesDialogChangeToLabel") + ":");
     quotes = new JComboBox<String>(getPossibleQuotes());
-    numChangesLabel = new JLabel("(" + numChanges + " " + messages.getString("loQuotesNumberChangesLabel") + ")");
-    numWrongQuotesLabel = new JLabel(numWrongQuotes + " " + messages.getString("loQuotesNumberWrongLabel"));
+    numChangesLabel = new JLabel("(" + numChanges + " " + messages.getString("quotesDialogNumberChangesLabel") + ")");
+    numWrongQuotesLabel = new JLabel(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
 
-    changeQuotes = new JButton (messages.getString("loQuotesDialogChangeButton"));
-    close = new JButton (messages.getString("loAiDialogCloseButton"));
+    changeQuotes = new JButton (messages.getString("quotesDialogChangeButton"));
+    close = new JButton (messages.getString("aiDialogCloseButton"));
     mainPanel = new JPanel();
     
     checkProgress = new JProgressBar();
@@ -147,7 +147,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
       if (dialog == null) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog == null");
       }
-      String dialogName = messages.getString("loQuotesDialogTitle");
+      String dialogName = messages.getString("quotesDialogTitle");
       dialog.setName(dialogName);
       dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -451,10 +451,10 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
           setProgressValue(numChanges, true);
         }
       }
-      numChangesLabel.setText("(" + numChanges + " " + messages.getString("loQuotesNumberChangesLabel") + ")");
+      numChangesLabel.setText("(" + numChanges + " " + messages.getString("quotesDialogNumberChangesLabel") + ")");
       String txt = currentDocument.getDocumentCache().getDocAsString();
       numWrongQuotes = quotesDetection.numNotCorrectQuotes(txt, quoteIndex);
-      numWrongQuotesLabel.setText(numWrongQuotes + " " + messages.getString("loQuotesNumberWrongLabel"));
+      numWrongQuotesLabel.setText(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
       changeQuotes.setEnabled(numWrongQuotes > 0);
       quotes.setEnabled(true);
     } catch (Throwable t) {

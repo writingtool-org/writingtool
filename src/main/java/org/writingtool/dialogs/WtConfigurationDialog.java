@@ -623,14 +623,14 @@ public class WtConfigurationDialog implements ActionListener {
       cons1.gridx++;
       customPanel.add(underlineLabels[i], cons1);
   
-      changeButtons[i] = new JButton(messages.getString("guiUColorChange"));
+      changeButtons[i] = new JButton(messages.getString("allDialogUColorChange"));
       changeButtons[i].setVerticalAlignment(SwingConstants.CENTER);
       changeButtons[i].addActionListener(e -> {
         try {
 //          int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
 //          WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
           Color oldColor = underlineLabels[n].getForeground();
-          Color newColor = JColorChooser.showDialog(dialog, messages.getString("guiUColorDialogHeader"), oldColor);
+          Color newColor = JColorChooser.showDialog(dialog, messages.getString("allDialogUColorDialogHeader"), oldColor);
           if(newColor != null && !newColor.equals(oldColor)) {
             underlineLabels[n].setForeground(newColor);
             defaultColors.set(n, newColor);
@@ -754,16 +754,16 @@ public class WtConfigurationDialog implements ActionListener {
     radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("guiSetLanguageTo")));
     radioButtons[1].setActionCommand("SelectLang");
 
-    JComboBox<String> fixedLanguageBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(false, messages));
+    JComboBox<String> fixedLanguageBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(false));
     if (config.getFixedLanguage() != null) {
-      fixedLanguageBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getFixedLanguage(), messages));
+      fixedLanguageBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getFixedLanguage()));
       
     }
     fixedLanguageBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         Language fixedLanguage;
         if (fixedLanguageBox.getSelectedItem() instanceof String) {
-          fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString(), messages);
+          fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
         } else {
           fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
         }
@@ -793,7 +793,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setUseDocLanguage(false);
       Language fixedLanguage;
       if (fixedLanguageBox.getSelectedItem() instanceof String) {
-        fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString(), messages);
+        fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
       } else {
         fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
       }
@@ -1455,10 +1455,10 @@ public class WtConfigurationDialog implements ActionListener {
     int ret;
     if(config.useOtherServer() || otherServer) {
         ret = WtOptionPane.showConfirmDialog(component, 
-            MessageFormat.format(messages.getString("loRemoteInfoOtherServer"), config.getServerUrl()), 
+            MessageFormat.format(messages.getString("remoteInfoOtherServer"), config.getServerUrl()), 
           messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     } else {
-      ret = WtOptionPane.showConfirmDialog(component, messages.getString("loRemoteInfoDefaultServer"), 
+      ret = WtOptionPane.showConfirmDialog(component, messages.getString("remoteInfoDefaultServer"), 
           messages.getString("loMenuRemoteInfo"), WtOptionPane.OK_CANCEL_OPTION);
     }
     return ret;
@@ -1743,7 +1743,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.fill = GridBagConstraints.NONE;
     List<String> profiles = new ArrayList<>();
     String defaultOptions = messages.getString("guiDefaultOptions");
-    String userOptions = messages.getString("guiUserProfile");
+    String userOptions = messages.getString("allDialogDefaultProfile");
     profiles.addAll(config.getDefinedProfiles());
     profiles.sort(null);
     profiles.add(0, userOptions);
@@ -1970,15 +1970,15 @@ public class WtConfigurationDialog implements ActionListener {
   private JPanel getMotherTonguePanel(GridBagConstraints cons) {
     JPanel motherTonguePanel = new JPanel();
     motherTonguePanel.add(new JLabel(messages.getString("guiMotherTongue")), cons);
-    JComboBox<String> motherTongueBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(true, messages));
+    JComboBox<String> motherTongueBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(true));
     if (config.getMotherTongue() != null) {
-      motherTongueBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getMotherTongue(), messages));
+      motherTongueBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getMotherTongue()));
     }
     motherTongueBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         Language motherTongue;
         if (motherTongueBox.getSelectedItem() instanceof String) {
-          motherTongue = WtGeneralTools.getLanguageForFullName(motherTongueBox.getSelectedItem().toString(), messages);
+          motherTongue = WtGeneralTools.getLanguageForFullName(motherTongueBox.getSelectedItem().toString());
         } else {
           motherTongue = (Language) motherTongueBox.getSelectedItem();
         }
@@ -2196,10 +2196,10 @@ public class WtConfigurationDialog implements ActionListener {
   
   private String[] getUnderlineTypes() {
     String[] types = {
-      messages.getString("guiUTypeWave"),
-      messages.getString("guiUTypeBoldWave"),
-      messages.getString("guiUTypeBold"),
-      messages.getString("guiUTypeDash")};
+      messages.getString("allDialogUTypeWave"),
+      messages.getString("allDialogUTypeBoldWave"),
+      messages.getString("allDialogUTypeBold"),
+      messages.getString("allDialogUTypeDash")};
     return types;
   }
 
@@ -2274,7 +2274,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.fill = GridBagConstraints.NONE;
     cons1.anchor = GridBagConstraints.NORTHWEST;
 
-    JLabel underlineStyle = new JLabel(messages.getString("guiUColorStyleLabel") + " ");
+    JLabel underlineStyle = new JLabel(messages.getString("allDialogUColorStyleLabel") + " ");
     colorPanel.add(underlineStyle);
 
     JLabel underlineLabel = new JLabel(COLOR_LABEL);
@@ -2293,7 +2293,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridx++;
     colorPanel.add(underlineLabel);
 
-    JButton changeButton = new JButton(messages.getString("guiUColorChange"));
+    JButton changeButton = new JButton(messages.getString("allDialogUColorChange"));
     changeButton.setEnabled(!config.onlySingleParagraphMode());
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
@@ -2323,7 +2323,7 @@ public class WtConfigurationDialog implements ActionListener {
 //            dialog.setAlwaysOnTop(true);
           }
         };
-        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("allDialogUColorDialogHeader"), true,
             colorChooser, okActionListener, cancelActionListener);
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
@@ -2336,7 +2336,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridx++;
     colorPanel.add(changeButton);
   
-    JButton defaultButton = new JButton(messages.getString("guiUColorDefault"));
+    JButton defaultButton = new JButton(messages.getString("allDialogUColorDefault"));
     defaultButton.setEnabled(!config.onlySingleParagraphMode());
     defaultButton.addActionListener(e -> {
       String ruleId = (rule == null ? null : rule.getId());
@@ -2566,7 +2566,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.fill = GridBagConstraints.NONE;
     cons1.anchor = GridBagConstraints.NORTHWEST;
 
-    JLabel underlineStyle = new JLabel(messages.getString("guiUColorStyleLabel") + " ");
+    JLabel underlineStyle = new JLabel(messages.getString("allDialogUColorStyleLabel") + " ");
     colorPanel.add(underlineStyle);
 
     JLabel underlineLabel = new JLabel(COLOR_LABEL);
@@ -2584,7 +2584,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridx++;
     colorPanel.add(underlineLabel);
 
-    JButton changeButton = new JButton(messages.getString("guiUColorChange"));
+    JButton changeButton = new JButton(messages.getString("allDialogUColorChange"));
     changeButton.addActionListener(e -> {
       Color oldColor = underlineLabel.getForeground();
       try {
@@ -2608,7 +2608,7 @@ public class WtConfigurationDialog implements ActionListener {
           public void actionPerformed(ActionEvent actionEvent) {
           }
         };
-        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("guiUColorDialogHeader"), true,
+        JDialog colorDialog = JColorChooser.createDialog(dialog, messages.getString("allDialogUColorDialogHeader"), true,
             colorChooser, okActionListener, cancelActionListener);
         colorDialog.setAlwaysOnTop(true);
         colorDialog.toFront();
@@ -2620,7 +2620,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons1.gridx++;
     colorPanel.add(changeButton);
   
-    JButton defaultButton = new JButton(messages.getString("guiUColorDefault"));
+    JButton defaultButton = new JButton(messages.getString("allDialogUColorDefault"));
     defaultButton.addActionListener(e -> {
       if (ruleId == null) {
         config.setDefaultUnderlineColor(category);
@@ -3299,8 +3299,8 @@ public class WtConfigurationDialog implements ActionListener {
   
   private JTabbedPane getOfficeAiElements() {
     JTabbedPane tabbedpane = new JTabbedPane();
-    tabbedpane.add(messages.getString("loAiDialogTabText"), getOfficeAiTextElements());
-    tabbedpane.add(messages.getString("loAiDialogTabImages"), getOfficeAiImgElements());
+    tabbedpane.add(messages.getString("aiDialogTabText"), getOfficeAiTextElements());
+    tabbedpane.add(messages.getString("aiDialogTabImages"), getOfficeAiImgElements());
     tabbedpane.add(messages.getString("guiAiTextToSpeech"), getOfficeAiTtsElements());
     return tabbedpane;
   }

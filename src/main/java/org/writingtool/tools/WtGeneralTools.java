@@ -434,21 +434,21 @@ public final class WtGeneralTools {
    * Get the translated name of language plus language and country code
    * e.g. English (en-US)
    */
-  public static String getFullNameOfLanguage(Language lang, ResourceBundle messages) {
-    return lang.getTranslatedName(messages) + " (" + lang.getShortCodeWithCountryAndVariant() + ")";
+  public static String getFullNameOfLanguage(Language lang) {
+    return lang.getTranslatedName(JLanguageTool.getMessageBundle()) + " (" + lang.getShortCodeWithCountryAndVariant() + ")";
   }
 
   /**
    * Get the translated names of all languages plus language and country code
    * e.g. English (en-US)
    */
-  public static String[] getAllFullNameOfLanguage(boolean addNoSeletion, ResourceBundle messages) {
+  public static String[] getAllFullNameOfLanguage(boolean addNoSeletion) {
     List<String> languages = new ArrayList<>();
     if(addNoSeletion) {
       languages.add(NO_SELECTED_LANGUAGE);
     }
     for (Language lang : Languages.get()) {
-      languages.add(getFullNameOfLanguage(lang, messages));
+      languages.add(getFullNameOfLanguage(lang));
     }
     languages.sort(null);
     return languages.toArray(new String[0]);
@@ -458,9 +458,9 @@ public final class WtGeneralTools {
    * Get the Language object for the given full language name.
    */
   @Nullable
-  public static Language getLanguageForFullName(String languageName, ResourceBundle messages) {
+  public static Language getLanguageForFullName(String languageName) {
     for (Language lang : Languages.get()) {
-      if (languageName.equals(getFullNameOfLanguage(lang, messages))) {
+      if (languageName.equals(getFullNameOfLanguage(lang))) {
         return lang;
       }
     }
@@ -471,8 +471,8 @@ public final class WtGeneralTools {
    * Get the Local object for the given full language name.
    */
   @Nullable
-  public static Locale getLocalForFullName(String languageName, ResourceBundle messages) {
-    Language lang = getLanguageForFullName(languageName, messages);
+  public static Locale getLocalForFullName(String languageName) {
+    Language lang = getLanguageForFullName(languageName);
     if (lang == null) {
       return null;
     }

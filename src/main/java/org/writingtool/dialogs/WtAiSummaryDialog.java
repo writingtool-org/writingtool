@@ -97,12 +97,12 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     this.messages = messages;
     
     contentPane = dialog.getContentPane();
-    chapterLabel = new JLabel(messages.getString("loAiDialogChapterLabel") + ":");
-    resultLabel = new JLabel(messages.getString("loAiDialogResultLabelSummary") + ":");
+    chapterLabel = new JLabel(messages.getString("aiDialogChapterLabel") + ":");
+    resultLabel = new JLabel(messages.getString("aiDialogResultLabelSummary") + ":");
     result = new JTextPane();
     result.setBorder(BorderFactory.createLineBorder(Color.gray));
-    close = new JButton (messages.getString("loAiDialogCloseButton"));
-    addSummary = new JButton (messages.getString("loAiDialogAddSummaryButton"));
+    close = new JButton (messages.getString("aiDialogCloseButton"));
+    addSummary = new JButton (messages.getString("aiDialogAddSummaryButton"));
   }
   
   @Override
@@ -129,7 +129,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
   
   public void show() {
     try {
-      String summaryText = messages.getString("loAiDialogResultLabelSummary");
+      String summaryText = messages.getString("aiDialogResultLabelSummary");
       
       dialog.setName(summaryText);
       dialog.setTitle(summaryText);
@@ -173,7 +173,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
 
       
       
-      WtChapter rootChapter = document.getDocumentCache().getChapters(messages.getString("loAiDialogDocument"));
+      WtChapter rootChapter = document.getDocumentCache().getChapters(messages.getString("aiDialogDocument"));
       DefaultMutableTreeNode treeNode = createChapterTree(rootChapter);
       chapterTree = new JTree(treeNode);
       //  Add tree selection listener
@@ -350,8 +350,8 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     @Override
     public void run() {
       try {
-        waitDialog = WtDocumentsHandler.getWaitDialog(messages.getString("loAiWaitDialogTitle"), 
-            messages.getString("loAiWaitDialogMessage"));
+        waitDialog = WtDocumentsHandler.getWaitDialog(messages.getString("aiWaitDialogTitle"), 
+            messages.getString("aiWaitDialogMessage"));
         int iter = getNumberOfChapters(chapter);
         waitDialog.initializeProgressBar(0, iter);
         waitDialog.start();

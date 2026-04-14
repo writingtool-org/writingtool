@@ -235,42 +235,42 @@ public class WtAiDialog extends Thread implements ActionListener {
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
     instructionPanel = new JTabbedPane();
-    instructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
-    directInstructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
+    instructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
+    directInstructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
     instruction = new JComboBox<String>();
-    languageLabel = new JLabel(messages.getString("loAiDialogLanguageLabel") + ":");
+    languageLabel = new JLabel(messages.getString("aiDialogLanguageLabel") + ":");
     language = new JComboBox<String>(getPossibleLanguages());
-    paragraphLabel = new JLabel(messages.getString("loAiDialogParagraphLabel") + ":");
+    paragraphLabel = new JLabel(messages.getString("aiDialogParagraphLabel") + ":");
     paragraph = new JTextPane();
     paragraph.setBorder(BorderFactory.createLineBorder(Color.gray));
-    translationLabel = new JLabel(messages.getString("loAiDialogTranslateLabel") + ":");
+    translationLabel = new JLabel(messages.getString("aiDialogTranslateLabel") + ":");
     translationText = new JTextPane();
     translationText.setBorder(BorderFactory.createLineBorder(Color.gray));
     directInstruction = new JTextPane();
     directInstruction.setBorder(BorderFactory.createLineBorder(Color.gray));
-    resultLabel = new JLabel(messages.getString("loAiDialogResultLabel") + ":");
+    resultLabel = new JLabel(messages.getString("aiDialogResultLabel") + ":");
     result = new JTextPane();
     result.setBorder(BorderFactory.createLineBorder(Color.gray));
-    execute = new JButton (messages.getString("loAiDialogExecuteButton"));
-    translate = new JButton (messages.getString("loAiDialogTranslateButton")); 
-    copyResult = new JButton (messages.getString("loAiDialogcopyResultButton")); 
-    reset = new JButton (messages.getString("loAiDialogResetButton")); 
-    loadChapter = new JButton (messages.getString("loAiDialogChapterButton")); 
-    clear = new JButton (messages.getString("loAiDialogClearButton")); 
-    undo = new JButton (messages.getString("loAiDialogUndoButton")); 
-    createImage = new JButton (messages.getString("loAiDialogCreateImageButton")); 
-    overrideParagraph = new JButton (messages.getString("loAiDialogOverrideButton")); 
-    addToParagraph = new JButton (messages.getString("loAiDialogaddToButton")); 
-    help = new JButton (messages.getString("loAiDialogHelpButton")); 
-    close = new JButton (messages.getString("loAiDialogCloseButton")); 
-    helpImg = new JButton (messages.getString("loAiDialogHelpButton")); 
-    closeImg = new JButton (messages.getString("loAiDialogCloseButton")); 
+    execute = new JButton (messages.getString("aiDialogExecuteButton"));
+    translate = new JButton (messages.getString("aiDialogTranslateButton")); 
+    copyResult = new JButton (messages.getString("aiDialogcopyResultButton")); 
+    reset = new JButton (messages.getString("aiDialogResetButton")); 
+    loadChapter = new JButton (messages.getString("aiDialogChapterButton")); 
+    clear = new JButton (messages.getString("aiDialogClearButton")); 
+    undo = new JButton (messages.getString("aiDialogUndoButton")); 
+    createImage = new JButton (messages.getString("aiDialogCreateImageButton")); 
+    overrideParagraph = new JButton (messages.getString("aiDialogOverrideButton")); 
+    addToParagraph = new JButton (messages.getString("aiDialogaddToButton")); 
+    help = new JButton (messages.getString("aiDialogHelpButton")); 
+    close = new JButton (messages.getString("aiDialogCloseButton")); 
+    helpImg = new JButton (messages.getString("aiDialogHelpButton")); 
+    closeImg = new JButton (messages.getString("aiDialogCloseButton")); 
     
-    imgInstructionLabel = new JLabel(messages.getString("loAiDialogInstructionLabel") + ":");
+    imgInstructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
     imgInstruction = new JTextField();
-    excludeLabel = new JLabel(messages.getString("loAiDialogImgExcludeLabel") + ":");
+    excludeLabel = new JLabel(messages.getString("aiDialogImgExcludeLabel") + ":");
     exclude = new JTextField();
-    imageLabel = new JLabel(messages.getString("loAiDialogImgImageLabel") + ":");
+    imageLabel = new JLabel(messages.getString("aiDialogImgImageLabel") + ":");
     imageFrame = new JLabel();
     imageFrame.setSize(imageWidth, imageWidth);
     imageFrame.setBackground(Color.LIGHT_GRAY);
@@ -280,21 +280,21 @@ public class WtAiDialog extends Thread implements ActionListener {
 //    imageFrame.setSize(imageWidth, imageHeight);
 //    imageFrame.add(image);
 
-    imageWidthLabel = new JLabel(messages.getString("loAiDialogImgWidthLabel") + ":");
+    imageWidthLabel = new JLabel(messages.getString("aiDialogImgWidthLabel") + ":");
     imageWidthValueField = new JTextField("   ", 3);
     imageWidthValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
     imageWidthValueField.setText("" + imageWidth);
-    imageHeightLabel = new JLabel(messages.getString("loAiDialogImgHeightLabel") + ":");
+    imageHeightLabel = new JLabel(messages.getString("aiDialogImgHeightLabel") + ":");
     imageHeightValueField = new JTextField("   ", 3);
     imageHeightValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
     imageHeightValueField.setText("" + imageHeight);
     
-    changeImage = new JButton (messages.getString("loAiDialogImgChangeImageButton"));
-    newImage = new JButton (messages.getString("loAiDialogImgNewImageButton"));
-    translateFirst = new JButton (messages.getString("loAiDialogImgTranslateFirstButton"));
-    removeImage = new JButton (messages.getString("loAiDialogImgRemoveButton"));
-    saveImage = new JButton (messages.getString("loAiDialogImgSaveButton"));
-    insertImage = new JButton (messages.getString("loAiDialogImgInsertButton"));
+    changeImage = new JButton (messages.getString("aiDialogImgChangeImageButton"));
+    newImage = new JButton (messages.getString("aiDialogImgNewImageButton"));
+    translateFirst = new JButton (messages.getString("aiDialogImgTranslateFirstButton"));
+    removeImage = new JButton (messages.getString("aiDialogImgRemoveButton"));
+    saveImage = new JButton (messages.getString("aiDialogImgSaveButton"));
+    insertImage = new JButton (messages.getString("aiDialogImgInsertButton"));
     
     mainPanel = new JTabbedPane();
     mainImagePanel = new JPanel();
@@ -302,11 +302,11 @@ public class WtAiDialog extends Thread implements ActionListener {
     
     checkProgress = new JProgressBar(0, 100);
 
-    temperatureLabel = new JLabel(messages.getString("loAiDialogCreativityLabel") + ":");
+    temperatureLabel = new JLabel(messages.getString("aiDialogCreativityLabel") + ":");
     
     temperatureSlider = new JSlider(0, 100, (int)(DEFAULT_TEMPERATURE*100));
 
-    stepLabel = new JLabel(messages.getString("loAiDialogImgStepLabel") + ":");
+    stepLabel = new JLabel(messages.getString("aiDialogImgStepLabel") + ":");
     
     stepSlider = new JSlider(0, 100, DEFAULT_STEP);
     
@@ -321,7 +321,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (dialog == null) {
         WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog == null");
       }
-      String dialogName = messages.getString("loAiDialogTitle");
+      String dialogName = messages.getString("aiDialogTitle");
       dialog.setName(dialogName);
       dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -333,7 +333,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       language.setFont(dialogFont);
       language.setSelectedItem(startLang);
-      translLocale = WtGeneralTools.getLocalForFullName(startLang, messages);
+      translLocale = WtGeneralTools.getLocalForFullName(startLang);
       selectedLang = startLang;
       language.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -1007,9 +1007,9 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons14.gridy++;
       leftPanel14.add(temperatureSlider, cons14);
 
-      instructionPanel.add(messages.getString("loAiDialogTabParagraph"), leftPanel12);
-      instructionPanel.add(messages.getString("loAiDialogTabTranslation"), leftPanel15);
-      instructionPanel.add(messages.getString("loAiDialogTabInstruction"), leftPanel13);
+      instructionPanel.add(messages.getString("aiDialogTabParagraph"), leftPanel12);
+      instructionPanel.add(messages.getString("aiDialogTabTranslation"), leftPanel15);
+      instructionPanel.add(messages.getString("aiDialogTabInstruction"), leftPanel13);
       
 
       //  Define main text panel
@@ -1205,10 +1205,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       //  Define tabbed main pane
       if (config.useAiSupport()) {
-        mainPanel.add(messages.getString("loAiDialogTabText"), mainTextPanel);
+        mainPanel.add(messages.getString("aiDialogTabText"), mainTextPanel);
       }
       if (config.useAiImgSupport()) {
-        mainPanel.add(messages.getString("loAiDialogTabImages"), mainImagePanel);
+        mainPanel.add(messages.getString("aiDialogTabImages"), mainImagePanel);
       }
 /*
       //  Define general button panel
@@ -1563,7 +1563,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         WtMessageHandler.printToLogFile("AiDialog: translate: start AI request");
       }
       if (selectedLang != null) {
-        translLocale = WtGeneralTools.getLocalForFullName(selectedLang, messages);
+        translLocale = WtGeneralTools.getLocalForFullName(selectedLang);
         String instruction = WtAiTranslateDocument.TRANSLATE_INSTRUCTION + translLocale.Language + WtAiTranslateDocument.TRANSLATE_INSTRUCTION_POST;
         WtAiRemote aiRemote = new WtAiRemote(documents, config);
         String text = translationText.getText();
@@ -1961,7 +1961,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private void saveImage() {
     JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle(messages.getString("loAiDialogImgSaveTitle"));
+    fileChooser.setDialogTitle(messages.getString("aiDialogImgSaveTitle"));
     if (fileToSave != null) {
       fileChooser.setSelectedFile(fileToSave);
     }
@@ -1978,7 +1978,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       String name = file.getName();
       String extension = name.substring(name.lastIndexOf('.') + 1);
       if (!extension.equals("png") && !extension.equals("jpg") && !extension.equals("gif")) {
-        WtMessageHandler.showMessage(messages.getString("loAiDialogImgSaveErrorMsg"));
+        WtMessageHandler.showMessage(messages.getString("aiDialogImgSaveErrorMsg"));
         return;
       }
       ImageIO.write(image, extension, file);
@@ -2020,9 +2020,9 @@ public class WtAiDialog extends Thread implements ActionListener {
   private String[] getPossibleLanguages() {
     List<String> languages = new ArrayList<>();
     for (Language lang : Languages.get()) {
-      languages.add(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+      languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
       if("English".equals(lang.getName())) {
-        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang, messages));
+        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang));
       }
     }
     languages.sort(null);

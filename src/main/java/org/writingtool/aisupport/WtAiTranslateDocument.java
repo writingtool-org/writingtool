@@ -88,11 +88,11 @@ public class WtAiTranslateDocument extends Thread {
   public void run() {
     try {
       if (fromUrl == null || fromUrl.isBlank()) {
-        WtOptionPane.showMessageDialog (null, messages.getString("loAiDialogTranslateFileError"));
+        WtOptionPane.showMessageDialog (null, messages.getString("aiDialogTranslateFileError"));
         return;
       }
       if (isDocModified()) {
-        int ret = WtOptionPane.showConfirmDialog(null, messages.getString("loAiDialogSaveFileMessage"), 
+        int ret = WtOptionPane.showConfirmDialog(null, messages.getString("aiDialogSaveFileMessage"), 
             messages.getString("allDialogButtonSaveDocument"), WtOptionPane.OK_CANCEL_OPTION);
         if (ret == WtOptionPane.CANCEL_OPTION) {
           return;
