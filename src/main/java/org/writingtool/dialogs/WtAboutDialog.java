@@ -139,7 +139,7 @@ public class WtAboutDialog {
       maintainersPane.setEditable(false);
       maintainersPane.setOpaque(false);
   
-      maintainersPane.setText(WtOfficeTools.getFormatedLanguageToolMaintainers(messages));
+      maintainersPane.setText(WtOfficeTools.getFormatedLanguageToolMaintainers());
   
       int prefWidth = Math.max(520, maintainersPane.getPreferredSize().width);
       int maxHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;

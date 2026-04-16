@@ -1407,12 +1407,12 @@ public class WtOfficeTools {
   /**
    * get formated LanguageTool maintainer
    */
-  public static String getFormatedLanguageToolMaintainers(ResourceBundle messages) {
+  public static String getFormatedLanguageToolMaintainers() {
     TreeMap<String, Language> list = new TreeMap<>();
     for (Language lang : Languages.get()) {
       if (!lang.isVariant()) {
         if (lang.getMaintainers() != null) {
-          list.put(messages.getString(lang.getShortCode()), lang);
+          list.put(JLanguageTool.getMessageBundle().getString(lang.getShortCode()), lang);
         }
       }
     }
