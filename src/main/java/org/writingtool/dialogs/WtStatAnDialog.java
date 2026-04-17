@@ -661,11 +661,9 @@ public class WtStatAnDialog extends Thread  {
     }
 
     cons20.gridy++;
-    showAdditionalOptions = new JCheckBox("Show additional Options");
-//    showAdditionalOptions = new JCheckBox(MESSAGES.getString("statAnalysisDialogWithoutDirectSpreech"));
+    showAdditionalOptions = new JCheckBox(MESSAGES.getString("statAnalysisDialogShowAdditionalOptions"));
 
-    showParagraphsWithoutMatch = new JCheckBox("Show paragraphs without matches");
-//  showParagraphsWithoutMatch = new JCheckBox(MESSAGES.getString("statAnalysisDialogWithoutDirectSpreech"));
+    showParagraphsWithoutMatch = new JCheckBox(MESSAGES.getString("statAnalysisDialogShowWithNoMatches"));
     showParagraphsWithoutMatch.setVisible(false);
 
     showAdditionalOptions.setSelected(config.showAdditionalOptions());

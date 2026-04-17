@@ -139,7 +139,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
     try {
       String txt = document.getDocumentCache().getDocAsString();
       numWrongQuotes = quotesDetection.numNotCorrectQuotes(txt, 0);
-      numWrongQuotesLabel.setText(numWrongQuotes + " wrong quotes detected");
+      numWrongQuotesLabel.setText(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
       if (debugMode) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog called");
       }
@@ -208,7 +208,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
             try {
               quoteIndex = index;
               numWrongQuotes = quotesDetection.numNotCorrectQuotes(document.getDocumentCache().getDocAsString(), quoteIndex);
-              numWrongQuotesLabel.setText(numWrongQuotes + " wrong quotes detected");
+              numWrongQuotesLabel.setText(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
               changeQuotes.setEnabled(numWrongQuotes > 0);
             } catch (Throwable t) {
               WtMessageHandler.showError(t);
