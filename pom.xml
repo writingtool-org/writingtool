@@ -202,14 +202,14 @@
     </build>
 
     <properties>
-		<!-- snapshot revision
-        <revision>26.4-SNAPSHOT</revision>
-        <lt-revision>6.8-SNAPSHOT</lt-revision>
-        -->
-		<!-- release revision -->
-        <revision>26.4</revision>
+		<!-- snapshot revision -->
+        <revision>26.7-SNAPSHOT</revision>
         <lt-revision>6.8-SNAPSHOT</lt-revision>
         
+		<!-- release revision 
+        <revision>26.4</revision>
+        <lt-revision>6.8-SNAPSHOT</lt-revision>
+        -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
