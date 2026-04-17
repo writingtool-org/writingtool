@@ -257,14 +257,14 @@ public class WtAiDialog extends Thread implements ActionListener {
     reset = new JButton (messages.getString("aiDialogResetButton")); 
     loadChapter = new JButton (messages.getString("aiDialogChapterButton")); 
     clear = new JButton (messages.getString("aiDialogClearButton")); 
-    undo = new JButton (messages.getString("aiDialogUndoButton")); 
+    undo = new JButton (messages.getString("allDialogButtonUndo")); 
     createImage = new JButton (messages.getString("aiDialogCreateImageButton")); 
     overrideParagraph = new JButton (messages.getString("aiDialogOverrideButton")); 
     addToParagraph = new JButton (messages.getString("aiDialogaddToButton")); 
-    help = new JButton (messages.getString("aiDialogHelpButton")); 
-    close = new JButton (messages.getString("aiDialogCloseButton")); 
-    helpImg = new JButton (messages.getString("aiDialogHelpButton")); 
-    closeImg = new JButton (messages.getString("aiDialogCloseButton")); 
+    help = new JButton (messages.getString("allDialogButtonHelp")); 
+    close = new JButton (messages.getString("allDialogButtonClose")); 
+    helpImg = new JButton (messages.getString("allDialogButtonHelp")); 
+    closeImg = new JButton (messages.getString("allDialogButtonClose")); 
     
     imgInstructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
     imgInstruction = new JTextField();

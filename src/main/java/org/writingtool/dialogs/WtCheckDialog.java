@@ -155,10 +155,10 @@ public class WtCheckDialog extends Thread {
   private final static String changeButtonName = messages.getString("checkDialogChangeButton"); 
   private final static String changeAllButtonName = messages.getString("checkDialogChangeAllButton"); 
   private final static String autoCorrectButtonName = messages.getString("checkDialogAutoCorrectButton"); 
-  private final static String helpButtonName = messages.getString("checkDialogHelpButton"); 
+  private final static String helpButtonName = messages.getString("allDialogButtonHelp"); 
   private final static String optionsButtonName = messages.getString("checkDialogOptionsButton"); 
   private final static String undoButtonName = messages.getString("allDialogButtonUndo");
-  private final static String closeButtonName = messages.getString("checkDialogCloseButton");
+  private final static String closeButtonName = messages.getString("allDialogButtonClose");
   private final static String changeLanguageList[] = { messages.getString("checkDialogChangeLanguageRequest"),
                                                 messages.getString("checkDialogChangeLanguageMatch"),
                                                 messages.getString("checkDialogChangeLanguageParagraph") };

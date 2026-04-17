@@ -120,7 +120,7 @@ public class WtMoreInfoDialog {
         }
       });
       
-      JButton close = new JButton(messages.getString("checkDialogCloseButton"));
+      JButton close = new JButton(messages.getString("allDialogButtonClose"));
       close.addActionListener(e -> {
         close();
       });

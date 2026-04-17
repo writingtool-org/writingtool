@@ -121,7 +121,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       result.setVisible(false);
     }
     overrideParagraph = new JButton (messages.getString("aiDialogOverrideButton")); 
-    close = new JButton (messages.getString("aiDialogCloseButton"));
+    close = new JButton (messages.getString("allDialogButtonClose"));
     mainPanel = new JPanel();
     
 //    checkProgress.setStringPainted(true);

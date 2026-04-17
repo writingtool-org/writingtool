@@ -101,7 +101,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     resultLabel = new JLabel(messages.getString("aiDialogResultLabelSummary") + ":");
     result = new JTextPane();
     result.setBorder(BorderFactory.createLineBorder(Color.gray));
-    close = new JButton (messages.getString("aiDialogCloseButton"));
+    close = new JButton (messages.getString("allDialogButtonClose"));
     addSummary = new JButton (messages.getString("aiDialogAddSummaryButton"));
   }
   

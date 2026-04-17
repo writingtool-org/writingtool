@@ -128,7 +128,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
     numWrongQuotesLabel = new JLabel(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
 
     changeQuotes = new JButton (messages.getString("quotesDialogChangeButton"));
-    close = new JButton (messages.getString("aiDialogCloseButton"));
+    close = new JButton (messages.getString("allDialogButtonClose"));
     mainPanel = new JPanel();
     
     checkProgress = new JProgressBar();

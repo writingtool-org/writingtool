@@ -418,7 +418,7 @@ public class WtStatAnDialog extends Thread  {
     buttonPanel.add(helpButton, cons1);
     cons1.anchor = GridBagConstraints.EAST;
     cons1.gridx++;
-    JButton closeButton = new JButton(MESSAGES.getString("statAnalysisDialogCloseButton"));
+    JButton closeButton = new JButton(MESSAGES.getString("allDialogButtonClose"));
     closeButton.addActionListener(e -> {
       closeDialog();
     });
@@ -642,7 +642,7 @@ public class WtStatAnDialog extends Thread  {
     cons21.gridy++;
     optionPanel.add(withoutDirectSpeech, cons21);
     cons21.gridx++;
-    defaultButton = new JButton(MESSAGES.getString("statAnalysisDialogDefaultButton"));
+    defaultButton = new JButton(MESSAGES.getString("allDialogButtonDefault"));
     optionPanel.add(defaultButton, cons21);
     rightPanel.add(optionPanel, cons20);
 
@@ -1405,7 +1405,7 @@ public class WtStatAnDialog extends Thread  {
     });
     buttonPanel.add(changeButton, cons12);
   
-    JButton defaultButton = new JButton(MESSAGES.getString("allDialogUColorDefault"));
+    JButton defaultButton = new JButton(MESSAGES.getString("allDialogButtonDefault"));
     defaultButton.addActionListener(e -> {
       config.setDefaultUnderlineColor();
       underlineLabel.setForeground(config.getUnderlineColor());
