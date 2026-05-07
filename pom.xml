@@ -204,7 +204,7 @@
     <properties>
 		<!-- snapshot revision -->
         <revision>26.7-SNAPSHOT</revision>
-        <lt-revision>6.8-SNAPSHOT</lt-revision>
+        <lt-revision>6.9-SNAPSHOT</lt-revision>
         
 		<!-- release revision 
         <revision>26.4</revision>
