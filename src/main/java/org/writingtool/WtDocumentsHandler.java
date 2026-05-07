@@ -577,7 +577,7 @@ public class WtDocumentsHandler {
    * change toolbar button state
    */
   public void readToolbarConfig() {
-    if (protocolHandler != null) {
+    if (protocolHandler != null && config != null && !config.saveButtonState()) {
       protocolHandler.readConfiguration();
     }
   }
@@ -783,7 +783,7 @@ public class WtDocumentsHandler {
           aiQueue.interruptCheck(docId, false);
         }
       }
-      if (protocolHandler != null) {
+      if (protocolHandler != null && config != null && !config.saveButtonState()) {
         protocolHandler.writeCurrentConfiguration();
       }
     } catch (Throwable t) {

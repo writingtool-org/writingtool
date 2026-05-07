@@ -90,6 +90,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_ENABLE_GOAL_SPECIFIC_RULES = false;
   static final boolean DEFAULT_FILTER_OVERLAPPING_MATCHES = true;
   static final boolean DEFAULT_SAVE_LO_CACHE = true;
+  static final boolean DEFAULT_SAVE_BUTTON_STATE = false;
   static final boolean DEFAULT_USE_AI_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_IMG_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
@@ -174,6 +175,7 @@ public class WtConfiguration {
   private static final String ENABLE_GOAL_SPECIFIC_RULES_KEY = "enableGoalSpecificRules";
   private static final String FILTER_OVERLAPPING_MATCHES_KEY = "filterOverlappingMatches";
   private static final String SAVE_LO_CACHE_KEY = "saveLoCache";
+  private static final String SAVE_BUTTON_STATE_KEY = "saveButtonState";
   private static final String LT_VERSION_KEY = "ltVersion";
   private static final String AI_URL_KEY = "aiUrl";
   private static final String AI_APIKEY_KEY = "aiApiKey";
@@ -267,6 +269,7 @@ public class WtConfiguration {
   private boolean enableGoalSpecificRules = DEFAULT_ENABLE_GOAL_SPECIFIC_RULES;
   private boolean filterOverlappingMatches = DEFAULT_FILTER_OVERLAPPING_MATCHES;
   private boolean saveLoCache = DEFAULT_SAVE_LO_CACHE;
+  private boolean saveButtonState = DEFAULT_SAVE_BUTTON_STATE;
   private String externalRuleDirectory;
   private String lookAndFeelName;
   private String currentProfile = null;
@@ -380,6 +383,7 @@ public class WtConfiguration {
     enableGoalSpecificRules = DEFAULT_ENABLE_GOAL_SPECIFIC_RULES;
     filterOverlappingMatches = DEFAULT_FILTER_OVERLAPPING_MATCHES;
     saveLoCache = DEFAULT_SAVE_LO_CACHE;
+    saveButtonState = DEFAULT_SAVE_BUTTON_STATE;
     aiUrl = DEFAULT_AI_URL;
     aiApiKey = DEFAULT_AI_APIKEY;
     aiModel = DEFAULT_AI_MODEL;
@@ -459,6 +463,7 @@ public class WtConfiguration {
     this.enableGoalSpecificRules = configuration.enableGoalSpecificRules;
     this.filterOverlappingMatches = configuration.filterOverlappingMatches;
     this.saveLoCache = configuration.saveLoCache;
+    this.saveButtonState = configuration.saveButtonState;
     this.otherServerUrl = configuration.otherServerUrl;
     this.remoteUsername = configuration.remoteUsername;
     this.remoteApiKey = configuration.remoteApiKey;
@@ -892,7 +897,15 @@ public class WtConfiguration {
     return saveLoCache;
   }
   
-  /**
+  public void setSaveButtonState(boolean saveButtonState) {
+    this.saveButtonState = saveButtonState;
+  }
+
+  public boolean saveButtonState() {
+    return saveButtonState;
+  }
+  
+ /**
    * Determines whether the tagger window will also print the disambiguation
    * log.
    * @return true if the tagger window will print the disambiguation log,
@@ -1616,6 +1629,16 @@ public class WtConfiguration {
 
       logLevel = (String) props.get(LOG_LEVEL_KEY);
       
+      String saveLoCacheString = (String) props.get(SAVE_LO_CACHE_KEY);
+      if (saveLoCacheString != null) {
+        saveLoCache = Boolean.parseBoolean(saveLoCacheString);
+      }
+      
+      String saveButtonStateString = (String) props.get(SAVE_BUTTON_STATE_KEY);
+      if (saveButtonStateString != null) {
+        saveButtonState = Boolean.parseBoolean(saveButtonStateString);
+      }
+      
       storeConfigForAllProfiles(props);
       
       String prefix;
@@ -1815,11 +1838,6 @@ public class WtConfiguration {
     String filterOverlappingMatchesString = (String) props.get(prefix + FILTER_OVERLAPPING_MATCHES_KEY);
     if (filterOverlappingMatchesString != null) {
       filterOverlappingMatches = Boolean.parseBoolean(filterOverlappingMatchesString);
-    }
-    
-    String saveLoCacheString = (String) props.get(prefix + SAVE_LO_CACHE_KEY);
-    if (saveLoCacheString != null) {
-      saveLoCache = Boolean.parseBoolean(saveLoCacheString);
     }
     
     String aiString = (String) props.get(prefix + AI_URL_KEY);
@@ -2056,6 +2074,13 @@ public class WtConfiguration {
       props.setProperty(DEFINED_PROFILES_KEY, String.join(DELIMITER, definedProfiles));
     }
     
+    if (saveLoCache != DEFAULT_SAVE_LO_CACHE) {
+      props.setProperty(SAVE_LO_CACHE_KEY, Boolean.toString(saveLoCache));
+    }
+    if (saveButtonState != DEFAULT_SAVE_BUTTON_STATE) {
+      props.setProperty(SAVE_BUTTON_STATE_KEY, Boolean.toString(saveButtonState));
+    }
+
     if (motherTongue != null) {
       props.setProperty(MOTHER_TONGUE_KEY, motherTongue.getShortCodeWithCountryAndVariant());
     }
@@ -2067,7 +2092,7 @@ public class WtConfiguration {
     try (FileOutputStream fos = new FileOutputStream(configFile)) {
       props.store(fos, WtOfficeTools.WT_NAME + " configuration (" + WtVersionInfo.getWtInformation() + ")");
     }
-
+    
     List<String> prefixes = new ArrayList<>();
     prefixes.add("");
     for (String profile : definedProfiles) {
@@ -2156,7 +2181,6 @@ public class WtConfiguration {
     allProfileKeys.add(ENABLE_TMP_OFF_RULES_KEY);
     allProfileKeys.add(ENABLE_GOAL_SPECIFIC_RULES_KEY);
     allProfileKeys.add(FILTER_OVERLAPPING_MATCHES_KEY);
-    allProfileKeys.add(SAVE_LO_CACHE_KEY);
     allProfileKeys.add(AI_URL_KEY);
     allProfileKeys.add(AI_APIKEY_KEY);
     allProfileKeys.add(AI_MODEL_KEY);
@@ -2299,9 +2323,6 @@ public class WtConfiguration {
     }
     if (filterOverlappingMatches != DEFAULT_FILTER_OVERLAPPING_MATCHES) {
       props.setProperty(prefix + FILTER_OVERLAPPING_MATCHES_KEY, Boolean.toString(filterOverlappingMatches));
-    }
-    if (saveLoCache != DEFAULT_SAVE_LO_CACHE) {
-      props.setProperty(prefix + SAVE_LO_CACHE_KEY, Boolean.toString(saveLoCache));
     }
     if (switchOff) {
       props.setProperty(prefix + LT_SWITCHED_OFF_KEY, Boolean.toString(switchOff));
