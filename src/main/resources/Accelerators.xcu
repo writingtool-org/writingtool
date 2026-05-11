@@ -26,6 +26,11 @@
                         <value xml:lang="en-US">org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
                 </node>
+                <node oor:name="RIGHT_SHIFT_MOD2" oor:op="replace">
+                    <prop oor:name="Command">
+                        <value xml:lang="en-US">org.writingtool.WritingTool:nextError</value>
+                    </prop>
+                </node>
             </node>
             <node oor:name="com.sun.star.sheet.SpreadsheetDocument">
                 <node oor:name="F7" oor:op="replace">

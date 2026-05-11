@@ -73,6 +73,8 @@ public class WtConfiguration {
   static final int DEFAULT_COLOR_SELECTION = 0;
   static final int DEFAULT_CHECK_DIRECT_SPEECH = CHECK_DIRECT_SPEECH_YES;
   static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_SYSTEM;
+  static final boolean DEFAULT_SAVE_LO_CACHE = true;
+  static final boolean DEFAULT_SAVE_BUTTON_STATE = true;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
@@ -89,8 +91,6 @@ public class WtConfiguration {
   static final boolean DEFAULT_ENABLE_TMP_OFF_RULES = false;
   static final boolean DEFAULT_ENABLE_GOAL_SPECIFIC_RULES = false;
   static final boolean DEFAULT_FILTER_OVERLAPPING_MATCHES = true;
-  static final boolean DEFAULT_SAVE_LO_CACHE = true;
-  static final boolean DEFAULT_SAVE_BUTTON_STATE = false;
   static final boolean DEFAULT_USE_AI_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_IMG_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
