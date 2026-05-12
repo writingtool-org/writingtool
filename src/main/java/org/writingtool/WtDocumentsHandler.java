@@ -577,7 +577,7 @@ public class WtDocumentsHandler {
    * change toolbar button state
    */
   public void readToolbarConfig() {
-    if (protocolHandler != null && config != null && !config.saveButtonState()) {
+    if (protocolHandler != null && config != null && config.saveButtonState()) {
       protocolHandler.readConfiguration();
     }
   }
@@ -783,7 +783,7 @@ public class WtDocumentsHandler {
           aiQueue.interruptCheck(docId, false);
         }
       }
-      if (protocolHandler != null && config != null && !config.saveButtonState()) {
+      if (protocolHandler != null && config != null && config.saveButtonState()) {
         protocolHandler.writeCurrentConfiguration();
       }
     } catch (Throwable t) {
@@ -3233,7 +3233,7 @@ public class WtDocumentsHandler {
           dialog.dispose();
         }
       } catch (Throwable t) {
-        WtMessageHandler.showError(t);
+        WtMessageHandler.printException(t);
       }
     }
     
