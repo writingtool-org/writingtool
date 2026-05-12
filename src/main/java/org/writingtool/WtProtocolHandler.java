@@ -453,8 +453,9 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 
   public void writeCurrentConfiguration() {
     try {
+      WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
       List<WtSingleDocument> documents = WritingTool.getDocumentsHandler().getDocuments();
-      if (!WritingTool.getDocumentsHandler().isOpenOffice 
+      if (conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice 
           && documents.size() > 0 && documents.get(0).getDocumentType() == DocumentType.WRITER) {
         Properties props = new Properties();
         XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
@@ -523,7 +524,8 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   }
 
   public void readConfiguration() {
-    if (!isConfigRead && !WritingTool.getDocumentsHandler().isOpenOffice) {
+    WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+    if (!isConfigRead && conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice) {
       isConfigRead = true;
       readConfig();
     }
