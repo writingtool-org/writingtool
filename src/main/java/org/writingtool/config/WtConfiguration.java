@@ -74,7 +74,7 @@ public class WtConfiguration {
   static final int DEFAULT_CHECK_DIRECT_SPEECH = CHECK_DIRECT_SPEECH_YES;
   static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_SYSTEM;
   static final boolean DEFAULT_SAVE_LO_CACHE = true;
-  static final boolean DEFAULT_SAVE_BUTTON_STATE = true;
+  static final boolean DEFAULT_SAVE_BUTTON_STATE = false;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
