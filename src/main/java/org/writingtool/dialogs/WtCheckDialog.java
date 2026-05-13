@@ -398,9 +398,9 @@ public class WtCheckDialog extends Thread {
         yFlat++;
       }
       WtMessageHandler.showClosingInformationDialog(messages.getString("guiCheckComplete"));
-  } catch (Throwable t) {
-    WtMessageHandler.showError(t);
-  }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
   }
 
   /**
