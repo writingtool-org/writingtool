@@ -2196,15 +2196,19 @@ public class WtSingleDocument {
 */
   
   public void addDummyText() {
-    if (docType == DocumentType.WRITER) {
-      XTextDocument xDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
-      XText xText = xDoc.getText();
-      XTextCursor cursor = xText.createTextCursor();
-      cursor.gotoEnd(false);
-      xText.insertString(cursor, " ", false);
-      cursor.gotoEnd(false);
-      cursor.goLeft((short) 1, true);
-      xText.insertString(cursor, "", true);
+    try {
+      if (docType == DocumentType.WRITER) {
+        XTextDocument xDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
+        XText xText = xDoc.getText();
+        XTextCursor cursor = xText.createTextCursor();
+        cursor.gotoEnd(false);
+        xText.insertString(cursor, " ", false);
+        cursor.gotoEnd(false);
+        cursor.goLeft((short) 1, true);
+        xText.insertString(cursor, "", true);
+      }
+    } catch (Throwable t) {
+      //  no message if fail, because only dummy text
     }
   }
 

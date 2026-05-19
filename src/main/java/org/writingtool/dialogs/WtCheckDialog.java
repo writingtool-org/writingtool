@@ -216,8 +216,8 @@ public class WtCheckDialog extends Thread {
     this.xContext = xContext;
     this.documents = documents;
     lastLanguage = language;
-    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("messageDialogWaitMessage"));
-    inf.start();
+//    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("messageDialogWaitMessage"));
+//    inf.start();
     locale = WtLinguisticServices.getLocale(language);
     if(!WtOfficeTools.javaVersionOkay()) {
       return;
@@ -254,6 +254,8 @@ public class WtCheckDialog extends Thread {
   @Override
   public void run() {
     try {
+      inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("messageDialogWaitMessage"));
+      inf.start();
       long startTime = 0;
       if (debugModeTm) {
         startTime = System.currentTimeMillis();
@@ -359,49 +361,85 @@ public class WtCheckDialog extends Thread {
     return currentDocument;
   }
 
-   /**
-   * Find the next error relative to the position of cursor and set the view cursor to the position
-   */
-  public void nextError() {
-    try {
-      WtSingleDocument document = getCurrentDocument(false);
-      if (document == null || docType != DocumentType.WRITER || !documents.isEnoughHeapSpace()) {
-        return;
-      }
-      if (docCache == null || docCache.size() <= 0) {
-        return;
-      }
-/*
-      if (spellChecker == null) {
-        spellChecker = new ExtensionSpellChecker();
-      }
-*/
-      if (lt == null || !documents.isCheckImpressDocument()) {
-        setLangTool(document, lastLanguage);
-      }
-      XComponent xComponent = document.getXComponent();
-      WtDocumentCursorTools docCursor = new WtDocumentCursorTools(xComponent);
-      WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
-      int yFlat = getCurrentFlatParagraphNumber(viewCursor, docCache);
-      inf.close();
-      if (yFlat < 0) {
-        WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogNextErrorUnsupported"));
-        return;
-      }
-      int x = viewCursor.getViewCursorCharacter();
-      while (yFlat < docCache.size()) {
-        CheckError nextError = getNextErrorInParagraph (x, yFlat, document, docCursor, false);
-        if (nextError != null && setFlatViewCursor(nextError.error.nErrorStart + 1, yFlat, viewCursor, docCache)) {
-          return;
-        }
-        x = 0;
-        yFlat++;
-      }
-      WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogMessageComplete"));
-    } catch (Throwable t) {
-      WtMessageHandler.showError(t);
+  /**
+  * Find the next error relative to the position of cursor and set the view cursor to the position
+  */
+ public void nextError() {
+   try {
+     WtSingleDocument document = getCurrentDocument(false);
+     if (document == null || docType != DocumentType.WRITER || !documents.isEnoughHeapSpace()) {
+       return;
+     }
+     if (docCache == null || docCache.size() <= 0) {
+       return;
+     }
+     if (lt == null || !documents.isCheckImpressDocument()) {
+       setLangTool(document, lastLanguage);
+     }
+     XComponent xComponent = document.getXComponent();
+     WtDocumentCursorTools docCursor = new WtDocumentCursorTools(xComponent);
+     WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+     int yFlat = getCurrentFlatParagraphNumber(viewCursor, docCache);
+//     inf.close();
+     if (yFlat < 0) {
+       WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogNextErrorUnsupported"));
+       return;
+     }
+     int x = viewCursor.getViewCursorCharacter();
+     while (yFlat < docCache.size()) {
+       CheckError nextError = getNextErrorInParagraph (x, yFlat, document, docCursor, false, false);
+       if (nextError != null && setFlatViewCursor(nextError.error.nErrorStart, yFlat, viewCursor, docCache)) {
+         return;
+       }
+       x = 0;
+       yFlat++;
+     }
+     WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogMessageComplete"));
+   } catch (Throwable t) {
+     WtMessageHandler.showError(t);
+   }
+ }
+
+ /**
+ * Find the previous error relative to the position of cursor and set the view cursor to the position
+ */
+public void previousError() {
+  try {
+    WtSingleDocument document = getCurrentDocument(false);
+    if (document == null || docType != DocumentType.WRITER || !documents.isEnoughHeapSpace()) {
+      return;
     }
+    if (docCache == null || docCache.size() <= 0) {
+      return;
+    }
+    if (lt == null || !documents.isCheckImpressDocument()) {
+      setLangTool(document, lastLanguage);
+    }
+    XComponent xComponent = document.getXComponent();
+    WtDocumentCursorTools docCursor = new WtDocumentCursorTools(xComponent);
+    WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
+    int yFlat = getCurrentFlatParagraphNumber(viewCursor, docCache);
+//    inf.close();
+    if (yFlat < 0) {
+      WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogNextErrorUnsupported"));
+      return;
+    }
+    int x = viewCursor.getViewCursorCharacter();
+    while (yFlat >= 0) {
+      CheckError previousError = getNextErrorInParagraph (x, yFlat, document, docCursor, false, true);
+      if (previousError != null && setFlatViewCursor(previousError.error.nErrorStart, yFlat, viewCursor, docCache)) {
+        return;
+      }
+      yFlat--;
+      if (yFlat >= 0) {
+        x = docCache.getFlatParagraph(yFlat).length();
+      }
+    }
+    WtMessageHandler.showClosingInformationDialog(messages.getString("checkDialogMessageComplete"));
+  } catch (Throwable t) {
+    WtMessageHandler.showError(t);
   }
+}
 
   /**
    * get the current number of the flat paragraph related to the position of view cursor
@@ -572,7 +610,7 @@ public class WtCheckDialog extends Thread {
    * @throws Throwable 
    */
   private CheckError getNextErrorInParagraph (int x, int nFPara, WtSingleDocument document, 
-      WtDocumentCursorTools docTools, boolean checkFrames) throws Throwable {
+      WtDocumentCursorTools docTools, boolean checkFrames, boolean reverse) throws Throwable {
     if (docCache.isAutomaticGenerated(nFPara, true)) {
       return null;
     }
@@ -594,7 +632,7 @@ public class WtCheckDialog extends Thread {
       errType = LoErrorType.BOTH;
     }
 
-    WtProofreadingError  error = getNextGrammatikOrSpellErrorInParagraph(x, nFPara, text, footnotePosition, locale, document, errType);
+    WtProofreadingError  error = getNextGrammatikOrSpellErrorInParagraph(x, nFPara, text, footnotePosition, locale, document, errType, reverse);
     if (error != null) {
       return new CheckError(locale, error);
     } else {
@@ -796,17 +834,21 @@ public class WtCheckDialog extends Thread {
    * Get the first grammatical or spell error in the flat paragraph y at or after character position x
    */
   WtProofreadingError getNextGrammatikOrSpellErrorInParagraph(int x, int nFPara, String text, int[] footnotePosition, 
-      Locale locale, WtSingleDocument document, LoErrorType errType) throws Throwable {
-    if (text == null || text.isEmpty() || x >= text.length() || !WtDocumentsHandler.hasLocale(locale)) {
+      Locale locale, WtSingleDocument document, LoErrorType errType, boolean reverse) throws Throwable {
+    if (text == null || text.isEmpty() || (!reverse && x >= text.length()) || (reverse && x <= 0) 
+        || !WtDocumentsHandler.hasLocale(locale)) {
       return null;
     }
     if (document.getDocumentType() == DocumentType.WRITER //  && documents.getTextLevelCheckQueue() != null
         && !documents.noLtSpeller() && !documents.isBackgroundCheckOff()) {
       WtProofreadingError[] errors = getErrorsFromCache(nFPara);
-      if (errors == null) {
+      if (errors == null || errors.length == 0) {
         return null;
       }
-      for (WtProofreadingError error : errors) {
+      int i = reverse ? errors.length - 1 : 0;
+      boolean run = true;
+      while (run) {
+        WtProofreadingError error = errors[i];
         if (debugMode) {
           WtMessageHandler.printToLogFile("CheckDialog: getNextGrammatikErrorInParagraph: Start: " + error.nErrorStart + ", ID: " + error.aRuleIdentifier);
           if (error.nErrorType == TextMarkupType.SPELLCHECK) {
@@ -817,7 +859,7 @@ public class WtCheckDialog extends Thread {
         if (checkType != 3 && ((errType != LoErrorType.SPELL && error.nErrorType != TextMarkupType.SPELLCHECK)
                            || (errType != LoErrorType.GRAMMAR && error.nErrorType == TextMarkupType.SPELLCHECK))
               || (checkType == 3 && error.aRuleIdentifier.equals(checkRuleId)) ) {
-          if (error.nErrorStart >= x) {
+          if ((!reverse && error.nErrorStart > x) || (reverse && error.nErrorStart < x)) {
             if (error.nErrorType == TextMarkupType.SPELLCHECK) {
               String word = text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
               if (word.contains(" ") || documents.getLinguisticServices().isCorrectSpell(word, 
@@ -858,6 +900,8 @@ public class WtCheckDialog extends Thread {
             return error;
           }
         }
+        i = reverse ? i - 1 : i + 1;
+        run = reverse ? i >= 0 : i < errors.length;
       }
     } else {
       PropertyValue[] propertyValues = { new PropertyValue("FootnotePositions", -1, footnotePosition, PropertyState.DIRECT_VALUE) };
@@ -919,7 +963,10 @@ public class WtCheckDialog extends Thread {
                   + paRes.aErrors.length + ", Paragraph: " + nFPara + ", Next Position: " + paRes.nStartOfNextSentencePosition
                   + ", Text.length: " + text.length());
             }
-            for (WtProofreadingError error : allErrors) {
+            int i = reverse ? allErrors.length - 1 : 0;
+            boolean run = true;
+            while (run) {
+              WtProofreadingError error = allErrors[i];
               if (debugMode) {
                 WtMessageHandler.printToLogFile("CheckDialog: getNextGrammatikErrorInParagraph: Start: " + error.nErrorStart + ", ID: " + error.aRuleIdentifier);
                 if (error.nErrorType != TextMarkupType.SPELLCHECK) {
@@ -930,7 +977,7 @@ public class WtCheckDialog extends Thread {
               if (checkType != 3 && ((errType != LoErrorType.SPELL && error.nErrorType != TextMarkupType.SPELLCHECK)
                                  || (errType != LoErrorType.GRAMMAR && error.nErrorType == TextMarkupType.SPELLCHECK))
                  || (checkType == 3 && error.aRuleIdentifier.equals(checkRuleId)) ) {
-                if (error.nErrorStart >= x) {
+                if ((!reverse && error.nErrorStart > x) || (reverse && error.nErrorStart < x)) {
                   if (error.nErrorType == TextMarkupType.SPELLCHECK) {
                     String word = text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
                     if (word.contains(" ")) {
@@ -967,6 +1014,8 @@ public class WtCheckDialog extends Thread {
                   return error;
                 }
               }
+              i = reverse ? i - 1 : i + 1;
+              run = reverse ? i >= 0 : i < allErrors.length;
             }
           }
         }
@@ -2216,13 +2265,16 @@ public class WtCheckDialog extends Thread {
           tCursor = viewCursor.getTextCursorEnd();
           tCursor.gotoStart(true);
           int nEnd = tCursor.getString().length();
+          startOfRange = viewCursor.getViewCursorCharacter();
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("CheckDialog: initCursor: startOfRange: " + startOfRange);
+          }
           if (nBegin < nEnd) {
-            startOfRange = viewCursor.getViewCursorCharacter();
             endOfRange = nEnd - nBegin + startOfRange;
             lastX = 0;
             lastY = -1;
           } else {
-            startOfRange = -1;
+            x = startOfRange - 1;
             endOfRange = -1;
           }
         } else {
@@ -2798,13 +2850,11 @@ public class WtCheckDialog extends Thread {
         if (lastPara < 0) {
           lastPara = y;
         }
-        if (debugMode) {
-          WtMessageHandler.printToLogFile("CheckDialog: getNextError: (x/y): (" + x + "/" + y + ") < text size (= " + docCache.size() + ")");
-        }
         if (endOfRange >= 0 && y == lastPara) {
           x = startOfRange;
-        } else {
-          x = 0;
+        }
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("CheckDialog: getNextError: (x/y): (" + x + "/" + y + ") < text size (= " + docCache.size() + ")");
         }
         int nStart = 0;
         for (int i = lastPara; i < y && i < docCache.size(); i++) {
@@ -2817,7 +2867,7 @@ public class WtCheckDialog extends Thread {
         CheckError nextError = null;
         while (y < docCache.size() && y >= lastPara && nextError == null && (endOfRange < 0 || nStart < endOfRange)) {
           setProgressValue(endOfRange < 0 ? y - lastPara : nStart + (lastY == y ? lastX : 0), endOfRange < 0);
-          nextError = getNextErrorInParagraph (x, y, currentDocument, docCursor, true);
+          nextError = getNextErrorInParagraph (x, y, currentDocument, docCursor, true, false);
           if(isDisposed) {
             return null;
           }
@@ -2846,6 +2896,7 @@ public class WtCheckDialog extends Thread {
               WtMessageHandler.printToLogFile("CheckDialog: getNextError: FlatViewCursor set");
             }
             uncheckedParasLeft = hasUncheckedParas;
+            x = 0;
             return nextError;
           } else if (debugMode) {
             WtMessageHandler.printToLogFile("CheckDialog: getNextError: Next Error = " + (nextError == null ? "null" : nextError.error.nErrorStart) 
@@ -2858,13 +2909,13 @@ public class WtCheckDialog extends Thread {
           if (y == docCache.size()) {
             y = 0;
           }
-          while (y < lastPara) {
+          while (y <= lastPara) {
             setProgressValue(docCache.size() + y - lastPara, true);
-            nextError = getNextErrorInParagraph (0, y, currentDocument, docCursor, true);
+            nextError = getNextErrorInParagraph (0, y, currentDocument, docCursor, true, false);
             if(isDisposed) {
               return null;
             }
-            if (nextError != null) {
+            if (nextError != null && (y < lastPara || nextError.error.nErrorStart < startOfRange)) {
   //            if (nextError.error.aRuleIdentifier.equals(spellRuleId)) {
               if (nextError.error.nErrorType == TextMarkupType.SPELLCHECK) {
                 wrongWord = docCache.getFlatParagraph(y).substring(nextError.error.nErrorStart, 

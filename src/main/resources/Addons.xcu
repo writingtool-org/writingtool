@@ -67,6 +67,19 @@
                     </prop>
                 </node>
             </node>
+            <node oor:name="org.writingtool.WritingTool.imageLtPrevious" oor:op="replace">
+                <prop oor:name="URL" oor:type="xs:string">
+                    <value>org.writingtool.WritingTool:previousError</value>
+                </prop>
+                <node oor:name="UserDefinedImages">
+                    <prop oor:name="ImageSmallURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTPreviousSmall.png</value>
+                    </prop>
+                    <prop oor:name="ImageBigURL">
+                        <value>vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTPreviousBig.png</value>
+                    </prop>
+                </node>
+            </node>
             <node oor:name="org.writingtool.WritingTool.imageLtRefreshResults" oor:op="replace">
                 <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:refreshCheck</value>
@@ -335,10 +348,25 @@
                     <value xml:lang="gl">Erro ortográfico ou gramatical seguinte</value>
                     <value xml:lang="ru">Следующая грамматическая или орфографическая ошибка</value>
 					<value xml:lang="pt">Próximo erro ortográfico ou gramatical</value>
-		        <value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
+		        	<value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
                     </prop>
                 </node>
                 <node oor:name="T2" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:previousError</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Previous spelling or grammar mistake</value>
+                    <value xml:lang="de">Vorhergehender Rechtschreib- oder Grammatikfehler</value>
+                    </prop>
+                </node>
+                <node oor:name="T3" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:checkDialog</value>
                     </prop>
@@ -377,7 +405,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet</value>
                     </prop>
                 </node>
-                <node oor:name="T3" oor:op="replace">
+                <node oor:name="T4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
@@ -414,7 +442,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet igen</value>
                     </prop>
                 </node>
-                <node oor:name="T4" oor:op="replace">
+                <node oor:name="T5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:refreshCheck</value>
                     </prop>
@@ -431,7 +459,7 @@
                     <value xml:lang="sv">Uppdatera språkgranskningspunkterna</value>
                     </prop>
                 </node>
-                <node oor:name="T5" oor:op="replace">
+                <node oor:name="T6" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:refreshAllMarkups</value>
                     </prop>
@@ -446,7 +474,7 @@
                     <value xml:lang="de">Alle Fehlerkennzeichnungen erneuern</value>
                     </prop>
                 </node>
-                <node oor:name="T6" oor:op="replace">
+                <node oor:name="T7" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:configure</value>
                     </prop>
@@ -485,7 +513,7 @@
                     <value xml:lang="sv">Inställningar ...</value>
                     </prop>
                 </node>
-                <node oor:name="T7" oor:op="replace">
+                <node oor:name="T8" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:about</value>
                     </prop>
@@ -522,7 +550,7 @@
                     <value xml:lang="sv">Om WritingTool ...</value>
                     </prop>
                 </node>
-                <node oor:name="T8" oor:op="replace">
+                <node oor:name="T9" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:changeQuotes</value>
                     </prop>
@@ -537,7 +565,7 @@
                     <value xml:lang="de">Anführungszeichen ändern...</value>
                     </prop>
                 </node>
-                <node oor:name="T9" oor:op="replace">
+                <node oor:name="T10" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:backgroundCheckOff</value>
                     </prop>
@@ -552,7 +580,7 @@
                     <value xml:lang="de">Hintergrundprüfung ausschalten</value>
                     </prop>
                 </node>
-                <node oor:name="T10" oor:op="replace">
+                <node oor:name="T11" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:backgroundCheckOn</value>
                     </prop>
@@ -567,7 +595,7 @@
                     <value xml:lang="de">Hintergrundprüfung einschalten</value>
                     </prop>
                 </node>
-                <node oor:name="T11" oor:op="replace">
+                <node oor:name="T12" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:statisticalAnalyses</value>
                     </prop>
@@ -582,7 +610,7 @@
     	              <value xml:lang="de">Statistische Analyse</value>
                     </prop>
                 </node>
-                <node oor:name="T12" oor:op="replace">
+                <node oor:name="T13" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:profiles</value>
                     </prop>
@@ -600,7 +628,7 @@
                         <value>ToggleDropdownButton</value>
                     </prop>
                 </node>
-                <node oor:name="T13" oor:op="replace">
+                <node oor:name="T14" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:activateRules</value>
                     </prop>
@@ -762,10 +790,25 @@
                     <value xml:lang="gl">Erro ortográfico ou gramatical seguinte</value>
                     <value xml:lang="ru">Следующая грамматическая или орфографическая ошибка</value>
 					<value xml:lang="pt">Próximo erro ortográfico ou gramatical</value>
-			<value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
+					<value xml:lang="sv">Nästa grammatik- eller stavningskontrollpunkt</value>
                     </prop>
                 </node>
                 <node oor:name="N2" oor:op="replace">
+                    <prop oor:name="URL" oor:type="xs:string">
+                        <value>org.writingtool.WritingTool:previousError</value>
+                    </prop>
+                    <prop oor:name="Target" oor:type="xs:string">
+                        <value>_self</value>
+                    </prop>
+                    <prop oor:name="Context" oor:type="xs:string">
+                        <value>com.sun.star.text.TextDocument</value>
+                    </prop>
+                    <prop oor:name="Title" oor:type="xs:string">
+                    <value xml:lang="en-US">Previous spelling or grammar mistake</value>
+                    <value xml:lang="de">Vorhergehender Rechtschreib- oder Grammatikfehler</value>
+                    </prop>
+                </node>
+               	<node oor:name="N3" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:checkDialog</value>
                     </prop>
@@ -804,7 +847,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet</value>
                     </prop>
                 </node>
-                <node oor:name="N3" oor:op="replace">
+                <node oor:name="N4" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
@@ -841,7 +884,7 @@
                     <value xml:lang="sv">Språkgranska dokumentet igen</value>
                     </prop>
                 </node>
-                <node oor:name="N4" oor:op="replace">
+                <node oor:name="N5" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:refreshCheck</value>
                     </prop>
@@ -858,7 +901,7 @@
                     <value xml:lang="sv">Uppdatera språkgranskningspunkterna</value>
                     </prop>
                 </node>
-                <node oor:name="N5" oor:op="replace">
+                <node oor:name="N6" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:refreshAllMarkups</value>
                     </prop>
@@ -873,7 +916,7 @@
                     <value xml:lang="de">Alle Fehlerkennzeichnungen erneuern</value>
                     </prop>
                 </node>
-                <node oor:name="N6" oor:op="replace">
+                <node oor:name="N7" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:configure</value>
                     </prop>
@@ -912,7 +955,7 @@
                     <value xml:lang="sv">Inställningar ...</value>
                     </prop>
                 </node>
-                <node oor:name="N7" oor:op="replace">
+                <node oor:name="N8" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:about</value>
                     </prop>
@@ -949,7 +992,7 @@
                     <value xml:lang="sv">Om WritingTool ...</value>
                     </prop>
                 </node>
-                 <node oor:name="N8" oor:op="replace">
+                 <node oor:name="N9" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:changeQuotes</value>
                     </prop>
@@ -964,7 +1007,7 @@
                     <value xml:lang="de">Anführungszeichen ändern...</value>
                     </prop>
                 </node>
-                <node oor:name="N8" oor:op="replace">
+                <node oor:name="N10" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:backgroundCheckOff</value>
                     </prop>
@@ -979,7 +1022,7 @@
                     <value xml:lang="de">Hintergrundprüfung ausschalten</value>
                     </prop>
                 </node>
-                <node oor:name="N10" oor:op="replace">
+                <node oor:name="N11" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:backgroundCheckOn</value>
                     </prop>
@@ -994,7 +1037,7 @@
                     <value xml:lang="de">Hintergrundprüfung einschalten</value>
                     </prop>
                 </node>
-                <node oor:name="N11" oor:op="replace">
+                <node oor:name="N12" oor:op="replace">
                     <prop oor:name="URL" oor:type="xs:string">
                         <value>org.writingtool.WritingTool:statisticalAnalyses</value>
                     </prop>
@@ -1103,6 +1146,22 @@
                 </node>
                 <node oor:name="M2" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
+                    <value>org.writingtool.WritingTool:nextError</value>
+                  </prop>
+                  <prop oor:name="Title" oor:type="xs:string">
+                    <value/>
+                    <value xml:lang="en-US">Previous spelling or grammar mistake</value>
+                    <value xml:lang="de">Vorhergehender Rechtschreib- oder Grammatikfehler</value>                    
+                  </prop>
+                  <prop oor:name="Target" oor:type="xs:string">
+                    <value>_self</value>
+                  </prop>
+                  <prop oor:name="Context" oor:type="xs:string">
+                    <value>com.sun.star.text.TextDocument</value>
+                  </prop>
+                </node>
+                <node oor:name="M3" oor:op="replace">
+                  <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:checkDialog</value>
 <!--                     <value>.uno:SpellingAndGrammarDialog</value>  -->
                   </prop>
@@ -1142,7 +1201,7 @@
                     <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                   </prop>
                 </node>
-                <node oor:name="M3" oor:op="replace">
+                <node oor:name="M4" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:checkAgainDialog</value>
 <!--                    <value>.uno:RecheckDocument</value>    -->
@@ -1181,7 +1240,7 @@
                     <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                   </prop>
                 </node>
-                <node oor:name="M4" oor:op="replace">
+                <node oor:name="M5" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:refreshCheck</value>
 <!--                    <value>.uno:RecheckDocument</value>    -->
@@ -1200,7 +1259,7 @@
                     <value>com.sun.star.text.TextDocument</value>
                   </prop>
                 </node>
-                <node oor:name="M5" oor:op="replace">
+                <node oor:name="M6" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:refreshAllMarkups</value>
 <!--                    <value>.uno:RecheckDocument</value>    -->
@@ -1217,7 +1276,7 @@
                     <value>com.sun.star.text.TextDocument</value>
                   </prop>
                 </node>
-                <node oor:name="M6" oor:op="replace">
+                <node oor:name="M7" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:configure</value>
                   </prop>
@@ -1257,7 +1316,7 @@
                     <value>com.sun.star.text.TextDocument,com.sun.star.presentation.PresentationDocument,com.sun.star.sheet.SpreadsheetDocument</value>
                   </prop>
                 </node>
-                <node oor:name="M7" oor:op="replace">
+                <node oor:name="M8" oor:op="replace">
                   <prop oor:name="URL" oor:type="xs:string">
                     <value>org.writingtool.WritingTool:about</value>
                   </prop>

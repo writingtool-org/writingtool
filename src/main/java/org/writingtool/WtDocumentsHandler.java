@@ -2355,7 +2355,7 @@ public class WtDocumentsHandler {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Start Spell And Grammar Check Dialog");
         }
         checkDialog.start();
-      } else if ("nextError".equals(sEvent)) {
+      } else if ("nextError".equals(sEvent) || "previousError".equals(sEvent)) {
         if (isBackgroundCheckOff()) {
           WtMessageHandler.showMessage(messages.getString("messageDialogSwitchOffMessage"));
           return;
@@ -2365,7 +2365,11 @@ public class WtDocumentsHandler {
           return;
         }
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage);
-        checkDialog.nextError();
+        if ("nextError".equals(sEvent)) {
+          checkDialog.nextError();
+        } else {
+          checkDialog.previousError();
+        }
       } else if ("refreshCheck".equals(sEvent)) {
         if (ltDialog != null) {
           ltDialog.closeDialog();
