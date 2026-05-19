@@ -949,6 +949,7 @@ public class WtConfigurationDialog implements ActionListener {
     addNgramPanel(cons11, ngramPanel);
     JCheckBox paragraphModeBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogParagraphCheckMode")));
     JCheckBox saveCacheBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveCacheToFile")));
+    JCheckBox saveToolbarBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveToolbarStatus")));
     JTextField otherServerNameField = new JTextField(config.getServerUrl() ==  null ? "" : config.getServerUrl(), 25);
     otherServerNameField.setMinimumSize(new Dimension(100, 25));
     otherServerNameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -1313,12 +1314,20 @@ public class WtConfigurationDialog implements ActionListener {
     saveCacheBox.addItemListener(e1 -> {
       config.setSaveLoCache(saveCacheBox.isSelected());
     });
+    saveToolbarBox.setEnabled(true);
+    saveToolbarBox.setSelected(config.saveButtonState());
+    saveToolbarBox.addItemListener(e1 -> {
+      config.setSaveButtonState(saveToolbarBox.isSelected());
+    });
     cons.insets = new Insets(20, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     panel.add(paragraphModeBox, cons);
     cons.gridy++;
     panel.add(saveCacheBox, cons);
+    cons.insets = new Insets(4, SHIFT1, 0, 0);
+    cons.gridy++;
+    panel.add(saveToolbarBox, cons);
     return panel;
   }
   
