@@ -177,6 +177,14 @@ public class WtOfficeDrawTools {
       XTextCursor xTextCursor = xText.createTextCursor();
       xTextCursor.gotoStart(false);
       String sText = xText.getString();
+//      WtMessageHandler.printToLogFile("OfficeDrawTools: getAllParagraphsFromText: sText.length(): " + sText.length());
+      if (sText.length() == 0) {
+        paragraphs.add("");
+        XPropertySet xParaPropSet = UnoRuntime.queryInterface(XPropertySet.class, xTextCursor);
+        locales.add((Locale) xParaPropSet.getPropertyValue("CharLocale"));
+        nPara++;
+        return nPara;
+      }
       int kStart = 0;
       int k;
       for (k = 0; k < sText.length(); k++) {
@@ -211,6 +219,7 @@ public class WtOfficeDrawTools {
     int nPara = 0;
     try {
       int pageCount = WtOfficeDrawTools.getDrawPageCount(xComponent);
+//      WtMessageHandler.printToLogFile("OfficeDrawTools: getAllParagraphs: pageCount: " + pageCount);
       for (int i = 0; i < pageCount; i++) {
         XDrawPage xDrawPage = null;
         for (int n = 0; n < 2; n++) {
@@ -221,6 +230,7 @@ public class WtOfficeDrawTools {
           }
           XShapes xShapes = WtOfficeDrawTools.getShapes(xDrawPage);
           int nShapes = xShapes.getCount();
+//          WtMessageHandler.printToLogFile("OfficeDrawTools: getAllParagraphs: nShapes(n = " + n + "): " + nShapes);
           if (nShapes > 0) {
             pageBegins.add(nPara);
           }
@@ -252,6 +262,11 @@ public class WtOfficeDrawTools {
     if (xText != null) {
       XTextCursor xTextCursor = xText.createTextCursor();
       String sText = xText.getString();
+//      WtMessageHandler.printToLogFile("OfficeDrawTools: changeTextOfParagraphInText: nPara: " + nPara + ", nParaCount: " + nParaCount);
+//      WtMessageHandler.printToLogFile("OfficeDrawTools: changeTextOfParagraphInText: sText: " + sText);
+      if (sText.length() == 0) {
+        return nParaCount + 1;
+      }
       if (nParaCount == nPara) {
         xTextCursor.gotoStart(false);
         xTextCursor.goRight((short)beginn, false);
@@ -331,6 +346,9 @@ public class WtOfficeDrawTools {
     if (xText != null) {
       XTextCursor xTextCursor = xText.createTextCursor();
       String sText = xText.getString();
+      if (sText.length() == 0) {
+        return nParaCount + 1;
+      }
       if (nParaCount == nPara) {
         xTextCursor.gotoStart(false);
         xTextCursor.goRight((short)beginn, false);
@@ -409,6 +427,9 @@ public class WtOfficeDrawTools {
   private static int findParaInText(int nParaCount, int nPara, XText xText) throws Throwable {
     if (xText != null) {
       String sText = xText.getString();
+      if (sText.length() == 0) {
+        return nParaCount + 1;
+      }
       if (nParaCount == nPara && sText.length() > 0) {
         return -1;
       }
@@ -703,6 +724,10 @@ public class WtOfficeDrawTools {
               if (xText != null) {
                 XTextCursor xTextCursor = xText.createTextCursor();
                 String sText = xText.getString();
+                if (sText.length() == 0) {
+                  nParaCount++;
+                  continue;
+                }
                 if (nParaCount == nPara) {
                   if (debugMode) {
                     WtMessageHandler.printToLogFile("OfficeDrawTools: markupParagraphs: sText: " + sText);

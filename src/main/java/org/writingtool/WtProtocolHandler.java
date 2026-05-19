@@ -315,16 +315,18 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     if (!WritingTool.getDocumentsHandler().isOpenOffice) {
       statAnEnabled = WtOfficeTools.hasStatisticalStyleRules(xContext);
       conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+      boolean hideAiToolbar = false;
       if (conf != null) {
         backgroundCheckState = conf.noBackgroundCheck();
         definedProfiles = conf.getDefinedProfiles();
         deactivatedRulesMap = WritingTool.getDocumentsHandler().getDisabledRulesMap(null);
+        hideAiToolbar = conf.saveButtonState();
       }
-      changeButtonStatus();
+      changeButtonStatus(hideAiToolbar);
     }
   }
   
-  private void changeButtonStatus() {
+  private void changeButtonStatus(boolean hideAiToolbar) {
     URL url = WtOfficeTools.createUrl(xContext, WT_STATISTICAL_ANALYSES_COMMAND);
     changeStateOfButton(url, statAnEnabled, false);
     url = WtOfficeTools.createUrl(xContext, WT_BACKGROUND_CHECK_OFF_COMMAND);
@@ -362,7 +364,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     changeStateOfButton(url, conf.useAiSupport(), false);
     url = WtOfficeTools.createUrl(xContext, WT_AI_TEXT_TO_SPEECH_COMMAND);
     changeStateOfButton(url, conf.useAiTtsSupport(), false);
-    if (anyAiSupport != isAnyAiSupport) {
+    if (hideAiToolbar && anyAiSupport != isAnyAiSupport) {
       XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
       if (layoutManager != null) {
         if (isAnyAiSupport) {
@@ -451,8 +453,9 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 
   public void writeCurrentConfiguration() {
     try {
+      WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
       List<WtSingleDocument> documents = WritingTool.getDocumentsHandler().getDocuments();
-      if (!WritingTool.getDocumentsHandler().isOpenOffice 
+      if (conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice 
           && documents.size() > 0 && documents.get(0).getDocumentType() == DocumentType.WRITER) {
         Properties props = new Properties();
         XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
@@ -521,7 +524,8 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   }
 
   public void readConfiguration() {
-    if (!isConfigRead && !WritingTool.getDocumentsHandler().isOpenOffice) {
+    WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+    if (!isConfigRead && conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice) {
       isConfigRead = true;
       readConfig();
     }

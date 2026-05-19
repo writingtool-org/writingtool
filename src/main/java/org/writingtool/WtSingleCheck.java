@@ -154,7 +154,7 @@ public class WtSingleCheck {
       }
       pErrors.add(aiErrors);
     }
-    WtProofreadingError[] errors = singleDocument.mergeErrors(pErrors, paraNum, false);
+    WtProofreadingError[] errors = singleDocument.mergeErrors(pErrors, paraNum, isIntern);
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleCheck: getCheckResults: paRes.aErrors.length: " + errors.length 
           + "; docID: " + singleDocument.getDocID());

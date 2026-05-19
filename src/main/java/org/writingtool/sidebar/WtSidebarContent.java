@@ -1104,8 +1104,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   }
   
   /**
-   * Set Color of cache status label
-   * red if cache not filled green for full cache
+   * Set Color of inactive cache 
+   * grey
    */
   public void setCacheStatusColorInactive() {
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
@@ -1119,7 +1119,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   /**
    * Set Color of cache status label
-   * red if cache not filled green for full cache
+   * * red if cache not filled 
+   * * green for full cache
    */
   public void setCacheStatusColor(WtSingleDocument document) {
     if (document == null) {
@@ -1144,12 +1145,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       int size = 100;
       if (isAiSupport || i != WtOfficeTools.CACHE_AI) {
-        if (lt.isSortedRuleForIndex(i) || i == WtOfficeTools.CACHE_AI) {
-          pSize = (document.getParagraphsCache().get(i).size() + nAuto);
-          if (i > 0 && i != WtOfficeTools.CACHE_AI) {
-            pSize += nSingle;
+        if (fullSize != 0 && (fullSize != 1 || docCache.getFlatParagraph(0).length() > 0)) {
+          if (lt.isSortedRuleForIndex(i) || i == WtOfficeTools.CACHE_AI) {
+            pSize = (document.getParagraphsCache().get(i).size() + nAuto);
+            if (i > 0 && i != WtOfficeTools.CACHE_AI) {
+              pSize += nSingle;
+            }
+            size = getCacheStatusSize(pSize, fullSize);
           }
-          size = getCacheStatusSize(pSize, fullSize);
         }
         if (i != WtOfficeTools.CACHE_AI) {
           setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 

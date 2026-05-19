@@ -3231,7 +3231,7 @@ public class WtDocumentsHandler {
           dialog.dispose();
         }
       } catch (Throwable t) {
-        WtMessageHandler.showError(t);
+        WtMessageHandler.printException(t);
       }
     }
     

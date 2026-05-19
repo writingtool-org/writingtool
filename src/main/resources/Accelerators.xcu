@@ -6,36 +6,41 @@
             <node oor:name="com.sun.star.presentation.PresentationDocument">
                 <node oor:name="F7" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkDialog</value>
                     </prop>
                 </node>
                 <node oor:name="F7_SHIFT" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkAgainDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
                 </node>
             </node>
             <node oor:name="com.sun.star.text.TextDocument">
                 <node oor:name="F7" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkDialog</value>
                     </prop>
                 </node>
                 <node oor:name="F7_SHIFT" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkAgainDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkAgainDialog</value>
+                    </prop>
+                </node>
+                <node oor:name="RIGHT_SHIFT_MOD2" oor:op="replace">
+                    <prop oor:name="Command">
+                        <value xml:lang="en-US">org.writingtool.WritingTool:nextError</value>
                     </prop>
                 </node>
             </node>
             <node oor:name="com.sun.star.sheet.SpreadsheetDocument">
                 <node oor:name="F7" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkDialog</value>
                     </prop>
                 </node>
                 <node oor:name="F7_SHIFT" oor:op="replace">
                     <prop oor:name="Command">
-                        <value xml:lang="en-US">service:org.writingtool.WritingTool?checkAgainDialog</value>
+                        <value xml:lang="en-US">org.writingtool.WritingTool:checkAgainDialog</value>
                     </prop>
                 </node>
             </node>
