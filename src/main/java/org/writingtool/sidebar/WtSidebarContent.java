@@ -118,7 +118,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private final static int BUTTON_MARGIN_BETWEEN = 3;
 
   private final static int BUTTON_WIDTH = 28;
-  private final static int LIST_BUTTON_WIDTH = 4 * BUTTON_WIDTH + 3 * BUTTON_MARGIN_BETWEEN;
+  private final static int LIST_BUTTON_WIDTH = (int) (3.5 * BUTTON_WIDTH + 2.5 * BUTTON_MARGIN_BETWEEN);
   
   private final static int BUTTON_CONTAINER_WIDTH = MINIMAL_WIDTH - BUTTON_MARGIN_LEFT - BUTTON_MARGIN_RIGHT;
   private final static int BUTTON_CONTAINER_HEIGHT = BUTTON_WIDTH + BUTTON_MARGIN_TOP + BUTTON_MARGIN_BOTTOM;
@@ -258,6 +258,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int num = 0;
       addButtonToContainer(num, WtProtocolHandler.WT_NEXT_ERROR, "WTNextSmall.png", "loContextMenuNextError", buttonContainer);
       num++;
+      addButtonToContainer(num, WtProtocolHandler.WT_PREVIOUS_ERROR, "WTPreviousSmall.png", "loContextMenuPreviousError", buttonContainer);
+      num++;
       addButtonToContainer(num, WtProtocolHandler.WT_CHECKDIALOG, "WTCheckSmall.png", "loContextMenuGrammarCheck", buttonContainer);
       num++;
       addButtonToContainer(num, WtProtocolHandler.WT_CHECKAGAINDIALOG, "WTCheckAgainSmall.png", "loContextMenuGrammarCheckAgain", buttonContainer);
@@ -275,8 +277,6 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       documents = WritingTool.getDocumentsHandler();
       buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
       buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
-      num++;
-      addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
       
       WtConfiguration conf = documents.getConfiguration();
       isAiSupport = conf.useAiSupport();
@@ -299,9 +299,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       num++;
       buttonActivateRulesWindow = addActivateRulesListBoxToContainer(num, buttonContainer);
       buttonActivateRulesWindow.setEnable(deactivatedRulesMap != null && !deactivatedRulesMap.isEmpty());
-      num = 8;
+      num = 7;
       buttonStatAnWindow = addButtonToContainer(num, WtProtocolHandler.WT_STATISTICAL_ANALYSES, "WTStatAnSmall.png", "statAnalysisDialog", buttonContainer);
       buttonStatAnWindow.setEnable(hasStatAn());
+      num++;
+      addButtonToContainer(num, WtProtocolHandler.WT_CHANGE_QUOTES, "WTChangeQuotesSmall.png", "loMenuChangeQuotes", buttonContainer);
 
       // Add third row button container
       xButtonContainer = createControlContainer(xMCF, context, 

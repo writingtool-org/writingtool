@@ -74,6 +74,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   public static final String WT_RENEW_MARKUPS = "renewMarkups";
   public static final String WT_ADD_TO_DICTIONARY = "addToDictionary_";
   public static final String WT_NEXT_ERROR = "nextError";
+  public static final String WT_PREVIOUS_ERROR = "previousError";
   public static final String WT_CHECKDIALOG = "checkDialog";
   public static final String WT_CHECKAGAINDIALOG = "checkAgainDialog";
   public static final String WT_STATISTICAL_ANALYSES = "statisticalAnalyses";   
