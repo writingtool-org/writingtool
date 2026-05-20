@@ -62,6 +62,7 @@ public class WtMoreInfoDialog {
   private final Rule rule;
   private final URL matchUrl;
   private final ResourceBundle messages;
+  private final ResourceBundle wtMessages;
   private final String lang;
 
   public WtMoreInfoDialog(String title, String message, Rule rule, URL matchUrl, String lang) {
@@ -70,6 +71,7 @@ public class WtMoreInfoDialog {
     this.rule = rule;
     this.matchUrl = matchUrl;
     this.messages = JLanguageTool.getMessageBundle();
+    this.wtMessages = WtOfficeTools.getMessageBundle();
     this.lang = lang;
   }
 
@@ -120,7 +122,7 @@ public class WtMoreInfoDialog {
         }
       });
       
-      JButton close = new JButton(messages.getString("allDialogButtonClose"));
+      JButton close = new JButton(wtMessages.getString("allDialogButtonClose"));
       close.addActionListener(e -> {
         close();
       });
