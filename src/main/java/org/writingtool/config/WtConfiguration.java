@@ -87,7 +87,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_USE_LT_SPELL_CHECKER = true;
   static final boolean DEFAULT_USE_LONG_MESSAGES = false;
   static final boolean DEFAULT_NO_SYNONYMS_AS_SUGGESTIONS = false;
-  static final boolean DEFAULT_INCLUDE_TRACKED_CHANGES = false;
+  static final boolean DEFAULT_INCLUDE_TRACKED_CHANGES = true;   //  TODO: test performance of 26.7
   static final boolean DEFAULT_ENABLE_TMP_OFF_RULES = false;
   static final boolean DEFAULT_ENABLE_GOAL_SPECIFIC_RULES = false;
   static final boolean DEFAULT_FILTER_OVERLAPPING_MATCHES = true;

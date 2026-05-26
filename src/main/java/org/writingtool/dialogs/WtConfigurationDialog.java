@@ -1392,6 +1392,7 @@ public class WtConfigurationDialog implements ActionListener {
       config.setIncludeTrackedChanges(includeTrackedChangesBox.isSelected());
       changedOptions.ltRulesChanged = true;
     });
+    includeTrackedChangesBox.setEnabled(false);    // TODO: enable or delete CheckBox
     cons.gridy++;
     portPanel.add(includeTrackedChangesBox, cons);
 

@@ -227,7 +227,8 @@ public class WtSingleCheck {
               cacheNum == 0 ? JLanguageTool.ParagraphHandling.NORMAL : JLanguageTool.ParagraphHandling.ONLYPARA, singleDocument);
         }
         if (cacheNum == 0) {
-          nextSentencePositions = getNextSentencePositions(textToCheck, lt);
+          nextSentencePositions = getNextSentencePositions(textToCheck, docCache.getFlatParagraphFootnotes(nFPara), 
+              docCache.getFlatParagraphDeletedCharacters(nFPara), nFPara, docCache.getHiddenCharactersMap(), lt);
         }
       }
       
@@ -672,8 +673,9 @@ public class WtSingleCheck {
             mLt = mDocHandler.initLanguageTool(mLang);
           }
         }
-        List<Integer> nextSentencePositions = getNextSentencePositions(paraText, mLt);
         List<Integer> deletedChars = isTextParagraph ? docCache.getFlatParagraphDeletedCharacters(nFPara): null;
+        List<Integer> nextSentencePositions = getNextSentencePositions(paraText, footnotePos, deletedChars, 
+            nFPara, docCache.getHiddenCharactersMap(), mLt);
         if (mLt == null || (nFPara >= 0 && docCache != null && docCache.isAutomaticGenerated(nFPara, true))) {
           paragraphMatches = null;
         } else {
@@ -941,32 +943,6 @@ public class WtSingleCheck {
   }
   
   /**
-   * get beginning of next sentence using LanguageTool tokenization
-   */
-  public static List<Integer> getNextSentencePositions (String paraText, WtLanguageTool lt) {
-    List<Integer> nextSentencePositions = new ArrayList<Integer>();
-    if (paraText == null || paraText.isEmpty()) {
-      nextSentencePositions.add(0);
-      return nextSentencePositions;
-    }
-//    if (lt == null || lt.isRemote()) {
-    if (lt == null) {
-      nextSentencePositions.add(paraText.length());
-    } else {
-      List<String> tokenizedSentences = lt.sentenceTokenize(cleanFootnotes(paraText));
-      int position = 0;
-      for (String sentence : tokenizedSentences) {
-        position += sentence.length();
-        nextSentencePositions.add(position);
-      }
-      if (nextSentencePositions.get(nextSentencePositions.size() - 1) != paraText.length()) {
-        nextSentencePositions.set(nextSentencePositions.size() - 1, paraText.length());
-      }
-    }
-    return nextSentencePositions;
-  }
-  
-  /**
    * Fix numbers that are (probably) foot notes.
    * See https://bugs.freedesktop.org/show_bug.cgi?id=69416
    * public for test reasons
@@ -1045,6 +1021,7 @@ public class WtSingleCheck {
     if (footnotes == null) {
       return cleanFootnotes(paraText);
     }
+//    WtMessageHandler.printToLogFile("removeFootnotes (old): paraText: " + paraText);
     List<Integer> hiddenCharacterList = getHiddenCharactersAsList(paraText);
     if (hiddenCharacterList != null) {
       hiddenCharacters.put(nPara, hiddenCharacterList);
@@ -1058,7 +1035,8 @@ public class WtSingleCheck {
         paraText = paraText.substring(0, allChars[i]) + paraText.substring(allChars[i] + 1);
       }
     }
-//    WtMessageHandler.printToLogFile("removeFootnotes (new): paraText.length: " + paraText.length() + ", allChars.length: " + allChars.length);
+//  WtMessageHandler.printToLogFile("removeFootnotes (new): paraText.length: " + paraText.length() + ", allChars.length: " + allChars.length);
+//    WtMessageHandler.printToLogFile("removeFootnotes (new): paraText: " + paraText);
     return paraText;
   }
 
@@ -1200,10 +1178,60 @@ public class WtSingleCheck {
   }
 */  
   /**
+   * Correct WtProofreadingError by footnote positions
+   * footnotes before is the sum of all footnotes before the checked paragraph
+   */
+  public static List<Integer> correctNextSentencePositions(List<Integer> nextSentencePositions, int[] footnotes, 
+      List<Integer> deletedChars, int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+    if (footnotes == null) {
+      return nextSentencePositions;
+    }
+    List<Integer> hiddenCharacterList = hiddenCharacters.get(nPara);
+    int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
+    for (int i :allChars) {
+      for (int j = 0; j < nextSentencePositions.size(); j++) {
+        if (i < nextSentencePositions.get(j)) {
+          nextSentencePositions.set(j, nextSentencePositions.get(j) + 1);
+        }
+      }
+    }
+    return nextSentencePositions;
+  }
+
+  /**
+   * get beginning of next sentence using LanguageTool tokenization
+   * @throws Throwable 
+   */
+  public static List<Integer> getNextSentencePositions(String paraText, int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters, WtLanguageTool lt) throws Throwable {
+    List<Integer> nextSentencePositions = new ArrayList<Integer>();
+    if (paraText == null || paraText.isEmpty()) {
+      nextSentencePositions.add(0);
+      return nextSentencePositions;
+    }
+    paraText = removeFootnotes(paraText, footnotes, deletedChars, nPara, hiddenCharacters);
+    if (lt == null) {
+      nextSentencePositions.add(paraText.length());
+    } else {
+      List<String> tokenizedSentences = lt.sentenceTokenize(cleanFootnotes(paraText));
+      int position = 0;
+      for (String sentence : tokenizedSentences) {
+        position += sentence.length();
+        nextSentencePositions.add(position);
+      }
+      if (nextSentencePositions.get(nextSentencePositions.size() - 1) != paraText.length()) {
+        nextSentencePositions.set(nextSentencePositions.size() - 1, paraText.length());
+      }
+    }
+    return correctNextSentencePositions(nextSentencePositions, footnotes, deletedChars, nPara, hiddenCharacters);
+  }
+  
+  /**
    * get all errors of a Paragraph as list
+   * @throws Throwable 
    */
   private List<SentenceErrors> getSentencesErrosAsList(int numberOfParagraph, WtLanguageTool lt, 
-            LoErrorType errType, boolean filterOverlap) {
+            LoErrorType errType, boolean filterOverlap) throws Throwable {
     List<SentenceErrors> sentenceErrors = new ArrayList<SentenceErrors>();
     if (!isDisposed()) {
       CacheEntry entry = paragraphsCache.get(0).getCacheEntry(numberOfParagraph);
@@ -1216,7 +1244,9 @@ public class WtSingleCheck {
       }
       if (nextSentencePositions.size() == 0 && docCache != null 
           && numberOfParagraph >= 0 && numberOfParagraph < docCache.size()) {
-        nextSentencePositions = getNextSentencePositions(docCache.getFlatParagraph(numberOfParagraph), lt);
+        nextSentencePositions = getNextSentencePositions(docCache.getFlatParagraph(numberOfParagraph), 
+            docCache.getFlatParagraphFootnotes(numberOfParagraph), docCache.getFlatParagraphDeletedCharacters(numberOfParagraph),
+            numberOfParagraph, docCache.getHiddenCharactersMap(), lt);
       }
       int startPosition = 0;
       if (nextSentencePositions.size() == 1) {

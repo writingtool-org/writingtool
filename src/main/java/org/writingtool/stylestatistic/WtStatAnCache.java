@@ -273,9 +273,10 @@ public class WtStatAnCache {
 
   /**
    * get all errors of a Paragraph as list
+   * @throws Throwable 
    */
   private List<SentenceErrors> getSentencesErrosAsList(int numberOfParagraph, String sRuleId, 
-      short lineType, Color lineColor, WtResultCache sCache) {
+      short lineType, Color lineColor, WtResultCache sCache) throws Throwable {
     List<SentenceErrors> sentenceErrors = new ArrayList<SentenceErrors>();
     List<WtResultCache> paragraphsCache = document.getParagraphsCache();
     CacheEntry entry = paragraphsCache.get(0).getCacheEntry(numberOfParagraph);
@@ -288,7 +289,9 @@ public class WtStatAnCache {
     }
     if (nextSentencePositions.size() == 0 && docCache != null 
         && numberOfParagraph >= 0 && numberOfParagraph < docCache.size()) {
-      nextSentencePositions = WtSingleCheck.getNextSentencePositions(docCache.getFlatParagraph(numberOfParagraph), lt);
+      nextSentencePositions = WtSingleCheck.getNextSentencePositions(docCache.getFlatParagraph(numberOfParagraph), 
+          docCache.getFlatParagraphFootnotes(numberOfParagraph), docCache.getFlatParagraphDeletedCharacters(numberOfParagraph),
+          numberOfParagraph, docCache.getHiddenCharactersMap(), lt);
     }
     WtProofreadingError[] sErrors = null;
     int startPosition = 0;

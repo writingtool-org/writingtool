@@ -222,6 +222,7 @@ public class WtSingleDocument {
       int sortedTextId = -1;
       int documentElementsCount = -1;
       for (PropertyValue propertyValue : propertyValues) {
+//        WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: propertyValue.Name: " + propertyValue.Name);
         if ("FootnotePositions".equals(propertyValue.Name)) {
           if (propertyValue.Value instanceof int[]) {
             footnotePositions = (int[]) propertyValue.Value;
@@ -293,6 +294,8 @@ public class WtSingleDocument {
             }
             return getErrorsFromCache(nFPara, paRes, paraText, locale, lt);
           }
+//          WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: paraText: " + paraText);
+//          WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: docCache.getFlatParagraph(nFPara): " + docCache.getFlatParagraph(nFPara));
           if (!isMouseRequest && nFPara >= 0 && !paraText.equals(docCache.getFlatParagraph(nFPara))) {
             docCache.setFlatParagraph(nFPara, paraText);
             removeResultCache(nFPara, true);
@@ -308,6 +311,12 @@ public class WtSingleDocument {
 //          if (paRes.aErrors != null && paRes.aErrors.length > 0) {
 //            WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: errors[0]: " + paRes.aErrors[0].aRuleIdentifier);
 //          }
+          paRes.nStartOfSentencePosition = paragraphsCache.get(0).getStartSentencePosition(nFPara, paRes.nStartOfSentencePosition);
+          paRes.nStartOfNextSentencePosition = paragraphsCache.get(0).getNextSentencePosition(nFPara, paRes.nStartOfSentencePosition);
+          if (paRes.nStartOfNextSentencePosition == 0) {
+            paRes.nStartOfNextSentencePosition = paraText.length();
+          }
+          paRes.nBehindEndOfSentencePosition = paRes.nStartOfNextSentencePosition;
           closeDocumentCursor();
           return paRes;
         }

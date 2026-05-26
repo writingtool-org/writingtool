@@ -252,10 +252,10 @@ public class WtDocumentCursorTools {
           if (xTextPortionPropertySet == null) {
             continue;
           }
-          Property[] properties = xTextPortionPropertySet.getPropertySetInfo().getProperties();
-          for (Property property : properties) {
-            WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: Name: " + property.Name + ", Type: " + property.Type);
-          }
+//          Property[] properties = xTextPortionPropertySet.getPropertySetInfo().getProperties();
+//          for (Property property : properties) {
+//            WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: Name: " + property.Name + ", Type: " + property.Type);
+//          }
           String textPortionType = (String) xTextPortionPropertySet.getPropertyValue("TextPortionType");
           if (textPortionType != null && textPortionType.equals("Redline")) {
             String redlineType = (String) xTextPortionPropertySet.getPropertyValue("RedlineType");
