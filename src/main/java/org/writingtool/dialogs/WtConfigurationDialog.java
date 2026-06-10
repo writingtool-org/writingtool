@@ -340,7 +340,9 @@ public class WtConfigurationDialog implements ActionListener {
     jProfilePane.add(new JScrollPane(enabledRulesPanel), cons);
     jProfilePane.setName(messages.getString("optionDialogProfiles"));
     
-//  General tab
+    JTabbedPane RuleTabpane = new JTabbedPane();
+
+    //  General tab
     JPanel jPane = new JPanel();
     jPane.setLayout(new GridBagLayout());
     cons = new GridBagConstraints();
@@ -370,7 +372,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.weighty = 1.0f;
     jPane.add(new JPanel(), cons);
     
-    tabpane.addTab(messages.getString("optionDialogGeneral"), new JScrollPane(jPane));
+    RuleTabpane.addTab(messages.getString("optionDialogGeneral"), new JScrollPane(jPane));
 
 //  Grammar rules tab    
     jPane = new JPanel();
@@ -397,7 +399,7 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     jPane.add(getRuleOptionsPanel(0), cons);
 
-    tabpane.addTab(messages.getString("optionDialogGrammarRules"), jPane);
+    RuleTabpane.addTab(messages.getString("optionDialogGrammarRules"), jPane);
     
 //  Style rules tab    
     jPane = new JPanel();
@@ -423,8 +425,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridx = 0;
     cons.gridy++;
     jPane.add(getRuleOptionsPanel(1), cons);
-
-    tabpane.addTab(messages.getString("optionDialogStyleRules"), jPane);
+    
+    RuleTabpane.addTab(messages.getString("optionDialogStyleRules"), jPane);
 
 //  Style special tabs (optional)
     for (int i = 0; i < specialTabNames.length; i++) {
@@ -453,8 +455,26 @@ public class WtConfigurationDialog implements ActionListener {
       cons.gridy++;
       jPane.add(getRuleOptionsPanel(i + 2), cons);
 
-      tabpane.addTab(specialTabNames[i], jPane);
+      RuleTabpane.addTab(specialTabNames[i], jPane);
     }
+    
+    tabpane.addTab(messages.getString("optionDialogRuleSettings"), RuleTabpane);
+
+    JTabbedPane technicalTabpane = new JTabbedPane();
+
+    //    technical options tab
+    jPane = new JPanel();
+    jPane.setLayout(new GridBagLayout());
+    cons = new GridBagConstraints();
+    cons.insets = new Insets(4, 4, 4, 4);
+    cons.gridx = 0;
+    cons.gridy = 0;
+    cons.weightx = 10.0f;
+    cons.weighty = 10.0f;
+    cons.anchor = GridBagConstraints.NORTHWEST;
+    cons.fill = GridBagConstraints.NONE;
+    jPane.add(getOfficeTechnicalElements(), cons);
+    technicalTabpane.addTab(messages.getString("optionDialogGeneral"), new JScrollPane(jPane));
     
     //    Default color options tab
     if (!config.onlySingleParagraphMode()) {
@@ -472,26 +492,8 @@ public class WtConfigurationDialog implements ActionListener {
       cons.fill = GridBagConstraints.NONE;
       jPane.add(getOfficeDefaultColorPanel(), cons);
       String label = messages.getString("optionDialogColorTabLabel");
-      tabpane.add(label, new JScrollPane(jPane));
+      technicalTabpane.add(label, new JScrollPane(jPane));
     }
-    
-    //    technical options tab
-    jPane = new JPanel();
-    jPane.setLayout(new GridBagLayout());
-    cons = new GridBagConstraints();
-    cons.insets = new Insets(4, 4, 4, 4);
-    cons.gridx = 0;
-    cons.gridy = 0;
-    cons.weightx = 10.0f;
-    cons.weighty = 10.0f;
-    cons.anchor = GridBagConstraints.NORTHWEST;
-    cons.fill = GridBagConstraints.NONE;
-    jPane.add(getOfficeTechnicalElements(), cons);
-    String label = messages.getString("optionDialogTechnicalSettings");
-    if (label.endsWith(":")) {
-      label = label.substring(0, label.length() - 1);
-    }
-    tabpane.add(label, new JScrollPane(jPane));
     
     //    AI options tab
     //    onlySingleParagraphMode doesn't support cache so AI can't be used
@@ -499,9 +501,16 @@ public class WtConfigurationDialog implements ActionListener {
       jPane = new JPanel();
       jPane.setLayout(new GridBagLayout());
       jPane.add(getOfficeAiElements(), cons);
-      label = messages.getString("optionDialogAiSupportSettings");
-      tabpane.add(label, new JScrollPane(jPane));
+      String label = messages.getString("optionDialogAiSupportSettings");
+      technicalTabpane.add(label, new JScrollPane(jPane));
+      technicalTabpane.setSelectedIndex(tabIndex == 0 ? 0 : 1);
     }
+
+    String label = messages.getString("optionDialogTechnicalSettings");
+    if (label.endsWith(":")) {
+      label = label.substring(0, label.length() - 1);
+    }
+    tabpane.add(label, technicalTabpane);
 
     Container contentPane = dialog.getContentPane();
     contentPane.setLayout(new GridBagLayout());
@@ -579,7 +588,7 @@ public class WtConfigurationDialog implements ActionListener {
           } catch (Exception e1) {
             WtMessageHandler.showError(e1);
           }
-          tabIndex = 4 + config.getSpecialTabNames().length;
+          tabIndex = 2;
           restartShow = true;
           dialog.setVisible(false);
         }
@@ -950,6 +959,7 @@ public class WtConfigurationDialog implements ActionListener {
     JCheckBox paragraphModeBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogParagraphCheckMode")));
     JCheckBox saveCacheBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveCacheToFile")));
     JCheckBox saveToolbarBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveToolbarStatus")));
+    JCheckBox noBackgroundCheckBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogNoBackgroundCheck")));
     JTextField otherServerNameField = new JTextField(config.getServerUrl() ==  null ? "" : config.getServerUrl(), 25);
     otherServerNameField.setMinimumSize(new Dimension(100, 25));
     otherServerNameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -1319,6 +1329,12 @@ public class WtConfigurationDialog implements ActionListener {
     saveToolbarBox.addItemListener(e1 -> {
       config.setSaveButtonState(saveToolbarBox.isSelected());
     });
+    noBackgroundCheckBox.setSelected(config.noBackgroundCheck());
+    noBackgroundCheckBox.addItemListener(e -> {
+      config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected());
+      changedOptions.ltRulesChanged = true;
+      changedOptions.aiSettingsChanged = true;
+    });
     cons.insets = new Insets(20, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
@@ -1328,6 +1344,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.insets = new Insets(4, SHIFT1, 0, 0);
     cons.gridy++;
     panel.add(saveToolbarBox, cons);
+    cons.insets = new Insets(20, SHIFT1, 0, 0);
+    cons.gridy++;
+    panel.add(noBackgroundCheckBox, cons);
     return panel;
   }
   
@@ -1445,20 +1464,12 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(noCheckGrammarDirectSpeechBox, cons);
     cons.insets = new Insets(0, SHIFT1, 0, 0);
-
-    JCheckBox noBackgroundCheckBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogNoBackgroundCheck")));
-    noBackgroundCheckBox.setSelected(config.noBackgroundCheck());
-    noBackgroundCheckBox.addItemListener(e -> {
-      config.setNoBackgroundCheck(noBackgroundCheckBox.isSelected());
-      changedOptions.ltRulesChanged = true;
-      changedOptions.aiSettingsChanged = true;
-    });
-    cons.gridy++;
-    portPanel.add(noBackgroundCheckBox, cons);
+/*    
     cons.insets = new Insets(0, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     portPanel.add(new JLabel(" "), cons);
+*/
   }
   
   private int showRemoteServerHint(Component component, boolean otherServer) {
