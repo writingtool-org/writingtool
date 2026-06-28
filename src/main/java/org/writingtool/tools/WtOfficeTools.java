@@ -56,6 +56,7 @@ import org.writingtool.languagedetectors.WtTamilDetector;
 
 import com.sun.star.awt.XMenuBar;
 import com.sun.star.awt.XPopupMenu;
+import com.sun.star.awt.XVclWindowPeer;
 import com.sun.star.awt.XWindow;
 import com.sun.star.beans.Property;
 import com.sun.star.beans.PropertyValue;
@@ -298,6 +299,17 @@ public class WtOfficeTools {
     return xFrame.getContainerWindow();
   }
   
+  /** 
+   * Returns the Window-Peer
+   * Returns null if it fails
+   */
+  @Nullable
+  public static XVclWindowPeer getVclWindowPeer(XComponent xComponent) {
+    XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
+    XWindow xWindow = xModel.getCurrentController().getFrame().getComponentWindow();
+    return UnoRuntime.queryInterface(XVclWindowPeer.class, xWindow);
+  }
+
   /** 
    * Returns the current XComponent 
    * Returns null if it fails

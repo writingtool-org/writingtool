@@ -35,6 +35,7 @@ import org.writingtool.WtCacheIO.SpellCache;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtTextLevelCheckQueue.QueueEntry;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.menus.WtMenus;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtDocumentCursorTools;
 import org.writingtool.tools.WtFlatParagraphTools;
@@ -559,7 +560,7 @@ public class WtSingleDocument {
   /**
    * get number of current paragraph
    */
-  int getCurrentNumberOfParagraph() {
+  public int getCurrentNumberOfParagraph() {
     return paraNum;
   }
   

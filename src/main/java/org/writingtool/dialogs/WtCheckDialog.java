@@ -93,6 +93,7 @@ import org.writingtool.WtPropertyValue;
 import org.writingtool.WtResultCache;
 import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
+import org.writingtool.menus.WtErrorMenu;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.tools.WtDocumentCursorTools;
@@ -389,6 +390,8 @@ public class WtCheckDialog extends Thread {
      while (yFlat < docCache.size()) {
        CheckError nextError = getNextErrorInParagraph (x, yFlat, document, docCursor, false, false);
        if (nextError != null && setFlatViewCursor(nextError.error.nErrorStart, yFlat, viewCursor, docCache)) {
+         WtErrorMenu errorMenu = new WtErrorMenu(document, xContext);
+         errorMenu.openPopupMenu(yFlat, xComponent, nextError.error);
          return;
        }
        x = 0;
@@ -428,6 +431,8 @@ public void previousError() {
     while (yFlat >= 0) {
       CheckError previousError = getNextErrorInParagraph (x, yFlat, document, docCursor, false, true);
       if (previousError != null && setFlatViewCursor(previousError.error.nErrorStart, yFlat, viewCursor, docCache)) {
+        WtErrorMenu errorMenu = new WtErrorMenu(document, xContext);
+        errorMenu.openPopupMenu(yFlat, xComponent, previousError.error);
         return;
       }
       yFlat--;

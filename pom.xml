@@ -62,6 +62,7 @@
             <version>${lt-revision}</version>
         </dependency>
 -->
+<!--
         <dependency>
             <groupId>${office.id}</groupId>
             <artifactId>juh</artifactId>
@@ -83,6 +84,13 @@
         <dependency>
             <groupId>${office.id}</groupId>
             <artifactId>unoil</artifactId>
+            <version>${office.version}</version>
+            <scope>provided</scope>
+        </dependency>
+-->
+        <dependency>
+            <groupId>${office.id}</groupId>
+            <artifactId>libreoffice</artifactId>
             <version>${office.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -216,8 +224,6 @@
         <timestamp>${maven.build.timestamp}</timestamp>
         <!-- <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format> -->
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss Z</maven.build.timestamp.format>
-        <!--Maven-Plugin-Versions -->
-        <!-- NOTE: don't update without testing OpenOffice, 3.0.2 caused "Got no data stream!" after add-on installation -->
         <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
@@ -237,12 +243,8 @@
         <org.jetbrains.annotations.version>26.0.2</org.jetbrains.annotations.version>
         <flatten.version>1.4.1</flatten.version>
         <flatlaf.version>3.6</flatlaf.version>
-        <office.id>org.openoffice</office.id>
-        <office.version>4.1.2</office.version>
-<!--
         <office.id>org.libreoffice</office.id>
-        <office.version>5.0.3</office.version>   
--->
+        <office.version>7.6.7</office.version>
         <sortpom-maven.plugin.version>3.2.1</sortpom-maven.plugin.version>
     </properties>
 
