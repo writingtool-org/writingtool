@@ -32,6 +32,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowListener;
@@ -1408,6 +1410,26 @@ public void previousError() {
   
         sentenceIncludeError.setFont(dialogFont);
         sentenceIncludeError.setToolTipText(formatToolTipText(matchParagraphHelp));
+        sentenceIncludeError.addKeyListener(new KeyListener() {
+          @Override
+          public void keyPressed(KeyEvent e) {
+            try {
+              if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                setAtWorkButtonState();
+                changeText();
+              }
+            } catch (Throwable t) {
+              WtMessageHandler.showError(t);
+              closeDialog();
+            }
+          }
+          @Override
+          public void keyReleased(KeyEvent e) {
+          }
+          @Override
+          public void keyTyped(KeyEvent e) {
+          }
+        });
         sentenceIncludeError.getDocument().addDocumentListener(new DocumentListener() {
           @Override
           public void changedUpdate(DocumentEvent e) {
@@ -1441,6 +1463,26 @@ public void previousError() {
         suggestions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         suggestions.setFixedCellHeight((int)(suggestions.getFont().getSize() * 1.2 + 0.5));
         suggestions.setToolTipText(formatToolTipText(suggestionsHelp));
+        suggestions.addKeyListener(new KeyListener() {
+          @Override
+          public void keyPressed(KeyEvent e) {
+            try {
+              if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                setAtWorkButtonState();
+                changeText();
+              }
+            } catch (Throwable t) {
+              WtMessageHandler.showError(t);
+              closeDialog();
+            }
+          }
+          @Override
+          public void keyReleased(KeyEvent e) {
+          }
+          @Override
+          public void keyTyped(KeyEvent e) {
+          }
+        });
         JScrollPane suggestionsPane = new JScrollPane(suggestions);
         suggestionsPane.setMinimumSize(new Dimension(0, 30));
         if (WtDocumentsHandler.getJavaLookAndFeelSet() != WtGeneralTools.THEME_SYSTEM) {
@@ -1534,21 +1576,27 @@ public void previousError() {
         help.addActionListener(this);
         help.setActionCommand("help");
         help.setToolTipText(formatToolTipText(helpButtonHelp));
+        help.setMnemonic(KeyEvent.VK_H);
         
         options.setFont(dialogFont);
         options.addActionListener(this);
         options.setActionCommand("options");
         options.setToolTipText(formatToolTipText(optionsButtonHelp));
+        options.setMnemonic(KeyEvent.VK_O);
+
         
         undo.setFont(dialogFont);
         undo.addActionListener(this);
         undo.setActionCommand("undo");
         undo.setToolTipText(formatToolTipText(undoButtonHelp));
+        undo.setMnemonic(KeyEvent.VK_U);
+
         
         close.setFont(dialogFont);
         close.addActionListener(this);
         close.setActionCommand("close");
         close.setToolTipText(formatToolTipText(closeButtonHelp));
+        close.setMnemonic(KeyEvent.VK_CANCEL);
         
         more.setFont(dialogFont);
         more.addActionListener(this);
@@ -1559,11 +1607,13 @@ public void previousError() {
         ignoreOnce.addActionListener(this);
         ignoreOnce.setActionCommand("ignoreOnce");
         ignoreOnce.setToolTipText(formatToolTipText(ignoreButtonHelp));
+        ignoreOnce.setMnemonic(KeyEvent.VK_I);
         
         ignorePermanent.setFont(dialogFont);
         ignorePermanent.addActionListener(this);
         ignorePermanent.setActionCommand("ignorePermanent");
         ignorePermanent.setToolTipText(formatToolTipText(ignorePermanentButtonHelp));
+        ignorePermanent.setMnemonic(KeyEvent.VK_P);
         
         resetIgnorePermanent.setFont(dialogFont);
         resetIgnorePermanent.addActionListener(this);
@@ -1574,12 +1624,14 @@ public void previousError() {
         ignoreAll.addActionListener(this);
         ignoreAll.setActionCommand("ignoreAll");
         ignoreAll.setToolTipText(formatToolTipText(ignoreAllButtonHelp));
+        ignoreAll.setMnemonic(KeyEvent.VK_A);
         
         deactivateRule.setFont(dialogFont);
         deactivateRule.setVisible(false);
         deactivateRule.addActionListener(this);
         deactivateRule.setActionCommand("deactivateRule");
         deactivateRule.setToolTipText(formatToolTipText(deactivateRuleButtonHelp));
+        deactivateRule.setMnemonic(KeyEvent.VK_D);
         
         addToDictionary.setFont(dialogFont);
         addToDictionary.setToolTipText(formatToolTipText(addToDictionaryHelp));
@@ -1610,6 +1662,7 @@ public void previousError() {
         change.addActionListener(this);
         change.setActionCommand("change");
         change.setToolTipText(formatToolTipText(changeButtonHelp));
+        change.setMnemonic(KeyEvent.VK_C);
         
         changeAll.setFont(dialogFont);
         changeAll.addActionListener(this);
@@ -2565,12 +2618,14 @@ public void previousError() {
             change.setEnabled(true);
             changeAll.setEnabled(!documents.isBackgroundCheckOff() || isSpellError);
             autoCorrect.setEnabled(true);
+            suggestions.requestFocusInWindow();
           } else {
             suggestions.setEnabled(true);
             suggestions.setListData(new String[0]);
             change.setEnabled(false);
             changeAll.setEnabled(true);
             autoCorrect.setEnabled(false);
+            sentenceIncludeError.requestFocusInWindow();
           }
           if (debugMode) {
             WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Suggestions set");
@@ -3770,7 +3825,7 @@ public void previousError() {
         undoMarkup = null;
       }
     }
-    
+   
   }
   
 }
