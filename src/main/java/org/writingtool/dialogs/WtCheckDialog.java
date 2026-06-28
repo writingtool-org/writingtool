@@ -1180,8 +1180,8 @@ public void previousError() {
     private final static int maxUndos = 50;
     private final static int toolTipWidth = 300;
     
-    private final static int dialogWidth = 640;
-    private final static int dialogHeight = 640;
+    private final static int dialogWidth = 840;
+    private final static int dialogHeight = 700;
     private final static int MAX_ITEM_LENGTH = 28;
     private UndoMarkupContainer undoMarkup;
 
@@ -1869,8 +1869,8 @@ public void previousError() {
         cons12.gridy = 0;
         cons12.anchor = GridBagConstraints.NORTHWEST;
         cons12.fill = GridBagConstraints.HORIZONTAL;
-        cons12.weightx = 0.0f;
-        cons12.weighty = 0.0f;
+        cons12.weightx = 1.0f;
+        cons12.weighty = 1.0f;
         checkTypePanel.add(checkTypeLabel, cons12);
         JPanel checkTypePanel1 = new JPanel();
         checkTypePanel1.setLayout(new GridBagLayout());
@@ -1881,7 +1881,7 @@ public void previousError() {
         cons121.anchor = GridBagConstraints.NORTHWEST;
         cons121.fill = GridBagConstraints.HORIZONTAL;
         cons121.weightx = 1.0f;
-        cons121.weighty = 0.0f;
+        cons121.weighty = 1.0f;
         for (int i = 0; i < CHECK_TYPE_NUM - 1; i++) {
           checkTypePanel1.add(checkTypeButtons[i], cons121);
           cons121.gridx++;
@@ -1897,13 +1897,15 @@ public void previousError() {
         cons122.gridy = 0;
         cons122.anchor = GridBagConstraints.NORTHWEST;
         cons122.fill = GridBagConstraints.HORIZONTAL;
-        cons122.weightx = 0.0f;
-        cons122.weighty = 0.0f;
+        cons122.weightx = 1.0f;
+        cons122.weighty = 1.0f;
         checkTypePanel2.add(checkTypeButtons[3], cons122);
         cons122.gridx++;
         cons122.weightx = 1.0f;
         checkTypePanel2.add(checkRuleBox, cons122);
         cons12.gridy++;
+        cons12.weightx = 1.0f;
+        cons12.weighty = 2.0f;
         checkTypePanel.add(checkTypePanel2, cons12);
         
         //  Define main panel
@@ -1936,8 +1938,8 @@ public void previousError() {
         cons1.weighty = 2.0f;
         mainPanel.add(sentencePane, cons1);
         cons1.gridx++;
-        cons1.weightx = 0.0f;
-        cons1.weighty = 0.0f;
+        cons1.weightx = 0.4f;
+        cons1.weighty = 0.4f;
         mainPanel.add(rightPanel1, cons1);
         cons1.gridx = 0;
         cons1.gridy++;
@@ -1947,13 +1949,13 @@ public void previousError() {
         cons1.weighty = 2.0f;
         mainPanel.add(suggestionsPane, cons1);
         cons1.gridx++;
-        cons1.weightx = 0.0f;
-        cons1.weighty = 0.0f;
+        cons1.weightx = 0.4f;
+        cons1.weighty = 0.4f;
         mainPanel.add(rightPanel2, cons1);
         cons1.gridx = 0;
         cons1.gridy++;
         cons1.weightx = 1.0f;
-        cons1.weighty = 0.0f;
+        cons1.weighty = 2.0f;
         mainPanel.add(checkTypePanel, cons1);
   
         //  Define general button panel
@@ -1990,11 +1992,11 @@ public void previousError() {
         cons4.gridx++;
         checkProgressPanel.add(cacheAiStatusLabel, cons4);
         cons4.gridx++;
-        cons4.weightx = 0.0f;
-        cons4.weighty = 0.0f;
+        cons4.weightx = 0.5f;
+        cons4.weighty = 0.5f;
         checkProgressPanel.add(checkProgressLabel, cons4);
         cons4.gridx++;
-        cons4.weightx = 4.0f;
+        cons4.weightx = 2.0f;
         checkProgressPanel.add(checkProgress, cons4);
   
         contentPane.setLayout(new GridBagLayout());
@@ -2008,9 +2010,10 @@ public void previousError() {
         cons.weighty = 1.0f;
         contentPane.add(mainPanel, cons);
         cons.gridy++;
-        cons.weighty = 0.0f;
+        cons.weighty = 0.4f;
         contentPane.add(generalButtonPanel, cons);
         cons.gridy++;
+        cons.weighty = 1.0f;
         contentPane.add(checkProgressPanel, cons);
   
         if (debugModeTm) {
