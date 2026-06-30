@@ -72,13 +72,15 @@ public class WtConfiguration {
   static final int FONT_SIZE_INVALID = -1;
   static final int DEFAULT_COLOR_SELECTION = 0;
   static final int DEFAULT_CHECK_DIRECT_SPEECH = CHECK_DIRECT_SPEECH_YES;
-  static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_SYSTEM;
+  static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_FLATLIGHT;
+  static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
+
   static final boolean DEFAULT_SAVE_LO_CACHE = true;
-  static final boolean DEFAULT_SAVE_BUTTON_STATE = false;
+  static final boolean DEFAULT_SAVE_BUTTON_STATE = true;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
   static final boolean DEFAULT_NO_BACKGROUND_CHECK = false;
-  static final boolean DEFAULT_USE_QUEUE = false;
+  static final boolean DEFAULT_USE_QUEUE = true;
   static final boolean DEFAULT_USE_DOC_LANGUAGE = true;
   static final boolean DEFAULT_DO_REMOTE_CHECK = false;
   static final boolean DEFAULT_USE_OTHER_SERVER = false;
@@ -96,7 +98,6 @@ public class WtConfiguration {
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
   static final boolean DEFAULT_AI_AUTO_CORRECT = true;
   static final boolean DEFAULT_AI_AUTO_SUGGESTION = false;
-  static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
   
   static final String DEFAULT_AI_MODEL = "gpt-4";
   static final String DEFAULT_AI_URL = "http://localhost:8080/v1/chat/completions/";

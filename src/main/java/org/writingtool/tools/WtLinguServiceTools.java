@@ -254,13 +254,13 @@ public class WtLinguServiceTools {
       XMultiComponentFactory xMCF = UnoRuntime.queryInterface(XMultiComponentFactory.class,
           xContext.getServiceManager());
       if (xMCF == null) {
-        WtMessageHandler.printToLogFile("WtLinguServiceTools: isSpellAuto: XMultiComponentFactory == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: setSetting: XMultiComponentFactory == null");
         return;
       }
       Object o = xMCF.createInstanceWithContext("com.sun.star.linguistic2.LinguProperties", xContext);     
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, o);
       if (props == null) {
-        WtMessageHandler.printToLogFile("WtLinguServiceTools: isSpellAuto: XPropertySet == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: setSetting: XPropertySet == null");
         return;
       }
       props.setPropertyValue(property, value);
@@ -274,7 +274,7 @@ public class WtLinguServiceTools {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: isWtGrammarServiceActive: XLinguServiceManager == null");
         return false;
       }
       String[] configuredServices = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.Proofreader", locale);
@@ -291,7 +291,7 @@ public class WtLinguServiceTools {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: isWtSpellServiceActive: XLinguServiceManager == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: getWtSpellServiceState: XLinguServiceManager == null");
         return SpellServiceState.IS_ERROR;
       }
       String[] configuredServices = mxLinguSvcMgr.getConfiguredServices("com.sun.star.linguistic2.SpellChecker", locale);
@@ -322,7 +322,7 @@ public class WtLinguServiceTools {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: setWtAsGrammarService: XLinguServiceManager == null");
         return false;
       }
       Locale[] locales = WtDocumentsHandler.getLocales();
@@ -378,7 +378,7 @@ public class WtLinguServiceTools {
     int num = 0;
     try {
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsGrammarService: XLinguServiceManager == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: setWtAsGrammarService: XLinguServiceManager == null");
         return false;
       }
       Locale[] locales = WtDocumentsHandler.getLocales();
@@ -423,11 +423,11 @@ public class WtLinguServiceTools {
       }
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
       if (mxLinguSvcMgr == null) {
-        WtMessageHandler.printToLogFile("LinguisticServices: setLtAsSpellService: XLinguServiceManager == null");
+        WtMessageHandler.printToLogFile("WtLinguServiceTools: setWtAsSpellService: XLinguServiceManager == null");
         return false;
       }
       Locale[] locales = WtDocumentsHandler.getLocales();
-      WtMessageHandler.printToLogFile("LinguisticServices: setLtAsSpellService: Number locales: " + locales.length);
+      WtMessageHandler.printToLogFile("WtLinguServiceTools: setWtAsSpellService: Number locales: " + locales.length);
       for (Locale locale : locales) {
     /*
           String[] serviceNames = mxLinguSvcMgr.getAvailableServices("com.sun.star.linguistic2.SpellChecker", locale);
