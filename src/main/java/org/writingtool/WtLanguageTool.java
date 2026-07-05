@@ -213,7 +213,7 @@ public class WtLanguageTool {
   /**
    * Test if sorted rules for index exist
    */
-  public boolean isSortedRuleForIndex(int index) {
+  public boolean isSortedRuleForIndex(int index) throws Throwable {
     if (index < 0 || sortedTextRules == null
         || index >= sortedTextRules.textLevelRules.size() || sortedTextRules.textLevelRules.get(index).isEmpty()) {
       return false;
@@ -225,7 +225,7 @@ public class WtLanguageTool {
    * activate all rules stored under a given index related to the list of getNumMinToCheckParas
    * deactivate all other text level rules
    */
-  public void activateTextRulesByIndex(int index) {
+  public void activateTextRulesByIndex(int index) throws Throwable {
     if (sortedTextRules != null) {
       if (index == WtOfficeTools.CACHE_AI) {
         sortedTextRules.reactivateTextRules(this);
@@ -238,7 +238,7 @@ public class WtLanguageTool {
   /**
    * reactivate all text level rules
    */
-  public void reactivateTextRules() {
+  public void reactivateTextRules() throws Throwable {
     if (sortedTextRules != null) {
       sortedTextRules.reactivateTextRules(this);
     }
@@ -254,7 +254,7 @@ public class WtLanguageTool {
   /**
    * Get all rules
    */
-  public List<Rule> getAllRules() {
+  public List<Rule> getAllRules() throws Throwable {
     if (isRemote) {
       return rlt.getAllRules();
     } else if (isMultiThread) {
@@ -267,7 +267,7 @@ public class WtLanguageTool {
   /**
    * Get all active rules
    */
-  public List<Rule> getAllActiveRules() {
+  public List<Rule> getAllActiveRules() throws Throwable {
     if (isRemote) {
       return rlt.getAllActiveRules();
     } else if (isMultiThread) {
@@ -280,7 +280,7 @@ public class WtLanguageTool {
   /**
    * Get all active office rules
    */
-  public List<Rule> getAllActiveOfficeRules() {
+  public List<Rule> getAllActiveOfficeRules() throws Throwable {
     if (isRemote) {
       return rlt.getAllActiveOfficeRules();
     } else if (isMultiThread) {
@@ -293,7 +293,7 @@ public class WtLanguageTool {
   /**
    * Enable a rule by ID
    */
-  public void enableRule(String ruleId) {
+  public void enableRule(String ruleId) throws Throwable {
     if (isRemote) {
       rlt.enableRule(ruleId);
     } else if (isMultiThread) {
@@ -306,7 +306,7 @@ public class WtLanguageTool {
   /**
    * Disable a rule by ID
    */
-  public void disableRule(String ruleId) {
+  public void disableRule(String ruleId) throws Throwable {
     if (isRemote) {
       rlt.disableRule(ruleId);
     } else if (isMultiThread) {
@@ -319,7 +319,7 @@ public class WtLanguageTool {
   /**
    * Get disabled rules
    */
-  public Set<String> getDisabledRules() {
+  public Set<String> getDisabledRules() throws Throwable {
     if (isRemote) {
       return rlt.getDisabledRules();
     } else if (isMultiThread) {
@@ -332,7 +332,7 @@ public class WtLanguageTool {
   /**
    * Disable a category by ID
    */
-  public void disableCategory(CategoryId id) {
+  public void disableCategory(CategoryId id) throws Throwable {
     if (isRemote) {
       rlt.disableCategory(id);
     } else if (isMultiThread) {
@@ -345,7 +345,7 @@ public class WtLanguageTool {
   /**
    * Activate language model (ngram) rules
    */
-  public void activateLanguageModelRules(File indexDir) throws IOException {
+  public void activateLanguageModelRules(File indexDir) throws Throwable {
     if (!isRemote) {
       if (isMultiThread) {
         mlt.activateLanguageModelRules(indexDir); 
@@ -462,7 +462,7 @@ public class WtLanguageTool {
    * Get a list of tokens from a sentence
    * This Method use local lt for remote checks
    */
-  public List<String> sentenceTokenize(String text) {
+  public List<String> sentenceTokenize(String text) throws Throwable {
     if (isRemote) {
       if (lt == null) {
         lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
@@ -479,7 +479,7 @@ public class WtLanguageTool {
    * Analyze sentence
    * This Method use local lt for remote checks
    */
-  public AnalyzedSentence getAnalyzedSentence(String sentence) throws IOException {
+  public AnalyzedSentence getAnalyzedSentence(String sentence) throws Throwable {
     if (isRemote) {
       if (lt == null) {
         lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
@@ -496,7 +496,7 @@ public class WtLanguageTool {
    * Analyze text
    * This Method use local lt for remote checks
    */
-  public List<AnalyzedSentence> analyzeText(String text) throws IOException {
+  public List<AnalyzedSentence> analyzeText(String text) throws Throwable {
     if (isRemote) {
       if (lt == null) {
         lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
@@ -513,7 +513,7 @@ public class WtLanguageTool {
    * get the lemmas of a word
    * @throws IOException 
    */
-  public List<String> getLemmasOfWord(String word) throws IOException {
+  public List<String> getLemmasOfWord(String word) throws Throwable {
     List<String> lemmas = new ArrayList<String>();
     Language language = getLanguage();
     List<String> words = new ArrayList<>();
@@ -535,7 +535,7 @@ public class WtLanguageTool {
    * get the lemmas of a word
    * @throws IOException 
    */
-  public List<String> getLemmasOfParagraph(String para, int startPos) throws IOException {
+  public List<String> getLemmasOfParagraph(String para, int startPos) throws Throwable {
     List<String> lemmas = new ArrayList<String>();
     List<AnalyzedSentence> sentences = analyzeText(para);
     int pos = 0;
@@ -558,7 +558,7 @@ public class WtLanguageTool {
   /**
    * Get the language from LT
    */
-  public Language getLanguage() {
+  public Language getLanguage() throws Throwable {
     if (isRemote) {
       return rlt.getLanguage();
     } else if (isMultiThread) {
@@ -582,7 +582,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(String text, ParagraphHandling paraMode, Mode mode, 
-        int nFPara, WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws IOException {
+        int nFPara, WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws Throwable {
 
       List<AnalyzedSentence> analyzedSentences;
       List<String> sentences;
@@ -603,7 +603,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(TextParagraph from, TextParagraph to, ParagraphHandling paraMode, Mode mode, 
-        WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws IOException {
+        WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws Throwable {
       AnalysedText analysedText = document.getDocumentCache().getAnalyzedParagraphs(from, to, lt);
       if (analysedText == null) {
         return null;
@@ -616,7 +616,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(String text, List<AnalyzedSentence> analyzedSentences, 
-        ParagraphHandling paraMode, Mode mode, @NotNull Set<ToneTag> toneTags) throws IOException {
+        ParagraphHandling paraMode, Mode mode, @NotNull Set<ToneTag> toneTags) throws Throwable {
 
       List<String> sentences;
       sentences = new ArrayList<>();
@@ -636,7 +636,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(String text, ParagraphHandling paraMode, Mode mode, 
-        int nFPara, WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws IOException {
+        int nFPara, WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws Throwable {
 
       List<AnalyzedSentence> analyzedSentences;
       List<String> sentences;
@@ -657,7 +657,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(TextParagraph from, TextParagraph to, ParagraphHandling paraMode, Mode mode, 
-        WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws IOException {
+        WtSingleDocument document, WtLanguageTool lt, @NotNull Set<ToneTag> toneTags) throws Throwable {
       AnalysedText analysedText = document.getDocumentCache().getAnalyzedParagraphs(from, to, lt);
       if (analysedText == null) {
         return null;
@@ -670,7 +670,7 @@ public class WtLanguageTool {
     }
 
     public List<RuleMatch> check(String text, List<AnalyzedSentence> analyzedSentences, 
-        ParagraphHandling paraMode, Mode mode, @NotNull Set<ToneTag> toneTags) throws IOException {
+        ParagraphHandling paraMode, Mode mode, @NotNull Set<ToneTag> toneTags) throws Throwable {
 
       List<String> sentences;
       sentences = new ArrayList<>();

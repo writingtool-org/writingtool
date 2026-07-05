@@ -115,7 +115,7 @@ public class WtAiTextToSpeech extends Thread {
     }
   }
   
-  private String getAudioDir() {
+  private String getAudioDir() throws Throwable {
     String sAudioDir = null;
     XModel xModel = UnoRuntime.queryInterface(XModel.class, document.getXComponent());
     if (xModel != null) {
@@ -160,15 +160,15 @@ public class WtAiTextToSpeech extends Thread {
   /** is Header of chapter
    * NOTE: nPara is number of text paragraph
    */
-  private boolean isRealHeader(int nPara) {
+  private boolean isRealHeader(int nPara) throws Throwable {
     return (headingMap.containsKey(nPara) && headingMap.get(nPara) > 0);
   }
   
-  private boolean isPause(String sPara) {
+  private boolean isPause(String sPara) throws Throwable {
     return !sPara.isBlank() && !ALPHA_NUM.matcher(sPara).find();
   }
   
-  private StringBuilder addToText(int nPara, StringBuilder sb) {
+  private StringBuilder addToText(int nPara, StringBuilder sb) throws Throwable {
     String sPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, nPara));
     sb.append(sPara);
     if (!sPara.endsWith(ParaEndSign)) {
@@ -181,7 +181,7 @@ public class WtAiTextToSpeech extends Thread {
     return sb;
   }
   
-  private int createAudioFile(int nParaStart, int nFile, String audioDir, WtAiRemote aiRemote) {
+  private int createAudioFile(int nParaStart, int nFile, String audioDir, WtAiRemote aiRemote) throws Throwable {
     int n = nParaStart;
     String filename;
     try {

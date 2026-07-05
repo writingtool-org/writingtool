@@ -62,7 +62,7 @@ public class WtOfficeSpreadsheetTools {
   /**
    * get the number of last filled Column of a Sheet
    */
-  private static int getFilledColumnCount(XSpreadsheet xSheet, int maxRows) {
+  private static int getFilledColumnCount(XSpreadsheet xSheet, int maxRows) throws Throwable {
     for (int nCol = MAX_TABLE_COLS - 1; nCol > 0; nCol--) {
       for (int nRow = 0; nRow < maxRows; nRow++) {
         String sContent = null;
@@ -82,7 +82,7 @@ public class WtOfficeSpreadsheetTools {
   /**
    * get the number of last filled Row of a Sheet
    */
-  private static int getFilledRowCount(XSpreadsheet xSheet, int maxCols) {
+  private static int getFilledRowCount(XSpreadsheet xSheet, int maxCols) throws Throwable {
     for (int nRow = MAX_TABLE_ROWS - 1; nRow > 0; nRow--) {
       for (int nCol = 0; nCol < maxCols; nCol++) {
         String sContent = null;
@@ -102,7 +102,7 @@ public class WtOfficeSpreadsheetTools {
   /**
    * true if formula is a text
    */
-  private static boolean isNotTextFormat(String s) {
+  private static boolean isNotTextFormat(String s) throws Throwable {
     s = s.trim();
     if (!s.isEmpty()) {
       char ch0 = s.charAt(0);
@@ -123,17 +123,17 @@ public class WtOfficeSpreadsheetTools {
     List<String> paragraphs = new ArrayList<String>();
     List<Locale> locales = new ArrayList<Locale>();
     List<Integer> pageBegins = new ArrayList<Integer>();
-    if (xComponent == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: OfficeSpreadsheetTools: xComponent == null");
-      return new ParagraphContainer(paragraphs, locales, pageBegins);
-    }
-    XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
-    if (xSpreadsheetDocument == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: OfficeSpreadsheetTools: xSpreadsheetDocument == null");
-      return new ParagraphContainer(paragraphs, locales, pageBegins);
-    }
-    XPropertySet xSpreadsheetPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xSpreadsheetDocument);
     try {
+      if (xComponent == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: OfficeSpreadsheetTools: xComponent == null");
+        return new ParagraphContainer(paragraphs, locales, pageBegins);
+      }
+      XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
+      if (xSpreadsheetDocument == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: OfficeSpreadsheetTools: xSpreadsheetDocument == null");
+        return new ParagraphContainer(paragraphs, locales, pageBegins);
+      }
+      XPropertySet xSpreadsheetPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xSpreadsheetDocument);
       Locale locale = (Locale) xSpreadsheetPropertySet.getPropertyValue("CharLocale");
       XSpreadsheets xSheets = xSpreadsheetDocument.getSheets();
       if (xSheets == null) {
@@ -191,16 +191,16 @@ public class WtOfficeSpreadsheetTools {
    * set a new text into a cell
    */
   public static void setTextofCell(int nPara, String replace, XComponent xComponent) {
-    if (xComponent == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setTextofCell: xComponent == null");
-      return;
-    }
-    XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
-    if (xSpreadsheetDocument == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setTextofCell: xSpreadsheetDocument == null");
-      return;
-    }
     try {
+      if (xComponent == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setTextofCell: xComponent == null");
+        return;
+      }
+      XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
+      if (xSpreadsheetDocument == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setTextofCell: xSpreadsheetDocument == null");
+        return;
+      }
       XSpreadsheets xSheets = xSpreadsheetDocument.getSheets();
       if (xSheets == null) {
         WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setTextofCell: xSheets == null");
@@ -356,17 +356,17 @@ public class WtOfficeSpreadsheetTools {
    * NOTE: the change of language affects always the whole spreadsheet
    */
   public static void setLanguageOfSpreadsheet(Locale locale, XComponent xComponent) {
-    if (xComponent == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setLanguageOfSpreadsheet: xComponent == null");
-      return;
-    }
-    XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
-    if (xSpreadsheetDocument == null) {
-      WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setLanguageOfSpreadsheet: xSpreadsheetDocument == null");
-      return;
-    }
-    XPropertySet xSpreadsheetPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xSpreadsheetDocument);
     try {
+      if (xComponent == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setLanguageOfSpreadsheet: xComponent == null");
+        return;
+      }
+      XSpreadsheetDocument xSpreadsheetDocument = UnoRuntime.queryInterface(XSpreadsheetDocument.class, xComponent);
+      if (xSpreadsheetDocument == null) {
+        WtMessageHandler.printToLogFile("OfficeSpreadsheetTools: setLanguageOfSpreadsheet: xSpreadsheetDocument == null");
+        return;
+      }
+      XPropertySet xSpreadsheetPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xSpreadsheetDocument);
       xSpreadsheetPropertySet.setPropertyValue("CharLocale", locale);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught

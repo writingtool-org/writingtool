@@ -99,7 +99,7 @@ public class WtOfficeDrawTools {
   /** 
    * get the page count for master pages
    */
-  public static int getMasterPageCount(XComponent xComponent) {
+  public static int getMasterPageCount(XComponent xComponent) throws Throwable {
     XMasterPagesSupplier xMasterPagesSupplier = UnoRuntime.queryInterface(XMasterPagesSupplier.class, xComponent);
     XDrawPages xDrawPages = xMasterPagesSupplier.getMasterPages();
     return xDrawPages.getCount();

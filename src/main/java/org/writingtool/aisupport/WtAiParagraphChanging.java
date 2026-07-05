@@ -190,13 +190,13 @@ public class WtAiParagraphChanging extends Thread {
   /** 
    * Inserts a Text to cursor position
    */
-  public static void insertText(String text, XComponent xComponent, TextParagraph yPara, boolean override) {
+  public static void insertText(String text, XComponent xComponent, TextParagraph yPara, boolean override) throws Throwable {
     WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
     vCursor.setTextViewCursor(0, yPara);
     vCursor.insertText(text, override);
   }
 
-  public static void insertText(String text, XComponent xComponent, boolean override) {
+  public static void insertText(String text, XComponent xComponent, boolean override) throws Throwable {
     WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
     vCursor.insertText(text, override);
   }
@@ -250,23 +250,23 @@ public class WtAiParagraphChanging extends Thread {
           synonyms = error.aSuggestions;
         }
       }
+      String labelText = messages.getString("loMenuAiSynnomsOfWordCommand") + " '" + word + "':";
+      resultDialog = new WtAiResultDialog(document, messages, labelText, true);
+      if (synonyms == null) {
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("showSynonyms: synonyms == null");
+        }
+        synonyms = new String[0];
+      }
+      resultDialog.setResultList(synonyms, tPara, nStart, nLength);
+      if (waitDialog != null) {
+        waitDialog.close();
+        waitDialog = null;
+      }
+      resultDialog.start();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     }
-    String labelText = messages.getString("loMenuAiSynnomsOfWordCommand") + " '" + word + "':";
-    resultDialog = new WtAiResultDialog(document, messages, labelText, true);
-    if (synonyms == null) {
-      if (debugMode > 1) {
-        WtMessageHandler.printToLogFile("showSynonyms: synonyms == null");
-      }
-      synonyms = new String[0];
-    }
-    resultDialog.setResultList(synonyms, tPara, nStart, nLength);
-    if (waitDialog != null) {
-      waitDialog.close();
-      waitDialog = null;
-    }
-    resultDialog.start();
   }
   
   public WtProofreadingError getProofreadingError(int nChar, int nFPara, 

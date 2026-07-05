@@ -54,12 +54,8 @@ import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
 
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
-import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.uno.UnoRuntime;
 
@@ -113,12 +109,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
       startTime = System.currentTimeMillis();
     }
     ltImage = WtOfficeTools.getWtImage();
-    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-      WtDocumentsHandler.setJavaLookAndFeel();
-    }
     this.messages = messages;
-    currentDocument = document;
-    documentType = document.getDocumentType();
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
@@ -137,6 +128,11 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
 //    Locale locale = document.getDocumentCache().getDocumentLocale();
     quotesDetection = new WtQuotesDetection(document.getMultiDocumentsHandler().getContext());
     try {
+      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
+      currentDocument = document;
+      documentType = document.getDocumentType();
       String txt = document.getDocumentCache().getDocAsString();
       numWrongQuotes = quotesDetection.numNotCorrectQuotes(txt, 0);
       numWrongQuotesLabel.setText(numWrongQuotes + " " + messages.getString("quotesDialogNumberWrongLabel"));
@@ -402,7 +398,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
   }
   
   private void replaceParagraph(TextParagraph textPara, String str, Locale locale, WtDocumentCursorTools docCursor) 
-      throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+      throws Throwable {
     XParagraphCursor pCursor = docCursor.getParagraphCursor(textPara);
     if (pCursor == null) {
       return;
@@ -478,7 +474,7 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
     }
   }
 
-  void setProgressValue(int value, boolean setText) {
+  void setProgressValue(int value, boolean setText) throws Throwable {
     int max = checkProgress.getMaximum();
     int val = value < 0 ? 1 : value + 1;
     if (val > max) {
@@ -496,12 +492,17 @@ public class WtQuotesChangeDialog extends Thread implements ActionListener {
    * returns an array of all possible quote pairs supported by WT
    */
   private String[] getPossibleQuotes() {
-    int nQuotes = WtQuotesDetection.startSymbols.size();
-    String quotes[] = new String[nQuotes];
-    for (int i = 0; i < nQuotes; i++) {
-      quotes[i] = WtQuotesDetection.startSymbols.get(i) + " " + WtQuotesDetection.endSymbols.get(i);
+    try {
+      int nQuotes = WtQuotesDetection.startSymbols.size();
+      String quotes[] = new String[nQuotes];
+      for (int i = 0; i < nQuotes; i++) {
+        quotes[i] = WtQuotesDetection.startSymbols.get(i) + " " + WtQuotesDetection.endSymbols.get(i);
+      }
+      return quotes;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return new String[0];
     }
-    return quotes;
   }
 
   /**

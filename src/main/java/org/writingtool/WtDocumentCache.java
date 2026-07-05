@@ -18,7 +18,6 @@
  */
 package org.writingtool;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -114,14 +113,14 @@ public class WtDocumentCache implements Serializable {
   }
 
   WtDocumentCache(WtSingleDocument document, Locale fixedLocale, Locale docLocale,
-      XComponent xComponent, DocumentType docType) {
+      XComponent xComponent, DocumentType docType) throws Throwable {
     debugMode = WtOfficeTools.DEBUG_MODE_DC;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
     this.docType = docType;
     refresh(document, fixedLocale, docLocale, xComponent, false, false, 0);
   }
 
-  public WtDocumentCache(WtDocumentCache in) {
+  public WtDocumentCache(WtDocumentCache in) throws Throwable {
     rwLock.writeLock().lock();
     in.rwLock.readLock().lock();
     try {
@@ -168,6 +167,8 @@ public class WtDocumentCache implements Serializable {
       nHeaderFooter = textParagraphs.get(CURSOR_TYPE_HEADER_FOOTER).size();
       docLocale = new SerialLocale(locale);
       mapParagraphs(this.paragraphs, toTextMapping, toParaMapping, this.chapterBegins, locales, footnotes, textParagraphs, deletedCharacters, null);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     } finally {
       isReset = false;
       rwLock.writeLock().unlock();
@@ -178,7 +179,7 @@ public class WtDocumentCache implements Serializable {
    * Refresh the cache
    */
   public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, 
-      boolean wait, boolean synchronize, int fromWhere) {
+      boolean wait, boolean synchronize, int fromWhere) throws Throwable {
     if (isReset) {
       WtMessageHandler.printToLogFile("DocumentCache: refresh (from: " + fromWhere + "): isReset == true: return");
       return;
@@ -207,7 +208,8 @@ public class WtDocumentCache implements Serializable {
    * reset the document cache load the actual state of the document into the cache
    * is only used for writer documents
    */
-  private void refreshWriterCache(WtSingleDocument document, Locale fixedLocale, Locale docLocale, boolean synchronize, int fromWhere) {
+  private void refreshWriterCache(WtSingleDocument document, Locale fixedLocale, Locale docLocale, boolean synchronize, 
+      int fromWhere) throws Throwable {
     try {
       long startTime = System.currentTimeMillis();
       WtFlatParagraphTools flatPara = document.getFlatParagraphTools();
@@ -371,8 +373,8 @@ public class WtDocumentCache implements Serializable {
     } finally {
     }
   }
-  
-  boolean isInArray(int n, int[] fn) {
+ /* 
+  private boolean isInArray(int n, int[] fn) throws Throwable {
     for (int i : fn) {
       if (i == n) {
         return true;
@@ -380,13 +382,13 @@ public class WtDocumentCache implements Serializable {
     }
     return false;
   }
-  
+  */
   /**
    * synchronize text between flat and text paragraphs
    */
   private List<String> synchronizeText(List<DocumentText> documentTexts, List<String> paragraphs, 
       List<int[]> footnotes, Map<Integer, int[]> fieldPositions, 
-      List<TextParagraph> toTextMapping, WtDocumentCursorTools docCursor) {
+      List<TextParagraph> toTextMapping, WtDocumentCursorTools docCursor) throws Throwable {
    for (int i = 0; i < paragraphs.size(); i++) {
       TextParagraph tPara = toTextMapping.get(i);
       if (tPara.type != CURSOR_TYPE_UNKNOWN && tPara.number >= 0) {
@@ -413,7 +415,7 @@ public class WtDocumentCache implements Serializable {
   private void actualizeCache (List<String> paragraphs, List<List<Integer>> chapterBegins, List<SerialLocale> locales, 
       List<int[]> footnotes, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping, 
       List<List<Integer>> deletedCharacters, List<Integer> automaticParagraphs, List<Integer> sortedTextIds,
-      Map<Integer, int[]> fieldPositions) {
+      Map<Integer, int[]> fieldPositions) throws Throwable {
     rwLock.writeLock().lock();
     try {
       clearAnalyzedParagraphs();
@@ -451,7 +453,7 @@ public class WtDocumentCache implements Serializable {
     }
   }
   
-  private static boolean isEqualTextWithoutZeroSpace(String flatPara, String textPara) {
+  private static boolean isEqualTextWithoutZeroSpace(String flatPara, String textPara) throws Throwable {
     if (flatPara.isEmpty() && textPara.isEmpty()) {
       return true;
     }
@@ -465,7 +467,7 @@ public class WtDocumentCache implements Serializable {
     return flatPara.equals(textPara);
   }
   
-  public boolean hasUnsupportedText() {
+  public boolean hasUnsupportedText() throws Throwable {
     if (toParaMapping.get(CURSOR_TYPE_SHAPE).size() > 0) {
       return true;
     }
@@ -482,12 +484,12 @@ public class WtDocumentCache implements Serializable {
   }
   
   public static boolean isEqualText(String flatPara, String textPara, int[] footnotes) {
-    if (footnotes == null || footnotes.length == 0) {
-      return isEqualTextWithoutZeroSpace(flatPara, textPara);
-    }
-    //  NOTE: flat paragraphs contain footnotes and endnotes as zero space characters
-    //        text paragraphs contain footnotes and endnotes as digits or Roman characters
     try {
+      if (footnotes == null || footnotes.length == 0) {
+        return isEqualTextWithoutZeroSpace(flatPara, textPara);
+      }
+      //  NOTE: flat paragraphs contain footnotes and endnotes as zero space characters
+      //        text paragraphs contain footnotes and endnotes as digits or Roman characters
       if (footnotes[footnotes.length - 1] >= flatPara.length()) {
         WtMessageHandler.printToLogFile("DocumentCache: isEqualWithoutFootnotes: footnotes[footnotes.length - 1] >= flatPara.length()");
         return false;
@@ -577,55 +579,6 @@ public class WtDocumentCache implements Serializable {
     }
     return differentLocales;
   }
-/*  
-  private static boolean isEqualWithoutFootnotes(String flatPara, String textPara, int[] footnotes, int[] n, int level) {
-    //  NOTE: flat paragraphs contain footnotes and endnotes as zero space characters
-    //        text paragraphs contain footnotes and endnotes as digits or Roman characters
-    for(n[level] = 0; n[level] <= MAX_NOTE_CHAR; n[level]++) {
-      if (level == 0) {
-        String textP = textPara;
-        for (int i = footnotes.length - 1; i >= 0; i--) {
-          int nDif = 0;
-          for (int j = 0; j < i; j++) {
-            nDif += n[j] - 1;
-          }
-          int k = footnotes[i] + nDif;
-          if (k + n[i] > textPara.length()) {
-            return false;
-          }
-          textP = textP.substring(0, k) + (k < textP.length() - n[i] ? textP.substring(k + n[i]) : "");
-        }
-        boolean isEqual = isEqualTextWithoutZeroSpace(flatPara, textP);
-        if (isEqual) {
-          return true;
-        }
-      } else {
-        boolean isEqual = isEqualWithoutFootnotes(flatPara, textPara, footnotes, n, level - 1);
-        if (isEqual) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  public static boolean isEqualText(String flatPara, String textPara, int[] footnotes) {
-    if (footnotes == null || footnotes.length == 0) {
-      return isEqualTextWithoutZeroSpace(flatPara, textPara);
-    }
-    flatPara = SingleCheck.removeFootnotes(flatPara, footnotes, null);
-    if (textPara.isEmpty() || flatPara.length() > textPara.length() || flatPara.length() < (textPara.length() - (footnotes.length * MAX_NOTE_CHAR))) {
-      //  NOTE: size of footnote sign is assumed as <= MAX_NOTE_CHAR
-      return false;
-    }
-    
-    int[] n = new int[footnotes.length];
-    for(int j = 0; j < n.length; j++) {
-      n[j] = 0;
-    }
-    return isEqualWithoutFootnotes(flatPara, textPara, footnotes, n, n.length - 1);
-  }
-*/
   
   private static int[] getFootnotes(List<int[]> footnotes, int i) {
     return footnotes != null && i < footnotes.size() ? footnotes.get(i) : null;
@@ -634,15 +587,15 @@ public class WtDocumentCache implements Serializable {
   /**
    * Correct header/footer or table 
    */
-  
   private void correctNegativeNumberEntries(int type, List<List<String>> textParas, List<String> paragraphs, 
-      List<List<Integer>> toParaMapping, List<TextParagraph> toTextMapping)  {
+      List<List<Integer>> toParaMapping, List<TextParagraph> toTextMapping) throws Throwable  {
     boolean isRemoved = false;
     for (int j = textParas.get(type).size() - 1; j >= 0; j--) {
       if (toParaMapping.get(type).get(j) < 0) {
         boolean isMapped = false;
         for (int i = 0; i < toTextMapping.size() && !isMapped; i++) {
           if (toTextMapping.get(i).type == CURSOR_TYPE_UNKNOWN
+              && i < paragraphs.size() && j < textParas.get(type).size()
               && isEqualText(paragraphs.get(i), textParas.get(type).get(j), getFootnotes(footnotes, i))) {
             toParaMapping.get(type).set(j, i);
             toTextMapping.set(i, new TextParagraph(type, j));
@@ -665,7 +618,7 @@ public class WtDocumentCache implements Serializable {
     }
   }
   
-  void correctParaMapping (int type, List<List<Integer>> toParaMapping) {
+  private void correctParaMapping (int type, List<List<Integer>> toParaMapping) throws Throwable {
     if (type != CURSOR_TYPE_TEXT) {
       for (int i = toParaMapping.get(type).size() - 1; i >= 0; i--) {
         if (toParaMapping.get(type).get(i) < 0) {
@@ -679,10 +632,9 @@ public class WtDocumentCache implements Serializable {
    * Map Text inside a loop of all text paragraphs of a cursor type
    * NOTE: This is needed for all types of cursor other than text and frame because they can be inside a frame disturbing the usual order 
    */
-  
   private boolean mapTextParagraphsPerLoop(int type, int nFlat, List<String> paragraphs, List<int[]> footnotes, 
       List<List<String>> textParas, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping, 
-      List<List<Integer>> nMapped, List<Integer> nNext) {
+      List<List<Integer>> nMapped, List<Integer> nNext) throws Throwable {
     if (nMapped.get(type).size() < textParas.get(type).size()) {
       for (int k = nNext.get(type); k < textParas.get(type).size(); k++) {
         if (!nMapped.get(type).contains(k) && isEqualText(paragraphs.get(nFlat), textParas.get(type).get(k), getFootnotes(footnotes, nFlat))) {
@@ -712,7 +664,7 @@ public class WtDocumentCache implements Serializable {
    */
   private void mapParagraphs(List<String> paragraphs, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping,
         List<List<Integer>> chapterBegins, List<SerialLocale> locales, List<int[]> footnotes, List<List<String>> textParas, 
-        List<List<Integer>> deletedCharacters, List<List<List<Integer>>> deletedChars) {
+        List<List<Integer>> deletedCharacters, List<List<List<Integer>>> deletedChars) throws Throwable {
     if (textParas != null && !textParas.isEmpty()) {
       List<List<Integer>> nMapped = new ArrayList<>();  // Mapped paragraphs per cursor type
       List<Integer> nNext = new ArrayList<>();          //  Next assumed paragraph number for cursor type
@@ -947,7 +899,8 @@ public class WtDocumentCache implements Serializable {
           for (int k = 0; k < NUMBER_CURSOR_TYPES; k++) {
             if (k != CURSOR_TYPE_TEXT) {
               if (nMapped.get(k).size() < textParas.get(k).size()) {
-                WtMessageHandler.printToLogFile("Warning: document cache mapping failed: Try to repair mapping of paragraph type " + k);
+                WtMessageHandler.printToLogFile("Warning: document cache mapping failed: Try to repair mapping of paragraph type: " 
+                    + k + ", nMapped: " + nMapped.get(k).size() + ", textParas: " + textParas.get(k).size());
                 correctNegativeNumberEntries(k, textParas, paragraphs, toParaMapping, toTextMapping);
               }
             }
@@ -1071,7 +1024,7 @@ public class WtDocumentCache implements Serializable {
    */
   private void mapParagraphsWNI(List<String> paragraphs, List<TextParagraph> toTextMapping, List<List<Integer>> toParaMapping,
         List<List<Integer>> chapterBegins, List<SerialLocale> locales, List<int[]> footnotes, List<List<Integer>> textSortedTextIds, 
-        List<Integer> sortedTextIds, List<List<Integer>> deletedCharacters, List<List<List<Integer>>> deletedChars) {
+        List<Integer> sortedTextIds, List<List<Integer>> deletedCharacters, List<List<List<Integer>>> deletedChars) throws Throwable {
     isDirty = false;
     List<Integer> nMapped = new ArrayList<>();  // Mapped paragraphs per cursor type
     int nUnknown = 0;
@@ -1214,7 +1167,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Set text level cache to no errors for single paragraph text
    */
-  private void setSingleParagraphsCacheToNull(List<WtResultCache> paragraphsCache) {
+  private void setSingleParagraphsCacheToNull(List<WtResultCache> paragraphsCache) throws Throwable {
     for (int i = 0; i < paragraphs.size(); i++) {
       if (isSingleParagraph_intern(i)) {
         for (int n = 1; n < paragraphsCache.size(); n++) {
@@ -1227,7 +1180,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Set text level cache for one paragraph to no errors for single paragraph text
    */
-  public boolean setSingleParagraphsCacheToNull(int numberFlatParagraph, List<WtResultCache> paragraphsCache) {
+  public boolean setSingleParagraphsCacheToNull(int numberFlatParagraph, List<WtResultCache> paragraphsCache) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (isSingleParagraph_intern(numberFlatParagraph)) {
@@ -1288,6 +1241,8 @@ public class WtDocumentCache implements Serializable {
       if (n >= 0 && n < paragraphs.size()) {
         paragraphs.set(n, sPara);
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     } finally {
       rwLock.writeLock().unlock();
     }
@@ -1306,6 +1261,8 @@ public class WtDocumentCache implements Serializable {
       if (n >= 0 && n < paragraphs.size()) {
         paragraphs.set(n, sPara);
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     } finally {
       rwLock.writeLock().unlock();
     }
@@ -1344,6 +1301,8 @@ public class WtDocumentCache implements Serializable {
           locales.set(n, locale);
         }
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     } finally {
       rwLock.writeLock().unlock();
     }
@@ -1352,7 +1311,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Locale of Flat Paragraph by Index
    */
-  public Locale getFlatParagraphLocale(int n) {
+  public Locale getFlatParagraphLocale(int n) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n < 0 || n >= locales.size()) {
@@ -1367,11 +1326,11 @@ public class WtDocumentCache implements Serializable {
   /**
    * set Locale of Flat Paragraph by Index
    */
-  public void setFlatParagraphLocale(int n, Locale locale) {
+  public void setFlatParagraphLocale(int n, Locale locale) throws Throwable {
     rwLock.writeLock().lock();
     try {
-      removeAnalyzedParagraph(n);
       if (n >= 0 && n < locales.size()) {
+        removeAnalyzedParagraph(n);
         locales.set(n, new SerialLocale(locale));
       }
     } finally {
@@ -1382,7 +1341,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get footnotes of Flat Paragraph by Index
    */
-  public int[] getFlatParagraphFootnotes(int n) {
+  public int[] getFlatParagraphFootnotes(int n) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n >= 0 && n < footnotes.size()) {
@@ -1398,7 +1357,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get field position of Flat Paragraph by Index
    */
-  public int[] getFlatParagraphFieldPositions(int n) {
+  public int[] getFlatParagraphFieldPositions(int n) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n >= 0 && n < footnotes.size() && fieldPositions.containsKey(n)) {
@@ -1414,7 +1373,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * set footnotes of Flat Paragraph by Index
    */
-  public void setFlatParagraphFootnotes(int n, int[] footnotePos) {
+  public void setFlatParagraphFootnotes(int n, int[] footnotePos) throws Throwable {
     rwLock.writeLock().lock();
     try {
       removeAnalyzedParagraph(n);
@@ -1429,7 +1388,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get deleted characters (report changes) of Flat Paragraph by Index
    */
-  public List<Integer> getFlatParagraphDeletedCharacters(int n) {
+  public List<Integer> getFlatParagraphDeletedCharacters(int n) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n >= 0 && n < deletedCharacters.size()) {
@@ -1445,7 +1404,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get deleted characters (report changes) of Flat Paragraph by Index
    */
-  public boolean isAutomaticGenerated(int n, boolean alsoIgnore) {
+  public boolean isAutomaticGenerated(int n, boolean alsoIgnore) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n >= 0 && n < toTextMapping.size()) {
@@ -1466,7 +1425,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * set deleted characters (report changes) of Flat Paragraph by Index
    */
-  public void setFlatParagraphDeletedCharacters(int n, List<Integer> deletedChars) {
+  public void setFlatParagraphDeletedCharacters(int n, List<Integer> deletedChars) throws Throwable {
     rwLock.writeLock().lock();
     try {
       removeAnalyzedParagraph(n);
@@ -1481,7 +1440,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * correct a start point to change of flat paragraph by zero space characters
    */
-  public int correctStartPoint(int nStart, int nFPara) {
+  public int correctStartPoint(int nStart, int nFPara) throws Throwable {
     rwLock.readLock().lock();
     try {
       int cor = 0;
@@ -1508,7 +1467,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * clear document cache
    */
-  private void clear() {
+  private void clear() throws Throwable {
     paragraphs.clear();
     chapterBegins.clear();
     locales.clear();
@@ -1529,7 +1488,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Add a document Cache
    */
-  private void add(WtDocumentCache in) {
+  private void add(WtDocumentCache in) throws Throwable {
     paragraphs.addAll(in.paragraphs);
     chapterBegins.addAll(in.chapterBegins);
     locales.addAll(in.locales);
@@ -1565,7 +1524,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Replace a document Cache
    */
-  public void put(WtDocumentCache in) {
+  public void put(WtDocumentCache in) throws Throwable {
     rwLock.writeLock().lock();
     try {
       clear();
@@ -1590,7 +1549,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * has no content
    */
-  public boolean hasNoContent(boolean lock) {
+  public boolean hasNoContent(boolean lock) throws Throwable {
     if (lock) {
       rwLock.readLock().lock();
     }
@@ -1618,7 +1577,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get the Content of a Text Paragraph
    */
-  public String getTextParagraph(TextParagraph textParagraph) {
+  public String getTextParagraph(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
@@ -1637,7 +1596,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Number of Flat Paragraph from Number of Text Paragraph
    */
-  public int getFlatParagraphNumber(TextParagraph textParagraph) {
+  public int getFlatParagraphNumber(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0
@@ -1654,7 +1613,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Locale of Text Paragraph by Index
    */
-  public Locale getTextParagraphLocale(TextParagraph textParagraph) {
+  public Locale getTextParagraphLocale(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0 ||
@@ -1671,7 +1630,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get deleted Characters of Text Paragraph
    */
-  public List<Integer> getTextParagraphDeletedCharacters(TextParagraph textParagraph) {
+  public List<Integer> getTextParagraphDeletedCharacters(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
@@ -1687,7 +1646,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get footnotes of Text Paragraph by Index
    */
-  public int[] getTextParagraphFootnotes(TextParagraph textParagraph) {
+  public int[] getTextParagraphFootnotes(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
@@ -1703,7 +1662,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get field positions of Text Paragraph by Index
    */
-  public int[] getTextParagraphFieldPositions(TextParagraph textParagraph) {
+  public int[] getTextParagraphFieldPositions(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.number < 0) {
@@ -1719,7 +1678,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * set footnotes of Text Paragraph
    */
-  public void setTextParagraphFootnotes(TextParagraph textParagraph, int[] footnotePos) {
+  public void setTextParagraphFootnotes(TextParagraph textParagraph, int[] footnotePos) throws Throwable {
     rwLock.writeLock().lock();
     try {
       removeAnalyzedTextParagraph(textParagraph);
@@ -1734,7 +1693,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Number of Text Paragraph from Number of Flat Paragraph
    */
-  public TextParagraph getNumberOfTextParagraph(int numberOfFlatParagraph) {
+  public TextParagraph getNumberOfTextParagraph(int numberOfFlatParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       return getNumberOfTextParagraph_(numberOfFlatParagraph);
@@ -1746,7 +1705,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Number of Text Paragraph from Number of Flat Paragraph
    */
-  private TextParagraph getNumberOfTextParagraph_(int numberOfFlatParagraph) {
+  private TextParagraph getNumberOfTextParagraph_(int numberOfFlatParagraph) throws Throwable {
     if (numberOfFlatParagraph < 0 || numberOfFlatParagraph >= toTextMapping.size()) {
       return new TextParagraph(CURSOR_TYPE_UNKNOWN, -1);
     }
@@ -1756,7 +1715,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * get Type of Paragraph from flat paragraph number
    */
-  public int getParagraphType(int numberOfFlatParagraph) {
+  public int getParagraphType(int numberOfFlatParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       return toTextMapping.get(numberOfFlatParagraph).type;
@@ -1775,7 +1734,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * size of text cache for a type of text
    */
-  public int textSize(int type) {
+  public int textSize(int type) throws Throwable {
     rwLock.readLock().lock();
     try {
       return (type < 0 || type >= toParaMapping.size()) ? 0 : toParaMapping.get(type).size();
@@ -1787,7 +1746,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * size of text cache for a type of text
    */
-  public int textSize(TextParagraph textParagraph) {
+  public int textSize(TextParagraph textParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       return (textParagraph.type == CURSOR_TYPE_UNKNOWN || textParagraph.type >= toParaMapping.size()) ?
@@ -1800,7 +1759,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Text and local are equal to cache
    */
-  public boolean isEqual(int n, String text, Locale locale) {
+  public boolean isEqual(int n, String text, Locale locale) throws Throwable {
     rwLock.readLock().lock();
     try {
       return ((n < 0 || n >= locales.size() || locales.get(n) == null) ? false
@@ -1813,7 +1772,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Text, deleted chars and local are equal to cache
    */
-  public boolean isEqual(int n, String text, Locale locale, List<Integer> delChars) {
+  public boolean isEqual(int n, String text, Locale locale, List<Integer> delChars) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (n < 0 || n >= locales.size() || locales.get(n) == null) {
@@ -1835,7 +1794,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * size of cache has changed?
    */
-  public boolean isEqualCacheSize(WtDocumentCursorTools docCursor) {
+  public boolean isEqualCacheSize(WtDocumentCursorTools docCursor) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (nText != docCursor.getNumberOfAllTextParagraphs()) {
@@ -1867,7 +1826,7 @@ public class WtDocumentCache implements Serializable {
    * change the cache to new value
    * return all changed paragraphs
    */
-  public List<Integer> getChangedUnsupportedParagraphs(WtDocumentCursorTools docCursor, WtResultCache firstResultCache) {
+  public List<Integer> getChangedUnsupportedParagraphs(WtDocumentCursorTools docCursor, WtResultCache firstResultCache) throws Throwable {
     List<Integer> nChanged = new ArrayList<>();
     rwLock.writeLock().lock();
     try {
@@ -1917,44 +1876,11 @@ public class WtDocumentCache implements Serializable {
     }
     return nChanged;
   }
-/*  
-  public List<Integer> getChangedUnsupportedParagraphs(FlatParagraphTools flatPara, ResultCache firstResultCache) {
-    rwLock.writeLock().lock();
-    List<Integer> nChanged = new ArrayList<>();
-    try {
-      if (flatPara == null) {
-        return nChanged;
-      }
-      if (toParaMapping.get(CURSOR_TYPE_SHAPE).isEmpty() && toParaMapping.get(CURSOR_TYPE_TABLE).isEmpty()) {
-        return null;
-      }
-      List<Integer> nParas = new ArrayList<>();
-      for (int i = 0; i < paragraphs.size() && toTextMapping.get(i).type != CURSOR_TYPE_TEXT; i++) {
-        if (toTextMapping.get(i).type == CURSOR_TYPE_SHAPE || toTextMapping.get(i).type == CURSOR_TYPE_TABLE) {
-          nParas.add(i);
-        }
-      }
-      List<String> fParas = flatPara.getFlatParagraphs(nParas);
-      if (fParas == null) {
-        return nChanged;
-      }
-      for (int i = 0; i < fParas.size(); i++) {
-        int nFPara = nParas.get(i);
-        if (firstResultCache.getCacheEntry(nFPara) == null || !paragraphs.get(nFPara).equals(fParas.get(i))) {
-          paragraphs.set(nFPara, fParas.get(i));
-          nChanged.add(nFPara);
-        }
-      }
-    } finally {
-      rwLock.writeLock().unlock();
-    }
-    return nChanged;
-  }
-*/  
+
   /**
    * is flat paragraph a single paragraph
    */
-  public boolean isSingleParagraph(int numberOfFlatParagraph) {
+  public boolean isSingleParagraph(int numberOfFlatParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       return isSingleParagraph_intern(numberOfFlatParagraph);
@@ -1966,7 +1892,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * is flat paragraph a single paragraph (intern, not secure)
    */
-  private boolean isSingleParagraph_intern(int numberOfFlatParagraph) {
+  private boolean isSingleParagraph_intern(int numberOfFlatParagraph) throws Throwable {
     if (numberOfFlatParagraph < 0 || numberOfFlatParagraph >= toTextMapping.size()) {
       return true;
     }
@@ -1993,7 +1919,7 @@ public class WtDocumentCache implements Serializable {
    * Gives back the start paragraph for text level check
    */
   public int getStartOfParaCheck(TextParagraph textParagraph, int parasToCheck, boolean checkOnlyParagraph,
-      boolean useQueue, boolean addParas) {
+      boolean useQueue, boolean addParas) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.number < 0 || toParaMapping.get(textParagraph.type).size() <= textParagraph.number) {
@@ -2032,7 +1958,7 @@ public class WtDocumentCache implements Serializable {
    * Gives back the end paragraph for text level check
    */
   public int getEndOfParaCheck(TextParagraph textParagraph, int parasToCheck, boolean checkOnlyParagraph,
-      boolean useQueue, boolean addParas) {
+      boolean useQueue, boolean addParas) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (textParagraph.number < 0 || toParaMapping.get(textParagraph.type).size() <= textParagraph.number) {
@@ -2077,7 +2003,7 @@ public class WtDocumentCache implements Serializable {
    * Gives Back the full Text as String sorted by cursor types
    */
   public String getDocAsString(TextParagraph textParagraph, int parasToCheck, boolean checkOnlyParagraph,
-      boolean useQueue, boolean hasFootnotes) {
+      boolean useQueue, boolean hasFootnotes) throws Throwable {
     rwLock.readLock().lock();
     try {
       int startPos = getStartOfParaCheck(textParagraph, parasToCheck, checkOnlyParagraph, useQueue, true);
@@ -2124,7 +2050,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Gives Back the full Text as String
    */
-  public String getDocAsString() {
+  public String getDocAsString() throws Throwable {
     rwLock.readLock().lock();
     try {
       if (paragraphs.size() <= 0) {
@@ -2143,21 +2069,21 @@ public class WtDocumentCache implements Serializable {
   /**
    * Change manual line-break to distinguish from end of paragraph
    */
-  public static String fixLinebreak(String text) {
+  public static String fixLinebreak(String text) throws Throwable {
     return text.replaceAll(WtOfficeTools.SINGLE_END_OF_PARAGRAPH, WtOfficeTools.MANUAL_LINEBREAK);
   }
 
   /**
    * Change back manual line-breaks (necessary for text changes e.g. in check dialog)
    */
-  public static String undoFixLinebreak(String text) {
+  public static String undoFixLinebreak(String text) throws Throwable {
     return text.replaceAll(WtOfficeTools.MANUAL_LINEBREAK, WtOfficeTools.SINGLE_END_OF_PARAGRAPH);
   }
 
   /**
    * remove zero width space
    */
-  public static String removeZeroWidthSpace(String text) {
+  public static String removeZeroWidthSpace(String text) throws Throwable {
     return text.replaceAll(WtOfficeTools.ZERO_WIDTH_SPACE, "");
   }
 
@@ -2165,7 +2091,7 @@ public class WtDocumentCache implements Serializable {
    * Gives Back the StartPosition of Paragraph
    */
   public int getStartOfParagraph(int nPara, TextParagraph textParagraph, int parasToCheck, boolean checkOnlyParagraph,
-      boolean useQueue, boolean hasFootnotes) {
+      boolean useQueue, boolean hasFootnotes) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (nPara < 0 || (parasToCheck > -2 && toParaMapping.get(textParagraph.type).size() <= nPara)
@@ -2204,7 +2130,7 @@ public class WtDocumentCache implements Serializable {
    * Map deleted characters to flat paragraphs
    */
   private void mapDeletedCharacters(List<List<Integer>> deletedCharacters, List<String> paragraphs,
-      List<List<List<Integer>>> deletedChars, List<TextParagraph> toTextMapping) {
+      List<List<List<Integer>>> deletedChars, List<TextParagraph> toTextMapping) throws Throwable {
     if (deletedChars == null) {
       for (int i = 0; i < toTextMapping.size(); i++) {
         deletedCharacters.add(null);
@@ -2228,7 +2154,8 @@ public class WtDocumentCache implements Serializable {
    * For cursor type text: Add the next chapter begin after Heading and changes of
    * language to the chapter begins
    */
-  private void prepareChapterBeginsForText(List<List<Integer>> chapterBegins, List<TextParagraph> toTextMapping, List<SerialLocale> locales) {
+  private void prepareChapterBeginsForText(List<List<Integer>> chapterBegins, List<TextParagraph> toTextMapping, 
+      List<SerialLocale> locales) throws Throwable {
     List<Integer> prepChBegins = new ArrayList<Integer>(chapterBegins.get(CURSOR_TYPE_TEXT));
     for (int begin : chapterBegins.get(CURSOR_TYPE_TEXT)) {
       if (!prepChBegins.contains(begin + 1)) {
@@ -2266,7 +2193,8 @@ public class WtDocumentCache implements Serializable {
    * Refresh the cache and compare with the old
    * Give back the range of difference and size
    */
-  public ChangedRange refreshAndCompare(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, int fromWhere) {
+  public ChangedRange refreshAndCompare(WtSingleDocument document, Locale fixedLocale, Locale docLocale, 
+      XComponent xComponent, int fromWhere) throws Throwable {
     WtDocumentCache oldCache = new WtDocumentCache(this);
     refresh(document, fixedLocale, docLocale, xComponent, true, false, fromWhere);
     rwLock.readLock().lock();
@@ -2316,23 +2244,6 @@ public class WtDocumentCache implements Serializable {
   }
   
   /**
-   * has nearest paragraph changed
-   *//*
-  public boolean nearestParagraphHasChanged(int numberOfFlatParagraph, FlatParagraphTools flatPara) {
-    if (flatPara == null || numberOfFlatParagraph < 0 || numberOfFlatParagraph > paragraphs.size() - 1) {
-      return true;
-    }
-    if (paragraphs.size() == 1) {
-      return false;
-    }
-    int pNum = numberOfFlatParagraph == paragraphs.size() - 1 ? numberOfFlatParagraph - 1 : numberOfFlatParagraph + 1;
-    if (!flatPara.getFlatParagraphAt(pNum).getText().equals(paragraphs.get(pNum))) {
-      return true;
-    }
-    return false;
-  }
-*/
-  /**
    * Get Map of Headings (only cursor type text)
    */
   public Map<Integer, Integer> getHeadingMap() {
@@ -2342,7 +2253,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Return nearest sorted text Id
    */
-  public int getNearestSortedTextId(int sortedTextId) {
+  public int getNearestSortedTextId(int sortedTextId) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (sortedTextIds == null) {
@@ -2366,7 +2277,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Return Number of flat Paragraph from node index
    */
-  public int getFlatparagraphFromSortedTextId(int sortedTextId) {
+  public int getFlatparagraphFromSortedTextId(int sortedTextId) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (sortedTextIds == null) {
@@ -2386,7 +2297,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Return false if cache has to be actualized
    */
-  public boolean isActual(int documentElementsCount) {
+  public boolean isActual(int documentElementsCount) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (isDirty || sortedTextIds == null || documentElementsCount == -1 || this.documentElementsCount != documentElementsCount) {
@@ -2398,7 +2309,7 @@ public class WtDocumentCache implements Serializable {
     }
   }
   
-  private SerialLocale getMostUsedLanguage(List<SerialLocale> locales) {
+  private SerialLocale getMostUsedLanguage(List<SerialLocale> locales) throws Throwable {
     Map<SerialLocale, Integer> localesMap = new HashMap<>();
     for (SerialLocale locale : locales) {
       boolean localeExists = false;
@@ -2427,7 +2338,7 @@ public class WtDocumentCache implements Serializable {
     return null;
   }
   
-  public Locale getDocumentLocale() {
+  public Locale getDocumentLocale() throws Throwable {
     rwLock.readLock().lock();
     try {
       if (docLocale == null) {
@@ -2459,7 +2370,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Get an analyzed paragraphs
    */
-  public List<AnalyzedSentence> getAnalyzedParagraph(int nFPara) {
+  public List<AnalyzedSentence> getAnalyzedParagraph(int nFPara) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (nFPara >= 0 && nFPara < analyzedParagraphs.size()) {
@@ -2494,14 +2405,14 @@ public class WtDocumentCache implements Serializable {
   /**
    * Remove an analyzed paragraph
    */
-  private void removeAnalyzedParagraph(int nFPara) {
+  private void removeAnalyzedParagraph(int nFPara) throws Throwable {
     analyzedParagraphs.remove(nFPara);
   }
   
   /**
    * Remove an analyzed text paragraph
    */
-  private void removeAnalyzedTextParagraph(TextParagraph textParagraph) {
+  private void removeAnalyzedTextParagraph(TextParagraph textParagraph) throws Throwable {
     if (textParagraph.type != CURSOR_TYPE_UNKNOWN && textParagraph.number >= 0 
         && textParagraph.number < toParaMapping.get(textParagraph.type).size()) {
       analyzedParagraphs.remove(toParaMapping.get(textParagraph.type).get(textParagraph.number));
@@ -2511,7 +2422,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Put an analyzed paragraphs
    */
-  public void putAnalyzedParagraph(int nFPara, List<AnalyzedSentence> analyzedParagraph) {
+  public void putAnalyzedParagraph(int nFPara, List<AnalyzedSentence> analyzedParagraph) throws Throwable {
     rwLock.writeLock().lock();
     try {
       analyzedParagraphs.put(nFPara, analyzedParagraph);
@@ -2523,7 +2434,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Remove and shift analyzed paragraphs by a range
    */
-  private void removeAndShiftAnalyzedParagraph(int fromParagraph, int toParagraph, int oldSize, int newSize) {
+  private void removeAndShiftAnalyzedParagraph(int fromParagraph, int toParagraph, int oldSize, int newSize) throws Throwable {
     if (analyzedParagraphs == null || analyzedParagraphs.isEmpty()) {
       return;
     }
@@ -2555,7 +2466,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * create an analyzed paragraph and store it in analyzed Cache
    */
-  public List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, WtLanguageTool lt) {
+  public List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, WtLanguageTool lt) throws Throwable {
     try {
       String paraText = getFlatParagraph(nFPara);
       if (paraText == null) {
@@ -2571,7 +2482,7 @@ public class WtDocumentCache implements Serializable {
     }
   }
 
-  private List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, String paraText, WtLanguageTool lt) throws IOException {
+  private List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, String paraText, WtLanguageTool lt) throws Throwable {
 //    List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText.replace("\u00AD", ""));
     List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText);
     putAnalyzedParagraph(nFPara, analyzedParagraph);
@@ -2629,7 +2540,7 @@ public class WtDocumentCache implements Serializable {
    * Get a range of analyzed paragraphs from analyzed Cache
    * if the requested paragraphs don't exist create it
    */
-  public AnalysedText getAnalyzedParagraphs(TextParagraph from, TextParagraph to, WtLanguageTool lt) throws IOException {
+  public AnalysedText getAnalyzedParagraphs(TextParagraph from, TextParagraph to, WtLanguageTool lt) throws Throwable {
     List<AnalyzedSentence> analyzedParagraphs = new ArrayList<>();
     List<String> sentences = new ArrayList<>();
     StringBuilder docText = new StringBuilder();
@@ -2720,31 +2631,11 @@ public class WtDocumentCache implements Serializable {
     }
     
   }
-/*
-  public static void printTokenizedSentences(List<AnalyzedSentence> sentences) {
-    for (AnalyzedSentence sentence : sentences) {
-      String str = "";
-      for (AnalyzedTokenReadings token : sentence.getTokens()) {
-        str += "'" + token.getToken(); 
-        if (token.isSentenceStart()) {
-          str += "{sent start}";
-        }
-        if (token.isSentenceEnd()) {
-          str += "{sent end}";
-        }
-        if (token.isParagraphEnd()) {
-          str += "{para end}";
-        }
-        str += "' ";
-      }
-      MessageHandler.printToLogFile("Sentence: " + str);
-    }
-  }
-*/
+
   /**
    * add information about opening and closing quotes
    */
-  private void addQuoteInfo(WtSingleDocument document, List<String> textParagraphs) {
+  private void addQuoteInfo(WtSingleDocument document, List<String> textParagraphs) throws Throwable {
     boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
         != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
     if (needQuoteInfo) {
@@ -2756,7 +2647,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * update information about opening and closing quotes
    */
-  public void updateQuoteInfo(WtSingleDocument document, int nPara) {
+  public void updateQuoteInfo(WtSingleDocument document, int nPara) throws Throwable {
     try {
       boolean needQuoteInfo = document.getMultiDocumentsHandler().getConfiguration().getCheckDirectSpeech() 
           != WtConfiguration.CHECK_DIRECT_SPEECH_YES;
@@ -2776,7 +2667,7 @@ public class WtDocumentCache implements Serializable {
    * is opening quote before nStart
    * nTPara numbers the text paragraphs
    */
-  private boolean isOpenQuote(int nTPara, int nStart) {
+  private boolean isOpenQuote(int nTPara, int nStart) throws Throwable {
     if (openingQuotes.size() <= nTPara || openingQuotes.get(nTPara) == null || openingQuotes.get(nTPara).size() == 0) {
       return false;
     }
@@ -2803,7 +2694,8 @@ public class WtDocumentCache implements Serializable {
   /**
    * filter sentence in quotes out of error array
    */
-  public WtProofreadingError[] filterDirectSpeech (WtProofreadingError[] errorArray, int nPara, WtConfiguration config) {
+  public WtProofreadingError[] filterDirectSpeech (WtProofreadingError[] errorArray, int nPara, 
+      WtConfiguration config) throws Throwable {
     if (config.getCheckDirectSpeech() == WtConfiguration.CHECK_DIRECT_SPEECH_YES 
         || errorArray == null || errorArray.length == 0) {
       return errorArray;
@@ -2825,7 +2717,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Get List of children of a chapter
    */
-  private List<WtChapter> getSubChapters(List<Integer> headParas, int n, int hierarchy, WtChapter parent) {
+  private List<WtChapter> getSubChapters(List<Integer> headParas, int n, int hierarchy, WtChapter parent) throws Throwable {
     List<WtChapter> children = new ArrayList<>();
     if (headParas != null && !headParas.isEmpty()) {
 //      int nPara = headParas.get(n);
@@ -2866,7 +2758,7 @@ public class WtDocumentCache implements Serializable {
   /**
    * Get all chapters of the document as node tree
    */
-  public WtChapter getChapters(String title) {
+  public WtChapter getChapters(String title) throws Throwable {
     List<Integer> headParas = new ArrayList<>();
     for (int nPara : headingMap.keySet()) {
       headParas.add(nPara);

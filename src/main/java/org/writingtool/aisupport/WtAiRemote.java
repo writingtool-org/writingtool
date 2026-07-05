@@ -986,7 +986,7 @@ public class WtAiRemote {
   }
   
   private String runInstructionText(String instruction, String orgText, float temperature, 
-      int seed, Locale locale, boolean onlyOneParagraph) {
+      int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
     outText = null;
     isDone = false;
     Thread t = new Thread(new Runnable() {
@@ -1011,7 +1011,7 @@ public class WtAiRemote {
     return outText;
   }
   
-  private String runInstructionImage(String instruction, String exclude, int step, int seed, int height, int width) {
+  private String runInstructionImage(String instruction, String exclude, int step, int seed, int height, int width) throws Throwable {
     outText = null;
     isDone = false;
     Thread t = new Thread(new Runnable() {
@@ -1036,7 +1036,7 @@ public class WtAiRemote {
     return outText;
   }
   
-  private String runInstructionTTS(String text, String filename) {
+  private String runInstructionTTS(String text, String filename) throws Throwable {
     outText = null;
     isDone = false;
     Thread t = new Thread(new Runnable() {

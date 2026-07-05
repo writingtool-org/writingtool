@@ -49,7 +49,7 @@ public class WtSuggestionStore {
   /**
    * Is a word in store
    */
-  public boolean hasWord(String word, Locale locale) {
+  public boolean hasWord(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     return words != null && words.contains(word);
@@ -58,7 +58,7 @@ public class WtSuggestionStore {
   /**
    * get the suggestions of a word as an array of strings
    */
-  public String[] getSuggestions(String word, Locale locale) {
+  public String[] getSuggestions(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     if (words == null || !words.contains(word)) {
@@ -84,7 +84,7 @@ public class WtSuggestionStore {
   /**
    * add the suggestions of word as array of strings
    */
-  public void addSuggestions(String word, Locale locale, String[] suggestions) {
+  public void addSuggestions(String word, Locale locale, String[] suggestions) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     List<String[]> suggestionList;
@@ -115,7 +115,7 @@ public class WtSuggestionStore {
    * Set the full store of words of suggestions
    * The store is cleared before
    */
-  public void setFullStore(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) {
+  public void setFullStore(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) throws Throwable {
     if (words == null || suggestions == null || words.size() != suggestions.size()) {
       return;
     }

@@ -349,7 +349,7 @@ public class WtTextLevelCheckQueue {
   /**
    *  get an entry for the next unchecked paragraphs
    */
-  protected QueueEntry getNextQueueEntry(TextParagraph nPara, String docId) {
+  protected QueueEntry getNextQueueEntry(TextParagraph nPara, String docId) throws Throwable {
     List<WtSingleDocument> documents = multiDocHandler.getDocuments();
     int nDoc = 0;
     for (int n = 0; n < documents.size(); n++) {
@@ -394,7 +394,7 @@ public class WtTextLevelCheckQueue {
   /**
    * run heap space test, in intervals
    */
-  private boolean testHeapSpace() {
+  private boolean testHeapSpace() throws Throwable {
     if (numSinceHeapTest > HEAP_CHECK_INTERVAL) {
       numSinceHeapTest = 0;
       if (!multiDocHandler.isEnoughHeapSpace()) {
@@ -497,20 +497,24 @@ public class WtTextLevelCheckQueue {
      */
     @Override
     public boolean equals(Object o) {
-      if (o == null || !(o instanceof QueueEntry)) {
-        return false;
-      }
-      QueueEntry e = (QueueEntry) o;
-      if (nStart == null || nEnd == null || e.nStart == null || e.nEnd == null) {
-        return false;
-      }
-      if ((error == null && e.error != null) || (error != null && e.error == null)) {
-        return false;
-      }
-      if (nStart.type == e.nStart.type && nStart.number == e.nStart.number && nEnd.number == e.nEnd.number
-          && nCache == e.nCache && nCheck == e.nCheck && docId.equals(e.docId)
-          && ((error == null && e.error == null) || error.equals(e.error)) ) {
-        return true;
+      try {
+        if (o == null || !(o instanceof QueueEntry)) {
+          return false;
+        }
+        QueueEntry e = (QueueEntry) o;
+        if (nStart == null || nEnd == null || e.nStart == null || e.nEnd == null) {
+          return false;
+        }
+        if ((error == null && e.error != null) || (error != null && e.error == null)) {
+          return false;
+        }
+        if (nStart.type == e.nStart.type && nStart.number == e.nStart.number && nEnd.number == e.nEnd.number
+            && nCache == e.nCache && nCheck == e.nCheck && docId.equals(e.docId)
+            && ((error == null && e.error == null) || error.equals(e.error)) ) {
+          return true;
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
       return false;
     }
@@ -518,7 +522,7 @@ public class WtTextLevelCheckQueue {
     /**
      * entry is equal but number of cache is smaller then new entry e
      */
-    public boolean isEqualButSmallerCacheNumber(QueueEntry e) {
+    public boolean isEqualButSmallerCacheNumber(QueueEntry e) throws Throwable {
       if (e == null || nStart == null || nEnd == null 
           || e.nStart == null || e.nEnd == null || nStart.type != e.nStart.type) {
         return false;
@@ -532,7 +536,7 @@ public class WtTextLevelCheckQueue {
     /**
      * entry is obsolete and should be replaced by new entry e
      */
-    public boolean isObsolete(QueueEntry e) {
+    public boolean isObsolete(QueueEntry e) throws Throwable {
       if (e == null || nStart == null  || nEnd == null || e.nStart == null || e.nEnd == null
           || nCheck != e.nCheck || nCache != e.nCache || nStart.type != e.nStart.type || docId == null || !docId.equals(e.docId)) {
         return false;

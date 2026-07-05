@@ -150,6 +150,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   
   private final Map<String, List<XStatusListener>> xListenersMap = new HashMap<>();
   
+  private static boolean debugMode;                   //  should only be true for testing
   private static boolean isConfigRead = false;
   
   private XComponentContext xContext;
@@ -172,6 +173,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
       WritingTool.setDocumentsHandler(documents);
     }
     documents.setProtocolHandler(this);
+    debugMode = WtOfficeTools.DEBUG_MODE_PH;
   }
   
   /**
@@ -196,18 +198,26 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
             xListeners = new ArrayList<>();
           }
           xListeners.add(statusListener);
-  //        for (XStatusListener listener : xListeners) {
-  //          WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: listener is " + (listener == null ? "" : "NOT ") + "null");
-  //        }
+          if (debugMode) {
+            for (XStatusListener listener : xListeners) {
+              WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: listener is " + (listener == null ? "" : "NOT ") + "null");
+            }
+          }
           xListenersMap.put(path, xListeners);
-  //        WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+          }
           setButtonState();
           if (path.equals(WT_PROFILES)){
             conf = WritingTool.getDocumentsHandler().getLastConfiguration();
-//            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            }
             makeProfileList(statusListener, url);
           } else if (path.equals(WT_PROFILES)){
-//            WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
+            }
             makeActivateRulesList(statusListener, url);
           }
         }
@@ -223,16 +233,22 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public void removeStatusListener(XStatusListener statusListener, URL url) {
-    if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
-      String path = url.Path;
-      if (xListenersMap.containsKey(path)) {
-        List<XStatusListener> xListeners = xListenersMap.get(path);
-        if (xListeners.contains(statusListener)) {
-          xListeners.remove(statusListener);
-          xListenersMap.put(path, xListeners);
-//          WtMessageHandler.printToLogFile("WtProtocolHandler: remove StatusListener: URL.Path: " + path);
+    try {
+      if (statusListener != null && url.Protocol.equals(WT_PROTOCOL)) {
+        String path = url.Path;
+        if (xListenersMap.containsKey(path)) {
+          List<XStatusListener> xListeners = xListenersMap.get(path);
+          if (xListeners.contains(statusListener)) {
+            xListeners.remove(statusListener);
+            xListenersMap.put(path, xListeners);
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("WtProtocolHandler: remove StatusListener: URL.Path: " + path);
+            }
+          }
         }
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -242,20 +258,28 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public void dispatch(URL url, PropertyValue[] props) {
-//    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Protocol: " + url.Protocol);
-//    WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Path: " + url.Path);
-    if (url.Protocol.equals(WT_PROTOCOL)) {
-//      WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
-      WritingTool.getDocumentsHandler().setMenuDocId(null);
-      if (url.Path.equals(WT_PROFILES)) {
-        WritingTool.getDocumentsHandler().trigger(handleProfiles(url, props));
-        return;
-      } else if (url.Path.equals(WT_ACTIVATE_RULES)) {
-        WritingTool.getDocumentsHandler().trigger(handleActivateRules(url, props));
-        changeListOfButton(url);
-        return;
+    try {
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Protocol: " + url.Protocol);
+        WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL.Path: " + url.Path);
       }
-      WritingTool.getDocumentsHandler().trigger(url.Path);
+      if (url.Protocol.equals(WT_PROTOCOL)) {
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtProtocolHandler: dispatch: URL: " + url.Complete);
+        }
+        WritingTool.getDocumentsHandler().setMenuDocId(null);
+        if (url.Path.equals(WT_PROFILES)) {
+          WritingTool.getDocumentsHandler().trigger(handleProfiles(url, props));
+          return;
+        } else if (url.Path.equals(WT_ACTIVATE_RULES)) {
+          WritingTool.getDocumentsHandler().trigger(handleActivateRules(url, props));
+          changeListOfButton(url);
+          return;
+        }
+        WritingTool.getDocumentsHandler().trigger(url.Path);
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -265,11 +289,19 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public XDispatch queryDispatch(URL url, String targetFrameName, int searchFlags) {
-//    WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: URL: " + url.Complete);
-//    WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: URL.Protocol: " + url.Protocol);
-    if (url.Protocol.equals(WT_PROTOCOL)) {
-//      WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: return this");
-      return this;
+    try {
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: URL: " + url.Complete);
+        WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: URL.Protocol: " + url.Protocol);
+      }
+      if (url.Protocol.equals(WT_PROTOCOL)) {
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtProtocolHandler: queryDispatch: return this");
+        }
+        return this;
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
     return null;
   }
@@ -280,12 +312,17 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
    */
   @Override
   public XDispatch[] queryDispatches(DispatchDescriptor[] requests) {
-    int nCount = requests.length;
-    XDispatch[] lDispatcher = new XDispatch[nCount];
-    for (int i = 0; i < nCount; ++i) {
-      lDispatcher[i] = queryDispatch( requests[i].FeatureURL, requests[i].FrameName, requests[i].SearchFlags );
+    try {
+      int nCount = requests.length;
+      XDispatch[] lDispatcher = new XDispatch[nCount];
+      for (int i = 0; i < nCount; ++i) {
+        lDispatcher[i] = queryDispatch( requests[i].FeatureURL, requests[i].FrameName, requests[i].SearchFlags );
+      }
+      return lDispatcher;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
-    return lDispatcher;
+    return null;
   }
 
   @Override
@@ -312,7 +349,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     return false;
   }
   
-  public void setButtonState() {
+  public void setButtonState() throws Throwable {
     if (!WritingTool.getDocumentsHandler().isOpenOffice) {
       statAnEnabled = WtOfficeTools.hasStatisticalStyleRules(xContext);
       conf = WritingTool.getDocumentsHandler().getLastConfiguration();
@@ -327,7 +364,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     }
   }
   
-  private void changeButtonStatus(boolean hideAiToolbar) {
+  private void changeButtonStatus(boolean hideAiToolbar) throws Throwable {
     URL url = WtOfficeTools.createUrl(xContext, WT_STATISTICAL_ANALYSES_COMMAND);
     changeStateOfButton(url, statAnEnabled, false);
     url = WtOfficeTools.createUrl(xContext, WT_BACKGROUND_CHECK_OFF_COMMAND);
@@ -381,27 +418,34 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     }
   }
   
-  private void changeStateOfButton(URL url, boolean enabled, boolean state) {
+  private void changeStateOfButton(URL url, boolean enabled, boolean state) throws Throwable {
     try {
       String path = url.Path;
-//      WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: Path: " + path);
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: Path: " + path);
+      }
       if (xListenersMap.containsKey(path)) {
-//        WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: contains key: " + path);
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: contains key: " + path);
+        }
         List<XStatusListener> xListeners = xListenersMap.get(path);
-//        WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: number of listeners: " + xListeners.size());
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: number of listeners: " + xListeners.size());
+        }
         if (!xListeners.isEmpty()) {
-//          WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: number of listeners: " + xListeners.size());
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: number of listeners: " + xListeners.size());
+          }
           for (XStatusListener xStaLis : xListeners) {
-//            WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: set new status!");
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: set new status!");
+            }
             if (xStaLis != null) {
               FeatureStateEvent xEvent = new FeatureStateEvent();
               xEvent.FeatureURL = url;
               xEvent.IsEnabled = enabled;
               xEvent.State = state;
               xStaLis.statusChanged(xEvent);
-//              WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: new status is set!");
-//            } else {
-//              WtMessageHandler.printToLogFile("WtProtocolHandler: changeStateOfButton: listener == null");
             }
           }
         }
@@ -525,10 +569,14 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   }
 
   public void readConfiguration() {
-    WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
-    if (!isConfigRead && conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice) {
-      isConfigRead = true;
-      readConfig();
+    try {
+      WtConfiguration conf = WritingTool.getDocumentsHandler().getLastConfiguration();
+      if (!isConfigRead && conf.saveButtonState() && !WritingTool.getDocumentsHandler().isOpenOffice) {
+        isConfigRead = true;
+        readConfig();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
     }
   }
   
@@ -548,7 +596,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     return dockingArea;
   }
 
-  private void readConfig() {
+  private void readConfig() throws Throwable {
     
     File tbConfigFile = new File(WtOfficeTools.getWtConfigDir(xContext), WT_TB_FILE_NAME);
 
@@ -630,7 +678,8 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     }
   }
 
-  private void sendCommandTo(XStatusListener statusListener, URL url, String cmd, NamedValue[] args, boolean enabled) throws Throwable {
+  private void sendCommandTo(XStatusListener statusListener, URL url, String cmd, NamedValue[] args, 
+      boolean enabled) throws Throwable {
     FeatureStateEvent aEvent = new FeatureStateEvent();
     aEvent.FeatureURL = url;
     aEvent.Source     = (XDispatch) this;
@@ -671,7 +720,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
   }
 
-  private String handleProfiles(URL url, PropertyValue[] props) {
+  private String handleProfiles(URL url, PropertyValue[] props) throws Throwable {
     for (PropertyValue propVal : props) {
       if (propVal.Name.equals("Text")) {
         String text = new String((String) propVal.Value);
@@ -703,7 +752,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
 //    WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: " + contextMenu.length + " profiles set");
   }
 
-  private String handleActivateRules(URL url, PropertyValue[] props) {
+  private String handleActivateRules(URL url, PropertyValue[] props) throws Throwable {
     for (PropertyValue propVal : props) {
       if (propVal.Name.equals("Text")) {
         String text = new String((String) propVal.Value);

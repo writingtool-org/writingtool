@@ -70,7 +70,6 @@ public class WtAiResultDialog extends Thread implements ActionListener {
   private final JDialog dialog;
   private final Container contentPane;
   private final JButton close;
-//  private JProgressBar checkProgress;
   private final Image ltImage;
   
   private final JLabel resultLabel;
@@ -100,17 +99,21 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       startTime = System.currentTimeMillis();
     }
     ltImage = WtOfficeTools.getWtImage();
-    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-      WtDocumentsHandler.setJavaLookAndFeel();
+    try {
+      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
+      
+      this.isList = isList;
+      currentDocument = document;
+      documentType = document.getDocumentType();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      closeDialog();
     }
-    
-    this.isList = isList;
-    currentDocument = document;
-    documentType = document.getDocumentType();
     
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
-//    resultLabel = new JLabel(messages.getString("aiDialogResultLabel") + ":");
     resultLabel = new JLabel(labelText);
     result = new JTextPane();
     resultList = new JList<String>();
@@ -124,8 +127,6 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     close = new JButton (messages.getString("allDialogButtonClose"));
     mainPanel = new JPanel();
     
-//    checkProgress.setStringPainted(true);
-//    checkProgress.setIndeterminate(false);
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog called");
@@ -257,20 +258,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       cons1.weightx = 1.0f;
       cons1.weighty = 1.0f;
       mainPanel.add(rightPanel1, cons1);
-/*
-      //  Define check progress panel
-      JPanel checkProgressPanel = new JPanel();
-      checkProgressPanel.setLayout(new GridBagLayout());
-      GridBagConstraints cons4 = new GridBagConstraints();
-      cons4.insets = new Insets(4, 4, 4, 4);
-      cons4.gridx = 0;
-      cons4.gridy = 0;
-      cons4.anchor = GridBagConstraints.NORTHWEST;
-      cons4.fill = GridBagConstraints.HORIZONTAL;
-      cons4.weightx = 4.0f;
-      cons4.weighty = 0.0f;
-//      checkProgressPanel.add(checkProgress, cons4);
-*/
+
       contentPane.setLayout(new GridBagLayout());
       GridBagConstraints cons = new GridBagConstraints();
       cons.insets = new Insets(8, 8, 8, 8);
@@ -281,15 +269,12 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       cons.weightx = 1.0f;
       cons.weighty = 1.0f;
       contentPane.add(mainPanel, cons);
-  //    cons.gridy++;
-  //    cons.weighty = 0.0f;
-  //    contentPane.add(checkProgressPanel, cons);
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-//        if (runTime > OfficeTools.TIME_TOLERANCE) {
+        if (runTime > WtOfficeTools.TIME_TOLERANCE) {
           WtMessageHandler.printToLogFile("CheckDialog: Time to initialise panels: " + runTime);
-//        }
+        }
           startTime = System.currentTimeMillis();
       }
 
@@ -298,7 +283,6 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       Dimension frameSize = new Dimension(dialogWidth, dialogHeight);
       dialog.setSize(frameSize);
-//      Dimension frameSize = dialog.getSize();
       dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
           screenSize.height / 2 - frameSize.height / 2);
       dialog.setLocationByPlatform(true);
@@ -306,9 +290,9 @@ public class WtAiResultDialog extends Thread implements ActionListener {
       ToolTipManager.sharedInstance().setDismissDelay(30000);
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
-//        if (runTime > OfficeTools.TIME_TOLERANCE) {
+        if (runTime > WtOfficeTools.TIME_TOLERANCE) {
           WtMessageHandler.printToLogFile("CheckDialog: Time to initialise dialog size: " + runTime);
-//        }
+        }
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -349,7 +333,7 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     dialog.setVisible(true);
   }
   
-  public void toFront() {
+  public void toFront() throws Throwable {
     dialog.setVisible(true);
     dialog.toFront();
   }
@@ -386,12 +370,12 @@ public class WtAiResultDialog extends Thread implements ActionListener {
     }
   }
 
-  public void setResult(String text, TextParagraph yPara) {
+  public void setResult(String text, TextParagraph yPara) throws Throwable {
     result.setText(text);
     this.yPara = yPara;
   }
 
-  public void setResultList(String[] results, TextParagraph yPara, int wordStart, int wordLength) {
+  public void setResultList(String[] results, TextParagraph yPara, int wordStart, int wordLength) throws Throwable {
     resultList.setListData(results);
     resultList.setSelectedIndex(0);
     this.yPara = yPara;
@@ -404,9 +388,9 @@ public class WtAiResultDialog extends Thread implements ActionListener {
    */
   public void closeDialog() {
     dialog.setVisible(false);
-//    if (debugMode) {
+    if (debugMode) {
       WtMessageHandler.printToLogFile("AiDialog: closeDialog: Close AI Result Dialog");
-//    }
+    }
     atWork = false;
     WtAiParagraphChanging.setCloseAiResultDialog();
   }

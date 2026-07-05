@@ -35,16 +35,9 @@ public class WtResourceBundle extends ResourceBundle {
 
   private final ResourceBundle wtBundle;
   private final ResourceBundle wtFallbackBundle;
-//  private final ResourceBundle bundle;
-//  private final ResourceBundle fallbackBundle;
-  
-//  public WtResourceBundle(ResourceBundle wtBundle, ResourceBundle wtFallbackBundle, 
-//      ResourceBundle bundle, ResourceBundle fallbackBundle) {
   public WtResourceBundle(ResourceBundle wtBundle, ResourceBundle wtFallbackBundle) {
     this.wtBundle = wtBundle;
     this.wtFallbackBundle = wtFallbackBundle;
-//    this.bundle = bundle;
-//    this.fallbackBundle = fallbackBundle;
   }
 
   @Override
@@ -57,24 +50,6 @@ public class WtResourceBundle extends ResourceBundle {
         return wtFallbackBundle.getString(key);
       }
     }
-/*
-    if (s == null || s.trim().isEmpty()) {
-      if (bundle != null) {
-        try {
-          s = bundle.getString(key);
-        } catch (MissingResourceException e) {
-        }
-      }
-      if (s == null || s.trim().isEmpty()) {
-        try {
-          s = wtFallbackBundle.getString(key);
-        } catch (MissingResourceException e) {
-          return fallbackBundle.getString(key);
-        }
-      }
-      return s;
-    }
-*/
     return s;
   }
 

@@ -219,7 +219,8 @@ public class WtQuotesDetection {
    * update a following paragraph
    * returns true, if the following paragraph has to be changed
    */
-  private boolean updateFollowingParagraph(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, boolean isQuoteBefore) {
+  private boolean updateFollowingParagraph(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, 
+      boolean isQuoteBefore) throws Throwable {
     if (isQuoteBefore) {
       if (oQuotes.get(nPara) != null && oQuotes.get(nPara).size() > 0 && oQuotes.get(nPara).get(0) <= 0) {
         return false;
@@ -247,14 +248,16 @@ public class WtQuotesDetection {
     
   }
   
-  private void updateTextParagraphs(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, boolean isQuoteBefore) {
+  private void updateTextParagraphs(List<List<Integer>> oQuotes, List<List<Integer>> cQuotes, int nPara, 
+      boolean isQuoteBefore) throws Throwable {
     boolean hasChanged = true;
     for (int i = nPara + 1; hasChanged && i < oQuotes.size(); i++) {
       hasChanged = updateFollowingParagraph(oQuotes, cQuotes, i, isQuoteBefore);
     }
   }
   
-  public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, List<List<Integer>> cQuotes) throws Throwable {
+  public void updateTextParagraph(String txt, int nPara, List<List<Integer>> oQuotes, 
+      List<List<Integer>> cQuotes) throws Throwable {
     if (nPara < 0 || nPara >= oQuotes.size()) {
       return;
     }

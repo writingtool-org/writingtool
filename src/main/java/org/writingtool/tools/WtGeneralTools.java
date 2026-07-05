@@ -27,7 +27,7 @@ import org.languagetool.rules.patterns.FalseFriendPatternRule;
 import org.writingtool.WtLinguisticServices;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtOptionPane;
-import org.writingtool.dialogs.WtTextContextMenu;
+import org.writingtool.menus.WtTextContextMenu;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
@@ -74,7 +74,7 @@ public final class WtGeneralTools {
    * Show a file chooser dialog and return the file selected by the user or
    * <code>null</code>.
    */
-  public static File openFileDialog(Frame frame, FileFilter fileFilter) {
+  public static File openFileDialog(Frame frame, FileFilter fileFilter) throws Throwable {
     return openFileDialog(frame, fileFilter, null);
   }
 
@@ -86,7 +86,7 @@ public final class WtGeneralTools {
    * @return the selected file
    * @since 2.6
    */
-  public static File openFileDialog(Frame frame, FileFilter fileFilter, File initialDir) {
+  public static File openFileDialog(Frame frame, FileFilter fileFilter, File initialDir) throws Throwable {
     return openFileDialog(frame, fileFilter, initialDir, JFileChooser.FILES_ONLY);
   }
 
@@ -97,11 +97,11 @@ public final class WtGeneralTools {
    * @return the selected file
    * @since 3.0
    */
-  public static File openDirectoryDialog(Frame frame, File initialDir) {
+  public static File openDirectoryDialog(Frame frame, File initialDir) throws Throwable {
     return openFileDialog(frame, null, initialDir, JFileChooser.DIRECTORIES_ONLY);
   }
 
-  private static File openFileDialog(Frame frame, FileFilter fileFilter, File initialDir, int mode) {
+  private static File openFileDialog(Frame frame, FileFilter fileFilter, File initialDir, int mode) throws Throwable {
     JFileChooser jfc = new JFileChooser();
     jfc.setFileSelectionMode(mode);
     jfc.setCurrentDirectory(initialDir);
@@ -173,7 +173,12 @@ public final class WtGeneralTools {
    * @return String UI element string without mnemonics.
    */
   public static String getLabel(String label) {
-    return label.replaceAll("&([^&])", "$1").replaceAll("&&", "&");
+    try {
+      return label.replaceAll("&([^&])", "$1").replaceAll("&&", "&");
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return label;
+    }
   }
 
   /**
@@ -182,7 +187,7 @@ public final class WtGeneralTools {
    * @param label String Label of the UI element
    * @return Mnemonic of the UI element, or {@code \u0000} in case of no mnemonic set.
    */
-  public static char getMnemonic(String label) {
+  public static char getMnemonic(String label) throws Throwable {
     int mnemonicPos = label.indexOf('&');
     while (mnemonicPos != -1 && mnemonicPos == label.indexOf("&&")
             && mnemonicPos < label.length()) {
@@ -200,7 +205,7 @@ public final class WtGeneralTools {
    * @param dialog the dialog which will be centered
    * @since 2.6
    */
-  public static void centerDialog(JDialog dialog) {
+  public static void centerDialog(JDialog dialog) throws Throwable {
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension frameSize = dialog.getSize();
     dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
@@ -211,7 +216,7 @@ public final class WtGeneralTools {
   /**
    * @since 3.3
    */
-  public static void configureFromRules(JLanguageTool lt, WtConfiguration config) {
+  public static void configureFromRules(JLanguageTool lt, WtConfiguration config) throws Throwable {
     Set<String> disabledRules = config.getDisabledRuleIds();
     if (disabledRules != null) {
       for (String ruleId : disabledRules) {
@@ -238,7 +243,7 @@ public final class WtGeneralTools {
     lt.setConfigValues(config.getConfigurableValues());
   }
   
-  public static void addHyperlinkListener(JTextPane pane) {
+  public static void addHyperlinkListener(JTextPane pane) throws Throwable {
     pane.addHyperlinkListener(new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -347,7 +352,7 @@ public final class WtGeneralTools {
               WtOptionPane.INFORMATION_MESSAGE);
 
 //      WtGeneralTools.setJavaLookAndFeel(theme);
-    } catch (Exception ex) {
+    } catch (Throwable ex) {
       WtMessageHandler.showError(ex);
     }
   }
@@ -360,7 +365,7 @@ public final class WtGeneralTools {
     }
   }
 
-  public static String getExampleSentences(Rule rule, ResourceBundle messages) {
+  public static String getExampleSentences(Rule rule, ResourceBundle messages) throws Throwable {
     StringBuilder examples = new StringBuilder(200);
     List<IncorrectExample> incorrectExamples = rule.getIncorrectExamples();
     if (incorrectExamples.size() > 0) {
@@ -389,7 +394,7 @@ public final class WtGeneralTools {
     return examples.toString();
   }
 
-  public static String formatURL(URL url) {
+  public static String formatURL(URL url) throws Throwable {
     if (url == null) {
       return "";
     }
@@ -402,7 +407,7 @@ public final class WtGeneralTools {
    * give back null if both of them are null
    * sort them by default (it is assumed that there are no identical numbers inside of both
    */
-  public static int[] mergeTwoIntArrays(int[] a1, int[] a2) {
+  public static int[] mergeTwoIntArrays(int[] a1, int[] a2) throws Throwable {
     if (a2 == null) {
       return a1;
     }
@@ -434,7 +439,7 @@ public final class WtGeneralTools {
    * Get the translated name of language plus language and country code
    * e.g. English (en-US)
    */
-  public static String getFullNameOfLanguage(Language lang) {
+  public static String getFullNameOfLanguage(Language lang) throws Throwable {
     return lang.getTranslatedName(JLanguageTool.getMessageBundle()) + " (" + lang.getShortCodeWithCountryAndVariant() + ")";
   }
 
@@ -442,7 +447,7 @@ public final class WtGeneralTools {
    * Get the translated names of all languages plus language and country code
    * e.g. English (en-US)
    */
-  public static String[] getAllFullNameOfLanguage(boolean addNoSeletion) {
+  public static String[] getAllFullNameOfLanguage(boolean addNoSeletion) throws Throwable {
     List<String> languages = new ArrayList<>();
     if(addNoSeletion) {
       languages.add(NO_SELECTED_LANGUAGE);
@@ -458,7 +463,7 @@ public final class WtGeneralTools {
    * Get the Language object for the given full language name.
    */
   @Nullable
-  public static Language getLanguageForFullName(String languageName) {
+  public static Language getLanguageForFullName(String languageName) throws Throwable {
     for (Language lang : Languages.get()) {
       if (languageName.equals(getFullNameOfLanguage(lang))) {
         return lang;
@@ -471,7 +476,7 @@ public final class WtGeneralTools {
    * Get the Local object for the given full language name.
    */
   @Nullable
-  public static Locale getLocalForFullName(String languageName) {
+  public static Locale getLocalForFullName(String languageName) throws Throwable {
     Language lang = getLanguageForFullName(languageName);
     if (lang == null) {
       return null;
@@ -479,7 +484,7 @@ public final class WtGeneralTools {
     return (WtLinguisticServices.getLocale(lang));
   }
 
-  public static void setJavaLookAndFeel(int theme) throws Exception {
+  public static void setJavaLookAndFeel(int theme) throws Throwable {
     switch (theme) {
     case THEME_FLATDARK:
       FlatDarkLaf.setup();
@@ -526,7 +531,7 @@ public final class WtGeneralTools {
 //Posted by Kevin Rahe
 //Retrieved 2026-04-08, License - CC BY-SA 3.0
 
-  public static void installDefaultTextContextMenus(Container aContainer) {
+  public static void installDefaultTextContextMenus(Container aContainer) throws Throwable {
     if ( aContainer != null ) {
       if ( aContainer instanceof JFrame ) {
         aContainer = ((JFrame)aContainer).getContentPane();

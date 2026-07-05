@@ -757,7 +757,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
   /**
    * is selected range
    */
-  private boolean isSelectedRange(ContextMenuExecuteEvent aEvent) {
+  private boolean isSelectedRange(ContextMenuExecuteEvent aEvent) throws Throwable {
     String selection = getSelectedWord(aEvent);
     if (selection == null || selection.length() == 0) {
       return false;
@@ -768,7 +768,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
   /**
    * get AI suggestion
    */
-  private String getAiSuggestion() {
+  private String getAiSuggestion() throws Throwable {
     try {
       if (config.useAiSupport() && config.aiAutoCorrect() && !document.getMultiDocumentsHandler().isBackgroundCheckOff()) {
         WtViewCursorTools viewCursor = new WtViewCursorTools(document.getXComponent());

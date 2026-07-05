@@ -178,16 +178,20 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       chapterTree = new JTree(treeNode);
       //  Add tree selection listener
       chapterTree.addTreeSelectionListener( new TreeSelectionListener() {
-          public void valueChanged(TreeSelectionEvent event) {
-             TreePath tp = event.getNewLeadSelectionPath();
-             if (tp != null) {
-               setEnableElements(false);
-               ChapterNode node = (ChapterNode) tp.getLastPathComponent();
-               CreateSummary summary = new CreateSummary(document, node.getChapter());
-               summary.start();
-             }
-           }
-         });
+        public void valueChanged(TreeSelectionEvent event) {
+          try {
+            TreePath tp = event.getNewLeadSelectionPath();
+            if (tp != null) {
+              setEnableElements(false);
+              ChapterNode node = (ChapterNode) tp.getLastPathComponent();
+              CreateSummary summary = new CreateSummary(document, node.getChapter());
+              summary.start();
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
           
       
       //  Define Text panels
@@ -272,13 +276,11 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       Dimension frameSize = new Dimension(dialogWidth, dialogHeight);
       dialog.setSize(frameSize);
-//      Dimension frameSize = dialog.getSize();
       dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
           screenSize.height / 2 - frameSize.height / 2);
       dialog.setLocationByPlatform(true);
       dialog.setAutoRequestFocus(true);
       dialog.setVisible(true);
-//      dialog.setAlwaysOnTop(true);
       dialog.toFront();
       
     } catch (Throwable t) {
@@ -286,7 +288,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     }
   }
   
-  void setEnableElements(boolean enable) {
+  void setEnableElements(boolean enable) throws Throwable {
     chapterLabel.setEnabled(enable);
     resultLabel.setEnabled(enable);
     result.setEnabled(enable);
@@ -294,7 +296,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     addSummary.setEnabled(enable);
   }
   
-  private void createSubChapterNodes(ChapterNode parent) {
+  private void createSubChapterNodes(ChapterNode parent) throws Throwable {
     WtChapter parentChapter = parent.getChapter();
     for (WtChapter childChapter : parentChapter.children) {
       ChapterNode child = new ChapterNode(childChapter);
@@ -303,7 +305,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
     }
   }
   
-  private DefaultMutableTreeNode createChapterTree(WtChapter rootChapter) {
+  private DefaultMutableTreeNode createChapterTree(WtChapter rootChapter) throws Throwable {
     ChapterNode root = new ChapterNode(rootChapter);
     createSubChapterNodes(root);
     return root;
@@ -363,7 +365,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       }
     }
 
-    private List<String> getChapterText(int from) {
+    private List<String> getChapterText(int from) throws Throwable {
       WtDocumentCache docCache = document.getDocumentCache();
       TextParagraph tPara = new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, from);
       boolean useQueue = document.getMultiDocumentsHandler().getConfiguration().useTextLevelQueue();
@@ -377,7 +379,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       return text;
     }
 
-    private String getChapterSummary(WtChapter chapter) {
+    private String getChapterSummary(WtChapter chapter) throws Throwable {
       if (chapter.summary == null) {
         if (chapter.children == null || chapter.children.isEmpty()) {
           List<String> text = getChapterText(chapter.from);
@@ -396,7 +398,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       return chapter.summary;
     }
       
-    private String getSummary(List<String> text) {
+    private String getSummary(List<String> text) throws Throwable {
       if (text == null || text.isEmpty()) {
         return "";
       }
@@ -418,7 +420,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       }
     }
 
-    private String getSingleSummary(String text) {
+    private String getSingleSummary(String text) throws Throwable {
       try {
         if (waitDialog.canceled()) {
           return null;
@@ -454,7 +456,7 @@ public class WtAiSummaryDialog extends Thread implements ActionListener {
       return null;
     }
     
-    private int getNumberOfChapters(WtChapter chapter) {
+    private int getNumberOfChapters(WtChapter chapter) throws Throwable {
       int num = 0;
       if (chapter.children == null || chapter.children.isEmpty()) {
         List<String> text = getChapterText(chapter.from);

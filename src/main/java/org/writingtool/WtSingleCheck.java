@@ -100,7 +100,7 @@ public class WtSingleCheck {
   
   WtSingleCheck(WtSingleDocument singleDocument, List<WtResultCache> paragraphsCache,
       Language fixedLanguage, Language docLanguage, 
-      int numParasToCheck, boolean isDialogRequest, boolean isMouseRequest, boolean isIntern) {
+      int numParasToCheck, boolean isDialogRequest, boolean isMouseRequest, boolean isIntern) throws Throwable {
     debugMode = WtOfficeTools.DEBUG_MODE_SC;
     this.singleDocument = singleDocument;
     this.paragraphsCache = paragraphsCache;
@@ -598,7 +598,7 @@ public class WtSingleCheck {
   /**
    * add the numbers of changed paragraphs to list
    */
-  private void addChangedParas() {
+  private void addChangedParas() throws Throwable {
     int firstPara = changeFrom;
     if (firstPara < 0) {
       firstPara = 0;
@@ -882,7 +882,8 @@ public class WtSingleCheck {
   /**
    * Set Properties to Error
    */
-  public static WtProofreadingError setPropertiesToError (WtProofreadingError aError, String url, WtConfiguration config) {
+  public static WtProofreadingError setPropertiesToError (WtProofreadingError aError, String url, 
+      WtConfiguration config) throws Throwable {
     Color underlineColor = aError.nErrorType != TextMarkupType.SPELLCHECK 
         ? config.getUnderlineColor(aError.category, aError.aRuleIdentifier) : Color.red;
     short underlineType = aError.nErrorType != TextMarkupType.SPELLCHECK 
@@ -947,14 +948,14 @@ public class WtSingleCheck {
    * See https://bugs.freedesktop.org/show_bug.cgi?id=69416
    * public for test reasons
    */
-  static String cleanFootnotes(String paraText) {
+  public static String cleanFootnotes(String paraText) {
     return paraText.replaceAll("([^\\d][.!?])\\d ", "$1¹ ");
   }
   
   /**
    *  get hidden characters as list
    */
-  public static List<Integer> getHiddenCharactersAsList(String paraText) {
+  public static List<Integer> getHiddenCharactersAsList(String paraText) throws Throwable {
     int i = paraText.indexOf(WtOfficeTools.SOFT_HYPHEN);
     if (i < 0) {
       return null;

@@ -250,11 +250,16 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
    */
   @Override
   public XSpellAlternatives spell(String word, Locale locale, PropertyValue[] properties) throws IllegalArgumentException {
-    if (fixedLanguage != null) {
-      locale = WtOfficeTools.getLocalFromLanguage(fixedLanguage);
+    try {
+      if (fixedLanguage != null) {
+        locale = WtOfficeTools.getLocalFromLanguage(fixedLanguage);
+      }
+      LTSpellAlternatives alternatives = new LTSpellAlternatives(word, locale);
+      return alternatives;
+    } catch (Throwable e) {
+      WtMessageHandler.showSpellError(e);
     }
-    LTSpellAlternatives alternatives = new LTSpellAlternatives(word, locale);
-    return alternatives;
+    return null;
   }
 
   /**
@@ -305,7 +310,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
    * get an analysed sentences from string
    * @throws IOException 
    */
-  public AnalyzedSentence getAnalyzedSentence(String sentence) throws IOException {
+  public AnalyzedSentence getAnalyzedSentence(String sentence) throws Throwable {
     List<String> tokens = lang.getWordTokenizer().tokenize(sentence);
 
     List<AnalyzedTokenReadings> aTokens = lang.getTagger().tag(tokens);
@@ -344,7 +349,7 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
   /**
    * Convert list of suggestions to array and reduce it size
    */
-  private String[] suggestionsToArray(List<String> suggestions) {
+  private String[] suggestionsToArray(List<String> suggestions) throws Throwable {
     int numSuggestions = suggestions.size();
     String[] allSuggestions = suggestions.toArray(new String[numSuggestions]);
     if (allSuggestions.length > WtOfficeTools.MAX_SUGGESTIONS) {
@@ -451,11 +456,11 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     return WtDocumentsHandler.getServiceDisplayName(locale);
   }
   
-  public static Map<String, List<String>> getWrongWords() {
+  public static Map<String, List<String>> getWrongWords() throws Throwable {
     return lastWrongWords.getLastWords();
   }
    
-  public static Map<String, List<String[]>> getSuggestions() {
+  public static Map<String, List<String[]>> getSuggestions() throws Throwable {
     return lastWrongWords.getLastSuggestions();
   }
   
@@ -468,13 +473,13 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
       WtOfficeTools.setLogLevel(confg.getlogLevel());
       DEBUG_MODE = WtOfficeTools.DEBUG_MODE_SP;
       return confg.useLtSpellChecker();
-    } catch (IOException e) {
+    } catch (Throwable e) {
       WtMessageHandler.printToSpellLogFile("Can't read configuration: LT spell checker not used!");
     }
     return false;
   }
 
-  public static boolean isEnoughHeap() {
+  public static boolean isEnoughHeap() throws Throwable {
     int maxHeapSpace = (int) (WtOfficeTools.getMaxHeapSpace()/1048576);
     boolean ret = maxHeapSpace >= WtOfficeTools.SPELL_CHECK_MIN_HEAP;
     if (!ret) {

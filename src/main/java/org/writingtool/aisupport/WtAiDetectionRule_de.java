@@ -60,7 +60,7 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
     }
   }
   
-  private Map<String, String> getNoneConfusionWords() {
+  private Map<String, String> getNoneConfusionWords() throws Throwable {
     Map<String, String> noneConfusionWords = new HashMap<>();
     noneConfusionWords.put("die", "sie");
     noneConfusionWords.put("Die", "Sie");
@@ -182,7 +182,7 @@ public class WtAiDetectionRule_de extends WtAiDetectionRule {
     return false;   
   }
   
-  private boolean isConfusionPair(String wPara, String wResult) {
+  private boolean isConfusionPair(String wPara, String wResult) throws Throwable {
     if (confusionWords.containsKey(wPara) && confusionWords.get(wPara).contains(wResult)) {
       return true;
     }

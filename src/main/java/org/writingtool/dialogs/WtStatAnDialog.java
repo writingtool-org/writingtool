@@ -96,8 +96,6 @@ public class WtStatAnDialog extends Thread  {
   private final static String dialogName = MESSAGES.getString("statAnalysisDialog");
   private final static int MIN_DIALOG_WIDTH = 640;
   private final static int MIN_DIALOG_HEIGHT = 420;
-//  private final static int dialogWidth = 640;
-//  private final static int dialogHeight = 600;
   private final static int MIN_OPTION_WIDTH = 260;
   private final static int MIN_OPTION_HEIGHT = 400;
   
@@ -147,31 +145,35 @@ public class WtStatAnDialog extends Thread  {
   private boolean isLevelRule = true;
   
   public WtStatAnDialog(WtSingleDocument document) {
-    xComponent = document.getXComponent();
-    this.document = document;
-    rules.clear();
-    Language lang = document.getLanguage();
-    if (lang != null) {
-      try {
-        Map<String, Object[]> ruleValues = new HashMap<>();
-        for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), null, lang, null)) {
-          if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
-              rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
-            Object[] o = new Object[1];
-            o[0] = 0;
-            ruleValues.put(rule.getId(), o);
+    try {
+      xComponent = document.getXComponent();
+      this.document = document;
+      rules.clear();
+      Language lang = document.getLanguage();
+      if (lang != null) {
+        try {
+          Map<String, Object[]> ruleValues = new HashMap<>();
+          for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), null, lang, null)) {
+            if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
+                rule instanceof ReadabilityRule || rule instanceof AbstractStyleTooOftenUsedWordRule) {
+              Object[] o = new Object[1];
+              o[0] = 0;
+              ruleValues.put(rule.getId(), o);
+            }
           }
-        }
-        UserConfig userConfig = new UserConfig(ruleValues);
-        for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), userConfig, lang, null)) {
-          if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
-              (rule instanceof ReadabilityRule && !hasReadabilityRule()) || rule instanceof AbstractStyleTooOftenUsedWordRule) {
-            rules.add((TextLevelRule)rule);
+          UserConfig userConfig = new UserConfig(ruleValues);
+          for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), userConfig, lang, null)) {
+            if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
+                (rule instanceof ReadabilityRule && !hasReadabilityRule()) || rule instanceof AbstractStyleTooOftenUsedWordRule) {
+              rules.add((TextLevelRule)rule);
+            }
           }
+        } catch (IOException e) {
+          WtMessageHandler.showError(e);
         }
-      } catch (IOException e) {
-        WtMessageHandler.showError(e);
       }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
   
@@ -206,7 +208,7 @@ public class WtStatAnDialog extends Thread  {
     return false;
   }
   
-  private void runDialog() {
+  private void runDialog() throws Throwable {
     if (rules.isEmpty()) {
       Language lang = document.getLanguage();
       String shortCode = lang == null ? "unknown" : lang.getShortCode();
@@ -369,11 +371,11 @@ public class WtStatAnDialog extends Thread  {
       if (e.getStateChange() == ItemEvent.SELECTED) {
         String selectedRuleName = (String) function.getSelectedItem();
         if (!selectedRule.getDescription().equals(selectedRuleName)) {
-          selectedRule = getRuleByName(selectedRuleName);
-          method = this.getMethodByRule(selectedRuleName);
-          isLevelRule = isLevelRule(selectedRule);
-          chapter = null;
           try {
+            selectedRule = getRuleByName(selectedRuleName);
+            method = this.getMethodByRule(selectedRuleName);
+            isLevelRule = isLevelRule(selectedRule);
+            chapter = null;
             if(isLevelRule) {
               levelRule = new WtLevelRule(selectedRule, cache);
               configRule();
@@ -582,7 +584,7 @@ public class WtStatAnDialog extends Thread  {
     }
   }
   
-  private void setRightRulePanel() {
+  private void setRightRulePanel() throws Throwable {
     //  Define right panel
     rightPanel.removeAll();
     rightPanel.setLayout(new GridBagLayout());
@@ -699,46 +701,46 @@ public class WtStatAnDialog extends Thread  {
     rightPanel.validate();
   }
     
-  private void setLevelRuleOptions() {
+  private void setLevelRuleOptions() throws Throwable {
     if (WtLevelRule.isLevelRule(selectedRule) && WtLevelRule.hasStatisticalOptions(selectedRule)) {
       defaultButton.addActionListener(e -> {
-        if (levelRule.getDefaultDirectSpeach() == withoutDirectSpeech.isSelected() 
+        try {
+          if (levelRule.getDefaultDirectSpeach() == withoutDirectSpeech.isSelected() 
             || levelRule.getDefaultStep() != config.getLevelStep(selectedRule)) {
-          withoutDirectSpeech.setSelected(!levelRule.getDefaultDirectSpeach());
-          config.setWithoutDirectSpeech(selectedRule, !levelRule.getDefaultDirectSpeach());
-          config.setLevelStep(selectedRule, levelRule.getDefaultStep());
-          stepField.setText(Integer.toString(levelRule.getDefaultStep()));
-          try {
+             withoutDirectSpeech.setSelected(!levelRule.getDefaultDirectSpeach());
+            config.setWithoutDirectSpeech(selectedRule, !levelRule.getDefaultDirectSpeach());
+            config.setLevelStep(selectedRule, levelRule.getDefaultStep());
+            stepField.setText(Integer.toString(levelRule.getDefaultStep()));
             config.saveConfiguration();
             levelRule.setWithDirectSpeach(!levelRule.getDefaultDirectSpeach(), cache);
             levelRule.setCurrentStep(levelRule.getDefaultStep());
             chapter = null;
             runLevelSubDialog(chapter);
-          } catch (Throwable t) {
-            WtMessageHandler.showError(t);
           }
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
       });
       setButton.addActionListener(e -> {
-        int levelStep = Integer.parseInt(stepField.getText().trim());
-        if (levelStep > 0 && levelStep < 100) {
-          config.setLevelStep(selectedRule, levelStep);
-          try {
+        try {
+          int levelStep = Integer.parseInt(stepField.getText().trim());
+          if (levelStep > 0 && levelStep < 100) {
+            config.setLevelStep(selectedRule, levelStep);
             config.saveConfiguration();
             levelRule.setCurrentStep(levelStep);
             chapter = null;
             runLevelSubDialog(chapter);
-          } catch (Throwable t) {
-            WtMessageHandler.showError(t);
+          } else {
+            stepField.setText(Integer.toString(config.getLevelStep(selectedRule)));
           }
-        } else {
-          stepField.setText(Integer.toString(config.getLevelStep(selectedRule)));
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
       });
       withoutDirectSpeech.setSelected(config.isWithoutDirectSpeech(selectedRule));
       withoutDirectSpeech.addActionListener(e -> {
-        config.setWithoutDirectSpeech(selectedRule, withoutDirectSpeech.isSelected());
         try {
+          config.setWithoutDirectSpeech(selectedRule, withoutDirectSpeech.isSelected());
           config.saveConfiguration();
           levelRule.setWithDirectSpeach(!withoutDirectSpeech.isSelected(), cache);
           chapter = null;
@@ -774,45 +776,45 @@ public class WtStatAnDialog extends Thread  {
      
   }
   
-  private void setUsedWordRuleOptions() {
+  private void setUsedWordRuleOptions() throws Throwable {
     defaultButton.addActionListener(e -> {
-      if (usedWordRule.getDefaultDirectSpeach() == withoutDirectSpeech.isSelected() 
-          || usedWordRule.getDefaultStep() != config.getLevelStep(selectedRule)) {
-        withoutDirectSpeech.setSelected(!usedWordRule.getDefaultDirectSpeach());
-        config.setWithoutDirectSpeech(selectedRule, !usedWordRule.getDefaultDirectSpeach());
-        config.setLevelStep(selectedRule, usedWordRule.getDefaultStep());
-        stepField.setText(Integer.toString(usedWordRule.getDefaultStep()));
-        try {
+      try {
+        if (usedWordRule.getDefaultDirectSpeach() == withoutDirectSpeech.isSelected() 
+            || usedWordRule.getDefaultStep() != config.getLevelStep(selectedRule)) {
+          withoutDirectSpeech.setSelected(!usedWordRule.getDefaultDirectSpeach());
+          config.setWithoutDirectSpeech(selectedRule, !usedWordRule.getDefaultDirectSpeach());
+          config.setLevelStep(selectedRule, usedWordRule.getDefaultStep());
+          stepField.setText(Integer.toString(usedWordRule.getDefaultStep()));
           config.saveConfiguration();
           usedWordRule.setWithDirectSpeach(!usedWordRule.getDefaultDirectSpeach(), cache);
           usedWordRule.setCurrentStep(usedWordRule.getDefaultStep());
           chapter = null;
           runLevelSubDialog(chapter);
-        } catch (Throwable t) {
-          WtMessageHandler.showError(t);
         }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     setButton.addActionListener(e -> {
       int levelStep = Integer.parseInt(stepField.getText().trim());
-      if (levelStep > 0 && levelStep < 100) {
-        config.setLevelStep(selectedRule, levelStep);
-        try {
+      try {
+        if (levelStep > 0 && levelStep < 100) {
+          config.setLevelStep(selectedRule, levelStep);
           config.saveConfiguration();
           usedWordRule.setCurrentStep(levelStep);
           chapter = null;
           runLevelSubDialog(chapter);
-        } catch (Throwable t) {
-          WtMessageHandler.showError(t);
+        } else {
+          stepField.setText(Integer.toString(config.getLevelStep(selectedRule)));
         }
-      } else {
-        stepField.setText(Integer.toString(config.getLevelStep(selectedRule)));
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     withoutDirectSpeech.setSelected(config.isWithoutDirectSpeech(selectedRule));
     withoutDirectSpeech.addActionListener(e -> {
-      config.setWithoutDirectSpeech(selectedRule, withoutDirectSpeech.isSelected());
       try {
+        config.setWithoutDirectSpeech(selectedRule, withoutDirectSpeech.isSelected());
         config.saveConfiguration();
         usedWordRule.setWithDirectSpeach(!withoutDirectSpeech.isSelected(), cache);
         chapter = null;
@@ -995,7 +997,7 @@ public class WtStatAnDialog extends Thread  {
     return col;
   }
   
-  private Color getForegroundColor(int weight) {
+  private Color getForegroundColor(int weight) throws Throwable {
 //    Color col = Color.BLACK;
     Color col;
     if (weight == 0 || weight == 6) {
@@ -1051,7 +1053,11 @@ public class WtStatAnDialog extends Thread  {
         }
         @Override
         public void mouseExited(MouseEvent e) {
-          fullChapter.setForeground(getForegroundColor(weight));
+          try {
+            fullChapter.setForeground(getForegroundColor(weight));
+          } catch (Throwable e1) {
+            WtMessageHandler.showError(e1);
+          }
         }
       });
     }
@@ -1109,7 +1115,11 @@ public class WtStatAnDialog extends Thread  {
           }
           @Override
           public void mouseExited(MouseEvent e) {
-            label.setForeground(getForegroundColor(chapter.weight));
+            try {
+              label.setForeground(getForegroundColor(chapter.weight));
+            } catch (Throwable e1) {
+              WtMessageHandler.showError(e1);
+            }
           }
         });
         panel.add(chapterButton.get(nButton), cons);
@@ -1128,7 +1138,7 @@ public class WtStatAnDialog extends Thread  {
     }
   }
   
-  private String getToolTippText(int weight) {
+  private String getToolTippText(int weight) throws Throwable {
     String txt = WtUsedWordRule.isUsedWordRule(selectedRule) ? 
         usedWordRule.getMessageOfLevel(weight) : levelRule.getMessageOfLevel(weight);
     if (txt == null) {
@@ -1209,7 +1219,7 @@ public class WtStatAnDialog extends Thread  {
     return chapters;
   }
 
-  String[] getAllRuleNames() {
+  private String[] getAllRuleNames() {
     String[] ruleNames = new String[rules.size()];
     for (int i = 0; i < rules.size(); i++) {
       ruleNames[i] = rules.get(i).getDescription();
@@ -1217,11 +1227,11 @@ public class WtStatAnDialog extends Thread  {
     return ruleNames;
   }
   
-  boolean isLevelRule(Rule rule) {
+  private boolean isLevelRule(Rule rule) throws Throwable {
     return WtLevelRule.isLevelRule(rule);
   }
-  
-  String[] getAllLevelRuleNames() {
+/*  
+  private String[] getAllLevelRuleNames() throws Throwable{
     List<String> levelRules = new ArrayList<>();
     for (Rule rule : rules) {
       if (WtLevelRule.isLevelRule(rule)) {
@@ -1230,8 +1240,8 @@ public class WtStatAnDialog extends Thread  {
     }
     return levelRules.toArray(new String[levelRules.size()]);
   }
-  
-  TextLevelRule getRuleByName(String name) {
+*/
+  private TextLevelRule getRuleByName(String name) throws Throwable {
     for (TextLevelRule rule : rules) {
       if (name.equals(rule.getDescription())) {
         return rule;
@@ -1240,7 +1250,7 @@ public class WtStatAnDialog extends Thread  {
     return null;
   }
   
-  int getMethodByRule(String name) {
+  private int getMethodByRule(String name) throws Throwable {
     int method = 0;
     for (Rule rule : rules) {
       if (name.equals(rule.getDescription())) {
@@ -1291,7 +1301,7 @@ public class WtStatAnDialog extends Thread  {
     }
   }
 
-  private void setUnderlineType(int index) {
+  private void setUnderlineType(int index) throws Throwable {
     if (index == 1) {
       config.setUnderlineType(WtConfiguration.UNDERLINE_BOLDWAVE);
     } else if (index == 2) {
@@ -1308,7 +1318,7 @@ public class WtStatAnDialog extends Thread  {
    *   @since 5.3
    */
   @NotNull
-  private JPanel getColorOptionsPanel() {
+  private JPanel getColorOptionsPanel() throws Throwable {
     //  Color Panel
     colorPanel = new JPanel();
     colorPanel.setLayout(null);
@@ -1335,8 +1345,8 @@ public class WtStatAnDialog extends Thread  {
     underlineType.setSelectedIndex(getUnderlineType());
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
-        setUnderlineType(underlineType.getSelectedIndex());
         try {
+          setUnderlineType(underlineType.getSelectedIndex());
           config.saveConfiguration();
         } catch (Throwable e1) {
           WtMessageHandler.showError(e1);
@@ -1421,7 +1431,7 @@ public class WtStatAnDialog extends Thread  {
     return colorPanel;
   }
 
-  public static String getStatisticalRulesSupportedLanguages() {
+  public static String getStatisticalRulesSupportedLanguages() throws Throwable {
     String out = "Statistical Style Rules are supported by the following Languages:\n";
     for (Language lang : Languages.get()) {
       if (WtOfficeTools.hasStatisticalStyleRules(lang)) {

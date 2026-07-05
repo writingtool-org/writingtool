@@ -66,13 +66,6 @@ public class WtLinguisticServices extends LinguServices {
   public WtLinguisticServices(XComponentContext xContext) {
     this.xContext = xContext;
     synonymsCache = new HashMap<>();
-//    if (xContext != null) {
-//      XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext);
-//      thesaurus = getThesaurus(mxLinguSvcMgr);
-//      spellChecker = getSpellChecker(mxLinguSvcMgr);
-//      hyphenator = getHyphenator(mxLinguSvcMgr);
-//      synonymsCache = new HashMap<>();
-//    }
   }
 
   /**
@@ -82,19 +75,10 @@ public class WtLinguisticServices extends LinguServices {
     this.noSynonymsAsSuggestions = noSynonymsAsSuggestions;
   }
   
-  /**
-   * returns if spell checker can be used
-   * if false initialize LinguisticServices again
-   *//*
-  public boolean spellCheckerIsActive () {
-    return (spellChecker != null);
-  }
-  */
-
   /** 
    * Get XLinguProperties
    */
-  private static XPropertySet getLinguProperties(XComponentContext xContext) {
+  private static XPropertySet getLinguProperties(XComponentContext xContext) throws Throwable {
     if (xContext == null) {
       return null;
     }
@@ -118,7 +102,7 @@ public class WtLinguisticServices extends LinguServices {
    * Print LiguProperties to log file (Used for tests only)
    */
   
-  public void printLinguProperties(XComponentContext xContext) {
+  public void printLinguProperties(XComponentContext xContext) throws Throwable {
     XPropertySet propSet = getLinguProperties(xContext);
     XPropertySetInfo propertySetInfo = propSet.getPropertySetInfo();
     WtMessageHandler.printToLogFile("OfficeTools: printPropertySet: PropertySet:");
@@ -228,7 +212,7 @@ public class WtLinguisticServices extends LinguServices {
         }
         runTime = System.currentTimeMillis() - startTime;
       } while (runTime < 500);
-    } catch (InterruptedException e) {
+    } catch (Throwable e) {
       WtMessageHandler.printException(e);
     }
     return new ArrayList<>();
@@ -243,13 +227,13 @@ public class WtLinguisticServices extends LinguServices {
   }
   
   public boolean isCorrectSpell(String word, Locale locale) {
-    XSpellChecker spellChecker = getSpellChecker(xContext);
-    if (spellChecker == null) {
-      WtMessageHandler.printToLogFile("LinguisticServices: isCorrectSpell: XSpellChecker == null");
-      return false;
-    }
-    PropertyValue[] properties = new PropertyValue[0];
     try {
+      XSpellChecker spellChecker = getSpellChecker(xContext);
+      if (spellChecker == null) {
+        WtMessageHandler.printToLogFile("LinguisticServices: isCorrectSpell: XSpellChecker == null");
+        return false;
+      }
+      PropertyValue[] properties = new PropertyValue[0];
       return spellChecker.isValid(word, locale, properties);
     } catch (Throwable t) {
       // If anything goes wrong, give the user a stack trace
@@ -266,13 +250,13 @@ public class WtLinguisticServices extends LinguServices {
   }
   
   public String[] getSpellAlternatives(String word, Locale locale) {
-    XSpellChecker spellChecker = getSpellChecker(xContext);
-    if (spellChecker == null) {
-      WtMessageHandler.printToLogFile("LinguisticServices: getSpellAlternatives: XSpellChecker == null");
-      return null;
-    }
-    PropertyValue[] properties = new PropertyValue[0];
     try {
+      XSpellChecker spellChecker = getSpellChecker(xContext);
+      if (spellChecker == null) {
+        WtMessageHandler.printToLogFile("LinguisticServices: getSpellAlternatives: XSpellChecker == null");
+        return null;
+      }
+      PropertyValue[] properties = new PropertyValue[0];
       XSpellAlternatives spellAlternatives = spellChecker.spell(word, locale, properties);
       if (spellAlternatives == null) {
         return null;
@@ -295,13 +279,13 @@ public class WtLinguisticServices extends LinguServices {
   }
   
   public int getNumberOfSyllables(String word, Locale locale) {
-    XHyphenator hyphenator = getHyphenator(xContext);
-    if (hyphenator == null) {
-      WtMessageHandler.printToLogFile("LinguisticServices: getNumberOfSyllables: XHyphenator == null");
-      return 1;
-    }
-    PropertyValue[] properties = new PropertyValue[0];
     try {
+      XHyphenator hyphenator = getHyphenator(xContext);
+      if (hyphenator == null) {
+        WtMessageHandler.printToLogFile("LinguisticServices: getNumberOfSyllables: XHyphenator == null");
+        return 1;
+      }
+      PropertyValue[] properties = new PropertyValue[0];
       XPossibleHyphens possibleHyphens = hyphenator.createPossibleHyphens(word, locale, properties);
       if (possibleHyphens == null) {
         return 1;

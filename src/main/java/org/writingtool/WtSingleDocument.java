@@ -178,23 +178,27 @@ public class WtSingleDocument {
     if (config != null) {
       setConfigValues(config);
     }
-    resetAllResultCache();
-    ignoredMatches = new WtIgnoredMatches();
-    permanentIgnoredMatches = new WtIgnoredMatches();
     docCache = new WtDocumentCache(docType);
-    if (config != null && config.saveLoCache() && !config.noBackgroundCheck() && xComponent != null && !mDocHandler.isTestMode()) {
-      readCaches();
-    }
-    if (xComponent != null) {
-      setFlatParagraphTools();
-    }
-    if (!mDocHandler.isOpenOffice && (docType == DocumentType.IMPRESS 
-        || (mDH.isBackgroundCheckOff() && docType == DocumentType.WRITER)) && ltMenus == null) {
-      ltMenus = new WtMenus(xContext, this, config);
-    }
-    mDocHandler.readToolbarConfig();
-    if (mDocHandler.getSidebarContent() != null) {
-      mDocHandler.getSidebarContent().resetActivateRulesBox();
+    try {
+      resetAllResultCache();
+      ignoredMatches = new WtIgnoredMatches();
+      permanentIgnoredMatches = new WtIgnoredMatches();
+      if (config != null && config.saveLoCache() && !config.noBackgroundCheck() && xComponent != null && !mDocHandler.isTestMode()) {
+        readCaches();
+      }
+      if (xComponent != null) {
+        setFlatParagraphTools();
+      }
+      if (!mDocHandler.isOpenOffice && (docType == DocumentType.IMPRESS 
+          || (mDH.isBackgroundCheckOff() && docType == DocumentType.WRITER)) && ltMenus == null) {
+        ltMenus = new WtMenus(xContext, this, config);
+      }
+      mDocHandler.readToolbarConfig();
+      if (mDocHandler.getSidebarContent() != null) {
+        mDocHandler.getSidebarContent().resetActivateRulesBox();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
   
@@ -264,7 +268,7 @@ public class WtSingleDocument {
         WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: documentElementsCount: " + documentElementsCount);
       }
       hasFootnotes = footnotePositions != null;
-      if (!hasFootnotes) {
+      if (!mDocHandler.isTestMode() && !hasFootnotes) {
         //  OO and LO < 4.3 do not support 'FootnotePositions' property and other advanced features
         //  switch back to single paragraph check mode - save settings in configuration
         if (numParasToCheck != 0) {
@@ -463,13 +467,12 @@ public class WtSingleDocument {
           sidebarContent.resizeContainer();
         }
       }
+      closeDocumentCursor();
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     } finally {
       runningParas.remove(paraNum);
     }
-    closeDocumentCursor();
- //   viewCursor = null;
     return paRes;
   }
   
@@ -477,13 +480,17 @@ public class WtSingleDocument {
    * set values set by configuration dialog
    */
   void setConfigValues(WtConfiguration config) {
-    this.config = config;
-    numParasToCheck = (mDocHandler.isTestMode() || mDocHandler.heapLimitIsReached()) ? 0 : config.getNumParasToCheck();
-    if (ltMenus != null) {
-      ltMenus.setConfigValues(config);
-    }
-    if (config.noBackgroundCheck() || numParasToCheck == 0) {
-      setFlatParagraphTools();
+    try {
+      this.config = config;
+      numParasToCheck = (mDocHandler.isTestMode() || mDocHandler.heapLimitIsReached()) ? 0 : config.getNumParasToCheck();
+      if (ltMenus != null) {
+        ltMenus.setConfigValues(config);
+      }
+      if (config.noBackgroundCheck() || numParasToCheck == 0) {
+        setFlatParagraphTools();
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -497,7 +504,7 @@ public class WtSingleDocument {
       numParasToCheck = -1;
       mDocHandler.getLanguageTool().resetSortedTextRules(mDocHandler.isCheckImpressDocument());
     } catch (Throwable t) {
-      //  For tests no messages
+      WtMessageHandler.showError(t);
     }
   }
   
@@ -552,8 +559,9 @@ public class WtSingleDocument {
   
   /**
    * set menu ID to MultiDocumentsHandler
+   * @throws Throwable 
    */
-  public void setMenuDocId() {
+  public void setMenuDocId() throws Throwable {
     mDocHandler.setMenuDocId(getDocID());
   }
   
@@ -566,8 +574,9 @@ public class WtSingleDocument {
   
   /**
    * get language of the document
+   * @throws Throwable 
    */
-  public Language getLanguage() {
+  public Language getLanguage() throws Throwable {
     Locale locale = docCache.getDocumentLocale();
     if (locale == null) {
       return docLanguage;
@@ -718,8 +727,9 @@ public class WtSingleDocument {
   
   /**
    * reset the Document
+   * @throws Throwable 
    */
-  void resetDocument() {
+  void resetDocument() throws Throwable {
     mDocHandler.resetDocument();
   }
   
@@ -789,8 +799,9 @@ public class WtSingleDocument {
   
   /** 
    * Reset all caches of the document
+   * @throws Throwable 
    */
-  public void resetAllResultCache() {
+  public void resetAllResultCache() throws Throwable {
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paragraphsCache.get(i).removeAll();
     }
@@ -799,8 +810,9 @@ public class WtSingleDocument {
   
   /** 
    * Reset all grammar check caches of the document
+   * @throws Throwable 
    */
-  public void resetGrammarResultCache() {
+  public void resetGrammarResultCache() throws Throwable {
     for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
       paragraphsCache.get(i).removeAll();
     }
@@ -808,8 +820,9 @@ public class WtSingleDocument {
   
   /** 
    * Reset all text level check caches (not single paragraph cache) of the document
+   * @throws Throwable 
    */
-  public void resetTextlevelResultCache() {
+  public void resetTextlevelResultCache() throws Throwable {
     for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
       paragraphsCache.get(i).removeAll();
     }
@@ -817,16 +830,18 @@ public class WtSingleDocument {
   
   /** 
    * Reset all text level check caches (not single paragraph cache) of the document
+   * @throws Throwable 
    */
-  public void resetAiResultCache() {
+  public void resetAiResultCache() throws Throwable {
     paragraphsCache.get(WtOfficeTools.CACHE_AI).removeAll();
     aiSuggestionCache.removeAll();
   }
   
   /**
    * change the colors of one paragraph
+   * @throws Throwable 
    */
-  private void changeColorsOfOneParagraph(int nFPara) {
+  private void changeColorsOfOneParagraph(int nFPara) throws Throwable {
     for(int i = 0; i < WtOfficeTools.NUMBER_CACHE; i ++) {
       WtProofreadingError[] errors = paragraphsCache.get(i).getSafeMatches(nFPara);
       if (errors != null) {
@@ -840,8 +855,9 @@ public class WtSingleDocument {
   
   /**
    * change the colors of one paragraph
+   * @throws Throwable 
    */
-  public void changeColorsOfAllParagraphs() {
+  public void changeColorsOfAllParagraphs() throws Throwable {
     if (docCache != null) {
       for(int i = 0; i < docCache.size(); i ++) {
         changeColorsOfOneParagraph(i);
@@ -851,8 +867,9 @@ public class WtSingleDocument {
   
   /**
    * remove all cached matches for one paragraph
+   * @throws Throwable 
    */
-  public void removeResultCache(int nPara, boolean alsoParaLevel) {
+  public void removeResultCache(int nPara, boolean alsoParaLevel) throws Throwable {
     if (!isDisposed()) {
       if (alsoParaLevel) {
         paragraphsCache.get(0).remove(nPara);
@@ -869,8 +886,9 @@ public class WtSingleDocument {
   
   /**
    * Remove a special Proofreading error from all caches of document
+   * @throws Throwable 
    */
-  public void removeRuleError(String ruleId) {
+  public void removeRuleError(String ruleId) throws Throwable {
     List<Integer> allChanged = new ArrayList<>();
     for (WtResultCache cache : paragraphsCache) {
       List<Integer> changed = cache.removeRuleError(ruleId);
@@ -954,8 +972,9 @@ public class WtSingleDocument {
   /**
    * create a queue entry 
    * used by getNextQueueEntry
+   * @throws Throwable 
    */
-  QueueEntry createQueueEntry(TextParagraph nPara, int nCache) {
+  QueueEntry createQueueEntry(TextParagraph nPara, int nCache) throws Throwable {
     int nCheck = mDocHandler.getLanguageTool().getNumMinToCheckParas().get(nCache);
     int nStart = docCache.getStartOfParaCheck(nPara, nCheck, false, true, false);
     int nEnd = docCache.getEndOfParaCheck(nPara, nCheck, false, true, false);
@@ -974,8 +993,9 @@ public class WtSingleDocument {
 
   /**
    * get the next queue entry which is the next empty cache entry
+   * @throws Throwable 
    */
-  public QueueEntry getNextQueueEntry(TextParagraph nPara) {
+  public QueueEntry getNextQueueEntry(TextParagraph nPara) throws Throwable {
     if (!disposed && docCache != null) {
       if (nPara != null && nPara.type != WtDocumentCache.CURSOR_TYPE_UNKNOWN && nPara.number < docCache.textSize(nPara)
           && !docCache.isSingleParagraph(docCache.getFlatParagraphNumber(nPara))) {
@@ -1015,8 +1035,9 @@ public class WtSingleDocument {
 
   /**
    * create a queue entry for AI queue
+   * @throws Throwable 
    */
-  QueueEntry createAiQueueEntry(int nFPara) {
+  QueueEntry createAiQueueEntry(int nFPara) throws Throwable {
     TextParagraph nPara = docCache.getNumberOfTextParagraph(nFPara);
     if (nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
       nPara.number = nFPara;
@@ -1025,8 +1046,9 @@ public class WtSingleDocument {
   }
   /**
    * get the next queue entry which is the next empty cache entry
+   * @throws Throwable 
    */
-  public QueueEntry getNextAiQueueEntry(TextParagraph nPara) {
+  public QueueEntry getNextAiQueueEntry(TextParagraph nPara) throws Throwable {
     if (!disposed && docCache != null) {
       int nFPara = nPara == null ? 0 : nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
                     docCache.getFlatParagraphNumber(nPara);
@@ -1046,8 +1068,9 @@ public class WtSingleDocument {
 
   /**
    * Add an new AI entry to queue
+   * @throws Throwable 
    */
-  public void addAiQueueEntry(int nFPara, boolean next) {
+  public void addAiQueueEntry(int nFPara, boolean next) throws Throwable {
     if (!disposed && mDocHandler.getAiCheckQueue() != null && docCache != null) {
       TextParagraph nTPara = docCache.getNumberOfTextParagraph(nFPara);
       if (nTPara != null) {
@@ -1061,8 +1084,9 @@ public class WtSingleDocument {
   
   /**
    * Add an new AI entry to queue (to generate synonyms)
+   * @throws Throwable 
    */
-  public void addAiQueueEntry(int nFPara,  int nCache, WtProofreadingError error) {
+  public void addAiQueueEntry(int nFPara,  int nCache, WtProofreadingError error) throws Throwable {
     if (!disposed && mDocHandler.getAiCheckQueue() != null && docCache != null) {
       TextParagraph nTPara = docCache.getNumberOfTextParagraph(nFPara);
       if (nTPara != null) {
@@ -1164,7 +1188,8 @@ public class WtSingleDocument {
   /**
    * run a text level check from a queue entry (initiated by the queue)
    */
-  public void runQueueEntry(TextParagraph nStart, TextParagraph nEnd, int cacheNum, int nCheck, boolean override, WtLanguageTool lt) throws Throwable {
+  public void runQueueEntry(TextParagraph nStart, TextParagraph nEnd, int cacheNum, int nCheck, 
+      boolean override, WtLanguageTool lt) throws Throwable {
     if (!disposed && flatPara != null && docCache.isFinished() && nStart.number < docCache.textSize(nStart)) {
       WtSingleCheck singleCheck = new WtSingleCheck(this, paragraphsCache,
           fixedLanguage, docLanguage, numParasToCheck, false, false, false);
@@ -1232,8 +1257,9 @@ public class WtSingleDocument {
 
 /**
  * Renew text markups for paragraphs under view cursor
+ * @throws Throwable 
  */
-  public void renewMarkups() {
+  public void renewMarkups() throws Throwable {
     if (disposed) {
       return;
     }
@@ -1309,8 +1335,9 @@ public class WtSingleDocument {
   }
   /**
    * replace ai error
+   * @throws Throwable 
    */
-  public void replaceAiError(String suggestion) {
+  public void replaceAiError(String suggestion) throws Throwable {
     if (disposed) {
       return;
     }
@@ -1330,8 +1357,9 @@ public class WtSingleDocument {
   
   /**
    * is a ignore once entry in cache
+   * @throws Throwable 
    */
-  public boolean isIgnoreOnce(int xFrom, int xTo, int y, String ruleId) {
+  public boolean isIgnoreOnce(int xFrom, int xTo, int y, String ruleId) throws Throwable {
     return ignoredMatches.isIgnored(xFrom, xTo, y, ruleId);
   }
   
@@ -1344,8 +1372,9 @@ public class WtSingleDocument {
   
   /**
    * add a ignore once entry and remove the mark
+   * @throws Throwable 
    */
-  public String ignoreOnce() {
+  public String ignoreOnce() throws Throwable {
     if (disposed) {
       return null;
     }
@@ -1360,8 +1389,9 @@ public class WtSingleDocument {
   
   /**
    * add a ignore once entry for point x, y and remove the mark
+   * @throws Throwable 
    */
-  public void setIgnoredMatch(int x, int y, String ruleId, boolean isIntern) {
+  public void setIgnoredMatch(int x, int y, String ruleId, boolean isIntern) throws Throwable {
     ignoredMatches.setIgnoredMatch(x, y, 0, ruleId, null, null);
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleDocument: setIgnoredMatch: DocumentType = " + docType + "; numParasToCheck = " + numParasToCheck);
@@ -1378,8 +1408,9 @@ public class WtSingleDocument {
   
   /**
    * ignore all - call ignoreRule for specified rule
+   * @throws Throwable 
    */
-  public void ignoreAll() {
+  public void ignoreAll() throws Throwable {
     if (disposed) {
       return;
     }
@@ -1393,8 +1424,9 @@ public class WtSingleDocument {
   
   /**
    * reset the permanent ignore cache
+   * @throws Throwable 
    */
-  public void resetIgnorePermanent() {
+  public void resetIgnorePermanent() throws Throwable {
     permanentIgnoredMatches.resetAllLocale(getFlatParagraphTools());
     List<Integer> changedParas = permanentIgnoredMatches.getAllParagraphs();
     permanentIgnoredMatches = new WtIgnoredMatches();
@@ -1403,8 +1435,9 @@ public class WtSingleDocument {
   
   /**
    * add a ignore once entry to queue and remove the mark
+   * @throws Throwable 
    */
-  public String ignorePermanent() {
+  public String ignorePermanent() throws Throwable {
     if (disposed) {
       return null;
     }
@@ -1420,8 +1453,9 @@ public class WtSingleDocument {
   
   /**
    * add a ignore permanent entry for point x, y and set the mark
+   * @throws Throwable 
    */
-  public void setPermanentIgnoredMatch(int x, int y, int len, String ruleId, Locale locale, boolean isIntern) {
+  public void setPermanentIgnoredMatch(int x, int y, int len, String ruleId, Locale locale, boolean isIntern) throws Throwable {
     permanentIgnoredMatches.setIgnoredMatch(x, y, len, ruleId, locale, getFlatParagraphTools());
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("SingleDocument: setPermanentIgnoredMatch: DocumentType = " + docType + "; numParasToCheck = " + numParasToCheck);
@@ -1439,8 +1473,9 @@ public class WtSingleDocument {
   /**
    * add all matches in a paragraph to ignore permanent 
    * remove the marks
+   * @throws Throwable 
    */
-  public void permanentIgnoreParagraph() {
+  public void permanentIgnoreParagraph() throws Throwable {
     if (disposed) {
       return;
     }
@@ -1491,8 +1526,9 @@ public class WtSingleDocument {
   
   /**
    * add all ignore permanent entries between fromX to toX for paragraph y and set the marks
+   * @throws Throwable 
    */
-  public void setPermanentIgnoredMatches(int fromX, int toX, int y) {
+  public void setPermanentIgnoredMatches(int fromX, int toX, int y) throws Throwable {
     WtProofreadingError[] errors = getAllParagraphErrorsFromCache(y);
     for (WtProofreadingError error : errors) {
       if (error.nErrorStart + error.nErrorLength > fromX && error.nErrorStart < toX) {
@@ -1512,7 +1548,7 @@ public class WtSingleDocument {
     }
   }
   
-  public void setPermanentIgnoredMatches(WtIgnoredMatches ignoredMatches) {
+  public void setPermanentIgnoredMatches(WtIgnoredMatches ignoredMatches) throws Throwable {
     List<Integer> changedParas = permanentIgnoredMatches.getAllParagraphs();
     permanentIgnoredMatches = ignoredMatches;
     remarkChangedParagraphs(changedParas, changedParas, false);
@@ -1527,7 +1563,7 @@ public class WtSingleDocument {
   /**
    * remove all ignore once entries for paragraph y from queue and set the mark
    */
-  public void removeAndShiftIgnoredMatch(int from, int to, int oldSize, int newSize) {
+  public void removeAndShiftIgnoredMatch(int from, int to, int oldSize, int newSize) throws Throwable {
     if (!ignoredMatches.isEmpty()) {
       WtIgnoredMatches tmpIgnoredMatches = new WtIgnoredMatches();
       for (int i = 0; i < from; i++) {
@@ -1563,7 +1599,7 @@ public class WtSingleDocument {
   /**
    * remove all ignore once entries for paragraph y from queue and set the mark
    */
-  public void removeIgnoredMatch(int y, boolean isIntern) {
+  public void removeIgnoredMatch(int y, boolean isIntern) throws Throwable {
     ignoredMatches.removeIgnoredMatches(y, null);
     if (numParasToCheck != 0 && flatPara != null) {
       List<Integer> changedParas = new ArrayList<>();
@@ -1579,7 +1615,7 @@ public class WtSingleDocument {
    * remove a ignore once entry for point x, y from queue and set the mark
    * if x &lt; 0 remove all ignore once entries for paragraph y
    */
-  public void removeIgnoredMatch(int x, int y, String ruleId, boolean isIntern) {
+  public void removeIgnoredMatch(int x, int y, String ruleId, boolean isIntern) throws Throwable {
     ignoredMatches.removeIgnoredMatch(x, y, ruleId, null);
     if (numParasToCheck != 0) {
       List<Integer> changedParas = new ArrayList<>();
@@ -1594,7 +1630,7 @@ public class WtSingleDocument {
   /**
    * remove all permanent ignore entries for paragraph y from queue and set the mark
    */
-  public void removePermanentIgnoredMatch(int y, boolean isIntern) {
+  public void removePermanentIgnoredMatch(int y, boolean isIntern) throws Throwable {
     permanentIgnoredMatches.removeIgnoredMatches(y, null);
     if (numParasToCheck != 0 && flatPara != null) {
       List<Integer> changedParas = new ArrayList<>();
@@ -1610,7 +1646,7 @@ public class WtSingleDocument {
    * remove a ignore Permanent entry for point x, y from queue and set the mark
    * if x &lt; 0 remove all ignore once entries for paragraph y
    */
-  public void removePermanentIgnoredMatch(int x, int y, String ruleId, boolean isIntern) {
+  public void removePermanentIgnoredMatch(int x, int y, String ruleId, boolean isIntern) throws Throwable {
     permanentIgnoredMatches.removeIgnoredMatch(x, y, ruleId, getFlatParagraphTools());
     if (numParasToCheck != 0) {
       List<Integer> changedParas = new ArrayList<>();
@@ -1626,7 +1662,7 @@ public class WtSingleDocument {
    * get an error out of the cache 
    * by the position of the error (flat paragraph number and number of character)
    */
-  private WtProofreadingError getErrorFromCache(int nPara, int nChar) {
+  private WtProofreadingError getErrorFromCache(int nPara, int nChar) throws Throwable {
     List<WtProofreadingError> tmpErrors = new ArrayList<WtProofreadingError>();
     if (nPara < 0 || nPara >= docCache.size()) {
       WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache(nPara = " + nPara + ", docCache.size() = " + docCache.size() + "): nPara out of range!");
@@ -1670,7 +1706,7 @@ public class WtSingleDocument {
   /**
    * get all errors of a paragraph out of the cache 
    */
-  private WtProofreadingError[] getAllParagraphErrorsFromCache(int nPara) {
+  private WtProofreadingError[] getAllParagraphErrorsFromCache(int nPara) throws Throwable {
     List<WtProofreadingError[]> tmpErrors = new ArrayList<WtProofreadingError[]>();
     if (nPara < 0 || nPara >= docCache.size()) {
       WtMessageHandler.printToLogFile("SingleDocument: getAllParagraphErrorsFromCache(nPara = " + nPara + ", docCache.size() = " + docCache.size() + "): nPara out of range!");
@@ -1699,7 +1735,7 @@ public class WtSingleDocument {
   /**
    * Merge errors from different checks (paragraphs and sentences)
    */
-  public WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, int nPara, boolean ignoreOverlap) {
+  public WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, int nPara, boolean ignoreOverlap) throws Throwable {
     int errorCount = 0;
     if (pErrors != null) {
       for (WtProofreadingError[] pError : pErrors) {
@@ -1733,7 +1769,7 @@ public class WtSingleDocument {
   /**
    * Proofs if an error is equivalent
    */
-  private boolean isEquivalentError(WtProofreadingError filteredError, WtProofreadingError error) {
+  private boolean isEquivalentError(WtProofreadingError filteredError, WtProofreadingError error) throws Throwable {
     if (filteredError == null || error == null 
         || error.nErrorStart != filteredError.nErrorStart || error.nErrorLength != filteredError.nErrorLength) {
       return false;
@@ -1766,7 +1802,7 @@ public class WtSingleDocument {
   /**
    * Filter ignored errors (from ignore once and spell errors)
    */
-  private WtProofreadingError[] filterIgnoredMatches (WtProofreadingError[] unFilteredErrors, int nPara) {
+  private WtProofreadingError[] filterIgnoredMatches (WtProofreadingError[] unFilteredErrors, int nPara) throws Throwable {
     if ((!ignoredMatches.isEmpty() && ignoredMatches.containsParagraph(nPara)) || 
         (!permanentIgnoredMatches.isEmpty() && permanentIgnoredMatches.containsParagraph(nPara))){
       WtProofreadingError lastFilteredError = null;
@@ -1791,7 +1827,7 @@ public class WtSingleDocument {
   /**
    * Is an overlapping error
    */
-  private boolean isOverlappingError(WtProofreadingError error1, WtProofreadingError error2) {
+  private boolean isOverlappingError(WtProofreadingError error1, WtProofreadingError error2) throws Throwable {
     return ((error1.nErrorStart >= error2.nErrorStart && error1.nErrorStart < error2.nErrorStart + error2.nErrorLength)
         || (error2.nErrorStart >= error1.nErrorStart && error2.nErrorStart < error1.nErrorStart + error1.nErrorLength));
   }
@@ -1799,14 +1835,14 @@ public class WtSingleDocument {
   /**
    * is rule a AI rule
    */
-  public static boolean isAiRule(WtProofreadingError error) {
+  public static boolean isAiRule(WtProofreadingError error) throws Throwable {
     return error.aRuleIdentifier.startsWith(WtOfficeTools.AI_GRAMMAR_RULE_ID);
   }
 
   /**
    * Filter overlapping errors
    */
-  public WtProofreadingError[] filterOverlappingErrors_(WtProofreadingError[] errors) {
+  public WtProofreadingError[] filterOverlappingErrors_(WtProofreadingError[] errors) throws Throwable {
     if (errors == null || errors.length < 2) {
       return errors;
     }
@@ -1880,7 +1916,7 @@ public class WtSingleDocument {
    * Filter overlapping errors
    * Splits overlapping errors
    */
-  public WtProofreadingError[] filterOverlappingErrors(WtProofreadingError[] errors, boolean filterOverlap) {
+  public WtProofreadingError[] filterOverlappingErrors(WtProofreadingError[] errors, boolean filterOverlap) throws Throwable {
     if (errors == null || errors.length < 2) {
       return errors;
     }
@@ -1952,7 +1988,7 @@ public class WtSingleDocument {
    * get a rule ID of an error from a check 
    * by the position of the error (number of character)
    */
-  private RuleDesc getRuleIdFromCheck(int nChar, WtViewCursorTools viewCursor) {
+  private RuleDesc getRuleIdFromCheck(int nChar, WtViewCursorTools viewCursor) throws Throwable {
     String text = viewCursor.getViewCursorParagraphText();
     if (text == null) {
       return null;
@@ -1991,7 +2027,7 @@ public class WtSingleDocument {
   /**
    * get back the rule ID to deactivate a rule
    */
-  public RuleDesc getCurrentRule() {
+  public RuleDesc getCurrentRule() throws Throwable {
     if (disposed) {
       return null;
     }
@@ -2011,7 +2047,8 @@ public class WtSingleDocument {
   /**
    * get all synonyms as array
    */
-  public String[] getSynonymArray(SingleProofreadingError error, String para, Locale locale, WtLanguageTool lt, boolean setLimit) {
+  public String[] getSynonymArray(SingleProofreadingError error, String para, Locale locale, 
+      WtLanguageTool lt, boolean setLimit) throws Throwable {
     Map<String, List<String>> synonymMap = getSynonymMap(error, para, locale, lt);
     if (synonymMap.isEmpty()) {
       return new String[0];
@@ -2073,7 +2110,7 @@ public class WtSingleDocument {
     return suggestionMap;
   }
 
-  private void addSynonyms(ProofreadingResult paRes, String para, Locale locale, WtLanguageTool lt) throws IOException {
+  private void addSynonyms(ProofreadingResult paRes, String para, Locale locale, WtLanguageTool lt) throws Throwable {
     WtLinguisticServices linguServices = mDocHandler.getLinguisticServices();
     if (linguServices != null) {
       for (SingleProofreadingError error : paRes.aErrors) {
@@ -2146,7 +2183,7 @@ public class WtSingleDocument {
    * @throws IOException 
    */
   ProofreadingResult getErrorsFromCache(int nFPara, ProofreadingResult paRes, 
-                      String para, Locale locale, WtLanguageTool lt) throws IOException {
+                      String para, Locale locale, WtLanguageTool lt) throws Throwable {
     List<WtProofreadingError[]> errors = new ArrayList<>();
     paRes.nStartOfSentencePosition = 0;
     paRes.nStartOfNextSentencePosition = para.length();
@@ -2205,7 +2242,7 @@ public class WtSingleDocument {
   }
 */
   
-  public void addDummyText() {
+  public void addDummyText() throws Throwable {
     try {
       if (docType == DocumentType.WRITER) {
         XTextDocument xDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
@@ -2257,11 +2294,15 @@ public class WtSingleDocument {
   }
   
   public void removeDokumentListener(XComponent xComponent) {
-    if (eventListener != null) {
-      XDocumentEventBroadcaster broadcaster = UnoRuntime.queryInterface(XDocumentEventBroadcaster.class, xComponent);
-      if (broadcaster != null) {
-        broadcaster.removeDocumentEventListener(eventListener);
+    try {
+      if (eventListener != null) {
+        XDocumentEventBroadcaster broadcaster = UnoRuntime.queryInterface(XDocumentEventBroadcaster.class, xComponent);
+        if (broadcaster != null) {
+          broadcaster.removeDocumentEventListener(eventListener);
+        }
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
     }
   }
   
@@ -2281,7 +2322,7 @@ public class WtSingleDocument {
    * Add statistical analysis errors
    */
   public static WtProofreadingError[] addStatAnalysisErrors (WtProofreadingError[] errors, 
-      WtProofreadingError[] statAnErrors, String statAnRuleId) {
+      WtProofreadingError[] statAnErrors, String statAnRuleId) throws Throwable {
     
     List<WtProofreadingError> errorList = new  ArrayList<>();
     for (WtProofreadingError error : statAnErrors) {
@@ -2295,7 +2336,7 @@ public class WtSingleDocument {
     return errorList.toArray(new WtProofreadingError[errorList.size()]);
   }
   
-  private void addStatAnalysisErrors(ProofreadingResult paRes, int nFPara, int paraLen) {
+  private void addStatAnalysisErrors(ProofreadingResult paRes, int nFPara, int paraLen) throws Throwable {
     if (statAnCache != null && statAnRuleId != null) {
       WtProofreadingError[] statAnErrors = statAnCache.getSafeMatches(nFPara);
       if (statAnErrors != null && statAnErrors.length > 0) {

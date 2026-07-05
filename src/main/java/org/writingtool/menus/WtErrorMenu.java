@@ -66,7 +66,7 @@ public class WtErrorMenu {
    * Returns the accessible text at caret-position
    * Returns null if it fails
    */
-  private static XAccessibleText findAccessibleText(XAccessibleContext xCtx) {
+  private static XAccessibleText findAccessibleText(XAccessibleContext xCtx) throws Throwable {
     if (xCtx == null) {
       return null;
     }
@@ -168,18 +168,17 @@ public class WtErrorMenu {
       // Listener for selection
       xPopup.addMenuListener(new XMenuListener() {
         public void itemSelected(MenuEvent e) {
-          WtMessageHandler.printToLogFile("MenuId: " + e.MenuId);
-          if (e.MenuId == ignoreId) {
-            document.ignoreOnce();
-          } else if (e.MenuId == ignorePermId) { 
-            document.ignorePermanent();
-          } else if (e.MenuId > 1) {
-            try {
-              WtMessageHandler.printToLogFile("MenuId > 1: " + e.MenuId);
+          try {
+//            WtMessageHandler.printToLogFile("MenuId: " + e.MenuId);
+            if (e.MenuId == ignoreId) {
+              document.ignoreOnce();
+            } else if (e.MenuId == ignorePermId) { 
+              document.ignorePermanent();
+            } else if (e.MenuId > 1) {
               changeTextOfParagraph(nFPara, error.nErrorStart, error.nErrorLength, error.aSuggestions[e.MenuId - 2]);
-            } catch (Throwable t) {
-              WtMessageHandler.showError(t);
             }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
           }
         }
         public void itemActivated(MenuEvent e) {}

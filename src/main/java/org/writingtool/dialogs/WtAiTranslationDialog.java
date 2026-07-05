@@ -106,12 +106,6 @@ public class WtAiTranslationDialog implements ActionListener {
       startTime = System.currentTimeMillis();
     }
     ltImage = WtOfficeTools.getWtImage();
-    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-      WtDocumentsHandler.setJavaLookAndFeel();
-    }
-    
-    currentDocument = document;
-    
     JFrame frame = new JFrame();
     dialog = new JDialog(frame);
     contentPane = dialog.getContentPane();
@@ -126,6 +120,12 @@ public class WtAiTranslationDialog implements ActionListener {
 //    checkProgress.setStringPainted(true);
 //    checkProgress.setIndeterminate(false);
     try {
+      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
+      
+      currentDocument = document;
+      
       if (debugMode) {
         WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog called");
       }
@@ -166,12 +166,14 @@ public class WtAiTranslationDialog implements ActionListener {
       temperatureSlider.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
-          int value = temperatureSlider.getValue();
-          temperature = (float) (value / 100.);
+          try {
+            int value = temperatureSlider.getValue();
+            temperature = (float) (value / 100.);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
         }
       });
-
-
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
@@ -186,53 +188,30 @@ public class WtAiTranslationDialog implements ActionListener {
       cancel.setFont(dialogFont);
       cancel.addActionListener(this);
       cancel.setActionCommand("cancel");
-/*
-      dialog.addWindowStateListener(new WindowStateListener() {
-        @Override
-        public void windowStateChanged(WindowEvent e) {
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowStateChanged: " + e.getNewState());
-          if ((e.getNewState() & Frame.ICONIFIED) != 0) {
-            closeDialog();
-          }
-        }
-      });
-*/
+
       dialog.addWindowListener(new WindowListener() {
         @Override
         public void windowOpened(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowOpened");
         }
         @Override
         public void windowClosing(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosing");
           closeDialog();
         }
         @Override
         public void windowClosed(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowClosed");
         }
         @Override
         public void windowIconified(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowIconified");
           closeDialog();
         }
         @Override
         public void windowDeiconified(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeiconified");
         }
         @Override
         public void windowActivated(WindowEvent e) {
-//          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowActivated");
         }
         @Override
         public void windowDeactivated(WindowEvent e) {
-/*
-          WtMessageHandler.printToLogFile("TranslationDialog: Event: windowDeactivated");
-          WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isVisible());
-          WtMessageHandler.printToLogFile("TranslationDialog: isVisible: " + dialog.isShowing());
-          Dimension frameSize = dialog.getSize();
-          WtMessageHandler.printToLogFile("TranslationDialog: weidth: " + frameSize.width + ", height: " + frameSize.height);
-*/
         }
       });
       
@@ -328,7 +307,6 @@ public class WtAiTranslationDialog implements ActionListener {
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
       Dimension frameSize = new Dimension(dialogWidth, dialogHeight);
       dialog.setSize(frameSize);
-//      Dimension frameSize = dialog.getSize();
       dialog.setLocation(screenSize.width / 2 - frameSize.width / 2,
           screenSize.height / 2 - frameSize.height / 2);
       dialog.setLocationByPlatform(true);
@@ -350,23 +328,28 @@ public class WtAiTranslationDialog implements ActionListener {
    * run the dialog
    */
   public TranslationOptions run() {
-    if (currentDocument == null || (currentDocument.getDocumentType() != DocumentType.WRITER 
-          && currentDocument.getDocumentType() != DocumentType.IMPRESS)) {
-      return null;
-    }
-    if (dialogX < 0 || dialogY < 0) {
-      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      Dimension frameSize = dialog.getSize();
-      dialogX = screenSize.width / 2 - frameSize.width / 2;
-      dialogY = screenSize.height / 2 - frameSize.height / 2;
-    }
-    dialog.setLocation(dialogX, dialogY);
-    dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
-    dialog.setAutoRequestFocus(true);
-    dialog.toFront();
-    dialog.setVisible(true);
-    if(locale != null) {
-      return new TranslationOptions(locale, temperature);
+    try {
+      if (currentDocument == null || (currentDocument.getDocumentType() != DocumentType.WRITER 
+            && currentDocument.getDocumentType() != DocumentType.IMPRESS)) {
+        return null;
+      }
+      if (dialogX < 0 || dialogY < 0) {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        Dimension frameSize = dialog.getSize();
+        dialogX = screenSize.width / 2 - frameSize.width / 2;
+        dialogY = screenSize.height / 2 - frameSize.height / 2;
+      }
+      dialog.setLocation(dialogX, dialogY);
+      dialog.setModalityType(ModalityType.DOCUMENT_MODAL);
+      dialog.setAutoRequestFocus(true);
+      dialog.toFront();
+      dialog.setVisible(true);
+      if(locale != null) {
+        return new TranslationOptions(locale, temperature);
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      closeDialog();
     }
     return null;
   }
@@ -399,7 +382,7 @@ public class WtAiTranslationDialog implements ActionListener {
   /**
    * Start translation
    */
-  private void translate() {
+  private void translate() throws Throwable {
     if (selectedLang != null) {
       locale = WtGeneralTools.getLocalForFullName(selectedLang);
     } else {
@@ -415,24 +398,29 @@ public class WtAiTranslationDialog implements ActionListener {
     locale = null;
     dialog.setVisible(false);
     dialog.dispose();
-//    if (debugMode) {
+    if (debugMode) {
       WtMessageHandler.printToLogFile("AiTranslationDialog: closeDialog: Close AI Dialog");
-//    }
+    }
   }
   
   /**
    * returns an array of the translated names of the languages supported by LT
    */
   private String[] getPossibleLanguages() {
-    List<String> languages = new ArrayList<>();
-    for (Language lang : Languages.get()) {
-      languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
-      if("English".equals(lang.getName())) {
-        startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang));
+    try {
+      List<String> languages = new ArrayList<>();
+      for (Language lang : Languages.get()) {
+        languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
+        if("English".equals(lang.getName())) {
+          startLang = new String(WtGeneralTools.getFullNameOfLanguage(lang));
+        }
       }
+      languages.sort(null);
+      return languages.toArray(new String[languages.size()]);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return new String[0];
     }
-    languages.sort(null);
-    return languages.toArray(new String[languages.size()]);
   }
 
   public class TranslationOptions {

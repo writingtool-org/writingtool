@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
 
 import com.sun.star.linguistic2.SingleProofreadingError;
@@ -50,13 +51,17 @@ public class WtResultCache implements Serializable {
   }
 
   public WtResultCache(WtResultCache cache) {
-    replace(cache);
+    try {
+      replace(cache);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
   }
 
   /**
    * Get cache entry map
    */
-  private Map<Integer, SerialCacheEntry> getMap() {
+  private Map<Integer, SerialCacheEntry> getMap() throws Throwable {
     rwLock.readLock().lock();
     try {
       return new HashMap<Integer, SerialCacheEntry>(entries);
@@ -68,7 +73,7 @@ public class WtResultCache implements Serializable {
   /**
    * Replace the cache content
    */
-  public void replace(WtResultCache cache) {
+  public void replace(WtResultCache cache) throws Throwable {
     rwLock.writeLock().lock();
     try {
       entries.clear();
@@ -83,7 +88,7 @@ public class WtResultCache implements Serializable {
   /**
    * Remove all cache entries for a paragraph
    */
-  public void remove(int numberOfParagraph) {
+  public void remove(int numberOfParagraph) throws Throwable {
     rwLock.writeLock().lock();
     try {
       entries.remove(numberOfParagraph);
@@ -95,7 +100,7 @@ public class WtResultCache implements Serializable {
   /**
    * Remove all cache entries between firstParagraph and lastParagraph
    */
-  public void removeRange(int firstParagraph, int lastParagraph) {
+  public void removeRange(int firstParagraph, int lastParagraph) throws Throwable {
     rwLock.writeLock().lock();
     try {
       for (int i = firstParagraph; i <= lastParagraph; i++) {
@@ -110,7 +115,7 @@ public class WtResultCache implements Serializable {
    * Remove all cache entries between firstPara (included) and lastPara (excluded)
    * shift all numberOfParagraph by 'shift'
    */
-  public void removeAndShift(int fromParagraph, int toParagraph, int oldSize, int newSize) {
+  public void removeAndShift(int fromParagraph, int toParagraph, int oldSize, int newSize) throws Throwable {
     int shift = newSize - oldSize;
     if (fromParagraph < 0 && toParagraph >= newSize) {
       return;
@@ -144,7 +149,8 @@ public class WtResultCache implements Serializable {
   /**
    * add or replace a cache entry
    */
-  public void put(int numberOfParagraph, List<Integer> nextSentencePositions, WtProofreadingError[] errorArray) {
+  public void put(int numberOfParagraph, List<Integer> nextSentencePositions, 
+      WtProofreadingError[] errorArray) throws Throwable {
     rwLock.writeLock().lock();
     try {
       entries.put(numberOfParagraph, new SerialCacheEntry(nextSentencePositions, errorArray));
@@ -156,7 +162,7 @@ public class WtResultCache implements Serializable {
   /**
    * add or replace a cache entry for paragraph
    */
-  public void put(int numberOfParagraph, WtProofreadingError[] errorArray) {
+  public void put(int numberOfParagraph, WtProofreadingError[] errorArray) throws Throwable {
     rwLock.writeLock().lock();
     try {
       entries.put(numberOfParagraph, new SerialCacheEntry(null, errorArray));
@@ -168,7 +174,7 @@ public class WtResultCache implements Serializable {
   /**
    * add proof reading errors to a cache entry for paragraph
    */
-  public void add(int numberOfParagraph, WtProofreadingError[] errorArray) {
+  public void add(int numberOfParagraph, WtProofreadingError[] errorArray) throws Throwable {
     rwLock.writeLock().lock();
     try {
       SerialCacheEntry cacheEntry = entries.get(numberOfParagraph);
@@ -182,7 +188,7 @@ public class WtResultCache implements Serializable {
   /**
    * Remove all cache entries
    */
-  public void removeAll() {
+  public void removeAll() throws Throwable {
     rwLock.writeLock().lock();
     try {
       entries.clear();
@@ -194,7 +200,7 @@ public class WtResultCache implements Serializable {
   /**
    * Size of cache (size of entries)
    */
-  public int size() {
+  public int size() throws Throwable {
     rwLock.readLock().lock();
     try {
       return entries.size();
@@ -206,7 +212,7 @@ public class WtResultCache implements Serializable {
   /**
    * get cache entry of paragraph
    */
-  public int getNumberofNotNullEntries() {
+  public int getNumberofNotNullEntries() throws Throwable {
     rwLock.readLock().lock();
     try {
       int num = 0;
@@ -224,7 +230,7 @@ public class WtResultCache implements Serializable {
   /**
    * get number of errors of paragraph
    */
-  public int getNumberofErrors() {
+  public int getNumberofErrors() throws Throwable {
     rwLock.readLock().lock();
     try {
       int num = 0;
@@ -242,7 +248,7 @@ public class WtResultCache implements Serializable {
   /**
    * exceeds error length paragraph length
    */
-  public boolean errorLenthExceedsParagraphLength(int numberOfParagraph, int paragraphLength) {
+  public boolean errorLenthExceedsParagraphLength(int numberOfParagraph, int paragraphLength) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -262,7 +268,7 @@ public class WtResultCache implements Serializable {
   /**
    * get cache entry of paragraph
    */
-  public CacheEntry getCacheEntry(int numberOfParagraph) {
+  public CacheEntry getCacheEntry(int numberOfParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -275,7 +281,7 @@ public class WtResultCache implements Serializable {
   /**
    * get cache entry of paragraph without read lock 
    */
-  public CacheEntry getUnsafeCacheEntry(int numberOfParagraph) {
+  public CacheEntry getUnsafeCacheEntry(int numberOfParagraph) throws Throwable {
     SerialCacheEntry entry = entries.get(numberOfParagraph);
     return entry == null ? null : new CacheEntry(entry);
   }
@@ -283,7 +289,7 @@ public class WtResultCache implements Serializable {
   /**
    * cache has an Error or has reached a limit of entries
    */
-  public boolean hasAnError(int limit) {
+  public boolean hasAnError(int limit) throws Throwable {
     rwLock.readLock().lock();
     try {
       if (entries.size() >= limit) {
@@ -305,7 +311,7 @@ public class WtResultCache implements Serializable {
    * replace an error for paragraph
    * do nothing if error do not exist
    */
-  public void replaceSuggestions(int numberOfParagraph, WtProofreadingError error) {
+  public void replaceSuggestions(int numberOfParagraph, WtProofreadingError error) throws Throwable {
     rwLock.writeLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -322,7 +328,7 @@ public class WtResultCache implements Serializable {
   /**
    * get cache entry of paragraph
    */
-  public SerialCacheEntry getSerialCacheEntry(int numberOfParagraph) {
+  public SerialCacheEntry getSerialCacheEntry(int numberOfParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       return entries.get(numberOfParagraph);
@@ -335,7 +341,7 @@ public class WtResultCache implements Serializable {
    * get Proofreading errors of on paragraph from cache
    * get an error array, if a prargrapherray exists
    */
-  public WtProofreadingError[] getSafeMatches(int numberOfParagraph) {
+  public WtProofreadingError[] getSafeMatches(int numberOfParagraph) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -354,7 +360,7 @@ public class WtResultCache implements Serializable {
   /**
    * get Proofreading errors of one paragraph from cache
    */
-  public WtProofreadingError[] getMatches(int numberOfParagraph, LoErrorType errType) {
+  public WtProofreadingError[] getMatches(int numberOfParagraph, LoErrorType errType) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -381,7 +387,7 @@ public class WtResultCache implements Serializable {
   /**
    * get start sentence position from cache
    */
-  public int getStartSentencePosition(int numberOfParagraph, int sentencePosition) {
+  public int getStartSentencePosition(int numberOfParagraph, int sentencePosition) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -408,7 +414,7 @@ public class WtResultCache implements Serializable {
   /**
    * get next sentence position from cache
    */
-  public int getNextSentencePosition(int numberOfParagraph, int sentencePosition) {
+  public int getNextSentencePosition(int numberOfParagraph, int sentencePosition) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -434,7 +440,7 @@ public class WtResultCache implements Serializable {
    * get Proofreading errors of sentence out of paragraph matches from cache
    */
   public WtProofreadingError[] getFromPara(int numberOfParagraph,
-                                        int startOfSentencePosition, int endOfSentencePosition, LoErrorType errType) {
+        int startOfSentencePosition, int endOfSentencePosition, LoErrorType errType) throws Throwable {
     rwLock.readLock().lock();
     try {
       SerialCacheEntry entry = entries.get(numberOfParagraph);
@@ -460,7 +466,7 @@ public class WtResultCache implements Serializable {
    * Compares to Entries
    * true if the both entries are NOT identically
    */
-  public static boolean areDifferentEntries(SerialCacheEntry newEntries, SerialCacheEntry oldEntries) {
+  public static boolean areDifferentEntries(SerialCacheEntry newEntries, SerialCacheEntry oldEntries) throws Throwable {
     if (newEntries == null || oldEntries == null) {
       return true;
     }
@@ -502,7 +508,7 @@ public class WtResultCache implements Serializable {
    * Compares a paragraph cache with another cache.
    * Gives back a list of entries for every paragraph: true if the both entries are identically
    */
-  public List<Integer> differenceInCaches(WtResultCache oldCache) {
+  public List<Integer> differenceInCaches(WtResultCache oldCache) throws Throwable {
     rwLock.readLock().lock();
     try {
       List<Integer> differentParas = new ArrayList<>();
@@ -530,7 +536,7 @@ public class WtResultCache implements Serializable {
    * Remove a special Proofreading error from cache
    * Returns all changed paragraphs as list
    */
-  public List<Integer> removeRuleError(String ruleId) {
+  public List<Integer> removeRuleError(String ruleId) throws Throwable {
     rwLock.writeLock().lock();
     try {
       List<Integer> changed = new ArrayList<>();
@@ -565,7 +571,7 @@ public class WtResultCache implements Serializable {
   /**
    * get number of paragraphs stored in cache
    */
-  public int getNumberOfParas() {
+  public int getNumberOfParas() throws Throwable {
     rwLock.readLock().lock();
     try {
       return entries.size();
@@ -577,7 +583,7 @@ public class WtResultCache implements Serializable {
   /**
    * get number of entries
    */
-  public int getNumberOfEntries() {
+  public int getNumberOfEntries() throws Throwable {
     rwLock.readLock().lock();
     try {
       return entries.size();
@@ -589,7 +595,7 @@ public class WtResultCache implements Serializable {
   /**
    * get number of matches
    */
-  public int getNumberOfMatches() {
+  public int getNumberOfMatches() throws Throwable {
     rwLock.readLock().lock();
     try {
       int number = 0;
@@ -605,7 +611,7 @@ public class WtResultCache implements Serializable {
   /**
    * get all errors from a position within a paragraph as List
    */
-  public List<WtProofreadingError> getErrorsAtPosition(int numPara, int numChar) {
+  public List<WtProofreadingError> getErrorsAtPosition(int numPara, int numChar) throws Throwable {
     rwLock.readLock().lock();
     List<WtProofreadingError> errors = new ArrayList<>();
     try {
@@ -631,7 +637,7 @@ public class WtResultCache implements Serializable {
     public SingleProofreadingError[] errorArray;
     public List<Integer> nextSentencePositions = null;
 
-    CacheEntry(SerialCacheEntry entry) {
+    CacheEntry(SerialCacheEntry entry) throws Throwable {
       if (entry.nextSentencePositions != null) {
         this.nextSentencePositions = new ArrayList<Integer>(entry.nextSentencePositions);
       }
@@ -657,7 +663,7 @@ public class WtResultCache implements Serializable {
     WtProofreadingError[] errorArray;
     List<Integer> nextSentencePositions = null;
 
-    SerialCacheEntry(List<Integer> nextSentencePositions, WtProofreadingError[] sErrorArray) {
+    SerialCacheEntry(List<Integer> nextSentencePositions, WtProofreadingError[] sErrorArray) throws Throwable {
       if (nextSentencePositions != null) {
         this.nextSentencePositions = new ArrayList<Integer>(nextSentencePositions);
       }
@@ -677,7 +683,7 @@ public class WtResultCache implements Serializable {
     /**
      * Get an SingleProofreadingError array for one entry
      */
-    SingleProofreadingError[] getSingleErrorArray() {
+    SingleProofreadingError[] getSingleErrorArray() throws Throwable {
       SingleProofreadingError[] eArray = new SingleProofreadingError[errorArray.length];
       for (int i = 0; i < errorArray.length; i++) {
         eArray[i] = errorArray[i].toSingleProofreadingError();
@@ -696,16 +702,9 @@ public class WtResultCache implements Serializable {
      * Replace on error in Array (change synonyms)
      * do nothing if error does not exist
      */
-    void replaceSuggestions(WtProofreadingError error) {
-//      WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: errorArray.length: " + errorArray.length);
+    void replaceSuggestions(WtProofreadingError error) throws Throwable {
       for (int i = 0; i < errorArray.length; i++) {
-//        WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + error.aRuleIdentifier
-//            + ", error.nErrorStart: " + error.nErrorStart + ", error.nErrorLength: " + error.nErrorLength);
-//        WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + errorArray[i].aRuleIdentifier
-//            + ", errorArray[i].nErrorStart: " + errorArray[i].nErrorStart + ", errorArray[i].nErrorLength: " + errorArray[i].nErrorLength);
         if (error.equalsIdAndPos(errorArray[i])) {
-//         WtMessageHandler.printToLogFile("WtResultCache: replaceSuggestions: error found: " + error.aRuleIdentifier
-//              + ", Suggestions.length: " + error.aSuggestions.length);
           errorArray[i].aSuggestions = error.aSuggestions;
           break;
         }
@@ -715,7 +714,7 @@ public class WtResultCache implements Serializable {
     /**
      * Add an SingleProofreadingError array to an existing one
      */
-    void addErrorArray(WtProofreadingError[] errors) {
+    void addErrorArray(WtProofreadingError[] errors) throws Throwable {
       if (errors == null || errors.length == 0) {
         return;
       }

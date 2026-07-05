@@ -44,37 +44,41 @@ public class WtSortedTextRules {
   WtSortedTextRules (WtLanguageTool lt, WtConfiguration config, Set<String> disabledRulesUI, boolean checkImpressDocument) {
     minToCheckParagraph = new ArrayList<>(WtOfficeTools.NUMBER_TEXTLEVEL_CACHE);
     textLevelRules = new ArrayList<>(WtOfficeTools.NUMBER_TEXTLEVEL_CACHE);
-    minToCheckParagraph.add(0,0);
-    minToCheckParagraph.add(1,1);
-    minToCheckParagraph.add(2,-1);
-    minToCheckParagraph.add(3,-2);
-    for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
-      textLevelRules.add(i, new ArrayList<>());
-    }
-    debugMode = WtOfficeTools.DEBUG_MODE_SR;
-    List<Rule> rules = checkImpressDocument ? lt.getAllActiveRules() : lt.getAllActiveOfficeRules();
-    int numParasToCheck = config.getNumParasToCheck();
-    for (Rule rule : rules) {
-      if (rule instanceof TextLevelRule && !lt.getDisabledRules().contains(rule.getId()) 
-          && !disabledRulesUI.contains(rule.getId())) {
-        insertRule(((TextLevelRule) rule).minToCheckParagraph(), numParasToCheck, rule.getId());
+    try {
+      minToCheckParagraph.add(0,0);
+      minToCheckParagraph.add(1,1);
+      minToCheckParagraph.add(2,-1);
+      minToCheckParagraph.add(3,-2);
+      for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
+        textLevelRules.add(i, new ArrayList<>());
       }
-    }
-    if (debugMode) {
-      WtMessageHandler.printToLogFile("SortedTextRules: Number different minToCheckParagraph: " + minToCheckParagraph.size());
-      for ( int i = 0; i < minToCheckParagraph.size(); i++) {
-        WtMessageHandler.printToLogFile("SortedTextRules: minToCheckParagraph: " + minToCheckParagraph.get(i));
-        for (int j = 0; j < textLevelRules.get(i).size(); j++) {
-          WtMessageHandler.printToLogFile("RuleId: " + textLevelRules.get(i).get(j));
+      debugMode = WtOfficeTools.DEBUG_MODE_SR;
+      List<Rule> rules = checkImpressDocument ? lt.getAllActiveRules() : lt.getAllActiveOfficeRules();
+      int numParasToCheck = config.getNumParasToCheck();
+      for (Rule rule : rules) {
+        if (rule instanceof TextLevelRule && !lt.getDisabledRules().contains(rule.getId()) 
+            && !disabledRulesUI.contains(rule.getId())) {
+          insertRule(((TextLevelRule) rule).minToCheckParagraph(), numParasToCheck, rule.getId());
         }
       }
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("SortedTextRules: Number different minToCheckParagraph: " + minToCheckParagraph.size());
+        for ( int i = 0; i < minToCheckParagraph.size(); i++) {
+          WtMessageHandler.printToLogFile("SortedTextRules: minToCheckParagraph: " + minToCheckParagraph.get(i));
+          for (int j = 0; j < textLevelRules.get(i).size(); j++) {
+            WtMessageHandler.printToLogFile("RuleId: " + textLevelRules.get(i).get(j));
+          }
+        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
   /**
    * Insert a rule to list of text level rules
    */
-  private void insertRule(int minPara, int numParasToCheck, String ruleId) {
+  private void insertRule(int minPara, int numParasToCheck, String ruleId) throws Throwable {
     if (minPara == 0) {
         textLevelRules.get(0).add(ruleId);
     } else {
@@ -108,7 +112,7 @@ public class WtSortedTextRules {
   /**
    * Activate the text level rules for a specified cache 
    */
-  public void activateTextRulesByIndex(int nCache, WtLanguageTool lt) {
+  public void activateTextRulesByIndex(int nCache, WtLanguageTool lt) throws Throwable {
     for (int i = 0; i < textLevelRules.size(); i++) {
       if (i == nCache) {
         for (String ruleId : textLevelRules.get(i)) {
@@ -125,7 +129,7 @@ public class WtSortedTextRules {
   /**
    * Reactivate the text level rules which was deactivated for a specified cache 
    */
-  public void reactivateTextRules(WtLanguageTool lt) {
+  public void reactivateTextRules(WtLanguageTool lt) throws Throwable {
     for (List<String> textRules : textLevelRules) {
       for (String ruleId : textRules) {
         lt.enableRule(ruleId);

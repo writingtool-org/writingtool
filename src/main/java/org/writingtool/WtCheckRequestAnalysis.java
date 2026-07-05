@@ -84,7 +84,7 @@ class WtCheckRequestAnalysis {
 //  CheckRequestAnalysis(int numLastVCPara, int numLastFlPara, int proofInfo, int numParasToCheck, Language fixedLanguage, Language docLanguage,
 //      SingleDocument singleDocument, List<ResultCache> paragraphsCache, ViewCursorTools viewCursor, Map<Integer, String> changedParas) {
   WtCheckRequestAnalysis(int numLastVCPara, List<Integer> numLastFlPara, int proofInfo, int numParasToCheck, Language fixedLanguage, Language docLanguage,
-      WtSingleDocument singleDocument, List<WtResultCache> paragraphsCache, Map<Integer, String> changedParas, Set<Integer> runningParas) {
+      WtSingleDocument singleDocument, List<WtResultCache> paragraphsCache, Map<Integer, String> changedParas, Set<Integer> runningParas) throws Throwable {
     debugMode = WtOfficeTools.DEBUG_MODE_CR;
     debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
     this.singleDocument = singleDocument;
@@ -242,30 +242,6 @@ class WtCheckRequestAnalysis {
   }
   
   /** 
-   * Get new initialized flat paragraph tools
-   *//*
-  FlatParagraphTools getFlatParagraphTools() {
-    if (flatPara == null) {
-      flatPara = new FlatParagraphTools(xComponent);
-    }
-    return flatPara;
-  }
-*/  
-  /** 
-   * Get new initialized view cursor tools
-   *//*
-  ViewCursorTools getViewCursorTools() {
-    return viewCursor;
-  }
-*/  
-  /** 
-   * Get new initialized document cursor tools
-   *//*
-  DocumentCursorTools getDocumentCursorTools() {
-    return docCursor;
-  }
-*/
-  /** 
    * Get last number of paragraph from view cursor
    */
   int getLastParaNumFromViewCursor() {
@@ -297,27 +273,6 @@ class WtCheckRequestAnalysis {
     return textIsChanged;
   }
 
-  /** 
-   * Open new flat paragraph tools or initialize them again
-   *//*
-  private void setFlatParagraphTools(XComponent xComponent) {
-    long startTime = 0;
-    if (debugModeTm) {
-      startTime = System.currentTimeMillis();
-    }
-    if (flatPara == null) {
-      flatPara = new FlatParagraphTools(xComponent);
-    } else {
-      flatPara.init();
-    }
-    if (debugModeTm) {
-      long runTime = System.currentTimeMillis() - startTime;
-      if (runTime > OfficeTools.TIME_TOLERANCE) {
-        MessageHandler.printToLogFile("Time to run setFlatParagraphTools: " + runTime);
-      }
-    }
-  }
-  */
   /**
    * Search for Position of Paragraph
    * gives Back the Position of flat paragraph / -1 if Paragraph can not be found
@@ -546,7 +501,7 @@ class WtCheckRequestAnalysis {
    * start with a known paragraph
    * return -1 if fails
    */
-  private int getParaFromDocCache(String chPara, Locale locale, int nStart) {
+  private int getParaFromDocCache(String chPara, Locale locale, int nStart) throws Throwable {
     if (!isDisposed()) {
       for (int i = nStart; i < docCache.size(); i++) {
         if (docCache.isEqual(i, chPara, locale)) {
@@ -915,7 +870,7 @@ class WtCheckRequestAnalysis {
    * Heuristic try to find next position (automatic iteration)
    * Is paragraph same, next not empty after or before   
    */
-  private int findNextParaPos(String paraStr, Locale locale, int startPos) {
+  private int findNextParaPos(String paraStr, Locale locale, int startPos) throws Throwable {
     if (docCache.size() < 1 || isDisposed()) {
       return -1;
     }

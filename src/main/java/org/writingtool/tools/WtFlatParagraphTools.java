@@ -138,6 +138,8 @@ public class WtFlatParagraphTools {
       if (tmpFlatParaIter != null) {
         xFlatParaIter = tmpFlatParaIter;
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
       isBusy--;
     }
@@ -253,6 +255,9 @@ public class WtFlatParagraphTools {
         return null;
       }
       return new String(xFlatPara.getText());
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
+      return new String("");
     } finally {
       isBusy--;
     }
@@ -404,7 +409,7 @@ public class WtFlatParagraphTools {
   /**
    * Get a save Locale 
    */
-  private static Locale getSaveLocale(String language, String country, String variant) {
+  private static Locale getSaveLocale(String language, String country, String variant) throws Throwable {
     return new Locale(new String(language == null ? "" : language), new String(country == null ? "" : country), 
         new String(variant == null ? "" : variant));
   }
@@ -426,7 +431,7 @@ public class WtFlatParagraphTools {
    * @throws IllegalArgumentException 
    */
   @SuppressWarnings("unused")
-  private static List<Integer> getLanguagePortions(XFlatParagraph flatPara, int len) throws IllegalArgumentException {
+  private static List<Integer> getLanguagePortions(XFlatParagraph flatPara, int len) throws Throwable {
     List<Integer> langPortions = new ArrayList<Integer>();
     Locale lastLocale = flatPara.getLanguageOfText(0, 1);
     for (int i = 1; i < len; i++) {
@@ -599,7 +604,7 @@ public class WtFlatParagraphTools {
   /** 
    * flatparagraph has footnote 
    */
-  public boolean hasFootnotes(XFlatParagraph xFlatPara) {
+  public boolean hasFootnotes(XFlatParagraph xFlatPara) throws Throwable {
     int[] footnotes = getIntArrayPropertyValue("FootnotePositions", xFlatPara);
     return footnotes != null && footnotes.length > 0;
   }
@@ -607,14 +612,14 @@ public class WtFlatParagraphTools {
   /** 
    * Returns positions of footnotes of flatparagraph
    */
-  private int[] getFootnotePosition(XFlatParagraph xFlatPara) {
+  private int[] getFootnotePosition(XFlatParagraph xFlatPara) throws Throwable {
     return getIntArrayPropertyValue("FootnotePositions", xFlatPara);
   }
 
   /** 
    * Returns positions of footnotes of flatparagraph
    */
-  private int[] getFieldPosition(XFlatParagraph xFlatPara) {
+  private int[] getFieldPosition(XFlatParagraph xFlatPara) throws Throwable {
     return getIntArrayPropertyValue("FieldPositions", xFlatPara);
   }
 

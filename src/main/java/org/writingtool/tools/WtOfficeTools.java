@@ -172,6 +172,7 @@ public class WtOfficeTools {
   public static boolean DEBUG_MODE_LD = false;    //  Activate Debug Mode for LtDictionary
   public static boolean DEBUG_MODE_LM = false;    //  Activate Debug Mode for LanguageToolMenus
   public static boolean DEBUG_MODE_MD = false;    //  Activate Debug Mode for MultiDocumentsHandler
+  public static boolean DEBUG_MODE_PH = false;    //  Activate Debug Mode for ProtocolHandler
   public static boolean DEBUG_MODE_RM = false;    //  Activate Debug Mode for RemoteLanguageTool
   public static boolean DEBUG_MODE_SP = false;    //  Activate Debug Mode for LtSpellChecker
   public static boolean DEBUG_MODE_SR = false;    //  Activate Debug Mode for SortedTextRules
@@ -278,7 +279,7 @@ public class WtOfficeTools {
    * Returns null if it fails
    */
   @Nullable
-  public static XFrame getCurrentFrame(XComponentContext xContext) {
+  public static XFrame getCurrentFrame(XComponentContext xContext) throws Throwable {
     XDesktop xDesktop = getDesktop(xContext);
     if (xDesktop == null) {
       return null;
@@ -291,7 +292,7 @@ public class WtOfficeTools {
    * Returns null if it fails
    */
   @Nullable
-  public static XWindow getCurrentWindow(XComponentContext xContext) {
+  public static XWindow getCurrentWindow(XComponentContext xContext) throws Throwable {
     XFrame xFrame = getCurrentFrame(xContext);
     if (xFrame == null) {
       return null;
@@ -304,7 +305,7 @@ public class WtOfficeTools {
    * Returns null if it fails
    */
   @Nullable
-  public static XVclWindowPeer getVclWindowPeer(XComponent xComponent) {
+  public static XVclWindowPeer getVclWindowPeer(XComponent xComponent) throws Throwable {
     XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
     XWindow xWindow = xModel.getCurrentController().getFrame().getComponentWindow();
     return UnoRuntime.queryInterface(XVclWindowPeer.class, xWindow);
@@ -402,15 +403,15 @@ public class WtOfficeTools {
    * returns the default locale of the text document
    */
   public static Locale getDefaultLocale(XComponentContext xContext) {
-    XTextDocument curDoc = getCurrentDocument(xContext);
-    if (curDoc == null) {
-      return null;
-    }
-    XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, curDoc);
-    if (xPropertySet == null) {
-      return null;
-    }
     try {
+      XTextDocument curDoc = getCurrentDocument(xContext);
+      if (curDoc == null) {
+        return null;
+      }
+      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, curDoc);
+      if (xPropertySet == null) {
+        return null;
+      }
       return (Locale) xPropertySet.getPropertyValue("CharLocale");
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
@@ -499,7 +500,7 @@ public class WtOfficeTools {
     return charLocale;
   }
 
-  static void printPropertySet (Object o) {
+  public static void printPropertySet (Object o) throws Throwable {
     XPropertySet propSet = UnoRuntime.queryInterface(XPropertySet.class, o);
     if (propSet == null) {
       WtMessageHandler.printToLogFile("OfficeTools: printPropertySet: XPropertySet == null");
@@ -579,7 +580,7 @@ public class WtOfficeTools {
         return null;
       }
       return UnoRuntime.queryInterface(XLayoutManager.class,  propSet.getPropertyValue("LayoutManager"));
-    } catch (Exception e) {
+    } catch (Throwable e) {
       WtMessageHandler.printException(e);
     }
     return null;
@@ -726,7 +727,7 @@ public class WtOfficeTools {
   /**
    *  return true if two locales are equal  
    */
-  public static boolean isEqualLocale(Locale locale1, Locale locale2) {
+  public static boolean isEqualLocale(Locale locale1, Locale locale2) throws Throwable {
     return (locale1.Language.equals(locale2.Language) && locale1.Country.equals(locale2.Country) 
         && locale1.Variant.equals(locale2.Variant));
   }
@@ -734,7 +735,7 @@ public class WtOfficeTools {
   /**
    *  return true if the list of locales contains the locale
    */
-  public static boolean containsLocale(List<Locale> locales, Locale locale) {
+  public static boolean containsLocale(List<Locale> locales, Locale locale) throws Throwable {
     for (Locale loc : locales) {
       if (isEqualLocale(loc, locale)) {
         return true;
@@ -819,6 +820,8 @@ public class WtOfficeTools {
           }
         }
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
     }
     
@@ -848,7 +851,7 @@ public class WtOfficeTools {
   /**
    * Get system depend base directory
    */
-  private static File getBaseDir() {
+  private static File getBaseDir() throws Throwable {
     String userHome = null;
     File directory;
     try {
@@ -917,46 +920,43 @@ public class WtOfficeTools {
   }
 
   public static File getWtConfigDir(XComponentContext xContext) {
-    if (OFFICE_EXTENSION_ID == null) {
-      if (WtVersionInfo.ooName == null && xContext == null) {
-        OFFICE_EXTENSION_ID = "LibreOffice";
-      } else {
-        if (WtVersionInfo.ooName == null) {
-          WtVersionInfo.init(xContext);
+    try {
+      if (OFFICE_EXTENSION_ID == null) {
+        if (WtVersionInfo.ooName == null && xContext == null) {
+          OFFICE_EXTENSION_ID = "LibreOffice";
+        } else {
+          if (WtVersionInfo.ooName == null) {
+            WtVersionInfo.init(xContext);
+          }
+          OFFICE_EXTENSION_ID = WtVersionInfo.ooName;
         }
-        OFFICE_EXTENSION_ID = WtVersionInfo.ooName;
       }
-    }
-    File directory = getBaseDir();
-    String path;
-    if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX) {
-      path = APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
-    } else {
-      path = "." + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
-    }
-    directory = new File(directory, path);
-/*    
-    while (atWork) {
-      try {
-        Thread.sleep(10);
-      } catch (InterruptedException e) {
+      File directory = getBaseDir();
+      String path;
+      if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_MAC_OSX) {
+        path = APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
+      } else {
+        path = "." + APPLICATION_ID + "/" + OFFICE_EXTENSION_ID + "/";
       }
+      directory = new File(directory, path);
+      if (directory != null && !directory.exists()) {
+        directory.mkdirs();
+      }
+      return directory;
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);
+      return null;
     }
-*/    
-    if (directory != null && !directory.exists()) {
-      directory.mkdirs();
-    }
-    return directory;
   }
   
   /**
    * Returns log file 
    */
-  public static String getLogFilePath(boolean isSpellchecker) {
+  public static String getLogFilePath(boolean isSpellchecker) throws Throwable {
     return getLogFilePath(null, isSpellchecker);
   }
 
-  public static String getLogFilePath(XComponentContext xContext, boolean isSpellchecker) {
+  public static String getLogFilePath(XComponentContext xContext, boolean isSpellchecker) throws Throwable {
     if (isSpellchecker) {
       return new File(getWtConfigDir(xContext), LOG_FILE_SP).getAbsolutePath();
     }
@@ -966,7 +966,7 @@ public class WtOfficeTools {
   /**
    * Returns statistical analyzes configuration file 
    */
-  public static String getStatisticalConfigFilePath() {
+  public static String getStatisticalConfigFilePath() throws Throwable {
     return new File(getWtConfigDir(), STATISTICAL_ANALYZES_CONFIG_FILE).getAbsolutePath();
   }
 
@@ -974,11 +974,11 @@ public class WtOfficeTools {
    * Returns directory to saves caches
    * @since 5.2
    */
-  public static File getCacheDir() {
+  public static File getCacheDir() throws Throwable {
     return getCacheDir(null);
   }
   
-  public static File getCacheDir(XComponentContext xContext) {
+  public static File getCacheDir(XComponentContext xContext) throws Throwable {
     File cacheDir = new File(getWtConfigDir(xContext), CACHE_ID);
     if (cacheDir != null && !cacheDir.exists()) {
       cacheDir.mkdirs();
@@ -1000,11 +1000,11 @@ public class WtOfficeTools {
     return LT_HEAP_LIMIT;
   }
   
-  public static double getCurrentHeapRatio() {
+  public static double getCurrentHeapRatio() throws Throwable {
     return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / LT_HEAP_LIMIT;
   }
   
-  public static boolean isHeapLimitReached() {
+  public static boolean isHeapLimitReached() throws Throwable {
     long usedHeap = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     return (LT_HEAP_LIMIT < usedHeap);
   }
@@ -1012,7 +1012,7 @@ public class WtOfficeTools {
   /**
    * Get information about Java as String
    */
-  public static String getJavaInformation () {
+  public static String getJavaInformation() throws Throwable {
     return "Java-Version: " + System.getProperty("java.version") + "(" + System.getProperty("java.vm.vendor") + 
         "), max. Heap-Space: " + ((int) (getMaxHeapSpace()/1048576)) +
         " MB, LT Heap Space Limit: " + ((int) (getHeapLimit(getMaxHeapSpace())/1048576)) + " MB";
@@ -1021,7 +1021,7 @@ public class WtOfficeTools {
   /**
    * Test if the needed java version is installed
    */
-  public static boolean javaVersionOkay() {
+  public static boolean javaVersionOkay() throws Throwable {
     String version = System.getProperty("java.version");
     String[] aVersion = version.split("\\.");
     int iVersion = Integer.parseInt(aVersion[0]);
@@ -1073,7 +1073,7 @@ public class WtOfficeTools {
     try {
       URL url = WtOfficeTools.class.getResource("/images/WTSmall.png");
       return ImageIO.read(url);
-    } catch (IOException e) {
+    } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
     return null;
@@ -1082,7 +1082,7 @@ public class WtOfficeTools {
   /**
    * Get WritingTool Image
    */
-  public static ImageIcon getWtImageIcon(boolean big) {
+  public static ImageIcon getWtImageIcon(boolean big) throws Throwable {
     URL url;
     if (big) {
       url = WtOfficeTools.class.getResource("/images/WTBig.png");
@@ -1095,7 +1095,7 @@ public class WtOfficeTools {
   /**
    * Get WritingTool Banner
    */
-  public static ImageIcon getWtBannerIcon() {
+  public static ImageIcon getWtBannerIcon() throws Throwable {
     URL url = WtOfficeTools.class.getResource("/images/WTBanner.png");
     return new ImageIcon(url);
   }
@@ -1103,7 +1103,7 @@ public class WtOfficeTools {
   /**
    * Get path to WT resource 
    */
-  public static InputStream getWtRessourceAsInputStream(String fileName, Locale locale) {
+  public static InputStream getWtRessourceAsInputStream(String fileName, Locale locale) throws Throwable {
     String resource = RESOURCE_PATH + locale.Language + "/" + fileName;
     return WtOfficeTools.class.getResourceAsStream(resource);
   }
@@ -1126,31 +1126,35 @@ public class WtOfficeTools {
   }
 */
   public static void waitForLO() {
-    while (WtDocumentCursorTools.isBusy() || WtViewCursorTools.isBusy() || WtFlatParagraphTools.isBusy()) {
-      try {
-        synchronized (waitObj) {
-          numLoWaits++;
-          if (numLoWaits > MAX_LO_WAITS) {
-            WtMessageHandler.printToLogFile("waitForLO: Wait for more than " + MAX_LO_WAITS/100 + " seconds, "
-                + "DocumentCursorTools.isBusy: " + WtDocumentCursorTools.isBusy() + ", "
-                + "ViewCursorTools.isBusy: " + WtViewCursorTools.isBusy() + ", "
-                + "FlatParagraphTools.isBusy: " + WtFlatParagraphTools.isBusy() + ": "
-                + "Free Lock and continue.");
-            if (WtDocumentCursorTools.isBusy()) {
-              WtDocumentCursorTools.reset();
-            }
-            if (WtViewCursorTools.isBusy()) {
-              WtViewCursorTools.reset();
-            }
-            if (WtFlatParagraphTools.isBusy()) {
-              WtFlatParagraphTools.reset();
+    try {
+      while (WtDocumentCursorTools.isBusy() || WtViewCursorTools.isBusy() || WtFlatParagraphTools.isBusy()) {
+        try {
+          synchronized (waitObj) {
+            numLoWaits++;
+            if (numLoWaits > MAX_LO_WAITS) {
+              WtMessageHandler.printToLogFile("waitForLO: Wait for more than " + MAX_LO_WAITS/100 + " seconds, "
+                  + "DocumentCursorTools.isBusy: " + WtDocumentCursorTools.isBusy() + ", "
+                  + "ViewCursorTools.isBusy: " + WtViewCursorTools.isBusy() + ", "
+                  + "FlatParagraphTools.isBusy: " + WtFlatParagraphTools.isBusy() + ": "
+                  + "Free Lock and continue.");
+              if (WtDocumentCursorTools.isBusy()) {
+                WtDocumentCursorTools.reset();
+              }
+              if (WtViewCursorTools.isBusy()) {
+                WtViewCursorTools.reset();
+              }
+              if (WtFlatParagraphTools.isBusy()) {
+                WtFlatParagraphTools.reset();
+              }
             }
           }
+          Thread.sleep(10);
+        } catch (InterruptedException e) {
+          WtMessageHandler.printException(e);
         }
-        Thread.sleep(10);
-      } catch (InterruptedException e) {
-        WtMessageHandler.printException(e);
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     }
   }
 /*  
@@ -1190,7 +1194,7 @@ public class WtOfficeTools {
   /**
    * get the LO locale from a language
    */
-  public static Locale getLocalFromLanguage(Language lang) {
+  public static Locale getLocalFromLanguage(Language lang) throws Throwable {
     String[] countries = lang.getCountries();
     String country = countries.length != 1 ? "" : countries[0];
     return new Locale(lang.getShortCode(), country, lang.getVariant() == null ? "" : lang.getVariant());
@@ -1199,7 +1203,7 @@ public class WtOfficeTools {
   /**
    * Are statistical rules defined for this language?
    */
-  public static boolean hasStatisticalStyleRules(XComponentContext xContext) {
+  public static boolean hasStatisticalStyleRules(XComponentContext xContext)  throws Throwable{
     Language lang = getDefaultLanguage(xContext);
     if (lang == null) {
       return false;
@@ -1207,7 +1211,7 @@ public class WtOfficeTools {
     return hasStatisticalStyleRules(lang);
   }
 
-  public static boolean hasStatisticalStyleRules(Language lang) {
+  public static boolean hasStatisticalStyleRules(Language lang) throws Throwable {
     try {
       for (Rule rule : lang.getRelevantRules(JLanguageTool.getMessageBundle(), null, lang, new ArrayList<>())) {
         if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
@@ -1236,26 +1240,31 @@ public class WtOfficeTools {
   }
 
   public static ResourceBundle getMessageBundle(Language lang) {
-    java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
-    ResourceBundle wtBundle = null;
-//    ResourceBundle ltBundle = null;
-    ResourceBundle wtFallbackBundle = null;
     try {
-      wtBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
-    } catch (MissingResourceException ex) {
+      java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
+      ResourceBundle wtBundle = null;
+  //    ResourceBundle ltBundle = null;
+      ResourceBundle wtFallbackBundle = null;
+      try {
+        wtBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
+      } catch (MissingResourceException ex) {
+      }
+  //    try {
+  //      ltBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
+  //    } catch (MissingResourceException ex) {
+  //    }
+      locale = java.util.Locale.ENGLISH;
+      try {
+        wtFallbackBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
+      } catch (MissingResourceException ex) {
+      }
+  //    ResourceBundle fallbackBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
+  //    return new WtResourceBundle(wtBundle, wtFallbackBundle, ltBundle, fallbackBundle);
+      return new WtResourceBundle(wtBundle, wtFallbackBundle);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
     }
-//    try {
-//      ltBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
-//    } catch (MissingResourceException ex) {
-//    }
-    locale = java.util.Locale.ENGLISH;
-    try {
-      wtFallbackBundle = ResourceBundle.getBundle(getWtMessageResource(locale), locale);
-    } catch (MissingResourceException ex) {
-    }
-//    ResourceBundle fallbackBundle = JLanguageTool.getDataBroker().getResourceBundle(MESSAGE_BUNDLE, locale);
-//    return new WtResourceBundle(wtBundle, wtFallbackBundle, ltBundle, fallbackBundle);
-    return new WtResourceBundle(wtBundle, wtFallbackBundle);
   }
 
   /**
@@ -1266,22 +1275,27 @@ public class WtOfficeTools {
   }
 
   public static String getUrl(Language lang, String key) {
-    java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
-    ResourceBundle bundle = null;
     try {
+      java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
+      ResourceBundle bundle = null;
+      try {
+        bundle = ResourceBundle.getBundle(getWtUrlResource(locale), locale);
+        return WT_SERVER_URL + "/" + bundle.getString(key);
+      } catch (MissingResourceException ex) {
+      }
+      locale = java.util.Locale.ENGLISH;
       bundle = ResourceBundle.getBundle(getWtUrlResource(locale), locale);
       return WT_SERVER_URL + "/" + bundle.getString(key);
-    } catch (MissingResourceException ex) {
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
     }
-    locale = java.util.Locale.ENGLISH;
-    bundle = ResourceBundle.getBundle(getWtUrlResource(locale), locale);
-    return WT_SERVER_URL + "/" + bundle.getString(key);
   }
   
 /**
  * convert array of WtProofreadingError to array of SingleProofreadingError
  */
-  public static SingleProofreadingError[] wtErrorsToProofreading(WtProofreadingError[] errors, int paraLen) {
+  public static SingleProofreadingError[] wtErrorsToProofreading(WtProofreadingError[] errors, int paraLen) throws Throwable {
     int len = 0;
     for (int i = 0; i < errors.length; i++) {
       if (errors[i].nErrorStart + errors[i].nErrorLength <= paraLen) {
@@ -1301,7 +1315,7 @@ public class WtOfficeTools {
 /**
  * convert array of SingleProofreadingError to array of WtProofreadingError
  */
-  public static WtProofreadingError[] proofreadingToWtErrors(SingleProofreadingError[] errors) {
+  public static WtProofreadingError[] proofreadingToWtErrors(SingleProofreadingError[] errors) throws Throwable {
     WtProofreadingError[] wErrors = new WtProofreadingError[errors.length];
     for (int i = 0; i < errors.length; i++) {
       wErrors[i] = new WtProofreadingError(errors[i]);
@@ -1541,6 +1555,8 @@ public class WtOfficeTools {
           DEBUG_MODE_SR = true;
         } else if (level.equals("sp")) {
           DEBUG_MODE_SP = true;
+        } else if (level.equals("ph")) {
+          DEBUG_MODE_PH = true;
         } else if (level.startsWith("ta")) {
           String[] levelTm = level.split(":");
           if (levelTm[0].equals("ta")) {

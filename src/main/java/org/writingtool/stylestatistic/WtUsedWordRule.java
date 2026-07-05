@@ -105,7 +105,7 @@ public class WtUsedWordRule {
     }
   }
   
-  public void setListExcludedWords(List<String> words) {
+  public void setListExcludedWords(List<String> words) throws Throwable {
     excludedWords.clear();
     if (words != null) {
       excludedWords.addAll(words);
@@ -116,14 +116,14 @@ public class WtUsedWordRule {
     return true;
   }
 
-  public static boolean isUsedWordRule(TextLevelRule rule) {
+  public static boolean isUsedWordRule(TextLevelRule rule) throws Throwable {
     if (rule instanceof AbstractStyleTooOftenUsedWordRule) {
       return true;
     }
     return false;
   }
 
-  private List<WordFrequency> getMostUsed(int from, int to) {
+  private List<WordFrequency> getMostUsed(int from, int to) throws Throwable {
     Map<String, Integer> wordMap = new HashMap<>();
     List<WordFrequency> wordList = new ArrayList<>();
     for (int i = from; i < to; i++) {
@@ -174,7 +174,7 @@ public class WtUsedWordRule {
     return wordList;
   }
   
-  public void refreshMostUsed(int from, int to) {
+  public void refreshMostUsed(int from, int to) throws Throwable {
     mostUsed = getMostUsed(from, to);
   }
   
@@ -190,7 +190,7 @@ public class WtUsedWordRule {
     return mostUsed.get(n).word;
   }
   
-  public boolean isRelevantParagraph(int nTPara) {
+  public boolean isRelevantParagraph(int nTPara) throws Throwable {
     if(wordMapList.get(nTPara).get(selectedWord) == null) {
       return false;
     }
@@ -198,15 +198,20 @@ public class WtUsedWordRule {
   }
 
   private int getDefaultRuleStep() {
-    int defValue = (int) rule.getRuleOptions()[0].getDefaultValue();
-    int defStep = (int) ((defValue / 3.) + 0.5);
-    if (defStep < 1) {
-      defStep = 1;
+    try {
+      int defValue = (int) rule.getRuleOptions()[0].getDefaultValue();
+      int defStep = (int) ((defValue / 3.) + 0.5);
+      if (defStep < 1) {
+        defStep = 1;
+      }
+      return defStep;
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+      return 1;
     }
-    return defStep;
   }
   
-  public int getDefaultStep() {
+  public int getDefaultStep() throws Throwable {
     int defStep = getDefaultRuleStep();
     if (debugMode) {
       WtMessageHandler.printToLogFile("default step: " + defStep);
@@ -214,7 +219,7 @@ public class WtUsedWordRule {
     return defStep;
   }
   
-  public void setCurrentStep(int step) {
+  public void setCurrentStep(int step) throws Throwable {
     if (step > 0) {
       procentualStep = step;
       optimalNumberWords = 3 * procentualStep;
@@ -225,7 +230,7 @@ public class WtUsedWordRule {
     return "%";
   }
   
-  public String getMessageOfLevel(int level) {
+  public String getMessageOfLevel(int level) throws Throwable {
     String sLevel = null;
     if (rule instanceof ReadabilityRule) {
       return ((ReadabilityRule) rule).printMessageLevel(level);

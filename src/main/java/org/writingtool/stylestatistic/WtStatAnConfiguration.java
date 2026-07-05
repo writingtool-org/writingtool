@@ -65,29 +65,29 @@ public class WtStatAnConfiguration {
     loadConfiguration();
   }
   
-  public boolean isWithoutDirectSpeech(TextLevelRule rule) {
+  public boolean isWithoutDirectSpeech(TextLevelRule rule) throws Throwable {
     if (!withoutDirectSpeech.containsKey(rule.getId())) {
       return false;
     }
     return withoutDirectSpeech.get(rule.getId());
   }
   
-  public void setWithoutDirectSpeech(TextLevelRule rule, boolean wDS) {
+  public void setWithoutDirectSpeech(TextLevelRule rule, boolean wDS) throws Throwable {
     withoutDirectSpeech.put(rule.getId(), wDS);
   }
   
-  public int getLevelStep(TextLevelRule rule) {
+  public int getLevelStep(TextLevelRule rule) throws Throwable {
     if (!levelStep.containsKey(rule.getId())) {
       return 0;
     }
     return levelStep.get(rule.getId());
   }
   
-  public void setLevelStep(TextLevelRule rule, int step) {
+  public void setLevelStep(TextLevelRule rule, int step) throws Throwable {
     levelStep.put(rule.getId(), step);
   }
 
-  public List<String> getExcludedWords(TextLevelRule rule) {
+  public List<String> getExcludedWords(TextLevelRule rule) throws Throwable {
     List<String> exWords = excludedWords.get(rule.getId());
     if (exWords == null) {
       return new ArrayList<>();
@@ -95,11 +95,11 @@ public class WtStatAnConfiguration {
     return exWords;
   }
 
-  public void setAllExcludedWords(TextLevelRule rule, List<String> words) {
+  public void setAllExcludedWords(TextLevelRule rule, List<String> words) throws Throwable {
     excludedWords.put(rule.getId(), words);
   }
 
-  public void removeAllExcludedWords(TextLevelRule rule) {
+  public void removeAllExcludedWords(TextLevelRule rule) throws Throwable {
     List<String> exWords = excludedWords.get(rule.getId());
     if (exWords != null) {
       exWords.clear();
@@ -107,7 +107,7 @@ public class WtStatAnConfiguration {
     }
   }
 
-  public void addExcludedWord(TextLevelRule rule, String word) {
+  public void addExcludedWord(TextLevelRule rule, String word) throws Throwable {
     List<String> words = excludedWords.get(rule.getId());
     if (words == null) {
       words = new ArrayList<>();
@@ -168,7 +168,7 @@ public class WtStatAnConfiguration {
     return txt;
   }
   
-  private int getDefaultStep(TextLevelRule rule) {
+  private int getDefaultStep(TextLevelRule rule) throws Throwable {
     int defaultStep;
     if (rule instanceof AbstractStatisticSentenceStyleRule) {
       defaultStep = (int) ((((int)((AbstractStatisticSentenceStyleRule) rule).getRuleOptions()[0].getDefaultValue() - 1) / 3.) + 0.5);

@@ -67,7 +67,7 @@ public class WtStatAnCache {
   private final static boolean debugMode = false;
   
   private final Map<Integer, List<AnalyzedSentence>> analyzedParagraphs;
-  private final String langCode;
+  private String langCode;
   private List<Heading> headings = new ArrayList<>();
   private List<Paragraph> paragraphs = new ArrayList<>();
   private WtSingleDocument document;
@@ -80,20 +80,20 @@ public class WtStatAnCache {
   
   public WtStatAnCache(WtSingleDocument document, WtStatAnConfiguration conf, WaitDialogThread waitdialog) {
     this.document = document;
-    langCode = document.getLanguage().getShortCode();
-    config = conf;
-    lt = document.getMultiDocumentsHandler().getLanguageTool();
-    docCache = document.getDocumentCache();
     analyzedParagraphs = docCache.getAllAnalyzedParagraphs();
-    
-    while (docCache.getHeadingMap() == null) {
-      try {
-        Thread.sleep(50);
-      } catch (InterruptedException e) {
-        WtMessageHandler.showError(e);
-      }
-    }
     try {
+      langCode = document.getLanguage().getShortCode();
+      config = conf;
+      lt = document.getMultiDocumentsHandler().getLanguageTool();
+      docCache = document.getDocumentCache();
+      
+      while (docCache.getHeadingMap() == null) {
+        try {
+          Thread.sleep(50);
+        } catch (InterruptedException e) {
+          WtMessageHandler.showError(e);
+        }
+      }
       if (waitdialog != null) {
         SwingUtilities.invokeLater(() -> { waitdialog.initializeProgressBar(0, 100); });
       }
@@ -130,7 +130,7 @@ public class WtStatAnCache {
     }
   }
   
-  private void setHeadings() {
+  private void setHeadings() throws Throwable {
     Map<Integer, Integer> headingMap = docCache.getHeadingMap();
     List<Integer> headParas = new ArrayList<>();
     for (int nPara : headingMap.keySet()) {
@@ -142,22 +142,22 @@ public class WtStatAnCache {
     }
   }
   
-  private void setParagraphs() {
+  private void setParagraphs() throws Throwable {
     for (int i = 0; i < docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT); i++) {
       paragraphs.add(new Paragraph(getNameOfParagraph(i), getHeadingHierarchy(i), i));
     }
   }
   
-  public int size() {
+  public int size() throws Throwable {
     return docCache.textSize(WtDocumentCache.CURSOR_TYPE_TEXT);
   }
 
-  public List<AnalyzedSentence> getAnalysedParagraph(int n) {
+  public List<AnalyzedSentence> getAnalysedParagraph(int n) throws Throwable {
     int nFPara = docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
     return analyzedParagraphs.get(nFPara);
   }
 
-  public List<List<AnalyzedSentence>> getAnalysedParagraphsfrom(int from, int to) {
+  public List<List<AnalyzedSentence>> getAnalysedParagraphsfrom(int from, int to) throws Throwable {
     List<List<AnalyzedSentence>> tmpParagraphs = new ArrayList<>();
     for (int i = from; i < to; i++) {
       int nFPara = docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, i));
@@ -166,7 +166,7 @@ public class WtStatAnCache {
     return tmpParagraphs;
   }
 
-  public List<Paragraph> getParagraphsfrom(int from, int to) {
+  public List<Paragraph> getParagraphsfrom(int from, int to) throws Throwable {
     List<Paragraph> tmpParagraphs = new ArrayList<>();
     for (int i = from; i < to; i++) {
       tmpParagraphs.add(paragraphs.get(i));
@@ -177,14 +177,14 @@ public class WtStatAnCache {
   /**
    * get number of flatparagraph from Number of text paragraph
    */
-  public int getNumFlatParagraph(int textPara) {
+  public int getNumFlatParagraph(int textPara) throws Throwable {
     return docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, textPara));
   }
   
   /**
    * get language short code of flatparagraph from Number of text paragraph
    */
-  public String getLanguageFlatParagraph(int textPara) {
+  public String getLanguageFlatParagraph(int textPara) throws Throwable {
     Locale locale = docCache.getTextParagraphLocale(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, textPara));
     if (locale == null) {
       return WtOfficeTools.IGNORE_LANGUAGE;
@@ -202,7 +202,7 @@ public class WtStatAnCache {
   /**
    * get name of paragraph (maximal MAX_NAME_LENGTH characters)
    */
-  public String getNameOfParagraph(int nPara) {
+  public String getNameOfParagraph(int nPara) throws Throwable {
     String tPara = docCache.getTextParagraph(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, nPara));
     return getNameOfParagraph(tPara);
   }
@@ -210,14 +210,14 @@ public class WtStatAnCache {
   /**
    * get name of paragraph (maximal MAX_NAME_LENGTH characters)
    */
-  public String getNameOfParagraph(String text) {
+  public String getNameOfParagraph(String text) throws Throwable {
     if (text.length() > MAX_NAME_LENGTH) {
       text = text.substring(0, MAX_NAME_LENGTH - 3) + "...";
     }
     return text;
   }
   
-  private int getHeadingHierarchy(int nPara) {
+  private int getHeadingHierarchy(int nPara) throws Throwable {
     for (int i = 0; i < headings.size(); i++) {
       if(headings.get(i).paraNum == nPara) {
         return (headings.get(i).hierarchy);
@@ -253,7 +253,7 @@ public class WtStatAnCache {
    * Merge errors from different checks (paragraphs and sentences)
    */
   private WtProofreadingError[] mergeErrors(List<WtProofreadingError[]> pErrors, 
-      WtProofreadingError[] statAnErrors, String statAnRuleId, int nPara) {
+      WtProofreadingError[] statAnErrors, String statAnRuleId, int nPara) throws Throwable {
     WtProofreadingError[] errorArray = document.mergeErrors(pErrors, nPara, false);
     if (debugMode) {
       WtMessageHandler.printToLogFile("StatAnCache: mergeErrors: nPara: " + nPara + ", statAnRuleId: " 
@@ -358,7 +358,7 @@ public class WtStatAnCache {
   /**
    * The single paragraph has an relevant result
    */
-  public boolean isRelevantParagraph(int nTPara, TextLevelRule rule, WtUsedWordRule uRule) {
+  public boolean isRelevantParagraph(int nTPara, TextLevelRule rule, WtUsedWordRule uRule) throws Throwable {
     if (rule instanceof ReadabilityRule) {
       return true;
     } else if (rule instanceof AbstractStyleTooOftenUsedWordRule) {
@@ -423,7 +423,8 @@ public class WtStatAnCache {
     return errors;
   }
   
-  private WtProofreadingError[] addPropertiesToErrors(WtProofreadingError[] errors, short lineType, Color lineColor) {
+  private WtProofreadingError[] addPropertiesToErrors(WtProofreadingError[] errors, short lineType, 
+      Color lineColor) throws Throwable {
     if (errors == null) {
       return null;
     }
@@ -434,7 +435,8 @@ public class WtStatAnCache {
   }
 
   
-  private WtProofreadingError addPropertiesToError(WtProofreadingError error, short lineType, Color lineColor) {
+  private WtProofreadingError addPropertiesToError(WtProofreadingError error, short lineType, 
+      Color lineColor) throws Throwable {
     int ucolor = lineColor.getRGB() & 0xFFFFFF;
     WtPropertyValue[] propertyValues = new WtPropertyValue[2];
     propertyValues[0] = new WtPropertyValue("LineColor", ucolor);

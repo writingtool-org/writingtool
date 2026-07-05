@@ -217,21 +217,26 @@ public class WtAiDialog extends Thread implements ActionListener {
    * the constructor of the class creates all elements of the dialog
    */
   public WtAiDialog(WtSingleDocument document, WaitDialogThread inf, ResourceBundle messages) {
-    this.messages = messages;
-    documents = document.getMultiDocumentsHandler();
-    config = documents.getConfiguration();
     long startTime = 0;
     if (debugModeTm) {
       startTime = System.currentTimeMillis();
     }
+    this.messages = messages;
     ltImage = WtOfficeTools.getWtImage();
-    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-      WtDocumentsHandler.setJavaLookAndFeel();
+    try {
+      documents = document.getMultiDocumentsHandler();
+      config = documents.getConfiguration();
+      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
+      
+      currentDocument = document;
+      documentType = document.getDocumentType();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      closeDialog();
     }
-    
-    currentDocument = document;
-    documentType = document.getDocumentType();
-    
+      
     dialog = new JDialog();
     contentPane = dialog.getContentPane();
     instructionPanel = new JTabbedPane();
@@ -388,13 +393,17 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
         @Override
         public void keyTyped(KeyEvent e) {
-          String txt = translationText.getText();
-          if (translText == null && !txt.isEmpty()) {
-            translText = txt;
-            setButtonState(true);
-          } else if (translText != null && txt.isEmpty()) {
-            translText = null;
-            setButtonState(true);
+          try {
+            String txt = translationText.getText();
+            if (translText == null && !txt.isEmpty()) {
+              translText = txt;
+              setButtonState(true);
+            } else if (translText != null && txt.isEmpty()) {
+              translText = null;
+              setButtonState(true);
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
           }
         }
       });
@@ -420,13 +429,17 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
         @Override
         public void keyTyped(KeyEvent e) {
-          String txt = directInstruction.getText();
-          if (dInstText == null && !txt.isEmpty()) {
-            dInstText = txt;
-            setButtonState(true);
-          } else if (dInstText != null && txt.isEmpty()) {
-            dInstText = null;
-            setButtonState(true);
+          try {
+            String txt = directInstruction.getText();
+            if (dInstText == null && !txt.isEmpty()) {
+              dInstText = txt;
+              setButtonState(true);
+            } else if (dInstText != null && txt.isEmpty()) {
+              dInstText = null;
+              setButtonState(true);
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
           }
         }
       });
@@ -602,13 +615,18 @@ public class WtAiDialog extends Thread implements ActionListener {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-          int num = Integer.parseInt(imageWidthValueField.getText());
-          int diff = num % 8;
-          if (diff != 0 || num < 32 || num > 2048) {
-            imageWidthValueField.setForeground(Color.RED);
-          } else {
-            imageWidthValueField.setForeground(null);
-            imageWidth = num;
+          try {
+            int num = Integer.parseInt(imageWidthValueField.getText());
+            int diff = num % 8;
+            if (diff != 0 || num < 32 || num > 2048) {
+              imageWidthValueField.setForeground(Color.RED);
+            } else {
+              imageWidthValueField.setForeground(null);
+              imageWidth = num;
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+            closeDialog();
           }
         }
       });
@@ -646,13 +664,18 @@ public class WtAiDialog extends Thread implements ActionListener {
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-          int num = Integer.parseInt(imageHeightValueField.getText());
-          int diff = num % 8;
-          if (diff != 0 || num < 32 || num > 2048) {
-            imageHeightValueField.setForeground(Color.RED);
-          } else {
-            imageHeightValueField.setForeground(null);
-            imageHeight = num;
+          try {
+            int num = Integer.parseInt(imageHeightValueField.getText());
+            int diff = num % 8;
+            if (diff != 0 || num < 32 || num > 2048) {
+              imageHeightValueField.setForeground(Color.RED);
+            } else {
+              imageHeightValueField.setForeground(null);
+              imageHeight = num;
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+            closeDialog();
           }
         }
       });
@@ -758,7 +781,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       insertImage.addActionListener(this);
       insertImage.setActionCommand("insertImage");
       
-     dialog.addWindowFocusListener(new WindowFocusListener() {
+      dialog.addWindowFocusListener(new WindowFocusListener() {
         @Override
         public void windowGainedFocus(WindowEvent e) {
           if (focusLost) {
@@ -1326,7 +1349,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     setButtonState(true);
   }
   
-  public void toFront() {
+  public void toFront() throws Throwable {
     dialog.setVisible(true);
     dialog.toFront();
   }
@@ -1335,7 +1358,7 @@ public class WtAiDialog extends Thread implements ActionListener {
    * Get the current document
    * Wait until it is initialized (by LO/OO)
    */
-  private WtSingleDocument getCurrentDocument() {
+  private WtSingleDocument getCurrentDocument() throws Throwable {
     WtSingleDocument currentDocument = documents.getCurrentDocument();
     if (currentDocument == null || (currentDocument.getDocumentType() != DocumentType.WRITER 
         && currentDocument.getDocumentType() != DocumentType.IMPRESS)) {
@@ -1413,69 +1436,77 @@ public class WtAiDialog extends Thread implements ActionListener {
    * Initial button state
    */
   private void setAtWorkState(boolean work) {
-    checkProgress.setStringPainted(false);
-    checkProgress.setIndeterminate(work);
-    if (!work) {
-      checkProgress.setStringPainted(true);
-      checkProgress.setValue(100);
+    try {
+      checkProgress.setStringPainted(false);
+      checkProgress.setIndeterminate(work);
+      if (!work) {
+        checkProgress.setStringPainted(true);
+        checkProgress.setValue(100);
+      }
+      atWork = work;
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
     }
-    atWork = work;
   }
   
   /**
    * Initial button state
    */
   private void setButtonState(boolean enabled) {
-    boolean isImpress = documentType == DocumentType.IMPRESS;
-    boolean isdirectInst = instructionPanel.getSelectedIndex() == 2;
-    boolean isTranslation = instructionPanel.getSelectedIndex() == 1;
-    boolean noParaText = !isdirectInst && (paraText == null || paraText.isEmpty());
-    boolean noInstText = !isdirectInst && (instText == null || instText.isEmpty());
-    boolean noTrlaText = !isTranslation || (translationText.getText() == null || translationText.getText().isEmpty());
-    boolean noResultText = resultText == null || resultText.isEmpty();
-    String directInst = directInstruction.getText();
-    boolean noDirectInst = isdirectInst && (directInst == null || directInst.isEmpty());
-    instruction.setEnabled(enabled);
-    paragraph.setEnabled(enabled);
-    result.setEnabled(enabled);
-    if (isTranslation) {
-      execute.setVisible(false);
-      translate.setVisible(true);
-      translate.setEnabled(noTrlaText ? false : enabled);
-    } else {
-      execute.setVisible(true);
-      translate.setVisible(false);
-      execute.setEnabled(noInstText && noDirectInst ? false : enabled);
+    try {
+      boolean isImpress = documentType == DocumentType.IMPRESS;
+      boolean isdirectInst = instructionPanel.getSelectedIndex() == 2;
+      boolean isTranslation = instructionPanel.getSelectedIndex() == 1;
+      boolean noParaText = !isdirectInst && (paraText == null || paraText.isEmpty());
+      boolean noInstText = !isdirectInst && (instText == null || instText.isEmpty());
+      boolean noTrlaText = !isTranslation || (translationText.getText() == null || translationText.getText().isEmpty());
+      boolean noResultText = resultText == null || resultText.isEmpty();
+      String directInst = directInstruction.getText();
+      boolean noDirectInst = isdirectInst && (directInst == null || directInst.isEmpty());
+      instruction.setEnabled(enabled);
+      paragraph.setEnabled(enabled);
+      result.setEnabled(enabled);
+      if (isTranslation) {
+        execute.setVisible(false);
+        translate.setVisible(true);
+        translate.setEnabled(noTrlaText ? false : enabled);
+      } else {
+        execute.setVisible(true);
+        translate.setVisible(false);
+        execute.setEnabled(noInstText && noDirectInst ? false : enabled);
+      }
+      copyResult.setEnabled(isdirectInst || noResultText ? false : enabled);
+      reset.setEnabled(isImpress ? false : enabled);
+      loadChapter.setEnabled(isImpress ? false : enabled);
+      clear.setEnabled(isdirectInst || noParaText ? false : enabled);
+      undo.setEnabled(saveText == null ? false : enabled);
+      createImage.setEnabled((noParaText && noDirectInst) || !config.useAiImgSupport() ? false : enabled);
+      overrideParagraph.setEnabled(noResultText || isImpress ? false : enabled);
+      addToParagraph.setEnabled(noResultText ? false : enabled);
+      help.setEnabled(enabled);
+      close.setEnabled(true);
+      helpImg.setEnabled(enabled);
+      closeImg.setEnabled(true);
+  
+      String instructionText = imgInstruction.getText();
+      boolean noImgInst = instructionText == null || instructionText.isEmpty();
+      imgInstruction.setEnabled(enabled);
+      exclude.setEnabled(enabled);
+      imageFrame.setEnabled(enabled);
+      changeImage.setEnabled(noImgInst ? false : enabled);
+      newImage.setEnabled(noImgInst ? false : enabled);
+      translateFirst.setEnabled(noImgInst ? false : enabled);
+      removeImage.setEnabled(image == null ? false : enabled);
+      saveImage.setEnabled(image == null ? false : enabled);
+      insertImage.setEnabled(image == null ? false : enabled);
+      
+  //    contentPane.setEnabled(enabled);
+      contentPane.revalidate();
+      contentPane.repaint();
+      dialog.setEnabled(enabled);
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
     }
-    copyResult.setEnabled(isdirectInst || noResultText ? false : enabled);
-    reset.setEnabled(isImpress ? false : enabled);
-    loadChapter.setEnabled(isImpress ? false : enabled);
-    clear.setEnabled(isdirectInst || noParaText ? false : enabled);
-    undo.setEnabled(saveText == null ? false : enabled);
-    createImage.setEnabled((noParaText && noDirectInst) || !config.useAiImgSupport() ? false : enabled);
-    overrideParagraph.setEnabled(noResultText || isImpress ? false : enabled);
-    addToParagraph.setEnabled(noResultText ? false : enabled);
-    help.setEnabled(enabled);
-    close.setEnabled(true);
-    helpImg.setEnabled(enabled);
-    closeImg.setEnabled(true);
-
-    String instructionText = imgInstruction.getText();
-    boolean noImgInst = instructionText == null || instructionText.isEmpty();
-    imgInstruction.setEnabled(enabled);
-    exclude.setEnabled(enabled);
-    imageFrame.setEnabled(enabled);
-    changeImage.setEnabled(noImgInst ? false : enabled);
-    newImage.setEnabled(noImgInst ? false : enabled);
-    translateFirst.setEnabled(noImgInst ? false : enabled);
-    removeImage.setEnabled(image == null ? false : enabled);
-    saveImage.setEnabled(image == null ? false : enabled);
-    insertImage.setEnabled(image == null ? false : enabled);
-    
-//    contentPane.setEnabled(enabled);
-    contentPane.revalidate();
-    contentPane.repaint();
-    dialog.setEnabled(enabled);
   }
   
   /**
@@ -1634,26 +1665,30 @@ public class WtAiDialog extends Thread implements ActionListener {
  * Set the size of the image  
  */
   private void setImageSize() {
-    if (image != null) {
-      ImageIcon imageIcon = new ImageIcon(image);
-      float factor = (float)imageHeight / (float)imageWidth;
-      int height;
-      int width;
-      if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
-        height = imageFrame.getHeight();
-        width = (int) (imageFrame.getHeight() / factor);
-      } else {
-        height = (int) (imageFrame.getWidth() * factor);
-        width = imageFrame.getWidth();
+    try {
+      if (image != null) {
+        ImageIcon imageIcon = new ImageIcon(image);
+        float factor = (float)imageHeight / (float)imageWidth;
+        int height;
+        int width;
+        if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
+          height = imageFrame.getHeight();
+          width = (int) (imageFrame.getHeight() / factor);
+        } else {
+          height = (int) (imageFrame.getWidth() * factor);
+          width = imageFrame.getWidth();
+        }
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
+              + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
+              + " imageFrame.getHeight(): " + imageFrame.getHeight());
+        }
+        imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
+        imageFrame.setIcon(imageIcon);
+        imageFrame.setMaximumSize(new Dimension(width, height));
       }
-      if (debugMode) {
-        WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
-            + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
-            + " imageFrame.getHeight(): " + imageFrame.getHeight());
-      }
-      imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
-      imageFrame.setIcon(imageIcon);
-      imageFrame.setMaximumSize(new Dimension(width, height));
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
     }
   }
 
@@ -1737,7 +1772,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private void copyResult() {
+  private void copyResult() throws Throwable {
     if (instructionPanel.getSelectedIndex() == 0) {
       saveText = paraText;
       saveResult = resultText;
@@ -1786,7 +1821,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     setButtonState(true);
   }
 
-  private void undo() {
+  private void undo() throws Throwable {
     if (saveText != null && instructionPanel.getSelectedIndex() == 0) {
       paraText = saveText;
       resultText = saveResult;
@@ -1797,7 +1832,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private void help() {
+  private void help() throws Throwable {
     if (mainPanel.getSelectedComponent() == mainTextPanel) {
       WtGeneralTools.openURL(WtOfficeTools.getUrl("AiDialogText"));
     } else {
@@ -1845,14 +1880,14 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
 
-  private void setInstructionItemsFromList() {
+  private void setInstructionItemsFromList() throws Throwable {
     instruction.removeAllItems();
     for (String instr : instructionList) {
       instruction.addItem(instr);
     }
   }
   
-  private List<String> readInstructions() {
+  private List<String> readInstructions() throws Throwable {
     List<String> instructions = new ArrayList<>();
     String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
     File file = new File(dir, AI_SYSTEM_INSTRUCTION_FILE_NAME);
@@ -1913,7 +1948,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     return instructions;
   }
 
-  private void writeInstructions(List<String> instructions) {
+  private void writeInstructions(List<String> instructions) throws Throwable {
     String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
     File file = new File(dir, AI_TEMP_INSTRUCTION_FILE_NAME);
     PrintWriter pWriter = null;
@@ -1959,7 +1994,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     return (int) (Math.random() * Integer.MAX_VALUE);
   }
   
-  private void saveImage() {
+  private void saveImage() throws Throwable {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle(messages.getString("aiDialogImgSaveTitle"));
     if (fileToSave != null) {
@@ -1973,7 +2008,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private void saveImage(File file) {
+  private void saveImage(File file) throws Throwable {
     try {
       String name = file.getName();
       String extension = name.substring(name.lastIndexOf('.') + 1);
@@ -1987,7 +2022,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private void insertImage() {
+  private void insertImage() throws Throwable {
     if (urlString == null) {
       return;
     }
@@ -2007,7 +2042,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private void removeImage() {
+  private void removeImage() throws Throwable {
     image = null;
     imageFrame.setIcon(null);
     imageFrame.setBackground(Color.LIGHT_GRAY);
@@ -2018,6 +2053,7 @@ public class WtAiDialog extends Thread implements ActionListener {
    * returns an array of the translated names of the languages supported by LT
    */
   private String[] getPossibleLanguages() {
+    try {
     List<String> languages = new ArrayList<>();
     for (Language lang : Languages.get()) {
       languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
@@ -2027,6 +2063,10 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
     languages.sort(null);
     return languages.toArray(new String[languages.size()]);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return new String[0];
+    }
   }
 
 }

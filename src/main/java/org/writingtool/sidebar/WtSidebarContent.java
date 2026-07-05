@@ -212,7 +212,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       XWindowListener windowAdapter = new XWindowListener() {
         @Override
         public void windowResized(WindowEvent e) {
-          resizeContainer();
+          try {
+            resizeContainer();
+          } catch (Throwable t) {
+            WtMessageHandler.printException(t);
+          }
         }
         @Override
         public void disposing(EventObject e) { }
@@ -482,7 +486,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   /**
    * set AI support
    */
-  public void setAiSupport(boolean isAiSupport, boolean isAnyAiSupport) {
+  public void setAiSupport(boolean isAiSupport, boolean isAnyAiSupport) throws Throwable {
     this.isAiSupport = isAiSupport;
     this.isAnyAiSupport = isAnyAiSupport;
     resizeContainer();
@@ -491,14 +495,14 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   /**
    * reset list of deactivated rules
    */
-  public void resetActivateRulesBox() {
+  public void resetActivateRulesBox() throws Throwable {
     setActivateRulesListToListBox();
   }
   
   /**
    * reset list of profiles
    */
-  public void resetProfileListBox() {
+  public void resetProfileListBox() throws Throwable {
     setProfileListToListBox();;
   }
   
@@ -567,7 +571,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a button with label and action listener.
    */
   private static XControl createButton(XMultiComponentFactory xMCF, XComponentContext context, String label,
-      XActionListener listener, Rectangle size, SortedMap<String, Object> props) {
+      XActionListener listener, Rectangle size, SortedMap<String, Object> props) throws Throwable {
     XControl buttonCtrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_BUTTON, props, size);
     XButton button = UnoRuntime.queryInterface(XButton.class, buttonCtrl);
     button.setLabel(label);
@@ -581,8 +585,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a combo box with options and item listener.
    */
   public static XControl createCombobox(XMultiComponentFactory xMCF, XComponentContext context, String text,
-      XItemListener listener, XTextListener textListener, Rectangle size, SortedMap<String, Object> props)
-  {
+      XItemListener listener, XTextListener textListener, Rectangle size, SortedMap<String, Object> props)  throws Throwable {
     XControl ctrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_COMBO_BOX, props, size);
     XTextComponent txt = UnoRuntime.queryInterface(XTextComponent.class, ctrl);
     txt.setText(text);
@@ -602,8 +605,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a list box with an item listener.
    */
   public static XControl createListBox(XMultiComponentFactory xMCF, XComponentContext context,
-      XItemListener listener, Rectangle size, SortedMap<String, Object> props)
-  {
+      XItemListener listener, Rectangle size, SortedMap<String, Object> props) throws Throwable {
     XControl ctrl = createControl(xMCF, context, CSS_AWT_UNO_CONTROL_LIST_BOX, props, size);
     if (listener != null) {
       UnoRuntime.queryInterface(XComboBox.class, ctrl).addItemListener(listener);
@@ -615,7 +617,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a label.
    */
   private static XControl createLabel(XMultiComponentFactory xMCF, XComponentContext context, String text,
-      Rectangle size, SortedMap<String, Object> props) {
+      Rectangle size, SortedMap<String, Object> props) throws Throwable {
     if (props == null) {
       props = new TreeMap<>();
     }
@@ -629,7 +631,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a text field.
    */
   private static XControl createTextfield(XMultiComponentFactory xMCF, XComponentContext context, String text,
-      Rectangle size, SortedMap<String, Object> props, XTextListener textListener) {
+      Rectangle size, SortedMap<String, Object> props, XTextListener textListener) throws Throwable {
     if (props == null) {
       props = new TreeMap<>();
     }
@@ -647,7 +649,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Create a control container.
    */
   private static XControl createControlContainer(XMultiComponentFactory xMCF, XComponentContext context, Rectangle size,
-      SortedMap<String, Object> props) {
+      SortedMap<String, Object> props) throws Throwable {
     return createControl(xMCF, context, CSS_AWT_UNO_CONTROL_CONTAINER, props, size);
   }
 
@@ -655,7 +657,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Creates any control.
    */
   private static XControl createControl(XMultiComponentFactory xMCF, XComponentContext xContext, String type,
-      SortedMap<String, Object> props, Rectangle rectangle) {
+      SortedMap<String, Object> props, Rectangle rectangle) throws Throwable {
     try
     {
       XControl control = UnoRuntime.queryInterface(XControl.class, xMCF.createInstanceWithContext(type, xContext));
@@ -679,12 +681,13 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
 
   
-  private XWindow addButtonToContainer(int num, String cmd, String imageFile, String helpText, XControlContainer buttonContainer) {
+  private XWindow addButtonToContainer(int num, String cmd, String imageFile, String helpText, 
+      XControlContainer buttonContainer) throws Throwable {
     return addButtonToContainer(num, cmd, imageFile, helpText, buttonContainer, false);
   }
   
   private XWindow addButtonToContainer(int num, String cmd, String imageFile, String helpText, 
-      XControlContainer buttonContainer, boolean isAiCmd) {
+      XControlContainer buttonContainer, boolean isAiCmd) throws Throwable {
     SortedMap<String, Object> bProps = new TreeMap<>();
     bProps.put("ImageURL", "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/" + imageFile);
     bProps.put("HelpText", messages.getString(helpText));
@@ -715,7 +718,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return xWindow;
   }
   
-  private void setProfileListToListBox() {
+  private void setProfileListToListBox() throws Throwable {
     WtConfiguration conf = documents.getConfiguration();
     profiles.clear();
     profiles.addAll(conf.getDefinedProfiles());
@@ -736,7 +739,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
-  private XWindow addProfileListBoxToContainer(int num, XControlContainer buttonContainer) {
+  private XWindow addProfileListBoxToContainer(int num, XControlContainer buttonContainer) throws Throwable {
     SortedMap<String, Object> bProps = new TreeMap<>();
     bProps.put("ImageURL", "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTProfilesSmall.png");
     bProps.put("HelpText", messages.getString("loMenuChangeProfiles"));
@@ -771,7 +774,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     return xWindow;
   }
   
-  private void setActivateRulesListToListBox() {
+  private void setActivateRulesListToListBox() throws Throwable {
     deactivatedRulesMap = documents.getDisabledRulesMap(null);
     rulesList = new String[deactivatedRulesMap.keySet().size() + 1];
     rulesList[0] = new String(messages.getString("loContextMenuActivateRule"));
@@ -790,7 +793,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
-  private XWindow addActivateRulesListBoxToContainer(int num, XControlContainer buttonContainer) {
+  private XWindow addActivateRulesListBoxToContainer(int num, XControlContainer buttonContainer) throws Throwable {
     SortedMap<String, Object> bProps = new TreeMap<>();
     bProps.put("ImageURL", "vnd.sun.star.extension://org.openoffice.writingtool.oxt/images/WTActivateRulesSmall.png");
     bProps.put("HelpText", messages.getString("loContextMenuActivateRule"));
@@ -879,11 +882,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     setTextToBox();
   }
 
-  private boolean hasStatAn() {
+  private boolean hasStatAn() throws Throwable {
     return WtOfficeTools.hasStatisticalStyleRules(xContext);
   }
   
-  public void resizeContainer() {
+  public void resizeContainer() throws Throwable {
     Rectangle rect = contentWindow.getPosSize();
     containerHeight = rect.Height - CONTAINER_TOP - CONTAINER_MARGIN_BETWEEN - STATUS_CONTAINER_HEIGHT - CONTAINER_MARGIN_BOTTOM
         - (isAnyAiSupport ? (BUTTON_CONTAINER_HEIGHT + BUTTON_MARGIN_BETWEEN) : 0);
@@ -945,7 +948,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     setActivateRulesListToListBox();
   }
   
-  private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara, WtSingleDocument document) {
+  private WtProofreadingError[] getErrorsOfParagraph(TextParagraph tPara, WtSingleDocument document) throws Throwable {
     WtLanguageTool lt = documents.getLanguageTool();
     if (document == null) {
       return new WtProofreadingError[0];
@@ -1071,36 +1074,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
-
-/*  
-  private String addLineBreaks(String inpText) {
-    if (inpText.length() <= LINE_MAX_CHAR) {
-      return inpText;
-    }
-    String outpText = "";
-    int lastChar = 0;
-    while (lastChar < inpText.length()) {
-      if (lastChar + LINE_MAX_CHAR >= inpText.length()) {
-        outpText += inpText.substring(lastChar);
-        lastChar = inpText.length();
-      } else {
-        int i;
-        for (i = lastChar + LINE_MAX_CHAR; i > lastChar && !Character.isWhitespace(inpText.charAt(i)) && inpText.charAt(i) != '-'; i--);
-//        WtMessageHandler.printToLogFile("lastChar = " + ", i = " + i);
-        if (i == 0) {
-          outpText += inpText.substring(lastChar, lastChar + LINE_MAX_CHAR) + LINE_BREAK;
-          lastChar += LINE_MAX_CHAR;
-        } else {
-          outpText += inpText.substring(lastChar, i + 1) + LINE_BREAK;
-          lastChar = i + 1;
-        }
-      }
-    }
-    return outpText;
-  }
-*/
-  
-  public void toggleBackgroundCheckButton() {
+  public void toggleBackgroundCheckButton() throws Throwable {
     buttonAutoOnWindow.setVisible(documents.isBackgroundCheckOff());
     buttonAutoOffWindow.setVisible(!documents.isBackgroundCheckOff());
   }
@@ -1109,7 +1083,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Set Color of inactive cache 
    * grey
    */
-  public void setCacheStatusColorInactive() {
+  public void setCacheStatusColorInactive() throws Throwable {
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       if (i != WtOfficeTools.CACHE_AI) {
         setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), CACHE_INACTIVE_COLOR, TEXT_CACHE_LABEL + "(" + i + ")");
@@ -1124,7 +1098,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * * red if cache not filled 
    * * green for full cache
    */
-  public void setCacheStatusColor(WtSingleDocument document) {
+  public void setCacheStatusColor(WtSingleDocument document) throws Throwable {
     if (document == null) {
       return;
     }
@@ -1170,7 +1144,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   /**
    * get size of cache status in percent
    */
-  public static int getCacheStatusSize(int pSize, int fullSize) {
+  public static int getCacheStatusSize(int pSize, int fullSize) throws Throwable {
     int size;
     size = (fullSize == 0) ? 0 : (int) (((pSize * 100.) / fullSize) + 0.5);
     if (size < 0) {
@@ -1184,7 +1158,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   /**
    * get color (red to green) of cache status from size (in percent)
    */
-  public static Color getCacheStatusColor(int size) {
+  public static Color getCacheStatusColor(int size) throws Throwable {
     if (size < 50) {
       return new Color(120 + (int) (size * 1.6 + 0.5), (int) (size * 4. + 0.5), 0);
     } else {
@@ -1192,7 +1166,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
 
-  private void setCacheStatusColorAndTooltip(XControl xCacheSizeLabel, Color color, String tooltipText) {
+  private void setCacheStatusColorAndTooltip(XControl xCacheSizeLabel, Color color, String tooltipText) throws Throwable {
     try {
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xCacheSizeLabel.getModel());
       props.setPropertyValue("TextColor", color.getRGB() & ~0xFF000000);
@@ -1228,7 +1202,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 //    return new LayoutSize(height, height, height);
   }
 
-//  @Override
+  @Override
   public int getMinimalWidth() {
     return MINIMAL_WIDTH;
   }

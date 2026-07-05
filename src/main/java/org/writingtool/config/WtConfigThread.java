@@ -64,14 +64,14 @@ public class WtConfigThread extends Thread {
 
   @Override
   public void run() {
-    if(!WtOfficeTools.javaVersionOkay()) {
-      return;
-    }
-    if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-      WtDocumentsHandler.setJavaLookAndFeel();
-    }
-    documents.setConfigurationDialog(cfgDialog);
     try {
+      if(!WtOfficeTools.javaVersionOkay()) {
+        return;
+      }
+      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+        WtDocumentsHandler.setJavaLookAndFeel();
+      }
+      documents.setConfigurationDialog(cfgDialog);
       List<Rule> allRules = lt.getAllRules();
       Set<String> disabledRulesUI = WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant());
       config.addDisabledRuleIds(disabledRulesUI);

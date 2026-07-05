@@ -42,11 +42,11 @@ import com.sun.star.lang.Locale;
  */
 public class WtAiConfusionPairs {
 
-  private static String getConfusionSetFilePath(Locale locale, String fileName) {
+  private static String getConfusionSetFilePath(Locale locale, String fileName) throws Throwable {
     return "/" + locale.Language + "/" + fileName;
   }
   
-  private static void addToWordMap (String word1, String word2, Map<String, Set<String>> words) {
+  private static void addToWordMap (String word1, String word2, Map<String, Set<String>> words) throws Throwable {
     if (!word1.equalsIgnoreCase(word2)) {
       if (words.containsKey(word1)) {
         Set<String> wList = words.get(word1);
@@ -66,11 +66,12 @@ public class WtAiConfusionPairs {
   /**
    * get the list of words out of spelling.txt files defined by LT
    */
-  public static Map<String, Set<String>> getConfusionWordMap(Locale locale, String fileName) {
+  public static Map<String, Set<String>> getConfusionWordMap(Locale locale, String fileName) throws Throwable {
     return getConfusionWordMap(locale, fileName, null);
   }
 
-  public static Map<String, Set<String>> getConfusionWordMap(Locale locale, String fileName, Map<String, Set<String>> words) {
+  public static Map<String, Set<String>> getConfusionWordMap(Locale locale, String fileName, 
+      Map<String, Set<String>> words) throws Throwable {
     if (words == null) {
       words = new HashMap<>();
     }

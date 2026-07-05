@@ -61,11 +61,12 @@ public class WtIgnoredMatches {
   /**
    * Set an ignored match
    */
-  public void setIgnoredMatch(int x, int y, String ruleId) {
+  public void setIgnoredMatch(int x, int y, String ruleId) throws Throwable {
     setIgnoredMatch(x, y, 0, ruleId, null, null);
   }
   
-  public void setIgnoredMatch(int x, int y, int len, String ruleId, Locale locale, WtFlatParagraphTools flatPara) {
+  public void setIgnoredMatch(int x, int y, int len, String ruleId, Locale locale, 
+      WtFlatParagraphTools flatPara) throws Throwable {
     Map<String, Set<Integer>> ruleAtX;
     Set<Integer> charNums;
     if (ignoredMatches.containsKey(y)) {
@@ -103,7 +104,7 @@ public class WtIgnoredMatches {
   /**
    * Remove an ignored matches in a paragraph
    */
-  public void removeIgnoredMatches(int y, WtFlatParagraphTools flatPara) {
+  public void removeIgnoredMatches(int y, WtFlatParagraphTools flatPara) throws Throwable {
     if (ignoredMatches.containsKey(y)) {
       ignoredMatches.remove(y);
       if (spellLocales.containsKey(y)) {
@@ -119,7 +120,7 @@ public class WtIgnoredMatches {
   /**
    * Remove an ignored matches of a special ruleID in a paragraph
    */
-  public void removeIgnoredMatches(int y, String ruleId, WtFlatParagraphTools flatPara) {
+  public void removeIgnoredMatches(int y, String ruleId, WtFlatParagraphTools flatPara) throws Throwable {
     if (ignoredMatches.containsKey(y)) {
       Map<String, Set<Integer>> ruleAtX = ignoredMatches.get(y);
       if (ruleAtX.containsKey(ruleId)) {
@@ -147,7 +148,7 @@ public class WtIgnoredMatches {
   /**
    * Remove one ignored match
    */
-  public void removeIgnoredMatch(int x, int y, String ruleId, WtFlatParagraphTools flatPara) {
+  public void removeIgnoredMatch(int x, int y, String ruleId, WtFlatParagraphTools flatPara) throws Throwable {
     if (ignoredMatches.containsKey(y)) {
       Map<String, Set<Integer>> ruleAtX = ignoredMatches.get(y);
       if (ruleAtX.containsKey(ruleId)) {
@@ -183,7 +184,7 @@ public class WtIgnoredMatches {
   /**
    * Is the match of a ruleID at a position ignored
    */
-  public boolean isIgnored(int xFrom, int xTo, int y, String ruleId) {
+  public boolean isIgnored(int xFrom, int xTo, int y, String ruleId) throws Throwable {
     if (ignoredMatches.containsKey(y) && ignoredMatches.get(y).containsKey(ruleId)) {
       for (int x : ignoredMatches.get(y).get(ruleId)) {
         if (x >= xFrom && x < xTo) {
@@ -257,13 +258,13 @@ public class WtIgnoredMatches {
     return new ArrayList<Integer>(ignoredMatches.keySet());
   }
   
-  void removeSpellingMark(int y, int start, int length, WtFlatParagraphTools flatPara) {
+  void removeSpellingMark(int y, int start, int length, WtFlatParagraphTools flatPara) throws Throwable {
     if (flatPara != null) {
       flatPara.setLanguageOfParagraph(y, start, length, new Locale (WtOfficeTools.IGNORE_LANGUAGE, "", ""));
     }
   }
 
-  private void resetLocale(int y, int start, int length, Locale locale, WtFlatParagraphTools flatPara) {
+  private void resetLocale(int y, int start, int length, Locale locale, WtFlatParagraphTools flatPara) throws Throwable {
     if (flatPara != null) {
 //      MessageHandler.printToLogFile("IgnoredMatches: resetLocale: y: " + y + ", start: " + start 
 //          + ", length: " + length + ", locale: " + OfficeTools.localeToString(locale));
@@ -271,7 +272,7 @@ public class WtIgnoredMatches {
     }
   }
   
-  public void resetAllIgnoredSpellingMarks(WtFlatParagraphTools flatPara) {
+  public void resetAllIgnoredSpellingMarks(WtFlatParagraphTools flatPara) throws Throwable {
     if (flatPara != null) {
       for (int y : spellLocales.keySet()) {
         for (LocaleEntry entry : spellLocales.get(y)) {
@@ -281,7 +282,7 @@ public class WtIgnoredMatches {
     }
   }
 
-  public void resetAllLocale(WtFlatParagraphTools flatPara) {
+  public void resetAllLocale(WtFlatParagraphTools flatPara) throws Throwable {
     if (flatPara != null) {
 //      MessageHandler.printToLogFile("IgnoredMatches: resetAllLocale: spellLocales.size: " + spellLocales.size());
       for (int y : spellLocales.keySet()) {

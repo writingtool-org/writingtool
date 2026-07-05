@@ -778,7 +778,8 @@ public class WtViewCursorTools {
   /**
    * Set the view cursor if the paragraph is inside of text region
    */
-  private static int setViewCursorToParaIfFits(int xChar, int numPara, int nLastPara, XText xText, XTextViewCursor vCursor) {
+  private static int setViewCursorToParaIfFits(int xChar, int numPara, int nLastPara, XText xText, 
+      XTextViewCursor vCursor) throws Throwable {
     if (xText == null || vCursor == null) {
       return nLastPara;
     }

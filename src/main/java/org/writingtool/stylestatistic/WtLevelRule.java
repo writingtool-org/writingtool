@@ -54,10 +54,14 @@ public class WtLevelRule {
   
   public WtLevelRule (TextLevelRule rule, WtStatAnCache cache) {
     this.rule = rule;
-    withDirectSpeech = true;
-    procentualStep = getDefaultRuleStep();
-    optimalNumberWords = 3 * procentualStep;
-    unitFactor = getUnitFactor();
+    try {
+      withDirectSpeech = true;
+      procentualStep = getDefaultRuleStep();
+      optimalNumberWords = 3 * procentualStep;
+      unitFactor = getUnitFactor();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
   }
   
   public void generateBasicNumbers(WtStatAnCache cache) throws Throwable {
@@ -185,7 +189,7 @@ public class WtLevelRule {
     return 7;
   }
   
-  public double getUnitFactor() {
+  public double getUnitFactor() throws Throwable {
     if (rule instanceof AbstractStatisticSentenceStyleRule) {
       return ((AbstractStatisticSentenceStyleRule) rule).denominator();
     } else if (rule instanceof AbstractStatisticStyleRule) {
@@ -194,7 +198,7 @@ public class WtLevelRule {
     return 1;
   }
 
-  private int getDefaultRuleStep() {
+  private int getDefaultRuleStep() throws Throwable {
     int defValue = (int)rule.getRuleOptions()[0].getDefaultValue();
     int defStep = (int) ((defValue / 3.) + 0.5);
     if (defStep < 1) {
@@ -203,7 +207,7 @@ public class WtLevelRule {
     return defStep;
   }
   
-  public int getDefaultStep() {
+  public int getDefaultStep() throws Throwable {
     int defStep = getDefaultRuleStep();
     if (debugMode) {
       WtMessageHandler.printToLogFile("default step: " + defStep);
@@ -250,7 +254,7 @@ public class WtLevelRule {
     }
   }
 
-  public String getMessageOfLevel(int level) {
+  public String getMessageOfLevel(int level) throws Throwable {
     String sLevel = null;
     if (rule instanceof ReadabilityRule) {
       return ((ReadabilityRule) rule).printMessageLevel(level);
@@ -267,14 +271,14 @@ public class WtLevelRule {
     }
   }
 
-  public static boolean hasStatisticalOptions(Rule rule) {
+  public static boolean hasStatisticalOptions(Rule rule) throws Throwable {
     if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule) {
       return true;
     }
     return false;
   }
   
-  public static boolean isLevelRule(Rule rule) {
+  public static boolean isLevelRule(Rule rule) throws Throwable {
     if (rule instanceof AbstractStatisticSentenceStyleRule || rule instanceof AbstractStatisticStyleRule ||
         rule instanceof ReadabilityRule) {
       return true;

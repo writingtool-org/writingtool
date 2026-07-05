@@ -127,8 +127,7 @@ public class WtOfficeGraphicTools {
         WtMessageHandler.printToLogFile("Couldn't set property 'GraphicURL'");
         WtMessageHandler.printException(e);
       }
-    }
-    catch( Exception e ) {
+    } catch(Throwable e) {
       WtMessageHandler.printException(e);
     }
   }
@@ -165,7 +164,7 @@ public class WtOfficeGraphicTools {
   }
   
   private static XShape drawImage(XDrawPage slide, String imFnm, int x, int y, int width, int height,
-      XComponent xComponent, XComponentContext xContext) {
+      XComponent xComponent, XComponentContext xContext) throws Throwable {
     // units in mm's
     WtMessageHandler.printToLogFile("Adding picture \"" + imFnm + "\"");
     XShape imShape = addShape(slide, "GraphicObjectShape", 
@@ -177,7 +176,7 @@ public class WtOfficeGraphicTools {
   }  // end of drawImage()
 
   private static XShape addShape(XDrawPage slide, String shapeType, 
-      int x, int y, int width, int height, XComponent xComponent) { 
+      int x, int y, int width, int height, XComponent xComponent) throws Throwable { 
     warnsPosition(slide, x, y);
     XShape shape = makeShape(shapeType, x, y, width, height, xComponent);
     if (shape != null) { 
@@ -197,15 +196,14 @@ public class WtOfficeGraphicTools {
       shape = UnoRuntime.queryInterface(XShape.class, o);
       shape.setPosition( new Point(x*100,y*100) );
       shape.setSize( new Size(width*100, height*100) );
-    } catch(Exception e) {
+    } catch(Throwable e) {
       WtMessageHandler.showError(e);
     }
     return shape;
   }  // end of makeShape()
   
-  private static void warnsPosition(XDrawPage slide, int x, int y)
-  // warns if (x, y) is not on the page
-  {
+  private static void warnsPosition(XDrawPage slide, int x, int y) throws Throwable {
+    // warns if (x, y) is not on the page
     Size slideSize = getSlideSize(slide);
     if (slideSize == null) {
       WtMessageHandler.printToLogFile("No slide size found");
@@ -226,9 +224,8 @@ public class WtOfficeGraphicTools {
     }
   }  // end of warnsPosition()
 
-  private static Size getSlideSize(XDrawPage xDrawPage)
-  // get size of the given slide page (in mm units)
-  {
+  private static Size getSlideSize(XDrawPage xDrawPage) throws Throwable {
+    // get size of the given slide page (in mm units)
     try {
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xDrawPage);
       if (props == null) {
@@ -267,9 +264,8 @@ public class WtOfficeGraphicTools {
     }
   }  // end of setImage()
   
-  private static Object getBitmap(String fnm, XComponent xComponent)
-  // load the graphic as a bitmap, and return it as a string
-  {
+  private static Object getBitmap(String fnm, XComponent xComponent) {
+    // load the graphic as a bitmap, and return it as a string
     try {
       XMultiServiceFactory msf = UnoRuntime.queryInterface(XMultiServiceFactory.class, xComponent);
       Object o;
@@ -294,15 +290,14 @@ public class WtOfficeGraphicTools {
       }
       return bitmapContainer.getByName(imgName);
     }
-    catch(Exception e) {
+    catch(Throwable e) {
       WtMessageHandler.showError(e);
       return null;
     }
   }  // end of getBitmap()
 
-  private static boolean isOpenable(String fnm)
-  // convert a file path to URL format
-  {
+  private static boolean isOpenable(String fnm) throws Throwable {
+    // convert a file path to URL format
      File f = new File(fnm);
      if (!f.exists()) {
        WtMessageHandler.showMessage(fnm + " does not exist");
@@ -319,20 +314,19 @@ public class WtOfficeGraphicTools {
      return true;
   } // end of isOpenable()
 
-  private static String fnmToURL(String fnm)
-  // convert a file path to URL format
-  {
-     try {
-       StringBuffer sb = null;
-       String path = new File(fnm).getCanonicalPath();
-       sb = new StringBuffer("file:///");
-       sb.append(path.replace('\\', '/'));
-       return sb.toString();
-     }
-     catch (java.io.IOException e) {
-       WtMessageHandler.printException(e);
-       return null;
-     }
+  private static String fnmToURL(String fnm) {
+    // convert a file path to URL format
+    try {
+      StringBuffer sb = null;
+      String path = new File(fnm).getCanonicalPath();
+      sb = new StringBuffer("file:///");
+      sb.append(path.replace('\\', '/'));
+      return sb.toString();
+    }
+    catch (Throwable e) {
+      WtMessageHandler.printException(e);
+      return null;
+    }
   }
 
   public static void insertDrawText(String txt, int width, int height, XComponent xComponent) {
@@ -348,8 +342,7 @@ public class WtOfficeGraphicTools {
     }
   }
   
-  private static void addText(XShape shape, String txt)
-  {
+  private static void addText(XShape shape, String txt) throws Throwable {
     XText xText = UnoRuntime.queryInterface(XText.class, shape);
     XTextCursor cursor = xText.createTextCursor();
     cursor.gotoEnd(false);

@@ -21,7 +21,6 @@ package org.writingtool;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -53,22 +52,22 @@ public class WtAnalyzedParagraphsCache {
   
   WtAnalyzedParagraphsCache(WtDocumentsHandler mDocHandler) {
     WtSingleDocument document = mDocHandler.getCurrentDocument();
-    if (document == null) {
-      return;
-    }
-    WtDocumentCache docCache = document.getDocumentCache();
-    if (docCache == null) {
-      return;
-    }
-    Locale tmpLocale = docCache.getFlatParagraphLocale(0);
-    if (tmpLocale == null || !WtDocumentsHandler.hasLocale(tmpLocale)) {
-      locale = null;
-      return;
-    }
-    locale = WtOfficeTools.localeToString(tmpLocale);
-    Language language = Languages.getLanguageForShortCode(WtOfficeTools.localeToString(tmpLocale));
-    JLanguageTool lt = new JLanguageTool(language);
     try {
+      if (document == null) {
+        return;
+      }
+      WtDocumentCache docCache = document.getDocumentCache();
+      if (docCache == null) {
+        return;
+      }
+      Locale tmpLocale = docCache.getFlatParagraphLocale(0);
+      if (tmpLocale == null || !WtDocumentsHandler.hasLocale(tmpLocale)) {
+        locale = null;
+        return;
+      }
+      locale = WtOfficeTools.localeToString(tmpLocale);
+      Language language = Languages.getLanguageForShortCode(WtOfficeTools.localeToString(tmpLocale));
+      JLanguageTool lt = new JLanguageTool(language);
       TextParagraph tPara = new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, 0);
       List<String> jParagraphs = new ArrayList<String>();
       for (int n = 0; n < docCache.textSize(tPara); n++) {
@@ -87,7 +86,7 @@ public class WtAnalyzedParagraphsCache {
       doc.put("locale", locale);
       doc.put("paragraphs", jParagraphs);
       writeIntoFile();
-    } catch (IOException e) {
+    } catch (Throwable e) {
       WtMessageHandler.printException(e);
       return;
     }

@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +45,7 @@ import org.languagetool.rules.ITSIssueType;
 import org.languagetool.rules.Rule;
 import org.languagetool.rules.RuleOption;
 import org.writingtool.tools.WtGeneralTools;
+import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtVersionInfo;
 
@@ -304,19 +304,19 @@ public class WtConfiguration {
    * @param lang The language for the configuration, used to distinguish
    *             rules that are enabled or disabled per language.
    */
-  public WtConfiguration(Language lang) throws IOException {
+  public WtConfiguration(Language lang) throws Throwable {
     this(new File(System.getProperty("user.home")), CONFIG_FILE, lang);
   }
 
-  public WtConfiguration(File baseDir, Language lang) throws IOException {
+  public WtConfiguration(File baseDir, Language lang) throws Throwable {
     this(baseDir, CONFIG_FILE, lang);
   }
 
-  public WtConfiguration(File baseDir, String filename, Language lang) throws IOException {
+  public WtConfiguration(File baseDir, String filename, Language lang) throws Throwable {
     this(baseDir, filename, lang, false);
   }
 
-  public WtConfiguration(File baseDir, String filename, Language lang, boolean isOffice) throws IOException {
+  public WtConfiguration(File baseDir, String filename, Language lang, boolean isOffice) throws Throwable {
     // already fails silently if file doesn't exist in loadConfiguration, don't fail here either
     // can cause problem when starting LanguageTool server as a user without a home directory because of default arguments
     //if (baseDir == null || !baseDir.isDirectory()) {
@@ -415,9 +415,14 @@ public class WtConfiguration {
    * @since LT2.6
    */
   public WtConfiguration copy(WtConfiguration configuration) {
-    WtConfiguration copy = new WtConfiguration();
-    copy.restoreState(configuration);
-    return copy;
+    try {
+      WtConfiguration copy = new WtConfiguration();
+      copy.restoreState(configuration);
+      return copy;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
+    }
   }
 
   /**
@@ -425,7 +430,7 @@ public class WtConfiguration {
    * @param configuration the object from which we will read the state
    * @since LT2.6
    */
-  public void restoreState(WtConfiguration configuration) {
+  public void restoreState(WtConfiguration configuration) throws Throwable {
     this.configFile = configuration.configFile;
     this.language = configuration.language;
     this.lang = configuration.lang;
@@ -1071,7 +1076,7 @@ public class WtConfiguration {
    * and save configuration
    * @since LT5.2
    */
-  public void saveNoBackgroundCheck(boolean noBackgroundCheck, Language lang) throws IOException {
+  public void saveNoBackgroundCheck(boolean noBackgroundCheck, Language lang) throws Throwable {
     this.noBackgroundCheck = noBackgroundCheck;
     saveConfiguration(lang);
   }
@@ -1274,7 +1279,7 @@ public class WtConfiguration {
    * @since LT4.4
    * Initialize set of style like categories
    */
-  public void initStyleCategories(List<Rule> allRules) {
+  public void initStyleCategories(List<Rule> allRules) throws Throwable {
     Map<String, Boolean> categoryMap = new HashMap<>();
     for (Rule rule : allRules) {
       if (rule.getCategory().getTabName() != null && !specialTabCategories.containsKey(rule.getCategory().getName())) {
@@ -1310,7 +1315,7 @@ public class WtConfiguration {
    * @since LT4.3
    * Returns true if category is a special Tab category
    */
-  public boolean isSpecialTabCategory(String category) {
+  public boolean isSpecialTabCategory(String category) throws Throwable {
     return specialTabCategories.containsKey(category);
   }
 
@@ -1318,7 +1323,7 @@ public class WtConfiguration {
    * @since LT4.3
    * Returns true if category is member of named special Tab
    */
-  public boolean isInSpecialTab(String category, String tabName) {
+  public boolean isInSpecialTab(String category, String tabName) throws Throwable {
     if (specialTabCategories.containsKey(category)) {
       return specialTabCategories.get(category).equals(tabName);
     }
@@ -1329,7 +1334,7 @@ public class WtConfiguration {
    * @since LT4.3
    * Returns all special tab names
    */
-  public String[] getSpecialTabNames() {
+  public String[] getSpecialTabNames() throws Throwable {
     Set<String> tabNames = new HashSet<>();
     for (Map.Entry<String, String> entry : specialTabCategories.entrySet()) {
       tabNames.add(entry.getValue());
@@ -1341,7 +1346,7 @@ public class WtConfiguration {
    * @since LT4.3
    * Returns all categories for a named special tab
    */
-  public Set<String> getSpecialTabCategories(String tabName) {
+  public Set<String> getSpecialTabCategories(String tabName) throws Throwable {
     Set<String> tabCategories = new HashSet<>();
     for (Map.Entry<String, String> entry : specialTabCategories.entrySet()) {
       if (entry.getKey().equals(tabName)) {
@@ -1393,7 +1398,7 @@ public class WtConfiguration {
    * @since LT4.2
    * Get the color to underline a rule match by the Name of its category
    */
-  public Color getUnderlineColor(String category, String ruleId) {
+  public Color getUnderlineColor(String category, String ruleId) throws Throwable {
     if (isOpenOffice) {
       return Color.blue;
     }
@@ -1480,7 +1485,7 @@ public class WtConfiguration {
    * @since LT4.9
    * Get the type to underline a rule match by the Name of its category
    */
-  public Short getUnderlineType(String category, String ruleId) {
+  public Short getUnderlineType(String category, String ruleId) throws Throwable {
     if (ruleId != null && underlineRuleTypes.containsKey(ruleId)) {
       return underlineRuleTypes.get(ruleId);
     }
@@ -1536,7 +1541,7 @@ public class WtConfiguration {
    * @since LT6.5
    */
   @SuppressWarnings("unchecked")
-  public <T> T getConfigValueByID(String ruleID, int index, Class<T> clazz, T defaultValue) {
+  public <T> T getConfigValueByID(String ruleID, int index, Class<T> clazz, T defaultValue) throws Throwable {
     Object[] value = configurableRuleValues.get(ruleID);
     if (value == null || index >= value.length || !clazz.isInstance(value[index])) {
       return defaultValue;
@@ -1595,11 +1600,11 @@ public class WtConfiguration {
     return true;
   }
 
-  private void loadConfiguration() throws IOException {
+  private void loadConfiguration() throws Throwable {
     loadConfiguration(null);
   }
 
-  public void loadConfiguration(String profile) throws IOException {
+  public void loadConfiguration(String profile) throws Throwable {
     String qualifier = getQualifier(lang);
     
     File cfgFile = configFile;
@@ -1658,7 +1663,7 @@ public class WtConfiguration {
     }
   }
   
-  private void loadCurrentProfile(Properties props, String prefix, String qualifier) {
+  private void loadCurrentProfile(Properties props, String prefix, String qualifier) throws Throwable {
     
     String useDocLangString = (String) props.get(prefix + USE_DOC_LANG_KEY);
     if (useDocLangString != null) {
@@ -1945,7 +1950,7 @@ public class WtConfiguration {
     loadConfigForOtherLanguages(lang, props, prefix);
   }
 
-  private void parseErrorColors(String colorsString) {
+  private void parseErrorColors(String colorsString) throws Throwable {
     if (StringUtils.isNotEmpty(colorsString)) {
       String[] typeToColorList = colorsString.split(COLOR_SPLITTER_REGEXP);
       for (String typeToColor : typeToColorList) {
@@ -1960,7 +1965,7 @@ public class WtConfiguration {
     }
   }
 
-  private void parseUnderlineColors(String colorsString, Map<String, Color> underlineColors) {
+  private void parseUnderlineColors(String colorsString, Map<String, Color> underlineColors) throws Throwable {
     if (StringUtils.isNotEmpty(colorsString)) {
       String[] typeToColorList = colorsString.split(COLOR_SPLITTER_REGEXP);
       for (String typeToColor : typeToColorList) {
@@ -1973,7 +1978,7 @@ public class WtConfiguration {
     }
   }
 
-  private void parseUnderlineDefaultColors(String colorsString, List<Color> colors) {
+  private void parseUnderlineDefaultColors(String colorsString, List<Color> colors) throws Throwable {
     if (StringUtils.isNotEmpty(colorsString)) {
       String[] colorList = colorsString.split(",");
       if (colorList.length != 3) {
@@ -1986,7 +1991,7 @@ public class WtConfiguration {
     }
   }
 
-  private void parseUnderlineTypes(String typessString, Map<String, Short> underlineTypes) {
+  private void parseUnderlineTypes(String typessString, Map<String, Short> underlineTypes) throws Throwable {
     if (StringUtils.isNotEmpty(typessString)) {
       String[] categoryToTypesList = typessString.split(CONFIGURABLE_RULE_SPLITTER_REGEXP);
       for (String categoryToType : categoryToTypesList) {
@@ -1999,7 +2004,7 @@ public class WtConfiguration {
     }
   }
 
-  private void parseConfigurableRuleValues(String rulesValueString) {
+  private void parseConfigurableRuleValues(String rulesValueString) throws Throwable {
     if (StringUtils.isNotEmpty(rulesValueString)) {
       String[] ruleToValueList = rulesValueString.split(",");
       for (String ruleToValue : ruleToValueList) {
@@ -2024,7 +2029,7 @@ public class WtConfiguration {
     return qualifier;
   }
 
-  private void loadConfigForOtherLanguages(Language lang, Properties prop, String prefix) {
+  private void loadConfigForOtherLanguages(Language lang, Properties prop, String prefix) throws Throwable {
     for (Language otherLang : Languages.get()) {
       if (!otherLang.equals(lang)) {
         String languageSuffix = "." + otherLang.getShortCodeWithCountryAndVariant();
@@ -2037,13 +2042,13 @@ public class WtConfiguration {
     }
   }
 
-  private void storeConfigKeyFromProp(Properties prop, String key) {
+  private void storeConfigKeyFromProp(Properties prop, String key) throws Throwable {
     if (prop.containsKey(key)) {
       configForOtherLanguages.put(key, prop.getProperty(key));
     }
   }
 
-  private Collection<? extends String> getListFromProperties(Properties props, String key) {
+  private Collection<? extends String> getListFromProperties(Properties props, String key) throws Throwable {
     String value = (String) props.get(key);
     List<String> list = new ArrayList<>();
     if (value != null && !value.isEmpty()) {
@@ -2057,7 +2062,7 @@ public class WtConfiguration {
     return list;
   }
 
-  public void saveConfiguration(Language lang) throws IOException {
+  public void saveConfiguration(Language lang) throws Throwable {
     if (lang == null) {
       lang = this.lang;
     }
@@ -2125,7 +2130,7 @@ public class WtConfiguration {
     
   }
 
-  private void addListToProperties(Properties props, String key, Set<String> list) {
+  private void addListToProperties(Properties props, String key, Set<String> list) throws Throwable {
     if (list == null) {
       props.setProperty(key, "");
     } else {
@@ -2205,7 +2210,7 @@ public class WtConfiguration {
     allProfileLangKeys.add(CONFIGURABLE_RULE_VALUES_KEY);
   }
   
-  private void storeConfigForAllProfiles(Properties props) {
+  private void storeConfigForAllProfiles(Properties props) throws Throwable {
     List<String> prefix = new ArrayList<>();
     prefix.add("");
     for (String profile : definedProfiles) {
@@ -2237,7 +2242,7 @@ public class WtConfiguration {
     }
   }
   
-  private void saveConfigForCurrentProfile(Properties props, String prefix, String qualifier) {
+  private void saveConfigForCurrentProfile(Properties props, String prefix, String qualifier) throws Throwable {
     if (!disabledRuleIds.isEmpty()) {
       addListToProperties(props, prefix + DISABLED_RULES_KEY + qualifier, disabledRuleIds);
     }
@@ -2472,7 +2477,7 @@ public class WtConfiguration {
     }
   }
 
-  private void saveConfigForProfile(Properties props, String prefix) {
+  private void saveConfigForProfile(Properties props, String prefix) throws Throwable {
     for (String key : allProfileLangKeys) {
       for (Language lang : Languages.get()) {
         String preKey = prefix + key + "." + lang.getShortCodeWithCountryAndVariant();
@@ -2489,7 +2494,7 @@ public class WtConfiguration {
     }
   }
 
-  public void importProfile(File importFile) throws IOException {
+  public void importProfile(File importFile) throws Throwable {
     String qualifier = getQualifier(lang);
     try (FileInputStream fis = new FileInputStream(importFile)) {
       Properties props = new Properties();
@@ -2508,7 +2513,7 @@ public class WtConfiguration {
     }
   }
 
-  public void exportProfile(String profile, File exportFile) throws IOException {
+  public void exportProfile(String profile, File exportFile) throws Throwable {
     Properties props = new Properties();
     String qualifier = getQualifier(lang);
     if (currentProfile != null && !currentProfile.isEmpty()) {

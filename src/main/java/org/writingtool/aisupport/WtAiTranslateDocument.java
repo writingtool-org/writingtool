@@ -36,17 +36,12 @@ import org.writingtool.tools.WtOfficeTools;
 
 import com.sun.star.awt.XWindow;
 import com.sun.star.beans.PropertyValue;
-import com.sun.star.beans.PropertyVetoException;
-import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XDesktop;
 import com.sun.star.frame.XModel;
 import com.sun.star.frame.XStorable;
-import com.sun.star.io.IOException;
-import com.sun.star.lang.IllegalArgumentException;
 import com.sun.star.lang.Locale;
-import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.uno.UnoRuntime;
@@ -138,8 +133,7 @@ public class WtAiTranslateDocument extends Thread {
     return langDialog.run();
   }
 
-  private void replaceParagraph(TextParagraph textPara, String str, Locale locale) 
-       throws UnknownPropertyException, PropertyVetoException, IllegalArgumentException, WrappedTargetException {
+  private void replaceParagraph(TextParagraph textPara, String str, Locale locale) throws Throwable {
     XParagraphCursor pCursor = docCursor.getParagraphCursor(textPara);
     if (pCursor == null) {
       docCursor = new WtDocumentCursorTools(document.getXComponent());
@@ -153,7 +147,7 @@ public class WtAiTranslateDocument extends Thread {
     xCursorProps.setPropertyValue ( "CharLocale", locale);
   }
   
-  private String outUrl(String inUrl, String lang) {
+  private String outUrl(String inUrl, String lang) throws Throwable {
     int n = inUrl.lastIndexOf('.');
     if (n < 0) {
       inUrl += ".odt";
@@ -164,7 +158,7 @@ public class WtAiTranslateDocument extends Thread {
     return name + "_" + lang + ext;
   }
   
-  private void fileSaveAs() throws IOException {
+  private void fileSaveAs()  throws Throwable {
     XStorable xStore = UnoRuntime.queryInterface (com.sun.star.frame.XStorable.class, document.getXComponent());
     PropertyValue[] sProps = new PropertyValue[1];
     sProps[0] = new PropertyValue();
@@ -173,7 +167,7 @@ public class WtAiTranslateDocument extends Thread {
     xStore.storeAsURL (outUrl(fromUrl, locale.Language), sProps);
   }
   
-  private void fileSave() throws IOException {
+  private void fileSave()  throws Throwable {
     XStorable xStore = UnoRuntime.queryInterface (com.sun.star.frame.XStorable.class, document.getXComponent());
     PropertyValue[] sProps = new PropertyValue[1];
     sProps[0] = new PropertyValue();

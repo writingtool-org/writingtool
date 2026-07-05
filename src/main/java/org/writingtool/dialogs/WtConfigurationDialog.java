@@ -120,7 +120,7 @@ public class WtConfigurationDialog implements ActionListener {
     extraPanels.add(panel);
   }
 
-  private DefaultMutableTreeNode createTree(List<Rule> rules, boolean isStyle, String tabName, DefaultMutableTreeNode root) {
+  private DefaultMutableTreeNode createTree(List<Rule> rules, boolean isStyle, String tabName, DefaultMutableTreeNode root) throws Throwable {
     if (root == null) {
       root = new DefaultMutableTreeNode("Rules");
     } else {
@@ -156,7 +156,7 @@ public class WtConfigurationDialog implements ActionListener {
     return root;
   }
 
-  private boolean getEnabledState(Rule rule) {
+  private boolean getEnabledState(Rule rule) throws Throwable {
     boolean ret = true;
     if (config.getDisabledRuleIds().contains(rule.getId())) {
       ret = false;
@@ -180,7 +180,7 @@ public class WtConfigurationDialog implements ActionListener {
     return ret;
   }
 
-  public ChangedOptions show(List<Rule> rules) {
+  public ChangedOptions show(List<Rule> rules) throws Throwable {
     restartShow = false;
     do {
       showPanel(rules);
@@ -192,7 +192,7 @@ public class WtConfigurationDialog implements ActionListener {
     dialog.setVisible(false);
   }
 
-  public ChangedOptions showPanel(List<Rule> rules) {
+  public ChangedOptions showPanel(List<Rule> rules) throws Throwable {
     if (original != null && !restartShow) {
       config.restoreState(original);
     }
@@ -554,7 +554,7 @@ public class WtConfigurationDialog implements ActionListener {
     return changedOptions;
   }
 
-  private JPanel getOfficeDefaultColorPanel() {
+  private JPanel getOfficeDefaultColorPanel() throws Throwable {
     // default color settings
     JPanel panel = new JPanel();
     panel.setLayout(new GridBagLayout());
@@ -585,7 +585,7 @@ public class WtConfigurationDialog implements ActionListener {
           config.setThemeSelection(themeBox.getSelectedIndex());
           try {
             WtGeneralTools.setJavaLookAndFeel(themeBox.getSelectedIndex());
-          } catch (Exception e1) {
+          } catch (Throwable e1) {
             WtMessageHandler.showError(e1);
           }
           tabIndex = 2;
@@ -744,7 +744,7 @@ public class WtConfigurationDialog implements ActionListener {
     return panel;
   }
 
-  private void addOfficeLanguageElements(GridBagConstraints cons, JPanel portPanel) {
+  private void addOfficeLanguageElements(GridBagConstraints cons, JPanel portPanel) throws Throwable {
     JPanel languagePanel = new JPanel();
     languagePanel.setLayout(new GridBagLayout());
     GridBagConstraints cons1 = new GridBagConstraints();
@@ -770,16 +770,20 @@ public class WtConfigurationDialog implements ActionListener {
     }
     fixedLanguageBox.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
-        Language fixedLanguage;
-        if (fixedLanguageBox.getSelectedItem() instanceof String) {
-          fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
-        } else {
-          fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
+        try {
+          Language fixedLanguage;
+          if (fixedLanguageBox.getSelectedItem() instanceof String) {
+            fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
+          } else {
+            fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
+          }
+          config.setFixedLanguage(fixedLanguage);
+          config.setUseDocLanguage(false);
+          changedOptions.ltRulesChanged = true;
+          radioButtons[1].setSelected(true);
+        } catch (Throwable e1) {
+          WtMessageHandler.showError(e1);
         }
-        config.setFixedLanguage(fixedLanguage);
-        config.setUseDocLanguage(false);
-        changedOptions.ltRulesChanged = true;
-        radioButtons[1].setSelected(true);
       }
     });
     
@@ -799,15 +803,19 @@ public class WtConfigurationDialog implements ActionListener {
     });
     
     radioButtons[1].addActionListener(e -> {
-      config.setUseDocLanguage(false);
-      Language fixedLanguage;
-      if (fixedLanguageBox.getSelectedItem() instanceof String) {
-        fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
-      } else {
-        fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
+      try {
+        config.setUseDocLanguage(false);
+        Language fixedLanguage;
+        if (fixedLanguageBox.getSelectedItem() instanceof String) {
+          fixedLanguage = WtGeneralTools.getLanguageForFullName(fixedLanguageBox.getSelectedItem().toString());
+        } else {
+          fixedLanguage = (Language) fixedLanguageBox.getSelectedItem();
+        }
+        config.setFixedLanguage(fixedLanguage);
+        changedOptions.ltRulesChanged = true;
+      } catch (Throwable e1) {
+        WtMessageHandler.showError(e1);
       }
-      config.setFixedLanguage(fixedLanguage);
-      changedOptions.ltRulesChanged = true;
     });
     languagePanel.add(radioButtons[0], cons1);
     cons1.gridy++;
@@ -820,122 +828,8 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(languagePanel, cons);
   }
-/*
-  private void addOfficeTextruleElements(GridBagConstraints cons, JPanel portPanel) {
-    int numParaCheck = config.getNumParasToCheck();
-    boolean useTextLevelQueue = config.useTextLevelQueue();
-    JRadioButton[] radioButtons = new JRadioButton[3];
-    ButtonGroup numParaGroup = new ButtonGroup();
-    radioButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogTextCheckMode")));
-    radioButtons[0].setActionCommand("FullTextCheck");
-    
-    radioButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogParagraphCheckMode")));
-    radioButtons[1].setActionCommand("ParagraphCheck");
 
-    radioButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogDeveloperModeCheck")));
-    radioButtons[2].setActionCommand("NParagraphCheck");
-
-    JTextField numParaField = new JTextField(Integer.toString(5), 2);
-    numParaField.setEnabled(radioButtons[2].isSelected());
-    numParaField.setMinimumSize(new Dimension(30, 25));
-    
-    for (int i = 0; i < 3; i++) {
-      numParaGroup.add(radioButtons[i]);
-    }
-
-     // NOTE: The flatparagraph iterator doesn't work for OpenOffice (OO).
-     //       So no support of cache is possible for OO
-    if (numParaCheck == 0 || config.onlySingleParagraphMode()) {
-      radioButtons[1].setSelected(true);
-      numParaField.setEnabled(false);
-      config.setUseTextLevelQueue(false);
-      if (config.onlySingleParagraphMode()) {
-        radioButtons[0].setEnabled(false);
-        radioButtons[2].setEnabled(false);
-      }
-    } else if (useTextLevelQueue) {
-      radioButtons[0].setSelected(true);
-      numParaField.setEnabled(false);
-      config.setNumParasToCheck(-2);
-    } else {
-      radioButtons[2].setSelected(true);
-      numParaField.setText(Integer.toString(numParaCheck));
-      numParaField.setEnabled(true);
-    }
-
-    radioButtons[0].addActionListener(e -> {
-      numParaField.setEnabled(false);
-      config.setNumParasToCheck(-2);
-      config.setUseTextLevelQueue(true);
-    });
-    
-    radioButtons[1].addActionListener(e -> {
-      numParaField.setEnabled(false);
-      config.setNumParasToCheck(0);
-      config.setUseTextLevelQueue(false);
-    });
-    
-    radioButtons[2].addActionListener(e -> {
-      int numParaCheck1 = Integer.parseInt(numParaField.getText());
-      if (numParaCheck1 < -2) numParaCheck1 = -2;
-      else if (numParaCheck1 > 99) numParaCheck1 = 99;
-      config.setNumParasToCheck(numParaCheck1);
-      numParaField.setForeground(Color.BLACK);
-      numParaField.setText(Integer.toString(numParaCheck1));
-      numParaField.setEnabled(true);
-      config.setUseTextLevelQueue(false);
-    });
-    
-    numParaField.getDocument().addDocumentListener(new DocumentListener() {
-      @Override
-      public void insertUpdate(DocumentEvent e) {
-        changedUpdate(e);
-      }
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        changedUpdate(e);
-      }
-      @Override
-      public void changedUpdate(DocumentEvent e) {
-        try {
-          int numParaCheck = Integer.parseInt(numParaField.getText());
-          if (numParaCheck > -3 && numParaCheck < 99) {
-            numParaField.setForeground(Color.BLACK);
-            config.setNumParasToCheck(numParaCheck);
-          } else {
-            numParaField.setForeground(Color.RED);
-          }
-        } catch (NumberFormatException ex) {
-          numParaField.setForeground(Color.RED);
-        }
-      }
-    });
-
-    JLabel textChangedLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("optionDialogSentenceExceedingRules")));
-    cons.gridy++;
-    portPanel.add(textChangedLabel, cons);
-    
-    JPanel radioPanel = new JPanel();
-    radioPanel.setLayout(new GridBagLayout());
-    GridBagConstraints cons1 = new GridBagConstraints();
-    cons1.insets = new Insets(0, 0, 0, 0);
-    cons1.gridx = 0;
-    cons1.gridy = 0;
-    cons1.anchor = GridBagConstraints.WEST;
-    cons1.fill = GridBagConstraints.NONE;
-    cons1.weightx = 0.0f;
-    for (int i = 0; i < 3; i++) {
-      radioPanel.add(radioButtons[i], cons1);
-      if (i < 2) cons1.gridy++;
-    }
-    cons1.gridx = 1;
-    radioPanel.add(numParaField, cons1);
-    cons.insets = new Insets(0, SHIFT2, 0, 0);
-    cons.gridy++;
-    portPanel.add(radioPanel, cons);
-  }
-*/  
-  private JPanel getOfficeTechnicalElements() {
+  private JPanel getOfficeTechnicalElements() throws Throwable {
     // technical settings
     JPanel panel = new JPanel();
     panel.setLayout(new GridBagLayout());
@@ -1115,28 +1009,32 @@ public class WtConfigurationDialog implements ActionListener {
     });
     remoteCheckButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogUseOtherServer")));
     remoteCheckButtons[2].addActionListener(e -> {
-      int select = WtOptionPane.OK_OPTION;
-      if(firstSelection) {
-        select = showRemoteServerHint(remoteCheckButtons[2], true);
-        firstSelection = false;
-      } else {
-        firstSelection = true;
-      }
-      if(select == WtOptionPane.OK_OPTION) {
-        config.setUseOtherServer(true);
-        otherServerNameField.setEnabled(true);
-        usernameLabel.setEnabled(false);
-        usernameField.setEnabled(false);
-        apiKeyLabel.setEnabled(false);
-        apiKeyField.setEnabled(false);
-        config.setMultiThreadLO(false);
-        config.setRemoteCheck(true);
-        config.setPremium(false);
-        config.setUseOtherServer(true);
-        changedOptions.ltRulesChanged = true;
-      } else {
-        localeRemoteCheckButtons[0].setSelected(true);
-        firstSelection = true;
+      try {
+        int select = WtOptionPane.OK_OPTION;
+        if(firstSelection) {
+          select = showRemoteServerHint(remoteCheckButtons[2], true);
+          firstSelection = false;
+        } else {
+          firstSelection = true;
+        }
+        if(select == WtOptionPane.OK_OPTION) {
+          config.setUseOtherServer(true);
+          otherServerNameField.setEnabled(true);
+          usernameLabel.setEnabled(false);
+          usernameField.setEnabled(false);
+          apiKeyLabel.setEnabled(false);
+          apiKeyField.setEnabled(false);
+          config.setMultiThreadLO(false);
+          config.setRemoteCheck(true);
+          config.setPremium(false);
+          config.setUseOtherServer(true);
+          changedOptions.ltRulesChanged = true;
+        } else {
+          localeRemoteCheckButtons[0].setSelected(true);
+          firstSelection = true;
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     
@@ -1164,33 +1062,36 @@ public class WtConfigurationDialog implements ActionListener {
     });
     localeRemoteCheckButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogUseRemoteServer")));
     localeRemoteCheckButtons[1].addActionListener(e -> {
-      int select = WtOptionPane.OK_OPTION;
-      boolean selected = localeRemoteCheckButtons[1].isSelected();
-      if(selected && firstSelection) {
-        select = showRemoteServerHint(localeRemoteCheckButtons[1], false);
-        firstSelection = false;
-      } else {
-        firstSelection = true;
-      }
-      if(select == WtOptionPane.OK_OPTION) {
-//        typeOfCheckButtons[2].setSelected(selected);
-        otherServerNameField.setEnabled(config.useOtherServer());
-        usernameLabel.setEnabled(config.isPremium());
-        usernameField.setEnabled(config.isPremium());
-        apiKeyLabel.setEnabled(config.isPremium());
-        apiKeyField.setEnabled(config.isPremium());
-        config.setMultiThreadLO(false);
-        config.setRemoteCheck(true);
-        for (int i = 0; i < 3; i++) {
-          localeCheckButtons[i].setEnabled(false);
+      try {
+        int select = WtOptionPane.OK_OPTION;
+        boolean selected = localeRemoteCheckButtons[1].isSelected();
+        if(selected && firstSelection) {
+          select = showRemoteServerHint(localeRemoteCheckButtons[1], false);
+          firstSelection = false;
+        } else {
+          firstSelection = true;
         }
-        for (int i = 0; i < 3; i++) {
-          remoteCheckButtons[i].setEnabled(true);
+        if(select == WtOptionPane.OK_OPTION) {
+          otherServerNameField.setEnabled(config.useOtherServer());
+          usernameLabel.setEnabled(config.isPremium());
+          usernameField.setEnabled(config.isPremium());
+          apiKeyLabel.setEnabled(config.isPremium());
+          apiKeyField.setEnabled(config.isPremium());
+          config.setMultiThreadLO(false);
+          config.setRemoteCheck(true);
+          for (int i = 0; i < 3; i++) {
+            localeCheckButtons[i].setEnabled(false);
+          }
+          for (int i = 0; i < 3; i++) {
+            remoteCheckButtons[i].setEnabled(true);
+          }
+          changedOptions.ltRulesChanged = true;
+        } else {
+          localeRemoteCheckButtons[0].setSelected(true);
+          firstSelection = true;
         }
-        changedOptions.ltRulesChanged = true;
-      } else {
-        localeRemoteCheckButtons[0].setSelected(true);
-        firstSelection = true;
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     for (int i = 0; i < 2; i++) {
@@ -1350,7 +1251,7 @@ public class WtConfigurationDialog implements ActionListener {
     return panel;
   }
   
-  private void createOfficeElements(GridBagConstraints cons, JPanel portPanel) {
+  private void createOfficeElements(GridBagConstraints cons, JPanel portPanel) throws Throwable {
 
     addOfficeLanguageElements(cons, portPanel);
 
@@ -1464,15 +1365,9 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(noCheckGrammarDirectSpeechBox, cons);
     cons.insets = new Insets(0, SHIFT1, 0, 0);
-/*    
-    cons.insets = new Insets(0, SHIFT1, 0, 0);
-    cons.gridx = 0;
-    cons.gridy++;
-    portPanel.add(new JLabel(" "), cons);
-*/
   }
   
-  private int showRemoteServerHint(Component component, boolean otherServer) {
+  private int showRemoteServerHint(Component component, boolean otherServer) throws Throwable {
     int ret;
     if(config.useOtherServer() || otherServer) {
         ret = WtOptionPane.showConfirmDialog(component, 
@@ -1486,54 +1381,58 @@ public class WtConfigurationDialog implements ActionListener {
   }
 
   @NotNull
-  private DefaultTreeModel getTreeModel(DefaultMutableTreeNode rootNode, List<Rule> rules) {
+  private DefaultTreeModel getTreeModel(DefaultMutableTreeNode rootNode, List<Rule> rules) throws Throwable {
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     treeModel.addTreeModelListener(new TreeModelListener() {
       @Override
       public void treeNodesChanged(TreeModelEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getTreePath().getLastPathComponent();
-        int index = e.getChildIndices()[0];
-        node = (DefaultMutableTreeNode) node.getChildAt(index);
-        if (node instanceof WtRuleNode) {
-          WtRuleNode o = (WtRuleNode) node;
-          if (o.getRule().isDefaultOff() || o.getRule().getCategory().isDefaultOff()) {
-            if (o.isEnabled()) {
-              config.getEnabledRuleIds().add(o.getRule().getId());
-              config.getDisabledRuleIds().remove(o.getRule().getId());
+        try {
+          DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getTreePath().getLastPathComponent();
+          int index = e.getChildIndices()[0];
+          node = (DefaultMutableTreeNode) node.getChildAt(index);
+          if (node instanceof WtRuleNode) {
+            WtRuleNode o = (WtRuleNode) node;
+            if (o.getRule().isDefaultOff() || o.getRule().getCategory().isDefaultOff()) {
+              if (o.isEnabled()) {
+                config.getEnabledRuleIds().add(o.getRule().getId());
+                config.getDisabledRuleIds().remove(o.getRule().getId());
+              } else {
+                config.getEnabledRuleIds().remove(o.getRule().getId());
+                config.getDisabledRuleIds().add(o.getRule().getId());
+              }
             } else {
-              config.getEnabledRuleIds().remove(o.getRule().getId());
-              config.getDisabledRuleIds().add(o.getRule().getId());
+              if (o.isEnabled()) {
+                config.getDisabledRuleIds().remove(o.getRule().getId());
+              } else {
+                config.getDisabledRuleIds().add(o.getRule().getId());
+              }
             }
-          } else {
-            if (o.isEnabled()) {
-              config.getDisabledRuleIds().remove(o.getRule().getId());
-            } else {
-              config.getDisabledRuleIds().add(o.getRule().getId());
-            }
+            changedOptions.ltRulesChanged = true;
+            updateProfileRules(rules);
           }
-          changedOptions.ltRulesChanged = true;
-          updateProfileRules(rules);
-        }
-        if (node instanceof WtCategoryNode) {
-          WtCategoryNode o = (WtCategoryNode) node;
-          if (o.getCategory().isDefaultOff()) {
-            if (o.isEnabled()) {
-              config.getDisabledCategoryNames().remove(o.getCategory().getName());
-              config.getEnabledCategoryNames().add(o.getCategory().getName());
+          if (node instanceof WtCategoryNode) {
+            WtCategoryNode o = (WtCategoryNode) node;
+            if (o.getCategory().isDefaultOff()) {
+              if (o.isEnabled()) {
+                config.getDisabledCategoryNames().remove(o.getCategory().getName());
+                config.getEnabledCategoryNames().add(o.getCategory().getName());
+              } else {
+                config.getDisabledCategoryNames().add(o.getCategory().getName());
+                config.getEnabledCategoryNames().remove(o.getCategory().getName());
+              }
             } else {
-              config.getDisabledCategoryNames().add(o.getCategory().getName());
-              config.getEnabledCategoryNames().remove(o.getCategory().getName());
+              if (o.isEnabled()) {
+                config.getDisabledCategoryNames().remove(o.getCategory().getName());
+              } else {
+                config.getDisabledCategoryNames().add(o.getCategory().getName());
+              }
             }
-          } else {
-            if (o.isEnabled()) {
-              config.getDisabledCategoryNames().remove(o.getCategory().getName());
-            } else {
-              config.getDisabledCategoryNames().add(o.getCategory().getName());
-            }
+            changedOptions.ltRulesChanged = true;
           }
-          changedOptions.ltRulesChanged = true;
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
-      }
+     }
       @Override
       public void treeNodesInserted(TreeModelEvent e) {}
       @Override
@@ -1548,30 +1447,27 @@ public class WtConfigurationDialog implements ActionListener {
   private MouseAdapter getMouseAdapter() {
     return new MouseAdapter() {
         private void handlePopupEvent(MouseEvent e) {
-          JTree tree = (JTree) e.getSource();
-          TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-          if (path == null) {
-            return;
-          }
-          DefaultMutableTreeNode node
-                  = (DefaultMutableTreeNode) path.getLastPathComponent();
-          TreePath[] paths = tree.getSelectionPaths();
-          boolean isSelected = false;
-          if (paths != null) {
-            for (TreePath selectionPath : paths) {
-              if (selectionPath.equals(path)) {
-                isSelected = true;
+          try {
+            JTree tree = (JTree) e.getSource();
+            TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+            if (path == null) {
+              return;
+            }
+            DefaultMutableTreeNode node
+                    = (DefaultMutableTreeNode) path.getLastPathComponent();
+            TreePath[] paths = tree.getSelectionPaths();
+            boolean isSelected = false;
+            if (paths != null) {
+              for (TreePath selectionPath : paths) {
+                if (selectionPath.equals(path)) {
+                  isSelected = true;
+                }
               }
             }
-          }
-          if (!isSelected) {
-            tree.setSelectionPath(path);
-          }
-          if (node.isLeaf()) {
-            try {
-//              int theme = WtDocumentsHandler.getJavaLookAndFeelSet();
-//              WtGeneralTools.setJavaLookAndFeel(WtGeneralTools.THEME_SYSTEM);
-  
+            if (!isSelected) {
+              tree.setSelectionPath(path);
+            }
+            if (node.isLeaf()) {
               JPopupMenu popup = new JPopupMenu();
               JMenuItem aboutRuleMenuItem = new JMenuItem(messages.getString("optionDialogAboutRuleMenu"));
               aboutRuleMenuItem.addActionListener(actionEvent -> {
@@ -1586,10 +1482,9 @@ public class WtConfigurationDialog implements ActionListener {
               });
               popup.add(aboutRuleMenuItem);
               popup.show(tree, e.getX(), e.getY());
-//              WtGeneralTools.setJavaLookAndFeel(theme);
-            } catch (Exception ex) {
-              WtMessageHandler.showError(ex);
             }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
           }
         }
   
@@ -1609,7 +1504,7 @@ public class WtConfigurationDialog implements ActionListener {
       };
   }
 
-  private boolean getDefaultRuleState(Rule rule) {
+  private boolean getDefaultRuleState(Rule rule) throws Throwable {
     boolean ret = true;
     if ((rule.isDefaultOff() && !rule.isOfficeDefaultOn()) || rule.isOfficeDefaultOff() || rule.getCategory().isDefaultOff()) {
       ret = false;
@@ -1617,7 +1512,7 @@ public class WtConfigurationDialog implements ActionListener {
     return ret;
   }
   
-  private void actualizeRuleStatus(int num, List<Rule> rules) {
+  private void actualizeRuleStatus(int num, List<Rule> rules) throws Throwable {
     TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
     for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
       WtCategoryNode o = (WtCategoryNode) cat.nextElement();
@@ -1660,7 +1555,7 @@ public class WtConfigurationDialog implements ActionListener {
   }
 
   @NotNull
-  private JPanel getTreeButtonPanel(int num, List<Rule> rules) {
+  private JPanel getTreeButtonPanel(int num, List<Rule> rules) throws Throwable {
     GridBagConstraints cons;
     JPanel treeButtonPanel = new JPanel();
     cons = new GridBagConstraints();
@@ -1671,51 +1566,63 @@ public class WtConfigurationDialog implements ActionListener {
     JButton selectAllButton = new JButton(messages.getString("optionDialogSelectAll"));
     treeButtonPanel.add(selectAllButton, cons);
     selectAllButton.addActionListener(e -> {
-      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
-      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
-        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
-        n.setEnabled(true);
-        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
-          WtRuleNode r = (WtRuleNode) rul.nextElement();
-          r.setEnabled(true);
+      try {
+        TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+        for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+          WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+          n.setEnabled(true);
+          for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+            WtRuleNode r = (WtRuleNode) rul.nextElement();
+            r.setEnabled(true);
+          }
         }
+        actualizeRuleStatus(num, rules);
+        configTree[num].repaint();
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
-      actualizeRuleStatus(num, rules);
-      configTree[num].repaint();
     });
 
     cons.gridx++;
     JButton deselectAllButton = new JButton(messages.getString("optionDialogDeselectAll"));
     treeButtonPanel.add(deselectAllButton, cons);
     deselectAllButton.addActionListener(e -> {
-      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
-      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
-        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
-        n.setEnabled(false);
-        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
-          WtRuleNode r = (WtRuleNode) rul.nextElement();
-          r.setEnabled(false);
+      try {
+        TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+        for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+          WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+          n.setEnabled(false);
+          for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+            WtRuleNode r = (WtRuleNode) rul.nextElement();
+            r.setEnabled(false);
+          }
         }
+        actualizeRuleStatus(num, rules);
+        configTree[num].repaint();
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
-      actualizeRuleStatus(num, rules);
-      configTree[num].repaint();
     });
 
     cons.gridx++;
     JButton defaultButton = new JButton(messages.getString("allDialogButtonDefault"));
     treeButtonPanel.add(defaultButton, cons);
     defaultButton.addActionListener(e -> {
-      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
-      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
-        WtCategoryNode n = (WtCategoryNode) cat.nextElement();
-        n.setEnabled(!n.getCategory().isDefaultOff());
-        for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
-          WtRuleNode r = (WtRuleNode) rul.nextElement();
-          r.setEnabled(getDefaultRuleState(r.getRule()));
+      try {
+        TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+        for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+          WtCategoryNode n = (WtCategoryNode) cat.nextElement();
+          n.setEnabled(!n.getCategory().isDefaultOff());
+          for (Enumeration<?> rul = n.children(); rul.hasMoreElements();) {
+            WtRuleNode r = (WtRuleNode) rul.nextElement();
+            r.setEnabled(getDefaultRuleState(r.getRule()));
+          }
         }
+        actualizeRuleStatus(num, rules);
+        configTree[num].repaint();
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
-      actualizeRuleStatus(num, rules);
-      configTree[num].repaint();
     });
     
     cons.weightx = 10;
@@ -1727,31 +1634,39 @@ public class WtConfigurationDialog implements ActionListener {
     JButton expandAllButton = new JButton(messages.getString("optionDialogExpandAll"));
     treeButtonPanel.add(expandAllButton, cons);
     expandAllButton.addActionListener(e -> {
-      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
-      TreePath parent = new TreePath(root);
-      for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
-        TreeNode n = (TreeNode) cat.nextElement();
-        TreePath child = parent.pathByAddingChild(n);
-        configTree[num].expandPath(child);
+      try {
+        TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+        TreePath parent = new TreePath(root);
+        for (Enumeration<?> cat = root.children(); cat.hasMoreElements();) {
+          TreeNode n = (TreeNode) cat.nextElement();
+          TreePath child = parent.pathByAddingChild(n);
+          configTree[num].expandPath(child);
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     cons.gridx++;
     JButton collapseAllButton = new JButton(messages.getString("optionDialogCollapseAll"));
     treeButtonPanel.add(collapseAllButton, cons);
     collapseAllButton.addActionListener(e -> {
-      TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
-      TreePath parent = new TreePath(root);
-      for (Enumeration<?> categ = root.children(); categ.hasMoreElements();) {
-        TreeNode n = (TreeNode) categ.nextElement();
-        TreePath child = parent.pathByAddingChild(n);
-        configTree[num].collapsePath(child);
+      try {
+        TreeNode root = (TreeNode) configTree[num].getModel().getRoot();
+        TreePath parent = new TreePath(root);
+        for (Enumeration<?> categ = root.children(); categ.hasMoreElements();) {
+          TreeNode n = (TreeNode) categ.nextElement();
+          TreePath child = parent.pathByAddingChild(n);
+          configTree[num].collapsePath(child);
+        }
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     return treeButtonPanel;
   }
   
   @NotNull
-  private JPanel getProfilePanel(List<Rule> rules) {
+  private JPanel getProfilePanel(List<Rule> rules) throws Throwable {
     profileChanged = true;
     JPanel profilePanel = new JPanel();
     profilePanel.setLayout(new GridBagLayout());
@@ -1798,6 +1713,8 @@ public class WtConfigurationDialog implements ActionListener {
             restartShow = true;
             dialog.setVisible(false);
           } catch (IOException e1) {
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
           }
         } else {
           profileChanged = true;
@@ -1849,6 +1766,8 @@ public class WtConfigurationDialog implements ActionListener {
         try {
           config.exportProfile((String) profileBox.getSelectedItem(), fileChooser.getSelectedFile());
         } catch (IOException e1) {
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
       }
     });
@@ -1882,6 +1801,8 @@ public class WtConfigurationDialog implements ActionListener {
       try {
         config.loadConfiguration("");
       } catch (IOException e1) {
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
       config.setCurrentProfile(null);
       config.addProfiles(saveProfiles);
@@ -1923,6 +1844,8 @@ public class WtConfigurationDialog implements ActionListener {
           config.initOptions();
           config.loadConfiguration(config.getCurrentProfile());
         } catch (IOException e1) {
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
         config.addProfile(profileName);
         config.setCurrentProfile(profileName);
@@ -1971,6 +1894,8 @@ public class WtConfigurationDialog implements ActionListener {
           restartShow = true;
           dialog.setVisible(false);
         } catch (IOException e1) {
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
         }
       }
     });
@@ -1979,7 +1904,7 @@ public class WtConfigurationDialog implements ActionListener {
     return profilePanel;
   }
   
-  private String addColonToMessageString(String message) {
+  private String addColonToMessageString(String message) throws Throwable {
     String str = messages.getString(message);
     if (!str.endsWith(":")) {
       return str + ":";
@@ -1988,7 +1913,7 @@ public class WtConfigurationDialog implements ActionListener {
   }
 
   @NotNull
-  private JPanel getMotherTonguePanel(GridBagConstraints cons) {
+  private JPanel getMotherTonguePanel(GridBagConstraints cons) throws Throwable {
     JPanel motherTonguePanel = new JPanel();
     motherTonguePanel.add(new JLabel(messages.getString("optionDialogMotherTongue")), cons);
     JComboBox<String> motherTongueBox = new JComboBox<>(WtGeneralTools.getAllFullNameOfLanguage(true));
@@ -1996,22 +1921,26 @@ public class WtConfigurationDialog implements ActionListener {
       motherTongueBox.setSelectedItem(WtGeneralTools.getFullNameOfLanguage(config.getMotherTongue()));
     }
     motherTongueBox.addItemListener(e -> {
-      if (e.getStateChange() == ItemEvent.SELECTED) {
-        Language motherTongue;
-        if (motherTongueBox.getSelectedItem() instanceof String) {
-          motherTongue = WtGeneralTools.getLanguageForFullName(motherTongueBox.getSelectedItem().toString());
-        } else {
-          motherTongue = (Language) motherTongueBox.getSelectedItem();
+      try {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          Language motherTongue;
+          if (motherTongueBox.getSelectedItem() instanceof String) {
+            motherTongue = WtGeneralTools.getLanguageForFullName(motherTongueBox.getSelectedItem().toString());
+          } else {
+            motherTongue = (Language) motherTongueBox.getSelectedItem();
+          }
+          config.setMotherTongue(motherTongue);
+          changedOptions.ltRulesChanged = true;
         }
-        config.setMotherTongue(motherTongue);
-        changedOptions.ltRulesChanged = true;
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     motherTonguePanel.add(motherTongueBox, cons);
     return motherTonguePanel;
   }
 
-  private void addNgramPanel(GridBagConstraints cons, JPanel panel) {
+  private void addNgramPanel(GridBagConstraints cons, JPanel panel) throws Throwable {
     cons.gridx = 0;
     panel.add(new JLabel((messages.getString("optionDialogNgramDir")) + "  "), cons);
     File dir = config.getNgramDirectory();
@@ -2019,22 +1948,22 @@ public class WtConfigurationDialog implements ActionListener {
     String buttonText = dir != null ? StringUtils.abbreviate(dir.getAbsolutePath(), maxDirDisplayLength) : messages.getString("optionDialogNgramDirSelect");
     JButton ngramDirButton = new JButton(buttonText);
     ngramDirButton.addActionListener(e -> {
-      File newDir = WtGeneralTools.openDirectoryDialog(owner, dir);
-      if (newDir != null) {
-        try {
+      try {
+        File newDir = WtGeneralTools.openDirectoryDialog(owner, dir);
+        if (newDir != null) {
           if (config.getLanguage() != null) {  // may happen in office context
             File checkDir = new File(newDir, config.getLanguage().getShortCode());
             LuceneLanguageModel.validateDirectory(checkDir);
           }
           config.setNgramDirectory(newDir);
           ngramDirButton.setText(StringUtils.abbreviate(newDir.getAbsolutePath(), maxDirDisplayLength));
-        } catch (Exception ex) {
-          WtMessageHandler.showError(ex);
+        } else {
+          // not the best UI, but this way user can turn off ngram feature without another checkbox
+          config.setNgramDirectory(null);
+          ngramDirButton.setText(StringUtils.abbreviate(messages.getString("optionDialogNgramDirSelect"), maxDirDisplayLength));
         }
-      } else {
-        // not the best UI, but this way user can turn off ngram feature without another checkbox
-        config.setNgramDirectory(null);
-        ngramDirButton.setText(StringUtils.abbreviate(messages.getString("optionDialogNgramDirSelect"), maxDirDisplayLength));
+      } catch (Throwable ex) {
+        WtMessageHandler.showError(ex);
       }
     });
     cons.gridx++;
@@ -2047,53 +1976,57 @@ public class WtConfigurationDialog implements ActionListener {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    if (ACTION_COMMAND_OK.equals(e.getActionCommand())) {
-      if (original != null) {
-        original.restoreState(config);
-      }
-      for(JPanel extra : extraPanels) {
-        if(extra instanceof WtSavablePanel) {
-          ((WtSavablePanel) extra).save();
+    try {
+      if (ACTION_COMMAND_OK.equals(e.getActionCommand())) {
+        if (original != null) {
+          original.restoreState(config);
+        }
+        for(JPanel extra : extraPanels) {
+          if(extra instanceof WtSavablePanel) {
+            ((WtSavablePanel) extra).save();
+          }
+        }
+        if(config.doRemoteCheck() && config.useOtherServer()) {
+          String serverName = config.getServerUrl();
+          if(serverName == null || (!serverName.startsWith("http://") && !serverName.startsWith("https://"))
+              || serverName.endsWith("/") || serverName.endsWith("/v2")) {
+            WtOptionPane.showMessageDialog(dialog, WtGeneralTools.getLabel(messages.getString("optionDialogUseServerWarning1")) + "\n" + WtGeneralTools.getLabel(messages.getString("optionDialogUseServerWarning2")));
+            if(serverName.endsWith("/")) {
+              serverName = serverName.substring(0, serverName.length() - 1);
+              config.setOtherServerUrl(serverName);
+            }
+            if(serverName.endsWith("/v2")) {
+              serverName = serverName.substring(0, serverName.length() - 3);
+              config.setOtherServerUrl(serverName);
+            }
+            restartShow = true;
+            dialog.setVisible(false);
+            return;
+          }
+        }
+        changedOptions.doChange = true;
+        dialog.setVisible(false);
+      } else if (ACTION_COMMAND_CANCEL.equals(e.getActionCommand())) {
+        dialog.setVisible(false);
+      } else if ("Help".equals(e.getActionCommand())) {
+        int ind = tabpane.getSelectedIndex();
+        int spTab = config.getSpecialTabNames().length;
+        if (ind == 0) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionProfiles"));
+        } else if (ind == 1) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGeneral"));
+        } else if (ind >= 2 && ind <= 3 + spTab) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGrammarAndStyle"));
+        } else if (ind == 4 + spTab) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionDefaultColors"));
+        } else if (ind == 5 + spTab) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
+        } else if (ind == 6 + spTab) {
+          WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionAiSupport"));
         }
       }
-      if(config.doRemoteCheck() && config.useOtherServer()) {
-        String serverName = config.getServerUrl();
-        if(serverName == null || (!serverName.startsWith("http://") && !serverName.startsWith("https://"))
-            || serverName.endsWith("/") || serverName.endsWith("/v2")) {
-          WtOptionPane.showMessageDialog(dialog, WtGeneralTools.getLabel(messages.getString("optionDialogUseServerWarning1")) + "\n" + WtGeneralTools.getLabel(messages.getString("optionDialogUseServerWarning2")));
-          if(serverName.endsWith("/")) {
-            serverName = serverName.substring(0, serverName.length() - 1);
-            config.setOtherServerUrl(serverName);
-          }
-          if(serverName.endsWith("/v2")) {
-            serverName = serverName.substring(0, serverName.length() - 3);
-            config.setOtherServerUrl(serverName);
-          }
-          restartShow = true;
-          dialog.setVisible(false);
-          return;
-        }
-      }
-      changedOptions.doChange = true;
-      dialog.setVisible(false);
-    } else if (ACTION_COMMAND_CANCEL.equals(e.getActionCommand())) {
-      dialog.setVisible(false);
-    } else if ("Help".equals(e.getActionCommand())) {
-      int ind = tabpane.getSelectedIndex();
-      int spTab = config.getSpecialTabNames().length;
-      if (ind == 0) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionProfiles"));
-      } else if (ind == 1) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGeneral"));
-      } else if (ind >= 2 && ind <= 3 + spTab) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionGrammarAndStyle"));
-      } else if (ind == 4 + spTab) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionDefaultColors"));
-      } else if (ind == 5 + spTab) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionTechnicalSettings"));
-      } else if (ind == 6 + spTab) {
-        WtGeneralTools.openURL(WtOfficeTools.getUrl("OptionAiSupport"));
-      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
   }
 
@@ -2101,15 +2034,20 @@ public class WtConfigurationDialog implements ActionListener {
 
     @Override
     public int compare(Rule r1, Rule r2) {
-      boolean hasCat = r1.getCategory() != null && r2.getCategory() != null;
-      if (hasCat) {
-        int res = r1.getCategory().getName().compareTo(r2.getCategory().getName());
-        if (res == 0) {
-          return r1.getDescription() != null && r2.getDescription() != null ? r1.getDescription().compareToIgnoreCase(r2.getDescription()) : 0;
+      try {
+        boolean hasCat = r1.getCategory() != null && r2.getCategory() != null;
+        if (hasCat) {
+          int res = r1.getCategory().getName().compareTo(r2.getCategory().getName());
+          if (res == 0) {
+            return r1.getDescription() != null && r2.getDescription() != null ? r1.getDescription().compareToIgnoreCase(r2.getDescription()) : 0;
+          }
+          return res;
         }
-        return res;
+        return r1.getDescription() != null && r2.getDescription() != null ? r1.getDescription().compareToIgnoreCase(r2.getDescription()) : 0;
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
+        return 0;
       }
-      return r1.getDescription() != null && r2.getDescription() != null ? r1.getDescription().compareToIgnoreCase(r2.getDescription()) : 0;
     }
 
   }
@@ -2117,7 +2055,7 @@ public class WtConfigurationDialog implements ActionListener {
   /**
    * Update display of rules tree
    */
-  private void updateRulesTrees(List<Rule> rules) {
+  private void updateRulesTrees(List<Rule> rules) throws Throwable {
     String[] specialTabNames = config.getSpecialTabNames();
     int numConfigTrees = 2 + specialTabNames.length;
     for (int i = 0; i < numConfigTrees; i++) {
@@ -2135,7 +2073,7 @@ public class WtConfigurationDialog implements ActionListener {
   /**
    * Update display of profile rules
    */
-  private void updateProfileRules(List<Rule> rules) {
+  private void updateProfileRules(List<Rule> rules) throws Throwable {
     getChangedRulesPanel(rules, false, disabledRulesPanel);
     getChangedRulesPanel(rules, true , enabledRulesPanel);
   }
@@ -2144,7 +2082,7 @@ public class WtConfigurationDialog implements ActionListener {
   /** Panel to select disabled default rules
    * @since 5.4
    */
-  private JPanel getChangedRulesPanel(List<Rule> rules, boolean enabledRules, JPanel panel) {
+  private JPanel getChangedRulesPanel(List<Rule> rules, boolean enabledRules, JPanel panel) throws Throwable {
     if (panel == null) {
       panel = new JPanel();
     } else {
@@ -2196,16 +2134,20 @@ public class WtConfigurationDialog implements ActionListener {
           ruleCheckbox.setSelected(enabledRules);
           panel.add(ruleCheckbox, cons);
           ruleCheckbox.addActionListener(e -> {
-            if (ruleCheckbox.isSelected()) {
-              config.getEnabledRuleIds().add(ruleCheckbox.getName());
-              config.getDisabledRuleIds().remove(ruleCheckbox.getName());
-              updateRulesTrees(rules);
-            } else {
-              config.getEnabledRuleIds().remove(ruleCheckbox.getName());
-              config.getDisabledRuleIds().add(ruleCheckbox.getName());
-              updateRulesTrees(rules);
+            try {
+              if (ruleCheckbox.isSelected()) {
+                config.getEnabledRuleIds().add(ruleCheckbox.getName());
+                config.getDisabledRuleIds().remove(ruleCheckbox.getName());
+                updateRulesTrees(rules);
+              } else {
+                config.getEnabledRuleIds().remove(ruleCheckbox.getName());
+                config.getDisabledRuleIds().add(ruleCheckbox.getName());
+                updateRulesTrees(rules);
+              }
+              changedOptions.ltRulesChanged = true;
+            } catch (Throwable t) {
+              WtMessageHandler.showError(t);
             }
-            changedOptions.ltRulesChanged = true;
           });
           cons.gridx = 0;
           cons.gridy++;
@@ -2215,7 +2157,7 @@ public class WtConfigurationDialog implements ActionListener {
     return panel;
   }
   
-  private String[] getUnderlineTypes() {
+  private String[] getUnderlineTypes() throws Throwable {
     String[] types = {
       messages.getString("allDialogUTypeWave"),
       messages.getString("allDialogUTypeBoldWave"),
@@ -2224,7 +2166,7 @@ public class WtConfigurationDialog implements ActionListener {
     return types;
   }
 
-  private int getUnderlineType(String category, String ruleId) {
+  private int getUnderlineType(String category, String ruleId) throws Throwable {
     short nType = config.getUnderlineType(category, ruleId);
     if (nType == WtConfiguration.UNDERLINE_BOLDWAVE) {
       return 1;
@@ -2237,7 +2179,7 @@ public class WtConfigurationDialog implements ActionListener {
     }
   }
 
-  private void setUnderlineType(int index, String category, String ruleId) {
+  private void setUnderlineType(int index, String category, String ruleId) throws Throwable {
     if (ruleId == null) {
       if (index == 1) {
         config.setUnderlineType(category, WtConfiguration.UNDERLINE_BOLDWAVE);
@@ -2266,7 +2208,7 @@ public class WtConfigurationDialog implements ActionListener {
    *   @since 5.3
    */
   @NotNull
-  private JPanel getRuleOptionsPanel(int num) {
+  private JPanel getRuleOptionsPanel(int num) throws Throwable {
     category = "";
     rule = null;
     JPanel ruleOptionsPanel = new JPanel();
@@ -2305,8 +2247,12 @@ public class WtConfigurationDialog implements ActionListener {
     underlineType.setSelectedIndex(getUnderlineType(category, (rule == null ? null : rule.getId())));
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
-        setUnderlineType(underlineType.getSelectedIndex(), category, (rule == null ? null : rule.getId()));
-        changedOptions.colorsChanged = true;
+        try {
+          setUnderlineType(underlineType.getSelectedIndex(), category, (rule == null ? null : rule.getId()));
+          changedOptions.colorsChanged = true;
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
+        }
       }
     });
     cons1.gridx++;
@@ -2350,7 +2296,7 @@ public class WtConfigurationDialog implements ActionListener {
         colorDialog.toFront();
         colorDialog.setVisible(true);
 //        WtGeneralTools.setJavaLookAndFeel(theme);
-      } catch (Exception e1) {
+      } catch (Throwable e1) {
         WtMessageHandler.printException(e1);
       }
     });
@@ -2360,21 +2306,25 @@ public class WtConfigurationDialog implements ActionListener {
     JButton defaultButton = new JButton(messages.getString("allDialogButtonDefault"));
     defaultButton.setEnabled(!config.onlySingleParagraphMode());
     defaultButton.addActionListener(e -> {
-      String ruleId = (rule == null ? null : rule.getId());
-      if (rule == null) {
-        config.setDefaultUnderlineColor(category);
-      } else {
-        config.setDefaultUnderlineRuleColor(ruleId);
+      try {
+        String ruleId = (rule == null ? null : rule.getId());
+        if (rule == null) {
+          config.setDefaultUnderlineColor(category);
+        } else {
+          config.setDefaultUnderlineRuleColor(ruleId);
+        }
+        underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
+        if ( rule == null) {
+          config.setDefaultUnderlineType(category);
+        } else {
+          config.setDefaultUnderlineRuleType(ruleId);
+        }
+        underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
+        config.removeConfigurableValue(ruleId);
+        changedOptions.colorsChanged = true;
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
-      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
-      if ( rule == null) {
-        config.setDefaultUnderlineType(category);
-      } else {
-        config.setDefaultUnderlineRuleType(ruleId);
-      }
-      underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
-      config.removeConfigurableValue(ruleId);
-      changedOptions.colorsChanged = true;
     });
     cons1.gridx++;
     colorPanel.add(defaultButton);
@@ -2388,191 +2338,195 @@ public class WtConfigurationDialog implements ActionListener {
     cons0.gridy = 1;
     
     configTree[num].addTreeSelectionListener(e -> {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-          configTree[num].getLastSelectedPathComponent();
-      if (node != null) {
-        if (specialOptionPanels.size() > 0) {
-          for (JPanel optionPanel : specialOptionPanels) {
-            optionPanel.setVisible(false);
-            ruleOptionsPanel.remove(optionPanel);
+      try {
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+            configTree[num].getLastSelectedPathComponent();
+        if (node != null) {
+          if (specialOptionPanels.size() > 0) {
+            for (JPanel optionPanel : specialOptionPanels) {
+              optionPanel.setVisible(false);
+              ruleOptionsPanel.remove(optionPanel);
+            }
+            specialOptionPanels.clear();
           }
-          specialOptionPanels.clear();
-        }
-        ruleOptionsPanel.setVisible(false);
-        if (node instanceof WtRuleNode) {
-          WtRuleNode o = (WtRuleNode) node;
-          rule = o.getRule();
-          category = rule.getCategory().getName();
-          String ruleId = rule.getId();
-          underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
-          underlineLabel.setBackground(config.getUnderlineColor(category, ruleId));
-          underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
-          colorPanel.setVisible(true);
-          RuleOption[] ruleOptions = rule.getRuleOptions();
-          if (ruleOptions != null && ruleOptions.length > 0) {
-            Object[] obj = new Object[ruleOptions.length];
-            for (int i = 0; i < ruleOptions.length; i++) {
-              // Start of special option panel
-              JPanel specialOptionPanel = new JPanel();
-              specialOptionPanels.add(specialOptionPanel);
-              specialOptionPanel.setLayout(new GridBagLayout());
-              GridBagConstraints cons2 = new GridBagConstraints();
-              cons2.gridx = 0;
-              cons2.gridy = 0;
-              cons2.weightx = 2.0f;
-              cons2.anchor = GridBagConstraints.WEST;
-              RuleOption ruleOption = ruleOptions[i];
-              int n = i;
-
-              Object defValue = ruleOption.getDefaultValue();
-              
-              if (defValue instanceof Boolean) {
-                JCheckBox isTrueBox = new JCheckBox(ruleOption.getConfigureText());
-                boolean value = config.getConfigValueByID(rule.getId(), i, Boolean.class, (Boolean) defValue);
-                isTrueBox.setSelected(value);
-                obj[n] = value;
-                isTrueBox.addItemListener(e1 -> {
-                  obj[n] = isTrueBox.isSelected();
-                  config.setConfigurableValue(rule.getId(), obj);
-                });
-                specialOptionPanel.add(isTrueBox, cons2);
-              } else {
-                JLabel ruleLabel = new JLabel(ruleOption.getConfigureText() + " ");
-                specialOptionPanel.add(ruleLabel, cons2);
-    
-                cons2.gridx++;
-                JTextField ruleValueField = new JTextField("   ", 3);
-                ruleValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
-                String fieldValue;
-                if (defValue instanceof Integer) {
-                  obj[n] = (int) config.getConfigValueByID(rule.getId(), i, Integer.class, (Integer) defValue);
-                  fieldValue = Integer.toString((int) obj[n]);
-                } else if (defValue instanceof Character) {
-                  obj[n] = (char) config.getConfigValueByID(rule.getId(), i, Character.class, (Character) defValue);
-                  fieldValue = Character.toString((char) obj[n]);
-                } else if (defValue instanceof Double) {
-                  obj[n] = (double) config.getConfigValueByID(rule.getId(), i, Double.class, (Double) defValue);
-                  fieldValue = Double.toString((double) obj[n]);
-                } else if (defValue instanceof Float) {
-                  obj[n] = (float) config.getConfigValueByID(rule.getId(), i, Float.class, (Float) defValue);
-                  fieldValue = Float.toString((float) obj[n]);
+          ruleOptionsPanel.setVisible(false);
+          if (node instanceof WtRuleNode) {
+            WtRuleNode o = (WtRuleNode) node;
+            rule = o.getRule();
+            category = rule.getCategory().getName();
+            String ruleId = rule.getId();
+            underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
+            underlineLabel.setBackground(config.getUnderlineColor(category, ruleId));
+            underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
+            colorPanel.setVisible(true);
+            RuleOption[] ruleOptions = rule.getRuleOptions();
+            if (ruleOptions != null && ruleOptions.length > 0) {
+              Object[] obj = new Object[ruleOptions.length];
+              for (int i = 0; i < ruleOptions.length; i++) {
+                // Start of special option panel
+                JPanel specialOptionPanel = new JPanel();
+                specialOptionPanels.add(specialOptionPanel);
+                specialOptionPanel.setLayout(new GridBagLayout());
+                GridBagConstraints cons2 = new GridBagConstraints();
+                cons2.gridx = 0;
+                cons2.gridy = 0;
+                cons2.weightx = 2.0f;
+                cons2.anchor = GridBagConstraints.WEST;
+                RuleOption ruleOption = ruleOptions[i];
+                int n = i;
+  
+                Object defValue = ruleOption.getDefaultValue();
+                
+                if (defValue instanceof Boolean) {
+                  JCheckBox isTrueBox = new JCheckBox(ruleOption.getConfigureText());
+                  boolean value = config.getConfigValueByID(rule.getId(), i, Boolean.class, (Boolean) defValue);
+                  isTrueBox.setSelected(value);
+                  obj[n] = value;
+                  isTrueBox.addItemListener(e1 -> {
+                    obj[n] = isTrueBox.isSelected();
+                    config.setConfigurableValue(rule.getId(), obj);
+                  });
+                  specialOptionPanel.add(isTrueBox, cons2);
                 } else {
-                  obj[n] = (String) config.getConfigValueByID(rule.getId(), i, String.class, (String) defValue);
-                  fieldValue = (String) obj[n];
-                }
-                ruleValueField.setText(fieldValue);
-                specialOptionPanel.add(ruleValueField, cons2);
-    
-                ruleValueField.getDocument().addDocumentListener(new DocumentListener() {
-                  @Override
-                  public void insertUpdate(DocumentEvent e) {
-                    changedUpdate(e);
+                  JLabel ruleLabel = new JLabel(ruleOption.getConfigureText() + " ");
+                  specialOptionPanel.add(ruleLabel, cons2);
+      
+                  cons2.gridx++;
+                  JTextField ruleValueField = new JTextField("   ", 3);
+                  ruleValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
+                  String fieldValue;
+                  if (defValue instanceof Integer) {
+                    obj[n] = (int) config.getConfigValueByID(rule.getId(), i, Integer.class, (Integer) defValue);
+                    fieldValue = Integer.toString((int) obj[n]);
+                  } else if (defValue instanceof Character) {
+                    obj[n] = (char) config.getConfigValueByID(rule.getId(), i, Character.class, (Character) defValue);
+                    fieldValue = Character.toString((char) obj[n]);
+                  } else if (defValue instanceof Double) {
+                    obj[n] = (double) config.getConfigValueByID(rule.getId(), i, Double.class, (Double) defValue);
+                    fieldValue = Double.toString((double) obj[n]);
+                  } else if (defValue instanceof Float) {
+                    obj[n] = (float) config.getConfigValueByID(rule.getId(), i, Float.class, (Float) defValue);
+                    fieldValue = Float.toString((float) obj[n]);
+                  } else {
+                    obj[n] = (String) config.getConfigValueByID(rule.getId(), i, String.class, (String) defValue);
+                    fieldValue = (String) obj[n];
                   }
-    
-                  @Override
-                  public void removeUpdate(DocumentEvent e) {
-                    changedUpdate(e);
-                  }
-    
-                  @Override
-                  public void changedUpdate(DocumentEvent e) {
-                    try {
-                      if (rule != null) {
-                        RuleOption[] ruleOptions = rule.getRuleOptions();
-                        if (ruleOptions != null && ruleOptions.length > 0) {
-                          boolean isCorrect = false;
-                          if (defValue instanceof Integer) {
-                            int num = Integer.parseInt(ruleValueField.getText());
-                            if (num < (int) ruleOption.getMinConfigurableValue()) {
-                              num = (int) ruleOption.getMinConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else if (num > (int) ruleOption.getMaxConfigurableValue()) {
-                              num = (int) ruleOption.getMaxConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
+                  ruleValueField.setText(fieldValue);
+                  specialOptionPanel.add(ruleValueField, cons2);
+      
+                  ruleValueField.getDocument().addDocumentListener(new DocumentListener() {
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                      changedUpdate(e);
+                    }
+      
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                      changedUpdate(e);
+                    }
+      
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                      try {
+                        if (rule != null) {
+                          RuleOption[] ruleOptions = rule.getRuleOptions();
+                          if (ruleOptions != null && ruleOptions.length > 0) {
+                            boolean isCorrect = false;
+                            if (defValue instanceof Integer) {
+                              int num = Integer.parseInt(ruleValueField.getText());
+                              if (num < (int) ruleOption.getMinConfigurableValue()) {
+                                num = (int) ruleOption.getMinConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else if (num > (int) ruleOption.getMaxConfigurableValue()) {
+                                num = (int) ruleOption.getMaxConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else {
+                                ruleValueField.setForeground(null);
+                                isCorrect = true;
+                                obj[n] = num;
+                              }
+                            } else if (defValue instanceof Character) {
+                              char num = ruleValueField.getText().charAt(0);
+                              if (num < (char) ruleOption.getMinConfigurableValue()) {
+                                num = (char) ruleOption.getMinConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else if (num > (char) ruleOption.getMaxConfigurableValue()) {
+                                num = (char) ruleOption.getMaxConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else {
+                                ruleValueField.setForeground(null);
+                                isCorrect = true;
+                                obj[n] = num;
+                              }
+                            } else if (defValue instanceof Double) {
+                              double num = Double.parseDouble(ruleValueField.getText());
+                              if (num < (double) ruleOption.getMinConfigurableValue()) {
+                                num = (double) ruleOption.getMinConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else if (num > (double) ruleOption.getMaxConfigurableValue()) {
+                                num = (double) ruleOption.getMaxConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else {
+                                ruleValueField.setForeground(null);
+                                isCorrect = true;
+                                obj[n] = num;
+                              }
+                            } else if (defValue instanceof Float) {
+                              float num = Float.parseFloat(ruleValueField.getText());
+                              if (num < (float) ruleOption.getMinConfigurableValue()) {
+                                num = (float) ruleOption.getMinConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else if (num > (float) ruleOption.getMaxConfigurableValue()) {
+                                num = (float) ruleOption.getMaxConfigurableValue();
+                                ruleValueField.setForeground(Color.RED);
+                              } else {
+                                ruleValueField.setForeground(null);
+                                isCorrect = true;
+                                obj[n] = num;
+                              }
                             } else {
+                              String num = ruleValueField.getText();
                               ruleValueField.setForeground(null);
                               isCorrect = true;
                               obj[n] = num;
                             }
-                          } else if (defValue instanceof Character) {
-                            char num = ruleValueField.getText().charAt(0);
-                            if (num < (char) ruleOption.getMinConfigurableValue()) {
-                              num = (char) ruleOption.getMinConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else if (num > (char) ruleOption.getMaxConfigurableValue()) {
-                              num = (char) ruleOption.getMaxConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else {
-                              ruleValueField.setForeground(null);
-                              isCorrect = true;
-                              obj[n] = num;
+                            if (isCorrect) {
+                              config.setConfigurableValue(rule.getId(), obj);
                             }
-                          } else if (defValue instanceof Double) {
-                            double num = Double.parseDouble(ruleValueField.getText());
-                            if (num < (double) ruleOption.getMinConfigurableValue()) {
-                              num = (double) ruleOption.getMinConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else if (num > (double) ruleOption.getMaxConfigurableValue()) {
-                              num = (double) ruleOption.getMaxConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else {
-                              ruleValueField.setForeground(null);
-                              isCorrect = true;
-                              obj[n] = num;
-                            }
-                          } else if (defValue instanceof Float) {
-                            float num = Float.parseFloat(ruleValueField.getText());
-                            if (num < (float) ruleOption.getMinConfigurableValue()) {
-                              num = (float) ruleOption.getMinConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else if (num > (float) ruleOption.getMaxConfigurableValue()) {
-                              num = (float) ruleOption.getMaxConfigurableValue();
-                              ruleValueField.setForeground(Color.RED);
-                            } else {
-                              ruleValueField.setForeground(null);
-                              isCorrect = true;
-                              obj[n] = num;
-                            }
-                          } else {
-                            String num = ruleValueField.getText();
-                            ruleValueField.setForeground(null);
-                            isCorrect = true;
-                            obj[n] = num;
-                          }
-                          if (isCorrect) {
-                            config.setConfigurableValue(rule.getId(), obj);
                           }
                         }
+                      } catch (Exception ex) {
+                        ruleValueField.setForeground(Color.RED);
                       }
-                    } catch (Exception ex) {
-                      ruleValueField.setForeground(Color.RED);
                     }
-                  }
-                });
+                  });
+                }
+                ruleOptionsPanel.add(specialOptionPanel, cons0);
+                ruleOptionsPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+                ruleOptionsPanel.setVisible(true);
+                cons0.gridy++;
+                // End of special option panel
               }
-              ruleOptionsPanel.add(specialOptionPanel, cons0);
-              ruleOptionsPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-              ruleOptionsPanel.setVisible(true);
-              cons0.gridy++;
-              // End of special option panel
             }
+          } else if (node instanceof WtCategoryNode) {
+            WtCategoryNode o = (WtCategoryNode) node;
+            category = o.getCategory().getName();
+            underlineLabel.setForeground(config.getUnderlineColor(category, null));
+            underlineLabel.setBackground(config.getUnderlineColor(category, null));
+            underlineType.setSelectedIndex(getUnderlineType(category, null));
+            colorPanel.setVisible(true);
+            rule = null;
           }
-        } else if (node instanceof WtCategoryNode) {
-          WtCategoryNode o = (WtCategoryNode) node;
-          category = o.getCategory().getName();
-          underlineLabel.setForeground(config.getUnderlineColor(category, null));
-          underlineLabel.setBackground(config.getUnderlineColor(category, null));
-          underlineType.setSelectedIndex(getUnderlineType(category, null));
-          colorPanel.setVisible(true);
-          rule = null;
+          ruleOptionsPanel.setVisible(true);
         }
-        ruleOptionsPanel.setVisible(true);
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
     });
     return ruleOptionsPanel;
   }
   
-  private JPanel getColorPanel(String category, String ruleId) {
+  private JPanel getColorPanel(String category, String ruleId) throws Throwable {
     //  Color Panel
     JPanel colorPanel = new JPanel();
     colorPanel.setLayout(null);
@@ -2596,8 +2550,12 @@ public class WtConfigurationDialog implements ActionListener {
     underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
     underlineType.addItemListener(e -> {
       if (e.getStateChange() == ItemEvent.SELECTED) {
-        setUnderlineType(underlineType.getSelectedIndex(), category, ruleId);
-        changedOptions.colorsChanged = true;
+        try {
+          setUnderlineType(underlineType.getSelectedIndex(), category, ruleId);
+          changedOptions.colorsChanged = true;
+        } catch (Throwable t) {
+          WtMessageHandler.showError(t);
+        }
       }
     });
     cons1.gridx++;
@@ -2643,20 +2601,24 @@ public class WtConfigurationDialog implements ActionListener {
   
     JButton defaultButton = new JButton(messages.getString("allDialogButtonDefault"));
     defaultButton.addActionListener(e -> {
-      if (ruleId == null) {
-        config.setDefaultUnderlineColor(category);
-      } else {
-        config.setDefaultUnderlineRuleColor(ruleId);
+      try {
+        if (ruleId == null) {
+          config.setDefaultUnderlineColor(category);
+        } else {
+          config.setDefaultUnderlineRuleColor(ruleId);
+        }
+        underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
+        if ( ruleId == null) {
+          config.setDefaultUnderlineType(category);
+        } else {
+          config.setDefaultUnderlineRuleType(ruleId);
+        }
+        underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
+        config.removeConfigurableValue(ruleId);
+        changedOptions.colorsChanged = true;
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
       }
-      underlineLabel.setForeground(config.getUnderlineColor(category, ruleId));
-      if ( ruleId == null) {
-        config.setDefaultUnderlineType(category);
-      } else {
-        config.setDefaultUnderlineRuleType(ruleId);
-      }
-      underlineType.setSelectedIndex(getUnderlineType(category, ruleId));
-      config.removeConfigurableValue(ruleId);
-      changedOptions.colorsChanged = true;
     });
     cons1.gridx++;
     colorPanel.add(defaultButton);
@@ -2668,7 +2630,7 @@ public class WtConfigurationDialog implements ActionListener {
     return colorPanel;
   }
   
-  private JPanel getAiInstallationHint() {
+  private JPanel getAiInstallationHint() throws Throwable {
     JPanel panel = new JPanel();
     panel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
@@ -2690,7 +2652,7 @@ public class WtConfigurationDialog implements ActionListener {
     return panel;
   }
   
-  private JPanel getOfficeAiTextElements() {
+  private JPanel getOfficeAiTextElements() throws Throwable {
     JPanel aiOptionPanel = new JPanel();
     aiOptionPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
@@ -2952,7 +2914,7 @@ public class WtConfigurationDialog implements ActionListener {
     return aiOptionPanel;
   }
   
-  private JPanel getOfficeAiImgElements() {
+  private JPanel getOfficeAiImgElements() throws Throwable{
     JPanel aiOptionPanel = new JPanel();
     aiOptionPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
@@ -3036,12 +2998,7 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-//        if(apiKey.isEmpty()) {
-//          apiKey = null;
-//        }
-//        if (apiKey != null) {
-          config.setAiImgApiKey(apiKey);
-//        }
+        config.setAiImgApiKey(apiKey);
       }
     });
     
@@ -3132,7 +3089,7 @@ public class WtConfigurationDialog implements ActionListener {
     return aiOptionPanel;
   }
   
-  private JPanel getOfficeAiTtsElements() {
+  private JPanel getOfficeAiTtsElements() throws Throwable {
     JPanel aiOptionPanel = new JPanel();
     aiOptionPanel.setLayout(new GridBagLayout());
     GridBagConstraints cons = new GridBagConstraints();
@@ -3216,12 +3173,7 @@ public class WtConfigurationDialog implements ActionListener {
       public void changedUpdate(DocumentEvent e) {
         String apiKey = apiKeyField.getText();
         apiKey = apiKey.trim();
-//        if(apiKey.isEmpty()) {
-//          apiKey = null;
-//        }
-//        if (apiKey != null) {
-          config.setAiTtsApiKey(apiKey);
-//        }
+        config.setAiTtsApiKey(apiKey);
       }
     });
     
@@ -3318,7 +3270,7 @@ public class WtConfigurationDialog implements ActionListener {
     return aiOptionPanel;
   }
   
-  private JTabbedPane getOfficeAiElements() {
+  private JTabbedPane getOfficeAiElements() throws Throwable {
     JTabbedPane tabbedpane = new JTabbedPane();
     tabbedpane.add(messages.getString("aiDialogTabText"), getOfficeAiTextElements());
     tabbedpane.add(messages.getString("aiDialogTabImages"), getOfficeAiImgElements());

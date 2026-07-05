@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
  * USA
  */
-package org.writingtool.dialogs;
+package org.writingtool.menus;
 
 import java.awt.*;
 import java.awt.event.*;

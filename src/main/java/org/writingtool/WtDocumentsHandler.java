@@ -202,7 +202,9 @@ public class WtDocumentsHandler {
     this.xEventListener = xEventListener;
     this.xProofreader = xProofreader;
     xEventListeners = new ArrayList<>();
-//    WtOfficeTools.javaVersionOkay();
+    extraRemoteRules = new ArrayList<>();
+    documents = new ArrayList<>();
+    disposedIds = new ArrayList<>();
     WtVersionInfo.init(xContext);
     WtOfficeTools.renameOldLtFiles();     // This has to be deleted in later versions 
     if (WtVersionInfo.ooName == null || WtVersionInfo.ooName.equals("OpenOffice")) {
@@ -213,26 +215,29 @@ public class WtDocumentsHandler {
       isOpenOffice = false;
       configFile = WtOfficeTools.CONFIG_FILE;
     }
-    configDir = WtOfficeTools.getWtConfigDir(xContext);
-    WtMessageHandler.init(xContext, false);
-    documents = new ArrayList<>();
-    disposedIds = new ArrayList<>();
-    disabledRulesUI = new HashMap<>();
-    extraRemoteRules = new ArrayList<>();
-    if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
-        || !WtSpellChecker.runLTSpellChecker(xContext)) {
-      noLtSpeller = true;
+    try {
+      configDir = WtOfficeTools.getWtConfigDir(xContext);
+      WtMessageHandler.init(xContext, false);
+      disabledRulesUI = new HashMap<>();
+      if (WtVersionInfo.osArch == null || WtVersionInfo.osArch.equals("x86")
+          || !WtSpellChecker.runLTSpellChecker(xContext)) {
+        noLtSpeller = true;
+      }
+      config = getLastConfiguration();
+      WtOfficeTools.setLogLevel(config.getlogLevel());
+      debugMode = WtOfficeTools.DEBUG_MODE_MD;
+      debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+      noBackgroundCheck = config.noBackgroundCheck();
+      WtMessageHandler.writeInitialInformation(config);
+      XDesktop desktop = WtOfficeTools.getDesktop(xContext);
+      if (desktop != null) {
+        desktop.addTerminateListener(new WtTerminateListener());
+      }
+      wtHelper = new WtHelper();
+      wtHelper.start();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
-    config = getLastConfiguration();
-    WtOfficeTools.setLogLevel(config.getlogLevel());
-    debugMode = WtOfficeTools.DEBUG_MODE_MD;
-    debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
-    noBackgroundCheck = config.noBackgroundCheck();
-    WtMessageHandler.writeInitialInformation(config);
-    XDesktop desktop = WtOfficeTools.getDesktop(xContext);
-    desktop.addTerminateListener(new WtTerminateListener());
-    wtHelper = new WtHelper();
-    wtHelper.start();
   }
   
   /**
@@ -401,11 +406,11 @@ public class WtDocumentsHandler {
    *  Get the current used document
    */
   public WtSingleDocument getCurrentDocument() {
-    long startTime = 0;
-    if (debugModeTm) {
-      startTime = System.currentTimeMillis();
-    }
     try {
+      long startTime = 0;
+      if (debugModeTm) {
+        startTime = System.currentTimeMillis();
+      }
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       isNotTextDocument = false;
       if (xComponent != null) {
@@ -478,7 +483,7 @@ public class WtDocumentsHandler {
   /**
    * create new Impress document id
    */
-  private String createOtherDocId(String prefix) {
+  private String createOtherDocId(String prefix) throws Throwable {
     String docID;
     if (documents.size() == 0) {
       return prefix + "1";
@@ -567,7 +572,7 @@ public class WtDocumentsHandler {
   /**
    * set cache status color in sidebar
    */
-  public void setCacheStatusColor(WtSingleDocument document) {
+  public void setCacheStatusColor(WtSingleDocument document) throws Throwable {
     if (sidebarContent != null) {
       sidebarContent.setCacheStatusColor(document);
     }
@@ -585,7 +590,7 @@ public class WtDocumentsHandler {
   /**
    * update all button states
    */
-  public void updateButtons() {
+  public void updateButtons() throws Throwable {
     if (protocolHandler != null) {
       protocolHandler.setButtonState();
     }
@@ -594,7 +599,7 @@ public class WtDocumentsHandler {
   /**
    * update all button states
    */
-  public void updateSidebar() {
+  public void updateSidebar() throws Throwable {
     if (sidebarContent != null) {
       sidebarContent.toggleBackgroundCheckButton();
       sidebarContent.resetActivateRulesBox();
@@ -665,7 +670,7 @@ public class WtDocumentsHandler {
   /**
    *  use analyzed sentences cache
    */
-  public boolean useAnalyzedSentencesCache() {
+  public boolean useAnalyzedSentencesCache() throws Throwable {
     return !config.doRemoteCheck() || statAnDialog != null;
   }
   
@@ -824,7 +829,7 @@ public class WtDocumentsHandler {
   /**
    *  Add a rule to disabled rules by context menu or spell dialog
    */
-  void addDisabledRule(String langCode, String ruleId) {
+  void addDisabledRule(String langCode, String ruleId) throws Throwable {
     if (disabledRulesUI.containsKey(langCode)) {
       disabledRulesUI.get(langCode).add(ruleId);
     } else {
@@ -837,7 +842,7 @@ public class WtDocumentsHandler {
   /**
    *  Remove a rule from disabled rules by spell dialog
    */
-  public void removeDisabledRule(String langCode, String ruleId) {
+  public void removeDisabledRule(String langCode, String ruleId) throws Throwable  {
     if (disabledRulesUI.containsKey(langCode)) {
       Set<String >rulesIds = disabledRulesUI.get(langCode);
       rulesIds.remove(ruleId);
@@ -859,7 +864,7 @@ public class WtDocumentsHandler {
   /**
    *  get disabled rules for a language code by context menu or spell dialog
    */
-  public static Set<String> getDisabledRules(String langCode) {
+  public static Set<String> getDisabledRules(String langCode) throws Throwable  {
     if (langCode == null || !disabledRulesUI.containsKey(langCode)) {
       return new HashSet<String>();
     }
@@ -883,7 +888,7 @@ public class WtDocumentsHandler {
   /**
    *  get all disabled rules by context menu or spell dialog
    */
-  public Map<String, String> getDisabledRulesMap(String langCode) {
+  public Map<String, String> getDisabledRulesMap(String langCode) throws Throwable  {
     if (langCode == null) {
       langCode = WtOfficeTools.localeToString(locale);
     }
@@ -933,14 +938,14 @@ public class WtDocumentsHandler {
   /**
    *  set disabled rules by context menu or spell dialog
    */
-  public void setDisabledRules(String langCode, Set<String> ruleIds) {
+  public void setDisabledRules(String langCode, Set<String> ruleIds) throws Throwable  {
     disabledRulesUI.put(langCode, new HashSet<>(ruleIds));
   }
   
   /**
    *  get LanguageTool
    */
-  public WtLanguageTool getLanguageTool() {
+  public WtLanguageTool getLanguageTool() throws Throwable  {
     if (lt == null) {
       if (docLanguage == null) {
         docLanguage = getCurrentLanguage();
@@ -953,7 +958,7 @@ public class WtDocumentsHandler {
   /**
    *  get Configuration
    */
-  public WtConfiguration getConfiguration() {
+  public WtConfiguration getConfiguration() throws Throwable  {
     try {
       if (config == null || recheck) {
         if (docLanguage == null) {
@@ -970,7 +975,7 @@ public class WtDocumentsHandler {
   /**
    *  get Configuration
    */
-  public WtConfiguration getLastConfiguration() {
+  public WtConfiguration getLastConfiguration() throws Throwable {
     try {
       if (config == null) {
         if (docLanguage == null) {
@@ -991,11 +996,11 @@ public class WtDocumentsHandler {
    *  get Configuration for language
    *  @throws IOException 
    */
-  public static WtConfiguration getConfiguration(Language lang) throws IOException {
+  public static WtConfiguration getConfiguration(Language lang) throws Throwable {
     return new WtConfiguration(configDir, configFile, lang, true);
   }
   
-  private void disableLTSpellChecker(XComponentContext xContext, Language lang) {
+  private void disableLTSpellChecker(XComponentContext xContext, Language lang) throws Throwable {
     try {
       config.setUseLtSpellChecker(false);
       config.saveConfiguration(lang);
@@ -1007,7 +1012,7 @@ public class WtDocumentsHandler {
   /**
    *  get LinguisticServices
    */
-  public WtLinguisticServices getLinguisticServices() {
+  public WtLinguisticServices getLinguisticServices() throws Throwable {
     if (linguServices == null) {
       linguServices = new WtLinguisticServices(xContext);
       WtMessageHandler.printToLogFile("MultiDocumentsHandler: getLinguisticServices: linguServices set: is " 
@@ -1048,7 +1053,7 @@ public class WtDocumentsHandler {
    * if null or not supported returns the most used language of the document
    * if there is no supported language use en-US as default
    */
-  public Language getCurrentLanguage() {
+  public Language getCurrentLanguage() throws Throwable {
     Locale locale = WtOfficeTools.getCursorLocale(xContext);
     if (locale == null || locale.Language.equals(WtOfficeTools.IGNORE_LANGUAGE) || !hasLocale(locale)) {
       WtSingleDocument document = getCurrentDocument();
@@ -1374,7 +1379,7 @@ public class WtDocumentsHandler {
   /**
    * change colors / underline style of all errors
    */
-  public void changePropertiesOfAllErrors() {
+  public void changePropertiesOfAllErrors() throws Throwable {
 //    WtMessageHandler.printToLogFile("WtDocumentHandler: run changePropertiesOfAllErrors");
     for (WtSingleDocument document : documents) {
       document.changeColorsOfAllParagraphs();
@@ -1384,7 +1389,7 @@ public class WtDocumentsHandler {
   /**
    * remark all paragraphs
    */
-  public void remarkAllParagraphs() {
+  public void remarkAllParagraphs() throws Throwable {
 //    WtMessageHandler.printToLogFile("WtDocumentHandler: run remarkAllParagraphs");
     for (WtSingleDocument document : documents) {
       document.remarkAllParagraphs();
@@ -1394,7 +1399,7 @@ public class WtDocumentsHandler {
   /**
    * Reset ignored matches
    */
-  void resetIgnoredMatches() {
+  void resetIgnoredMatches() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetIgnoreOnce();
     }
@@ -1403,7 +1408,7 @@ public class WtDocumentsHandler {
   /**
    * Reset All result caches
    */
-  public void resetAllResultCaches() {
+  public void resetAllResultCaches() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetAllResultCache();
     }
@@ -1412,7 +1417,7 @@ public class WtDocumentsHandler {
   /**
    * Reset Grammar result caches
    */
-  public void resetGrammarResultCaches() {
+  public void resetGrammarResultCaches() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetGrammarResultCache();
     }
@@ -1421,7 +1426,7 @@ public class WtDocumentsHandler {
   /**
    * Reset AI result caches
    */
-  public void resetAiResultCaches() {
+  public void resetAiResultCaches() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetAiResultCache();
     }
@@ -1430,7 +1435,7 @@ public class WtDocumentsHandler {
   /**
    * Reset document caches
    */
-  public void resetDocumentCaches() {
+  public void resetDocumentCaches() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetDocumentCache();
     }
@@ -1439,7 +1444,7 @@ public class WtDocumentsHandler {
   /**
    * Is AI used?
    */
-  public boolean useAi() {
+  public boolean useAi() throws Throwable {
     if (config == null) {
       config = getConfiguration();
     }
@@ -1449,7 +1454,7 @@ public class WtDocumentsHandler {
   /**
    * Is AI used?
    */
-  public boolean useAiSuggestion() {
+  public boolean useAiSuggestion() throws Throwable {
     if (config == null) {
       config = getConfiguration();
     }
@@ -1580,7 +1585,7 @@ public class WtDocumentsHandler {
   /**
    * Set docID used within menu
    */
-  public void setMenuDocId(String docId) {
+  public void setMenuDocId(String docId) throws Throwable {
     if (docId == null) {
       WtSingleDocument document = getCurrentDocument();
       if (document != null) {
@@ -1606,41 +1611,9 @@ public class WtDocumentsHandler {
   }
   
   /**
-   * Is true if footnotes exist (tests if OO or very old LO) 
-   *//*
-  private void testFootnotes(PropertyValue[] propertyValues) {
-    for (PropertyValue propertyValue : propertyValues) {
-      if ("FootnotePositions".equals(propertyValue.Name)) {
-        return;
-      }
-    }
-    //  OO and LO < 4.3 do not support 'FootnotePositions' property and other advanced features
-    //  switch back to single paragraph check mode
-    //  use OOO configuration file - save existing settings if not already done
-    useOrginalCheckDialog = true;
-    File ooConfigFile = new File(configDir, OfficeTools.OOO_CONFIG_FILE);
-    if (!ooConfigFile.exists()) {
-      File loConfigFile = new File(configDir, configFile);
-      if (loConfigFile.exists()) {
-        try {
-          Configuration tmpConfig = new Configuration(configDir, configFile, oldConfigFile, docLanguage, true);
-          tmpConfig.setConfigFile(ooConfigFile);
-          tmpConfig.setNumParasToCheck(0);
-          tmpConfig.setUseTextLevelQueue(false);
-          tmpConfig.saveConfiguration(docLanguage);
-        } catch (IOException e) {
-          MessageHandler.showError(e);
-        }
-      }
-    }
-    configFile = OfficeTools.OOO_CONFIG_FILE;
-    MessageHandler.printToLogFile("No support of Footnotes: Open Office assumed - Single paragraph check mode set!");
-  }
-*/
-  /**
    * Call method ignoreOnce for concerned document 
    */
-  public String ignoreOnce() {
+  public String ignoreOnce() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         return document.ignoreOnce();
@@ -1652,7 +1625,7 @@ public class WtDocumentsHandler {
   /**
    * Call method ignoreAll for concerned document 
    */
-  public void ignoreAll() {
+  public void ignoreAll() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         document.ignoreAll();
@@ -1664,7 +1637,7 @@ public class WtDocumentsHandler {
   /**
    * Call method replace ai spelling error
    */
-  public void aiReplaceError(String suggestion) {
+  public void aiReplaceError(String suggestion) throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         document.replaceAiError(suggestion);
@@ -1676,7 +1649,7 @@ public class WtDocumentsHandler {
   /**
    * Call method ignorePermanent for concerned document 
    */
-  public String ignorePermanent() {
+  public String ignorePermanent() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         return document.ignorePermanent();
@@ -1709,7 +1682,7 @@ public class WtDocumentsHandler {
   /**
    * Call method Ai Support mark errors 
    */
-  public void aiAddErrorMarks() {
+  public void aiAddErrorMarks() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         WtAiErrorDetection aiError = new WtAiErrorDetection(document, config, lt);
@@ -1752,7 +1725,7 @@ public class WtDocumentsHandler {
     aiTranslate = null;
   }
   
-  public void runAiTextToSpeech() {
+  public void runAiTextToSpeech() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         WtAiTextToSpeech aiTextToSpeech = new WtAiTextToSpeech(document, messages);
@@ -1771,7 +1744,9 @@ public class WtDocumentsHandler {
   }
 
   public void closeAiSummaryDialog() {
-    aiSummaryDialog.close();
+    if (aiSummaryDialog != null) {
+      aiSummaryDialog.close();
+    }
     aiSummaryDialog = null;
   }
 
@@ -1789,21 +1764,21 @@ public class WtDocumentsHandler {
   /**
    * Call method resetIgnorePermanent for concerned document 
    */
-  public void resetIgnorePermanent() {
+  public void resetIgnorePermanent() throws Throwable {
     getCurrentDocument().resetIgnorePermanent();
   }
   
   /**
    * Call method resetIgnorePermanent for concerned document 
    */
-  public void permanentIgnoreParagraph() {
+  public void permanentIgnoreParagraph() throws Throwable {
     getCurrentDocument().permanentIgnoreParagraph();
   }
   
   /**
    * Call method renewMarkups for concerned document 
    */
-  public void renewMarkups() {
+  public void renewMarkups() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId != null && menuDocId.equals(document.getDocID())) {
         document.renewMarkups();
@@ -1814,7 +1789,7 @@ public class WtDocumentsHandler {
   /**
    * reset ignoreOnce information in all documents
    */
-  public void resetIgnoreOnce() {
+  public void resetIgnoreOnce() throws Throwable {
     for (WtSingleDocument document : documents) {
       document.resetIgnoreOnce();
     }
@@ -1852,7 +1827,7 @@ public class WtDocumentsHandler {
         resetAiResultCaches();
       }
       updateButtons();
-    } catch (IOException e) {
+    } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
   }
@@ -1860,12 +1835,12 @@ public class WtDocumentsHandler {
   /**
    * Activate a rule by rule iD
    */
-  public void activateRule(String ruleId) {
+  public void activateRule(String ruleId) throws Throwable {
     activateRule(WtOfficeTools.localeToString(locale), ruleId);
     updateButtons();
   }
   
-  public void activateRule(String langcode, String ruleId) {
+  public void activateRule(String langcode, String ruleId) throws Throwable {
     if (ruleId != null) {
       removeDisabledRule(langcode, ruleId);
       deactivateRule(ruleId, langcode, true);
@@ -1876,7 +1851,7 @@ public class WtDocumentsHandler {
   /**
    * Deactivate a rule as requested by the context menu
    */
-  public void deactivateRule() {
+  public void deactivateRule() throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
         RuleDesc ruleDesc = document.getCurrentRule();
@@ -1963,7 +1938,7 @@ public class WtDocumentsHandler {
   /**
    * Remove a special Proofreading error from all caches
    */
-  private void removeRuleError(String ruleId) {
+  private void removeRuleError(String ruleId) throws Throwable {
     for (WtSingleDocument document : documents) {
       document.removeRuleError(ruleId);
     }
@@ -1972,7 +1947,7 @@ public class WtDocumentsHandler {
   /**
    * Deactivate a rule by rule iD
    */
-  public void deactivateRule(String ruleId, String langcode, boolean reactivate) {
+  public void deactivateRule(String ruleId, String langcode, boolean reactivate) throws Throwable {
     if (ruleId != null) {
       try {
         WtConfiguration confg = new WtConfiguration(configDir, configFile, docLanguage, true);
@@ -2111,11 +2086,16 @@ public class WtDocumentsHandler {
    * @return true if listener is non-null and has been added, false otherwise
    */
   public final boolean addLinguServiceEventListener(XLinguServiceEventListener eventListener) {
-    if (eventListener == null) {
+    try {
+      if (eventListener == null) {
+        return false;
+      }
+      xEventListeners.add(eventListener);
+      return true;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
       return false;
     }
-    xEventListeners.add(eventListener);
-    return true;
   }
 
   /**
@@ -2125,12 +2105,16 @@ public class WtDocumentsHandler {
    * @return true if listener is non-null and has been removed, false otherwise
    */
   public final boolean removeLinguServiceEventListener(XLinguServiceEventListener eventListener) {
-    if (eventListener == null) {
-      return false;
-    }
-    if (xEventListeners.contains(eventListener)) {
-      xEventListeners.remove(eventListener);
-      return true;
+    try {
+      if (eventListener == null) {
+        return false;
+      }
+      if (xEventListeners.contains(eventListener)) {
+        xEventListeners.remove(eventListener);
+        return true;
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
     return false;
   }
@@ -2138,7 +2122,7 @@ public class WtDocumentsHandler {
   /**
    * Inform listener that the document should be rechecked for grammar and style check.
    */
-  public boolean resetCheck() {
+  public boolean resetCheck() throws Throwable {
 //    resetCheck(LinguServiceEventFlags.SPELL_WRONG_WORDS_AGAIN);
 //    resetCheck(LinguServiceEventFlags.SPELL_CORRECT_WORDS_AGAIN);
     return resetCheck(LinguServiceEventFlags.PROOFREAD_AGAIN);
@@ -2147,7 +2131,7 @@ public class WtDocumentsHandler {
   /**
    * Inform listener that the doc should be rechecked for a special event flag.
    */
-  public boolean resetCheck(short eventFlag) {
+  public boolean resetCheck(short eventFlag) throws Throwable {
     if (!xEventListeners.isEmpty()) {
       for (XLinguServiceEventListener xEvLis : xEventListeners) {
         if (xEvLis != null) {
@@ -2222,7 +2206,7 @@ public class WtDocumentsHandler {
    * Inform listener (grammar checking iterator) that options have changed and
    * the doc should be rechecked.
    */
-  public void resetDocument() {
+  public void resetDocument() throws Throwable {
     if (!noBackgroundCheck) {
       setRecheck();
       resetCheck();
@@ -2560,7 +2544,7 @@ public class WtDocumentsHandler {
   /** Set Look and Feel for Java Swing Components
    * 
    */
-  public static void setJavaLookAndFeel() {
+  public static void setJavaLookAndFeel() throws Throwable {
     if (javaLookAndFeelSet < 0) {
       try {
         WtConfiguration config = WtDocumentsHandler.config;
@@ -2623,7 +2607,7 @@ public class WtDocumentsHandler {
   /**
    * run heap space test, in intervals
    */
-  private void testHeapSpace() {
+  private void testHeapSpace() throws Throwable {
     if (!heapLimitReached && config.getNumParasToCheck() != 0) {
       if (numSinceHeapTest > heapCheckInterval) {
         isEnoughHeapSpace();
@@ -2694,8 +2678,12 @@ public class WtDocumentsHandler {
    * Called when "Ignore" is selected e.g. in the context menu for an error.
    */
   public void ignoreRule(String ruleId, Locale locale) {
-    addDisabledRule(WtOfficeTools.localeToString(locale), ruleId);
-    setRecheck();
+    try {
+      addDisabledRule(WtOfficeTools.localeToString(locale), ruleId);
+      setRecheck();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
   }
 
   /**
@@ -2705,10 +2693,14 @@ public class WtDocumentsHandler {
    * The rules disabled in the config dialog box are left as intact.
    */
   public void resetIgnoreRules() {
-    resetDisabledRules();
-    setRecheck();
-    resetIgnoreOnce();
-    docReset = true;
+    try {
+      resetDisabledRules();
+      setRecheck();
+      resetIgnoreOnce();
+      docReset = true;
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+    }
   }
 
   /**
@@ -2760,7 +2752,7 @@ public class WtDocumentsHandler {
           }
         }
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
   }
@@ -2910,83 +2902,14 @@ public class WtDocumentsHandler {
   /**
    * get a wait dialog
    */
-  public static WaitDialogThread getWaitDialog(String dialogName, String text) {
+  public static WaitDialogThread getWaitDialog(String dialogName, String text) throws Throwable {
     return new WaitDialogThread(dialogName, text, null);
   }
   
-  public static WaitDialogThread getWaitDialog(String dialogName, String text, Component parent) {
+  public static WaitDialogThread getWaitDialog(String dialogName, String text, Component parent) throws Throwable {
     return new WaitDialogThread(dialogName, text, parent);
   }
   
-  /**
-   *  start a separate thread to add or remove the internal LT dictionary
-   *//*
-  private void handleLtDictionary(String text) {
-    LtDictionary.setIgnoreWordsForSpelling(text, lt, locale, xContext);
-  }
-*/
-  /**
-   *  start a separate thread to add or remove the internal LT dictionary
-   *//*
-  public void handleLtDictionary(String text, Locale locale) {
-    handleDictionary.addTextToCheck(text, locale);
-    handleDictionary.wakeup();
-  }
-*/
-  /**
-   *  class to start a separate thread to add or remove the internal LT dictionary
-   *//*
-  private class HandleLtDictionary extends Thread {
-    private Object queueWakeup = new Object();
-    private final List<String> textToCheck = new ArrayList<>();
-    private final List<Locale> localeToCheck = new ArrayList<>();
-    private boolean isRunning = true;
-    
-    void setStop() {
-      isRunning = false;
-    }
-    
-    void addTextToCheck (String text, Locale locale) {
-      textToCheck.add(text);
-      localeToCheck.add(locale);
-    }
-    
-    void wakeup() {
-      synchronized(queueWakeup) {
-//        if (debugMode) {
-//          MessageHandler.printToLogFile("HandleLtDictionary: wakeupQueue: wake queue");
-//        }
-        queueWakeup.notify();
-      }
-    }
-
-    @Override
-    public void run() {
-      isRunning = true;
-      while (isRunning) {
-        synchronized(queueWakeup) {
-          if (textToCheck.size() < 1) {
-            try {
-//              MessageHandler.printToLogFile("HandleLtDictionary: run: queue waits");
-              queueWakeup.wait();
-            } catch (InterruptedException e) {
-              MessageHandler.printException(e);
-            }
-          }
-        }
-        String text = textToCheck.get(0);
-        Locale locale = localeToCheck.get(0);
-        textToCheck.remove(0);
-        localeToCheck.remove(0);
-        OfficeTools.waitForLO();
-        if (LtDictionary.setIgnoreWordsForSpelling(text, lt, locale, xContext)) {
-          resetCheck(LinguServiceEventFlags.SPELL_WRONG_WORDS_AGAIN); 
-        }
-      }
-      isRunning = false;
-    }
-  }
-*/
   /**
    * class to listen for termination of LO
    */
@@ -3129,9 +3052,13 @@ public class WtDocumentsHandler {
       this.dialogName = dialogName;
       this.text = text;
       this.parent = parent;
-      progressBar = new JProgressBar();
-      if (!isJavaLookAndFeelSet()) {
-        WtDocumentsHandler.setJavaLookAndFeel();
+      try {
+        progressBar = new JProgressBar();
+        if (!isJavaLookAndFeelSet()) {
+          WtDocumentsHandler.setJavaLookAndFeel();
+        }
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
       }
     }
 

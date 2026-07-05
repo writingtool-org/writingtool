@@ -218,17 +218,19 @@ public class WtCheckDialog extends Thread {
     debugMode = WtOfficeTools.DEBUG_MODE_CD;
     this.xContext = xContext;
     this.documents = documents;
-    lastLanguage = language;
-//    inf = WtDocumentsHandler.getWaitDialog("Please wait", messages.getString("messageDialogWaitMessage"));
-//    inf.start();
-    locale = WtLinguisticServices.getLocale(language);
-    if(!WtOfficeTools.javaVersionOkay()) {
-      return;
+    try {
+      lastLanguage = language;
+      locale = WtLinguisticServices.getLocale(language);
+      if(!WtOfficeTools.javaVersionOkay()) {
+        return;
+      }
+      if (documents.noLtSpeller()) {
+        linguServices = new WtLinguisticServices(xContext);
+      }
+      useAi = documents.useAi();
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
     }
-    if (documents.noLtSpeller()) {
-      linguServices = new WtLinguisticServices(xContext);
-    }
-    useAi = documents.useAi();
   }
 
   /**
@@ -300,7 +302,7 @@ public class WtCheckDialog extends Thread {
   /**
    * Actualize impress/calc document cache
    */
-  private void actualizeNonWriterDocumentCache(WtSingleDocument document) {
+  private void actualizeNonWriterDocumentCache(WtSingleDocument document) throws Throwable {
     if (docType != DocumentType.WRITER || documents.isBackgroundCheckOff()) {
       WtDocumentCache oldCache = new WtDocumentCache(docCache);
       docCache.refresh(document, null, null, document.getXComponent(), false, true, 7);
@@ -332,7 +334,7 @@ public class WtCheckDialog extends Thread {
    * Get the current document
    * Wait until it is initialized (by LO/OO)
    */
-  private WtSingleDocument getCurrentDocument(boolean actualize) {
+  private WtSingleDocument getCurrentDocument(boolean actualize) throws Throwable {
     WtSingleDocument currentDocument = documents.getCurrentDocument();
     int nWait = 0;
     while (currentDocument == null) {
@@ -452,7 +454,7 @@ public void previousError() {
    * get the current number of the flat paragraph related to the position of view cursor
    * the function considers footnotes, headlines, tables, etc. included in the document 
    */
-  private int getCurrentFlatParagraphNumber(WtViewCursorTools viewCursor, WtDocumentCache docCache) {
+  private int getCurrentFlatParagraphNumber(WtViewCursorTools viewCursor, WtDocumentCache docCache) throws Throwable {
     TextParagraph textPara = viewCursor.getViewCursorParagraph();
     if (textPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN) {
       return -1;
@@ -466,7 +468,7 @@ public void previousError() {
    * y = Paragraph of pure text (no footnotes, tables, etc.)
    * x = number of character in paragraph
    */
-  public static void setTextViewCursor(int x, TextParagraph y, WtViewCursorTools viewCursor)  {
+  public static void setTextViewCursor(int x, TextParagraph y, WtViewCursorTools viewCursor) throws Throwable {
     viewCursor.setTextViewCursor(x, y);
   }
 
@@ -475,7 +477,7 @@ public void previousError() {
    * y = Flat paragraph of pure text (includes footnotes, tables, etc.)
    * x = number of character in flat paragraph
    */
-  private boolean setFlatViewCursor(int xFlat, int yFlat, WtViewCursorTools viewCursor, WtDocumentCache docCache)  {
+  private boolean setFlatViewCursor(int xFlat, int yFlat, WtViewCursorTools viewCursor, WtDocumentCache docCache) throws Throwable {
     if (yFlat < 0) {
       return false;
     }
@@ -487,7 +489,8 @@ public void previousError() {
   /**
    * change text by view cursor
    */
-  private void changeTextOfParagraphByDocCursor(int nFPara, int nStart, int nLength, String replace, WtSingleDocument document) {
+  private void changeTextOfParagraphByDocCursor(int nFPara, int nStart, int nLength, String replace, 
+      WtSingleDocument document) throws Throwable {
     if (nFPara < 0) {
       return;
     }
@@ -543,7 +546,7 @@ public void previousError() {
     }
   }
   
-  private boolean isRealWordInPara(int start, int length, String para) {
+  private boolean isRealWordInPara(int start, int length, String para) throws Throwable {
     return (start >= 0 && (start == 0 || !Character.isLetterOrDigit(para.charAt(start - 1))) &&
         (start + length == para.length() || !Character.isLetterOrDigit(para.charAt(start + length))));
   }
@@ -707,7 +710,7 @@ public void previousError() {
   /** merge spelling errors
    * 
    */
-  private List<WtProofreadingError[]> mergeSpellingErrors(List<WtProofreadingError[]> errors) {
+  private List<WtProofreadingError[]> mergeSpellingErrors(List<WtProofreadingError[]> errors) throws Throwable {
     if(errors == null || errors.size() < 2 || errors.get(0) == null || errors.get(errors.size() - 1) == null) {
       return errors;
     }
@@ -891,17 +894,6 @@ public void previousError() {
                   }
                 }
               }
-/*              
-              for (WtProofreadingError err : errors) {
-                if (err.nErrorType == TextMarkupType.SPELLCHECK && !err.aRuleIdentifier.equals(error.aRuleIdentifier)
-                    && err.aSuggestions.length > 0 && !err.aSuggestions[0].isBlank()) {
-                  if (!suggestionList.contains(err.aSuggestions[0])) {
-                    suggestionList.remove(err.aSuggestions[0]);
-                  }
-                  suggestionList.add(err.aSuggestions[0]);
-                }
-              }
-*/              
               error.aSuggestions = suggestionList.toArray(new String[0]);
             }
             return error;
@@ -947,22 +939,10 @@ public void previousError() {
           }
           WtProofreadingError[] spellErrors = null;
           WtProofreadingError[] allErrors = null;
-/* LT tests also spell
-          if (checkType != 3 && errType != LoErrorType.GRAMMAR) {
-            spellErrors = getSpellErrors(nFPara, text, locale, document);
-          }
-*/
           if (paRes == null || paRes.aErrors == null || paRes.aErrors.length == 0) {
             allErrors = spellErrors;
           } else if (spellErrors == null || spellErrors.length == 0) {
             allErrors = WtOfficeTools.proofreadingToWtErrors(paRes.aErrors);
-/*
-          } else {
-            List<WtProofreadingError[]> errorList = new ArrayList<>();
-            errorList.add(spellErrors);
-            errorList.add(WtOfficeTools.proofreadingToWtErrors(paRes.aErrors));
-            allErrors = document.mergeErrors(errorList, nFPara);
-*/
           }
           if (allErrors != null) {
             if (debugMode) {
@@ -1258,12 +1238,6 @@ public void previousError() {
         startTime = System.currentTimeMillis();
       }
       ltImage = WtOfficeTools.getWtImage();
-      if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
-        WtDocumentsHandler.setJavaLookAndFeel();
-      }
-      
-      currentDocument = document;
-      
       undoList = new ArrayList<UndoContainer>();
 
       dialog = new JDialog();
@@ -1302,6 +1276,12 @@ public void previousError() {
       checkProgress = new JProgressBar(0, 100);
 
       try {
+        if (!WtDocumentsHandler.isJavaLookAndFeelSet()) {
+          WtDocumentsHandler.setJavaLookAndFeel();
+        }
+        
+        currentDocument = document;
+        
         if (debugMode) {
           WtMessageHandler.printToLogFile("CheckDialog: LtCheckDialog: LtCheckDialog called");
         }
@@ -1314,7 +1294,6 @@ public void previousError() {
         dialog.setTitle(dialogName + " (" + WtVersionInfo.getWtNameWithInformation() + ")");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         ((Frame) dialog.getOwner()).setIconImage(ltImage);
-//        defaultForeground = dialog.getForeground() == null ? Color.BLACK : dialog.getForeground();
         defaultForeground = errorDescription.getForeground() == null ? Color.BLACK : errorDescription.getForeground();
   
         languageLabel.createToolTip().updateUI();
@@ -1387,10 +1366,10 @@ public void previousError() {
 
         if (debugModeTm) {
           long runTime = System.currentTimeMillis() - startTime;
-//          if (runTime > OfficeTools.TIME_TOLERANCE) {
+          if (runTime > WtOfficeTools.TIME_TOLERANCE) {
             WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Languages: " + runTime);
-//          }
-            startTime = System.currentTimeMillis();
+          }
+          startTime = System.currentTimeMillis();
         }
         if (inf.canceled()) {
           return;
@@ -1399,7 +1378,6 @@ public void previousError() {
         errorDescription.setEditable(false);
         errorDescription.setLineWrap(true);
         errorDescription.setWrapStyleWord(true);
-//        errorDescription.setBackground(dialog.getContentPane().getBackground());
         errorDescription.setText(checkStatusInitialization);
         errorDescription.setForeground(Color.RED);
         Font descriptionFont = dialogFont.deriveFont(Font.BOLD);
@@ -1459,7 +1437,6 @@ public void previousError() {
         
         suggestionsLabel.setFont(dialogFont);
   
-//        suggestions.setFont(dialogFont);
         suggestions.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         suggestions.setFixedCellHeight((int)(suggestions.getFont().getSize() * 1.2 + 0.5));
         suggestions.setToolTipText(formatToolTipText(suggestionsHelp));
@@ -1562,7 +1539,6 @@ public void previousError() {
         checkTypeButtons[3].addActionListener(e -> {
           if (checkType != 3) {
             checkType = 3;
-//            checkRuleId = null;
           }
           checkRuleBox.setEnabled(true);
         });
@@ -1833,7 +1809,6 @@ public void previousError() {
         checkProgress.setStringPainted(true);
         checkProgress.setIndeterminate(true);
   
-        //  set selection background color to get compatible layout to LO
         Color selectionColor = UIManager.getLookAndFeelDefaults().getColor("ProgressBar.selectionBackground");
         suggestions.setSelectionBackground(selectionColor);
         setJComboSelectionBackground(language, selectionColor);
@@ -1843,9 +1818,9 @@ public void previousError() {
   
         if (debugModeTm) {
           long runTime = System.currentTimeMillis() - startTime;
-//          if (runTime > OfficeTools.TIME_TOLERANCE) {
+          if (runTime > WtOfficeTools.TIME_TOLERANCE) {
             WtMessageHandler.printToLogFile("CheckDialog: Time to initialise Buttons: " + runTime);
-//          }
+          }
             startTime = System.currentTimeMillis();
         }
         if (inf.canceled()) {
@@ -2071,9 +2046,9 @@ public void previousError() {
   
         if (debugModeTm) {
           long runTime = System.currentTimeMillis() - startTime;
-//          if (runTime > OfficeTools.TIME_TOLERANCE) {
+          if (runTime > WtOfficeTools.TIME_TOLERANCE) {
             WtMessageHandler.printToLogFile("CheckDialog: Time to initialise panels: " + runTime);
-//          }
+          }
             startTime = System.currentTimeMillis();
         }
         if (inf.canceled()) {
@@ -2092,9 +2067,9 @@ public void previousError() {
         ToolTipManager.sharedInstance().setDismissDelay(30000);
         if (debugModeTm) {
           long runTime = System.currentTimeMillis() - startTime;
-//          if (runTime > OfficeTools.TIME_TOLERANCE) {
+          if (runTime > WtOfficeTools.TIME_TOLERANCE) {
             WtMessageHandler.printToLogFile("CheckDialog: Time to initialise dialog size: " + runTime);
-//          }
+          }
         }
       } catch (Throwable t) {
         WtMessageHandler.showError(t);
@@ -2105,7 +2080,7 @@ public void previousError() {
     /**
      * Set the selection color to a combo box
      */
-    private void setJComboSelectionBackground(JComboBox<String> comboBox, Color color) {
+    private void setJComboSelectionBackground(JComboBox<String> comboBox, Color color) throws Throwable {
       Object context = comboBox.getAccessibleContext().getAccessibleChild(0);
       BasicComboPopup popup = (BasicComboPopup)context;
       popup.getList().setSelectionBackground(color);
@@ -2115,7 +2090,7 @@ public void previousError() {
      * Set the Progress value for the progress bar
      * The checked number of paragraphs and the percent of checked of paragraphs are printed
      */
-    void setProgressValue(int value, boolean setText) {
+    void setProgressValue(int value, boolean setText) throws Throwable {
       int max = checkProgress.getMaximum();
       int val = value < 0 ? 1 : value + 1;
       if (val > max) {
@@ -2133,7 +2108,7 @@ public void previousError() {
      * Set Color of cache status label
      * red if cache not filled green for full cache
      */
-    void setCacheStatusColor() {
+    void setCacheStatusColor() throws Throwable {
       int fullSize = docCache.size();
       int nSingle = 0;
       int nAuto = 0;
@@ -2180,63 +2155,6 @@ public void previousError() {
       documents.setCacheStatusColor(currentDocument);
     }
 
-/*    
-    void setCacheStatusColor() {
-      int fullSize = docCache.size();
-      int nSingle = 0;
-      int nAuto = 0;
-      for (int i = 0; i < docCache.size(); i++) {
-        if (docCache.isAutomaticGenerated(i, true)) {
-          nAuto++;
-        } else if (docCache.isSingleParagraph(i)) {
-          nSingle++;
-        }
-      }
-      int pSize = 0;
-      int numCache = 0;
-      for (int i = 0; i < currentDocument.getParagraphsCache().size(); i++) {
-        if (lt.isSortedRuleForIndex(i)) {
-          pSize += (currentDocument.getParagraphsCache().get(i).size() + nAuto);
-          if (i > 0) {
-            pSize += nSingle;
-          }
-          numCache++;
-        }
-      }
-      if (useAi) {
-        pSize += (currentDocument.getParagraphsCache().get(WtOfficeTools.CACHE_AI).size() + nAuto);
-        numCache++;
-      }
-      int size;
-      if (docType == DocumentType.WRITER) {
-        size = (fullSize == 0 || numCache == 0) ? 0 : (pSize * 100) / (fullSize * numCache);
-        if (size < 0) {
-          size = 0;
-        } else if (size > 100) {
-          size = 100;
-        }
-      } else {
-        size = 100;
-      }
-      cacheStatusLabel.setToolTipText(messages.getString("allDialogCacheLabel") + ": " + size + "%");
-      if (size < 25) {
-        cacheStatusLabel.setForeground(new Color(fitToColorboundaries(145 + 4 * size), 0, 0));
-      } else if (size < 50) {
-        cacheStatusLabel.setForeground(new Color(255, fitToColorboundaries(5 + 4 * size), 0));
-      } else if (size < 75) {
-        cacheStatusLabel.setForeground(new Color(fitToColorboundaries(255 - 4 * (size - 25)), 255, 0));
-      } else {
-        cacheStatusLabel.setForeground(new Color(0, fitToColorboundaries(255 - 4 * (size - 70)), 0));
-      }
-    }
-
-    private int fitToColorboundaries(int col) {
-      if (col < 0 || col > 255) {
-        return 255;
-      }
-      return col;
-    }
-*/    
     void errorReturn() {
       WtMessageHandler.showMessage(messageDialogBusyMessage);
       closeDialog();
@@ -2268,19 +2186,9 @@ public void previousError() {
             }
             setAtWorkButtonState();
             dialog.toFront();
-/*            
-            currentDocument = getCurrentDocument(false);
-            if (currentDocument == null || docCache == null || docCache.size() <= 0) {
-              errorReturn();
-              return;
-            }
-*/
+
             docId = currentDocument.getDocID();
-/*            
-            if (spellChecker == null) {
-              spellChecker = new ExtensionSpellChecker();
-            }
-*/
+
             if (lt == null || !documents.isCheckImpressDocument()) {
               setLangTool(currentDocument, lastLanguage);
             }
@@ -2294,9 +2202,9 @@ public void previousError() {
             }
             if (debugModeTm) {
               long runTime = System.currentTimeMillis() - startTime;
-//              if (runTime > OfficeTools.TIME_TOLERANCE) {
+              if (runTime > WtOfficeTools.TIME_TOLERANCE) {
                 WtMessageHandler.printToLogFile("CheckDialog: Time to initialise run: " + runTime);
-//              }
+              }
             }
             setCacheStatusColor();
             gotoNextError(false);
@@ -2356,7 +2264,7 @@ public void previousError() {
     /**
      * get all different kinds of errors
      */
-    List<RuleIdentification> getAllDifferentErrors() {
+    List<RuleIdentification> getAllDifferentErrors() throws Throwable {
       List<RuleIdentification> errors = new ArrayList<>();
       List<Rule> allRules = lt.getAllRules();
       for (int nFPara = 0; nFPara < docCache.size(); nFPara++) {
@@ -2401,7 +2309,7 @@ public void previousError() {
     /**
      * get the name of a rule by Id out of a list of RuleIdentification
      */
-    String getRuleName (String ruleId, List<RuleIdentification> rules) {
+    String getRuleName (String ruleId, List<RuleIdentification> rules) throws Throwable {
       for (RuleIdentification rule : rules) {
         if (ruleId.equals(rule.ruleId)) {
           return rule.ruleName;
@@ -2414,10 +2322,14 @@ public void previousError() {
      * get the ID of a rule by name out of a list of RuleIdentification
      */
     String getRuleId (String ruleName, List<RuleIdentification> rules) {
-      for (RuleIdentification rule : rules) {
-        if (ruleName.equals(rule.ruleName)) {
-          return rule.ruleId;
+      try {
+        for (RuleIdentification rule : rules) {
+          if (ruleName.equals(rule.ruleName)) {
+            return rule.ruleId;
+          }
         }
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
       }
       return null;
     }
@@ -2429,7 +2341,7 @@ public void previousError() {
      * \n- is formatted to an unordered List
      * \n1. is formatted to an ordered List (every digit 1 - 9 is allowed 
      */
-    private String formatToolTipText(String Text) {
+    private String formatToolTipText(String Text) throws Throwable {
       String toolTipText = Text;
       int breakIndex = 0;
       int isNum = 0;
@@ -2495,37 +2407,38 @@ public void previousError() {
     }
     
     private void setAtWorkButtonState(boolean work) {
-      checkProgress.setIndeterminate(true);
-      ignoreOnce.setEnabled(false);
-      ignorePermanent.setEnabled(false);
-      resetIgnorePermanent.setEnabled(false);
-      ignoreAll.setEnabled(false);
-      deactivateRule.setEnabled(false);
-      change.setEnabled(false);
-      changeAll.setEnabled(false);
-      autoCorrect.setEnabled(false);
-      addToDictionary.setEnabled(false);
-      more.setEnabled(false);
-      help.setEnabled(false);
-      options.setEnabled(false);
-      undo.setEnabled(false);
-      close.setEnabled(false);
-      language.setEnabled(false);
-      changeLanguage.setEnabled(false);
-      activateRule.setEnabled(false);
-      checkRuleBox.setEnabled(false);
-      endOfDokumentMessage = null;
-//      sentenceIncludeError.setBackground(Color.LIGHT_GRAY);
-      sentenceIncludeError.setEnabled(false);
-//      suggestions.setBackground(Color.LIGHT_GRAY);
-      suggestions.setEnabled(false);
-      errorDescription.setText(checkStatusCheck);
-      errorDescription.setForeground(Color.RED);
-//      errorDescription.setBackground(Color.LIGHT_GRAY);
-      contentPane.revalidate();
-      contentPane.repaint();
-      dialog.setEnabled(false);
-      atWork = work;
+      try {
+        checkProgress.setIndeterminate(true);
+        ignoreOnce.setEnabled(false);
+        ignorePermanent.setEnabled(false);
+        resetIgnorePermanent.setEnabled(false);
+        ignoreAll.setEnabled(false);
+        deactivateRule.setEnabled(false);
+        change.setEnabled(false);
+        changeAll.setEnabled(false);
+        autoCorrect.setEnabled(false);
+        addToDictionary.setEnabled(false);
+        more.setEnabled(false);
+        help.setEnabled(false);
+        options.setEnabled(false);
+        undo.setEnabled(false);
+        close.setEnabled(false);
+        language.setEnabled(false);
+        changeLanguage.setEnabled(false);
+        activateRule.setEnabled(false);
+        checkRuleBox.setEnabled(false);
+        endOfDokumentMessage = null;
+        sentenceIncludeError.setEnabled(false);
+        suggestions.setEnabled(false);
+        errorDescription.setText(checkStatusCheck);
+        errorDescription.setForeground(Color.RED);
+        contentPane.revalidate();
+        contentPane.repaint();
+        dialog.setEnabled(false);
+        atWork = work;
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
+      }
     }
     
     /**
@@ -2585,18 +2498,8 @@ public void previousError() {
           isSpellError = error.nErrorType == TextMarkupType.SPELLCHECK;
           blockSentenceError = true;
           sentenceIncludeError.setEnabled(true);
-//          sentenceIncludeError.setBackground(Color.white);
-/*          
-          String sFootnotes = "";
-          for (int n : docCache.getFlatParagraphFootnotes(y)) {
-            sFootnotes += n + ", ";
-          }
-          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Para(" + docCache.getFlatParagraph(y).length() + "): " + docCache.getFlatParagraph(y));
-          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Footnotes: " + sFootnotes);
-*/
           String text = WtSingleCheck.removeFootnotes(docCache.getFlatParagraph(y), docCache.getFlatParagraphFootnotes(y), 
               docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap());
-//          WtMessageHandler.printToLogFile("CheckDialog: gotoNextError: Para(corrected)( " + text.length() + "): " + text);
           sentenceIncludeError.setText(text);
           setAttributesForErrorText(correctErrorWithFootnotes(error, docCache.getFlatParagraphFootnotes(y), 
               docCache.getFlatParagraphDeletedCharacters(y), y, docCache.getHiddenCharactersMap()));
@@ -2604,7 +2507,6 @@ public void previousError() {
           errorDescription.setEnabled(true);
           errorDescription.setText(error.aFullComment);
           errorDescription.setForeground(defaultForeground);
-//          errorDescription.setBackground(Color.white);
           ignoreOnce.setEnabled(true);
           ignoreAll.setEnabled(true);
           if (debugMode) {
@@ -2614,7 +2516,6 @@ public void previousError() {
             suggestions.setEnabled(true);
             suggestions.setListData(error.aSuggestions);
             suggestions.setSelectedIndex(0);
-//            suggestions.setBackground(Color.white);
             change.setEnabled(true);
             changeAll.setEnabled(!documents.isBackgroundCheckOff() || isSpellError);
             autoCorrect.setEnabled(true);
@@ -2766,7 +2667,7 @@ public void previousError() {
     /**
      * stores the list of local dictionaries into the dialog element
      */
-    private void setUserDictionaries () {
+    private void setUserDictionaries() throws Throwable {
       String[] tmpDictionaries = WtDictionary.getUserDictionaries(xContext);
       userDictionaries = new String[tmpDictionaries.length + 1];
       userDictionaries[0] = addToDictionaryName;
@@ -2783,19 +2684,24 @@ public void previousError() {
      * returns an array of the translated names of the languages supported by LT
      */
     private String[] getPossibleLanguages() {
-      List<String> languages = new ArrayList<>();
-      for (Language lang : Languages.get()) {
-        languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
-        languages.sort(null);
+      try {
+        List<String> languages = new ArrayList<>();
+        for (Language lang : Languages.get()) {
+          languages.add(WtGeneralTools.getFullNameOfLanguage(lang));
+          languages.sort(null);
+        }
+        languages.add(0, messages.getString("checkDialogDoNotCheck"));
+        return languages.toArray(new String[languages.size()]);
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
+        return new String[0];
       }
-      languages.add(0, messages.getString("checkDialogDoNotCheck"));
-      return languages.toArray(new String[languages.size()]);
     }
 
     /**
      * returns the locale from a translated language name 
      */
-    private Locale getLocaleFromLanguageName(String translatedName) {
+    private Locale getLocaleFromLanguageName(String translatedName) throws Throwable {
       if (translatedName.equals(messages.getString("checkDialogDoNotCheck"))) {
         return new Locale(WtOfficeTools.IGNORE_LANGUAGE, "", "");
       }
@@ -2810,7 +2716,7 @@ public void previousError() {
     /**
      * set the attributes for the text inside the editor element
      */
-    private void setAttributesForErrorText(WtProofreadingError error) {
+    private void setAttributesForErrorText(WtProofreadingError error) throws Throwable {
       //  Get Attributes
       sentenceIncludeError.setEnabled(true);
       MutableAttributeSet attrs = sentenceIncludeError.getInputAttributes();
@@ -2846,7 +2752,7 @@ public void previousError() {
      * returns the URL to more information of match
      * returns null, if such an URL does not exist
      */
-    private String getUrl(WtProofreadingError error) {
+    private String getUrl(WtProofreadingError error) throws Throwable {
       if (!isSpellError) {
         WtPropertyValue[] properties = error.aProperties;
         for (WtPropertyValue property : properties) {
@@ -3085,16 +2991,20 @@ public void previousError() {
      * closes the dialog
      */
     public void closeDialog() {
-      isDisposed = true;
-      removeMarkups();
-      dialog.setVisible(false);
-      if (debugMode) {
-        WtMessageHandler.printToLogFile("CheckDialog: closeDialog: Close Spell And Grammar Check Dialog");
+      try {
+        isDisposed = true;
+        removeMarkups();
+        dialog.setVisible(false);
+        if (debugMode) {
+          WtMessageHandler.printToLogFile("CheckDialog: closeDialog: Close Spell And Grammar Check Dialog");
+        }
+        undoList.clear();
+        documents.setLtDialog(null);
+        documents.setLtDialogIsRunning(false);
+        atWork = false;
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
       }
-      undoList.clear();
-      documents.setLtDialog(null);
-      documents.setLtDialogIsRunning(false);
-      atWork = false;
     }
     
     /**
@@ -3191,7 +3101,7 @@ public void previousError() {
      * compares two strings from the beginning
      * returns the first different character 
      */
-    private int getDifferenceFromBegin(String text1, String text2) {
+    private int getDifferenceFromBegin(String text1, String text2) throws Throwable {
       for (int i = 0; i < text1.length() && i < text2.length(); i++) {
         if (text1.charAt(i) != text2.charAt(i)) {
           return i;
@@ -3204,7 +3114,7 @@ public void previousError() {
      * compares two strings from the end
      * returns the first different character 
      */
-    private int getDifferenceFromEnd(String text1, String text2) {
+    private int getDifferenceFromEnd(String text1, String text2) throws Throwable {
       for (int i = 1; i <= text1.length() && i <= text2.length(); i++) {
         if (text1.charAt(text1.length() - i) != text2.charAt(text2.length() - i)) {
           return text1.length() - i + 1;
@@ -3288,102 +3198,7 @@ public void previousError() {
       currentDocument = getCurrentDocument(true);
       gotoNextError();
     }
-/*
-    private void changeText() throws Throwable {
-      String word = "";
-      String replace = "";
-      String orgText;
-      removeMarkups();
-      if (debugMode) {
-        MessageHandler.printToLogFile("CheckDialog: changeText entered - docType: " + docType);
-      }
-      String dialogText = sentenceIncludeError.getText();
-      if (debugMode) {
-        MessageHandler.printToLogFile("CheckDialog: changeText: dialog text: " + dialogText);
-      }
-      if (docType != DocumentType.WRITER) {
-        orgText = docCache.getFlatParagraph(y);
-        if (!orgText.equals(dialogText)) {
-          int firstChange = getDifferenceFromBegin(orgText, dialogText);
-          int lastEqual = getDifferenceFromEnd(orgText, dialogText);
-          if (lastEqual < firstChange) {
-            lastEqual = firstChange;
-          }
-          int lastDialogEqual = dialogText.length() - orgText.length() + lastEqual;
-          if (lastDialogEqual < firstChange) {
-            firstChange += dialogText.length() - orgText.length();
-          }
-          word = orgText.substring(firstChange, lastEqual);
-          replace = dialogText.substring(firstChange, lastDialogEqual);
-          changeTextOfParagraph(y, firstChange, lastEqual - firstChange, replace, currentDocument, viewCursor);
-          addSingleChangeUndo(firstChange, y, word, replace);
-        } else if (suggestions.getComponentCount() > 0) {
-          word = orgText.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
-          replace = suggestions.getSelectedValue();
-          changeTextOfParagraph(y, error.nErrorStart, error.nErrorLength, replace, currentDocument, viewCursor);
-          addSingleChangeUndo(error.nErrorStart, y, word, replace);
-        } else {
-          MessageHandler.printToLogFile("CheckDialog: changeText: No text selected to change");
-          return;
-        }
-      } else {
-        orgText = docCache.getFlatParagraph(y);
-        if (debugMode) {
-          MessageHandler.printToLogFile("CheckDialog: changeText: original text: " + orgText);
-        }
-        if (!orgText.equals(dialogText)) {
-          int firstChange = getDifferenceFromBegin(orgText, dialogText);
-          if (debugMode) {
-            MessageHandler.printToLogFile("CheckDialog: changeText: firstChange: " + firstChange);
-          }
-          int lastEqual = getDifferenceFromEnd(orgText, dialogText);
-          if (lastEqual < firstChange) {
-            lastEqual = firstChange;
-          }
-          if (debugMode) {
-            MessageHandler.printToLogFile("CheckDialog: changeText: lastEqual: " + lastEqual);
-          }
-          int lastDialogEqual = dialogText.length() - orgText.length() + lastEqual;
-          if (lastDialogEqual < firstChange) {
-            firstChange += dialogText.length() - orgText.length();
-          }
-          if (debugMode) {
-            MessageHandler.printToLogFile("CheckDialog: changeText: lastDialogEqual: " + lastDialogEqual);
-          }
-          if (firstChange < lastEqual) {
-            word = orgText.substring(firstChange, lastEqual);
-          } else {
-            word ="";
-          }
-          if (firstChange < lastDialogEqual) {
-            replace = dialogText.substring(firstChange, lastDialogEqual);
-          } else {
-            replace ="";
-          }
-          if (debugMode) {
-            MessageHandler.printToLogFile("CheckDialog: changeText: word: '" + word + "', replace: '" + replace + "'");
-          }
-          changeTextOfParagraph(y, firstChange, lastEqual - firstChange, replace, currentDocument, viewCursor);
-          addSingleChangeUndo(firstChange, y, word, replace);
-        } else if (suggestions.getComponentCount() > 0) {
-          if (orgText.length() >= error.nErrorStart + error.nErrorLength) {
-            word = orgText.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
-            replace = suggestions.getSelectedValue();
-            changeTextOfParagraph(y, error.nErrorStart, error.nErrorLength, replace, currentDocument, viewCursor);
-            addSingleChangeUndo(error.nErrorStart, y, word, replace);
-          }
-        } else {
-          MessageHandler.printToLogFile("CheckDialog: changeText: No text selected to change");
-          return;
-        }
-      }
-      if (debugMode) {
-        MessageHandler.printToLogFile("CheckDialog: changeText: Org: " + word + "\nDia: " + replace);
-      }
-      currentDocument = getCurrentDocument(true);
-      gotoNextError();
-    }
-*/
+
     /**
      * Change all matched words of the document by the selected suggestion
      * @throws Throwable 
@@ -3394,10 +3209,7 @@ public void previousError() {
         String orgText = sentenceIncludeError.getText();
         String word = orgText.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
         String replace = suggestions.getSelectedValue();
-//        XComponent xComponent = currentDocument.getXComponent();
-//        DocumentCursorTools docCursor = new DocumentCursorTools(xComponent);
         Map<Integer, List<Integer>> orgParas = changeTextInAllParagraph(word, error.aRuleIdentifier, replace, currentDocument, viewCursor);
-//        Map<Integer, List<Integer>> orgParas = spellChecker.replaceAllWordsInText(word, replace, docCursor, currentDocument, viewCursor);
         if (orgParas != null) {
           addChangeUndo(error.nErrorStart, y, word, replace, orgParas);
         }
@@ -3484,7 +3296,7 @@ public void previousError() {
       newFile.renameTo(file);
     }
     
-    boolean deleteFullDirectory(File directory) {
+    boolean deleteFullDirectory(File directory) throws Throwable {
       File[] contents = directory.listFiles();
       if (contents != null) {
           for (File file : contents) {
@@ -3494,7 +3306,7 @@ public void previousError() {
       return directory.delete();
     }
     
-    private void copy(File original, String copyPath) throws IOException {
+    private void copy(File original, String copyPath) throws Throwable {
       File copied = new File(copyPath);
       try ( InputStream in = new BufferedInputStream(new FileInputStream(original));
             OutputStream out = new BufferedOutputStream(new FileOutputStream(copied)) ) {
@@ -3507,7 +3319,7 @@ public void previousError() {
       }
     }
     
-    private void unzipACorr(String destDirPath, String zipFilePath) throws IOException {
+    private void unzipACorr(String destDirPath, String zipFilePath) throws Throwable {
       File destDir = new File(destDirPath);
       if (destDir.exists() && destDir.isDirectory()) {
         if(!deleteFullDirectory(destDir)) {
@@ -3574,7 +3386,7 @@ public void previousError() {
       newFile.renameTo(file);
     }
 
-    private void zipACorr(String sourceDirPath, String zipFilePath) throws IOException {
+    private void zipACorr(String sourceDirPath, String zipFilePath) throws Throwable {
       FileOutputStream fos = new FileOutputStream(zipFilePath);
       ZipOutputStream zipOut = new ZipOutputStream(fos);
       File dirToZip = new File(sourceDirPath);
@@ -3586,7 +3398,7 @@ public void previousError() {
       fos.close();
     }
     
-    private void zipFileRec(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+    private void zipFileRec(File fileToZip, String fileName, ZipOutputStream zipOut) throws Throwable {
       if (fileToZip.isHidden()) {
           return;
       }
@@ -3819,7 +3631,7 @@ public void previousError() {
       }
     }
 
-    void removeMarkups() {
+    void removeMarkups() throws Throwable {
       if (docType == DocumentType.IMPRESS && undoMarkup != null) {
         WtOfficeDrawTools.removeMarkup(undoMarkup, currentDocument.getXComponent());
         undoMarkup = null;

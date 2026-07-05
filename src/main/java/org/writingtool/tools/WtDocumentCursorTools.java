@@ -98,6 +98,8 @@ public class WtDocumentCursorTools {
         xTextCursor = getCursor();
         xPCursor = createParagraphCursor();
       }
+    } catch (Throwable t) {
+      WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     } finally {
       isBusy--;
     }
@@ -412,12 +414,12 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: ParagraphCursor == null");
       return;
     }
-    XPropertySet xParagraphPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xPCursor.getStart());
-    Property[] properties = xParagraphPropertySet.getPropertySetInfo().getProperties();
-    for (Property property : properties) {
-      WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: Name: " + property.Name + ", Type: " + property.Type);
-    }
     try {
+      XPropertySet xParagraphPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xPCursor.getStart());
+      Property[] properties = xParagraphPropertySet.getPropertySetInfo().getProperties();
+      for (Property property : properties) {
+        WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: Name: " + property.Name + ", Type: " + property.Type);
+      }
       WtMessageHandler.printToLogFile("DocumentCursorTools: Properties: SortedTextId: " + xParagraphPropertySet.getPropertyValue("SortedTextId") + "\n");
     } catch (Throwable e) {
       WtMessageHandler.printException(e);
@@ -481,7 +483,7 @@ public class WtDocumentCursorTools {
    * Add all paragraphs of XText to a list of strings
    */
   private List<Integer> addAllParagraphsOfText(XText xText, List<String> sText, 
-      List<List<Integer>> deletedCharacters, List<Integer> sortedTextIds, boolean withDeleted) {
+      List<List<Integer>> deletedCharacters, List<Integer> sortedTextIds, boolean withDeleted) throws Throwable {
     if (xText == null) {
       throw new RuntimeException("XText == null"); 
     }
@@ -523,7 +525,7 @@ public class WtDocumentCursorTools {
   /** 
    * get all paragraphs as a list of strings
    */
-  private List<String> getAllParagraphsOfText(XText xText) {
+  private List<String> getAllParagraphsOfText(XText xText) throws Throwable {
     List<String> sText = new ArrayList<String>();
     if (xText == null) {
       return sText;
@@ -545,7 +547,7 @@ public class WtDocumentCursorTools {
   /** 
    * Get the number of all paragraphs of XText
    */
-  private static int getNumberOfAllParagraphsOfText(XText xText) {
+  private static int getNumberOfAllParagraphsOfText(XText xText) throws Throwable {
     if (xText == null) {
       throw new RuntimeException("XText == null"); 
     }

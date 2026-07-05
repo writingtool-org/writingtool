@@ -19,6 +19,8 @@
 
 package org.writingtool.sidebar;
 
+import org.writingtool.tools.WtMessageHandler;
+
 import com.sun.star.awt.XWindow;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.NoSuchElementException;
@@ -51,19 +53,22 @@ public class WtSidebarFactory extends WeakBase implements XUIElementFactory, XSe
 
   @Override
   public XUIElement createUIElement(String resourceUrl, PropertyValue[] arguments) throws NoSuchElementException {
-    if (!resourceUrl.startsWith("private:resource/toolpanel/WtSidebarFactory")) {
-      throw new NoSuchElementException(resourceUrl, this);
-    }
-
-    XWindow parentWindow = null;
-    for (int i = 0; i < arguments.length; i++) {
-      if (arguments[i].Name.equals("ParentWindow")) {
-        parentWindow = UnoRuntime.queryInterface(XWindow.class, arguments[i].Value);
-        break;
+    try {
+      if (!resourceUrl.startsWith("private:resource/toolpanel/WtSidebarFactory")) {
+        throw new NoSuchElementException(resourceUrl, this);
       }
+      XWindow parentWindow = null;
+      for (int i = 0; i < arguments.length; i++) {
+        if (arguments[i].Name.equals("ParentWindow")) {
+          parentWindow = UnoRuntime.queryInterface(XWindow.class, arguments[i].Value);
+          break;
+        }
+      }
+      return new WtSidebarPanel(xContext, parentWindow, resourceUrl);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
     }
-
-    return new WtSidebarPanel(xContext, parentWindow, resourceUrl);
   }
 
   @Override

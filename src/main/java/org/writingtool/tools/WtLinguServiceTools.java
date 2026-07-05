@@ -270,7 +270,7 @@ public class WtLinguServiceTools {
     }
   }
 
-  public static boolean isWtGrammarServiceActive(XComponentContext xContext, Locale locale) {
+  public static boolean isWtGrammarServiceActive(XComponentContext xContext, Locale locale) throws Throwable {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
@@ -287,7 +287,7 @@ public class WtLinguServiceTools {
     return false;
   }
   
-  public static SpellServiceState getWtSpellServiceState(XComponentContext xContext, Locale locale) {
+  public static SpellServiceState getWtSpellServiceState(XComponentContext xContext, Locale locale) throws Throwable {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {
@@ -318,7 +318,7 @@ public class WtLinguServiceTools {
    * Set WT as grammar checker for a specific language
    * is normally used deactivate lightproof 
    */
-  public static boolean setWtAsGrammarService(XComponentContext xContext, Locale locale) {
+  public static boolean setWtAsGrammarService(XComponentContext xContext, Locale locale) throws Throwable {
     if (xContext != null) {
       XLinguServiceManager mxLinguSvcMgr = getLinguSvcMgr(xContext); 
       if (mxLinguSvcMgr == null) {

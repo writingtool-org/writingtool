@@ -109,7 +109,7 @@ public class WtProofreadingError implements Serializable {
   public String getURL() {
     if (aProperties != null) {
       for (WtPropertyValue property : aProperties) {
-        if ("FullCommentURL".equals(property.name)) {
+        if (property != null && "FullCommentURL".equals(property.name)) {
           return (String) property.value;
         }
       }
@@ -123,7 +123,7 @@ public class WtProofreadingError implements Serializable {
   public Object getProperty(String name) {
     if (aProperties != null) {
       for (WtPropertyValue property : aProperties) {
-        if (name.equals(property.name)) {
+        if (property != null && name.equals(property.name)) {
           return property.value;
         }
       }

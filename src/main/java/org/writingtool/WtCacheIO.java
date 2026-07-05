@@ -116,7 +116,7 @@ public class WtCacheIO implements Serializable {
    * if create == true: a new file is created if the file does not exist
    * if create == false: null is returned if the file does not exist
    */
-  private String getCachePath(boolean create) {
+  private String getCachePath(boolean create) throws Throwable {
     if (documentPath == null) {
       WtMessageHandler.printToLogFile("CacheIO: getCachePath: documentPath == null!");
       return null;
@@ -148,7 +148,7 @@ public class WtCacheIO implements Serializable {
   /**
    * save all caches (document cache, all result caches) to cache file
    */
-  private void saveAllCaches(String cachePath) {
+  private void saveAllCaches(String cachePath) throws Throwable {
     try {
       GZIPOutputStream fileOut = new GZIPOutputStream(new FileOutputStream(cachePath));
       ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -168,7 +168,7 @@ public class WtCacheIO implements Serializable {
    * returns true if the number of characters of a document exceeds 
    * the minimal number of characters to save the cache
    */
-  private boolean exceedsSaveSize(WtDocumentCache docCache) {
+  private boolean exceedsSaveSize(WtDocumentCache docCache) throws Throwable {
     int nChars = 0;
     for (int i = 0; i < docCache.size(); i++) {
       nChars += docCache.getFlatParagraph(i).length();
@@ -184,9 +184,9 @@ public class WtCacheIO implements Serializable {
    */
   public void saveCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
       WtIgnoredMatches ignoredMatches, WtConfiguration config, WtDocumentsHandler mDocHandler) {
-    String cachePath = getCachePath(true);
-    if (cachePath != null) {
-      try {
+    try {
+      String cachePath = getCachePath(true);
+      if (cachePath != null) {
         if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
           allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
               mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
@@ -198,11 +198,11 @@ public class WtCacheIO implements Serializable {
             file.delete();
           }
         }
-      } catch (Throwable t) {
-        WtMessageHandler.printToLogFile("CacheIO: saveCaches: " + t.getMessage());
-        if (DEBUG_MODE) {
-          WtMessageHandler.printException(t);     // all Exceptions thrown are printed
-        }
+      }
+    } catch (Throwable t) {
+      WtMessageHandler.printToLogFile("CacheIO: saveCaches: " + t.getMessage());
+      if (DEBUG_MODE) {
+        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
     }
   }
@@ -211,11 +211,11 @@ public class WtCacheIO implements Serializable {
    * read all caches (document cache, all result caches) from cache file if it exists
    */
   public boolean readAllCaches(WtConfiguration config, WtDocumentsHandler mDocHandler) {
-    String cachePath = getCachePath(false);
-    if (cachePath == null) {
-      return false;
-    }
     try {
+      String cachePath = getCachePath(false);
+      if (cachePath == null) {
+        return false;
+      }
       File file = new File( cachePath );
       if (file.exists() && !file.isDirectory()) {
         GZIPInputStream fileIn = new GZIPInputStream(new FileInputStream(file));
@@ -247,7 +247,7 @@ public class WtCacheIO implements Serializable {
   /**
    * Test if cache was created with same rules
    */
-  private boolean runSameRules(WtConfiguration config, WtDocumentsHandler mDocHandler) {
+  private boolean runSameRules(WtConfiguration config, WtDocumentsHandler mDocHandler) throws Throwable {
     if (allCaches == null || allCaches.docCache == null || allCaches.docCache.toParaMapping.size() != WtDocumentCache.NUMBER_CURSOR_TYPES ) {
       if (DEBUG_MODE) {
         WtMessageHandler.printToLogFile("allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
@@ -308,28 +308,28 @@ public class WtCacheIO implements Serializable {
   /**
    * get document cache
    */
-  public WtDocumentCache getDocumentCache() {
+  public WtDocumentCache getDocumentCache() throws Throwable {
     return allCaches.docCache;
   }
   
   /**
    * get paragraph caches (results for check of paragraphes)
    */
-  public List<WtResultCache> getParagraphsCache() {
+  public List<WtResultCache> getParagraphsCache() throws Throwable {
     return allCaches.paragraphsCache;
   }
   
   /**
    * get paragraph caches (results for check of paragraphes)
    */
-  public WtResultCache getAiSuggestionCache() {
+  public WtResultCache getAiSuggestionCache() throws Throwable {
     return allCaches.aiSuggestionCache;
   }
   
   /**
    * get ignored matches
    */
-  public WtIgnoredMatches getIgnoredMatches() {
+  public WtIgnoredMatches getIgnoredMatches() throws Throwable {
     Map<Integer, Map<String, Set<Integer>>> ignoredMatches = new HashMap<>();
     for (int y : allCaches.ignoredMatches.keySet()) {
       Map<String, Set<Integer>> newIdMap = new HashMap<>();
@@ -364,7 +364,7 @@ public class WtCacheIO implements Serializable {
   /**
    * print debug information of caches to log file
    */
-  private void printCacheInfo() {
+  private void printCacheInfo() throws Throwable {
     WtMessageHandler.printToLogFile("CacheIO: saveCaches:");
     WtMessageHandler.printToLogFile("Document Cache: Number of paragraphs: " + allCaches.docCache.size());
     WtMessageHandler.printToLogFile("Paragraph Cache(0): Number of paragraphs: " + allCaches.paragraphsCache.get(0).getNumberOfParas() 
@@ -492,12 +492,17 @@ public class WtCacheIO implements Serializable {
     private static final long serialVersionUID = 1L;
     private CacheMap cacheMap;
     private File cacheMapFile;
-
+/*
     @SuppressWarnings("unused")
     CacheFile() {
-      this(WtOfficeTools.getCacheDir());
+      try {
+        File cacheDir = WtOfficeTools.getCacheDir();
+        this(cacheDir);
+      } catch (Throwable t) {
+        WtMessageHandler.showError(t);
+      }
     }
-
+*/
     CacheFile(File cacheDir) {
       cacheMapFile = new File(cacheDir, CACHEFILE_MAP);
       if (cacheMapFile != null) {
@@ -556,7 +561,7 @@ public class WtCacheIO implements Serializable {
      * get the cache file name for a given document path
      * if create == true: create a cache file if it not exists 
      */
-    public String getCacheFileName(String docPath, boolean create) {
+    public String getCacheFileName(String docPath, boolean create) throws Throwable {
       if (cacheMap == null) {
         return null;
       }
@@ -582,7 +587,7 @@ public class WtCacheIO implements Serializable {
      */
     private class CacheMap implements Serializable {
       private static final long serialVersionUID = 1L;
-      private Map<String, String> cacheNames;     //  contains the mapping from document paths to cache file names
+      private final Map<String, String> cacheNames;     //  contains the mapping from document paths to cache file names
       
       CacheMap() {
         cacheNames = new HashMap<>();
@@ -640,7 +645,7 @@ public class WtCacheIO implements Serializable {
        * if create == true:  create the file if not exist
        * if create == false: return null if not exist
        */
-      public String getOrCreateCacheFile(String docPath, boolean create) {
+      public String getOrCreateCacheFile(String docPath, boolean create) throws Throwable {
         if (DEBUG_MODE) {
           WtMessageHandler.printToLogFile("CacheIO: getOrCreateCacheFile: docPath=" + docPath);
           for (String file : cacheNames.keySet()) {
@@ -742,7 +747,7 @@ public class WtCacheIO implements Serializable {
     private String version = WtVersionInfo.ltVersion();
     private int statVersion = 1;
     
-    private boolean putAll (SpellCache sc) {
+    private boolean putAll (SpellCache sc) throws Throwable {
       version = sc.version;
       if (sc.statVersion != statVersion || !version.equals(WtVersionInfo.ltVersion())) {
         return false;
@@ -755,11 +760,11 @@ public class WtCacheIO implements Serializable {
     }
     
     public void write(Map<String, List<String>> lastWrongWords, Map<String, List<String[]>> lastSuggestions) {
-      this.lastWrongWords.clear();
-      this.lastSuggestions.clear();
-      this.lastWrongWords.putAll(lastWrongWords);
-      this.lastSuggestions.putAll(lastSuggestions);
       try {
+        this.lastWrongWords.clear();
+        this.lastSuggestions.clear();
+        this.lastWrongWords.putAll(lastWrongWords);
+        this.lastSuggestions.putAll(lastSuggestions);
         File cacheDir = WtOfficeTools.getCacheDir();
         File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
         String cachePath = cacheFilePath.getAbsolutePath();
@@ -777,13 +782,13 @@ public class WtCacheIO implements Serializable {
     }
     
     public boolean read() {
-      File cacheDir = WtOfficeTools.getCacheDir();
-      File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
-      String cachePath = cacheFilePath.getAbsolutePath();
-      if (cachePath == null) {
-        return false;
-      }
       try {
+        File cacheDir = WtOfficeTools.getCacheDir();
+        File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
+        String cachePath = cacheFilePath.getAbsolutePath();
+        if (cachePath == null) {
+          return false;
+        }
         File file = new File(cachePath);
         if (file.exists() && !file.isDirectory()) {
           GZIPInputStream fileIn = new GZIPInputStream(new FileInputStream(file));
