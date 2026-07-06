@@ -418,7 +418,7 @@ public class WtTextLevelCheckQueue {
               + "; nCache = "  + qEntry.nCache + "; nCheck = "  + qEntry.nCheck + "; overrideRunning = "  + qEntry.overrideRunning);
         }
         document.runQueueEntry(qEntry.nStart, qEntry.nEnd, qEntry.nCache, qEntry.nCheck, qEntry.overrideRunning, lt);
-        document = null;
+//        document = null;
         multiDocHandler.setCacheStatusColor(document);
       }
     } else {

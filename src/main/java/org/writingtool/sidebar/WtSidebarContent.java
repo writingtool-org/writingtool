@@ -439,7 +439,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       aiLabelWindow.setVisible(isAiSupport);
       aiResultBoxWindow.setVisible(isAiSupport);
       overrideButtonWindow.setVisible(isAiSupport);
-      documents.setSidebarContent(this);
+      documents.setLastSidebarContent(this);
       // Add cache status Button container
       int cacheStatusTop = containerSize.Height - CONTAINER_MARGIN_BOTTOM - STATUS_CONTAINER_HEIGHT;
       props = new TreeMap<>();
@@ -510,24 +510,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * Set the paragraph Text under the Cursor to the sidebar text box
    */
   public void setCursorTextToBox() {
-    setCursorTextToBox(null, false);
+    setCursorTextToBox(false);
   }
 
   public void setCursorTextToBox(boolean force) {
-    setCursorTextToBox(null, force);
-  }
-
-  public void setCursorTextToBox(XComponent xComponent) {
-    setCursorTextToBox(xComponent, false);
-  }
-
-  public void setCursorTextToBox(XComponent xComponent, boolean force) {
     try {
-      if (xComponent == null) {
-        xComponent = WtOfficeTools.getCurrentComponent(xContext);
-      }
+      XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
       String pText = vCursor.getViewCursorParagraphText();
+//      WtMessageHandler.printToLogFile("vCursor Text: " + pText);
       if (pText == null || (!force && pText.equals(paragraphText))) {
         return;
       }
@@ -1206,6 +1197,6 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   public int getMinimalWidth() {
     return MINIMAL_WIDTH;
   }
-  
+
   
 }

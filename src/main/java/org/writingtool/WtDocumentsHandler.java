@@ -150,7 +150,7 @@ public class WtDocumentsHandler {
   private static String configFile;
   private static WtConfiguration config = null;
   private WtLinguisticServices linguServices = null;
-  private WtSidebarContent sidebarContent;
+  private WtSidebarContent lastSidebarContent = null;
   private WtProtocolHandler protocolHandler;
   private static Map<String, Set<String>> disabledRulesUI;  //  Rules disabled by context menu or spell dialog
   private final List<Rule> extraRemoteRules;                //  store of rules supported by remote server but not locally
@@ -533,17 +533,36 @@ public class WtDocumentsHandler {
   }
   
   /**
-   * set sidebar content
+   * set last sidebar content to list
    */
-  public void setSidebarContent(WtSidebarContent sidebarContent) {
-    this.sidebarContent = sidebarContent;
+  public void setLastSidebarContent(WtSidebarContent sidebarContent) {
+    this.lastSidebarContent = sidebarContent;
   }
   
   /**
-   * get sidebar content
+   * set last sidebar content to list
    */
-  public WtSidebarContent getSidebarContent() {
+  public WtSidebarContent getLastSidebarContent() {
+    WtSidebarContent sidebarContent = lastSidebarContent;
+    lastSidebarContent = null;
     return sidebarContent;
+  }
+  
+  /**
+   * get sidebar content for XComponent
+   */
+  public WtSidebarContent getSidebarContent(String docId) throws Throwable {
+    if (docId == null) {
+      WtMessageHandler.printToLogFile("MultiDocumentsHandler: getSidebarContent: Error: docId is null");
+      return null;
+    }
+    for (WtSingleDocument document : documents) {
+      if (document.getDocID() != null && document.getDocID().equals(docId)) {
+        return document.getSidebarContent();
+      }
+    }
+    WtMessageHandler.printToLogFile("MultiDocumentsHandler: getSidebarContent: Error: docId not found in documents");
+    return null;
   }
   
   /**
@@ -563,9 +582,10 @@ public class WtDocumentsHandler {
   /**
    * set sidebar content
    */
-  public void setTextToSidebarBox(XComponent xComponent) {
+  public void setTextToSidebarBox(String docId) throws Throwable {
+    WtSidebarContent sidebarContent = getSidebarContent(docId);
     if (sidebarContent != null) {
-      sidebarContent.setCursorTextToBox(xComponent);
+      sidebarContent.setCursorTextToBox();
     }
   }
   
@@ -573,6 +593,7 @@ public class WtDocumentsHandler {
    * set cache status color in sidebar
    */
   public void setCacheStatusColor(WtSingleDocument document) throws Throwable {
+    WtSidebarContent sidebarContent = getSidebarContent(document.getDocID());
     if (sidebarContent != null) {
       sidebarContent.setCacheStatusColor(document);
     }
@@ -600,11 +621,12 @@ public class WtDocumentsHandler {
    * update all button states
    */
   public void updateSidebar() throws Throwable {
-    if (sidebarContent != null) {
-      sidebarContent.toggleBackgroundCheckButton();
-      sidebarContent.resetActivateRulesBox();
-      sidebarContent.resetProfileListBox();
-      sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+    for (WtSingleDocument document : documents) {
+      document.getSidebarContent().toggleBackgroundCheckButton();
+      document.getSidebarContent().resetActivateRulesBox();
+      document.getSidebarContent().resetProfileListBox();
+      document.getSidebarContent().setAiSupport(config.useAiSupport(), config.useAiSupport() 
+          || config.useAiImgSupport() || config.useAiTtsSupport());
     }
   }
   
@@ -1571,9 +1593,9 @@ public class WtDocumentsHandler {
       }
       WtLinguServiceTools.setGrammarAuto(false, xContext);
     }
-    if (sidebarContent != null) {
-      sidebarContent.toggleBackgroundCheckButton();
-      sidebarContent.setCacheStatusColorInactive();
+    for (WtSingleDocument document : documents) {
+      document.getSidebarContent().toggleBackgroundCheckButton();
+      document.getSidebarContent().setCacheStatusColorInactive();
     }
     updateButtons();
     for (WtSingleDocument document : documents) {
@@ -1967,8 +1989,8 @@ public class WtDocumentsHandler {
           initDocuments(false);
           removeRuleError(ruleId);
         }
-        if (sidebarContent != null) {
-          sidebarContent.resetActivateRulesBox();
+        for (WtSingleDocument document : documents) {
+          document.getSidebarContent().resetActivateRulesBox();
         }
         if (debugMode) {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: deactivateRule: Rule " + (reactivate ? "enabled: " : "disabled: ") 

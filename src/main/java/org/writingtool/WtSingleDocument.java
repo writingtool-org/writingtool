@@ -105,7 +105,8 @@ public class WtSingleDocument {
   private String docID;                           //  docID of the document
   private XComponent xComponent;                  //  XComponent of the open document
   private final WtDocumentsHandler mDocHandler;      //  handles the different documents loaded in LO/OO
-  private WTDokumentEventListener eventListener = null; //  listens for save of document 
+  private WTDokumentEventListener eventListener = null; //  listens for save of document
+  private WtSidebarContent sidebarContent;
   
   private final WtDocumentCache docCache;           //  cache of paragraphs (only readable by parallel thread)
   private final List<WtResultCache> paragraphsCache;//  Cache for matches of text rules
@@ -168,7 +169,6 @@ public class WtSingleDocument {
     fixedLanguage = config == null ? null : config.getDefaultLanguage();
     changedParas = new HashMap<Integer, String>();
     runningParas = new HashSet<>();
-    setDokumentListener(xComponent);
     List<WtResultCache> paraCache = new ArrayList<>();
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paraCache.add(new WtResultCache());
@@ -194,9 +194,11 @@ public class WtSingleDocument {
         ltMenus = new WtMenus(xContext, this, config);
       }
       mDocHandler.readToolbarConfig();
-      if (mDocHandler.getSidebarContent() != null) {
-        mDocHandler.getSidebarContent().resetActivateRulesBox();
+      sidebarContent = mDocHandler.getLastSidebarContent();
+      if (sidebarContent != null) {
+        sidebarContent.resetActivateRulesBox();
       }
+      setDokumentListener(xComponent);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     }
@@ -226,6 +228,9 @@ public class WtSingleDocument {
       int proofInfo = WtOfficeTools.PROOFINFO_UNKNOWN;  //  OO and LO < 6.5 do not support ProofInfo
       int sortedTextId = -1;
       int documentElementsCount = -1;
+      if (sidebarContent == null) {
+        sidebarContent = mDocHandler.getLastSidebarContent();
+      }
       for (PropertyValue propertyValue : propertyValues) {
 //        WtMessageHandler.printToLogFile("SingleDocument: getCheckResults: propertyValue.Name: " + propertyValue.Name);
         if ("FootnotePositions".equals(propertyValue.Name)) {
@@ -462,7 +467,7 @@ public class WtSingleDocument {
       }
       if (ltMenus == null && !mDocHandler.isOpenOffice && docType == DocumentType.WRITER && paraText.length() > 0) {
         ltMenus = new WtMenus(xContext, this, config);
-        WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+        WtSidebarContent sidebarContent = mDocHandler.getSidebarContent(docID);
         if (sidebarContent != null) {
           sidebarContent.resizeContainer();
         }
@@ -541,6 +546,13 @@ public class WtSingleDocument {
    */
   public DocumentType getDocumentType() {
     return docType;
+  }
+  
+  /**
+   * get sidebar content of the document
+   */
+  public WtSidebarContent getSidebarContent() {
+    return sidebarContent;
   }
   
   /**
@@ -633,9 +645,10 @@ public class WtSingleDocument {
   
   /**
    *  Set ID of the document
+   * @throws Throwable 
    */
-  void setDocID(String docId) {
-    docID = docId;
+  void setDocID(String newID) throws Throwable {
+    docID = newID;
   }
   
   /**
@@ -2348,7 +2361,6 @@ public class WtSingleDocument {
   
   
   private class WTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler, XKeyHandler {
-//  private class WTDokumentEventListener implements XDocumentEventListener, XMouseClickHandler {
 
     @Override
     public void disposing(EventObject event) {
@@ -2356,12 +2368,10 @@ public class WtSingleDocument {
 
     @Override
     public void documentEventOccured(DocumentEvent event) {
-//      if(event.EventName.equals("OnUnload")) {
       if(event.EventName.equals("OnPrepareUnload")) {
         try {
           isOnUnload = true;
           mDocHandler.prepareUnload(docID);
-//          dispose(true);
           writeCaches();
         } catch (Throwable t) {
           WtMessageHandler.printException(t);;
@@ -2404,9 +2414,12 @@ public class WtSingleDocument {
     @Override
     public boolean mouseReleased(MouseEvent event) {
       try {
-        WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+//        WtMessageHandler.printToLogFile("SingleDocument: mouseReleased: sidebarContent " + (sidebarContent == null ? "==" : "!=") + " null");
         if (sidebarContent != null) {
-          sidebarContent.setCursorTextToBox(xComponent);
+          sidebarContent.setCursorTextToBox();
+//          WtMessageHandler.printToLogFile("SingleDocument: mouseReleased: xComponent "
+//              + (xComponent == null ? "==" : "!=") + " null, getXComponent " + (getXComponent(event) == null ? "== " : "!=") + " null");
+//          WtMessageHandler.printToLogFile("SingleDocument: mouseReleased: isCurrentDocument: " + isCurrentDocument(event));
         }
       } catch (Throwable t) {
         WtMessageHandler.showError(t);
@@ -2425,9 +2438,9 @@ public class WtSingleDocument {
         if (event.KeyCode == Key.UP || event.KeyCode == Key.DOWN || event.KeyCode == Key.LEFT 
             || event.KeyCode == Key.RIGHT || event.KeyCode == Key.PAGEUP || event.KeyCode == Key.PAGEDOWN
             || event.KeyCode == Key.MOVE_TO_BEGIN_OF_DOCUMENT || event.KeyCode == Key.MOVE_TO_END_OF_DOCUMENT) {
-          WtSidebarContent sidebarContent = mDocHandler.getSidebarContent();
+//          WtMessageHandler.printToLogFile("SingleDocument: keyReleased: sidebarContent " + (sidebarContent == null ? "==" : "!=") + " null");
           if (sidebarContent != null) {
-            sidebarContent.setCursorTextToBox(xComponent);
+            sidebarContent.setCursorTextToBox();
           }
         }
       } catch (Throwable t) {
@@ -2435,7 +2448,21 @@ public class WtSingleDocument {
       }
       return false;
     }
-
+ /*   
+    private XComponent getXComponent(EventObject event) throws Throwable {
+      return UnoRuntime.queryInterface(XComponent.class, event.Source);
+    }
+      
+    private boolean isCurrentDocument(EventObject event) throws Throwable {
+      if (xComponent != null) {
+        XComponent curComponent = UnoRuntime.queryInterface(XComponent.class, event.Source);
+        if (xComponent.equals(curComponent)) {
+          return true;
+        }
+      }
+      return false;
+    }
+*/
   }
 
 }

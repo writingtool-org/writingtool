@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtQuotesDetection;
+import org.writingtool.WtSingleDocument;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAiDialog;
 import org.writingtool.sidebar.WtSidebarContent;
@@ -96,6 +97,7 @@ public class WtAiRemote {
 
   private final WtDocumentsHandler documents;
   private final WtConfiguration config;
+  private final String docID;
   private final String apiKey;
   private final String model;
   private final String url;
@@ -115,12 +117,21 @@ public class WtAiRemote {
   private int oId = 0;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
-    this(documents, config, false, null);
+    this(documents, config, null, false, null);
+  }
+
+  public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, String docID) throws Throwable {
+    this(documents, config, docID, false, null);
   }
 
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, boolean testMode, Component parent) throws Throwable {
+    this(documents, config, null, testMode, parent);
+  }
+  
+  public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, String docID, boolean testMode, Component parent) throws Throwable {
     this.documents = documents;
     this.config = config;
+    this.docID = docID;
     this.testMode = testMode;
     this.parent = parent;
     apiKey = config.aiApiKey();
@@ -367,9 +378,11 @@ public class WtAiRemote {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
-            WtSidebarContent sidebarContent = documents.getSidebarContent();
-            if (sidebarContent != null) {
-              sidebarContent.setTextToAiResultBox(orgText, out, instruction);
+            if (docID != null) {
+              WtSidebarContent sidebarContent = documents.getSidebarContent(docID);
+              if (sidebarContent != null) {
+                sidebarContent.setTextToAiResultBox(orgText, out, instruction);
+              }
             }
             return out;
           }
@@ -918,8 +931,8 @@ public class WtAiRemote {
   private void stopAiRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiSupport(false);
-      if (documents.getSidebarContent() != null) {
-        documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+      for (WtSingleDocument document : documents.getDocuments()) {
+        document.getSidebarContent().setAiSupport(config.useAiSupport(), 
             config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
       if (documents.getAiCheckQueue() != null) {
@@ -937,8 +950,8 @@ public class WtAiRemote {
   private void stopAiImgRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiImgSupport(false);
-      if (documents.getSidebarContent() != null) {
-        documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+      for (WtSingleDocument document : documents.getDocuments()) {
+        document.getSidebarContent().setAiSupport(config.useAiSupport(), 
             config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
       WtMessageHandler.showMessage(messages.getString("aiMessageServerConnectionError"), parent);
@@ -952,8 +965,8 @@ public class WtAiRemote {
   private void stopAiTtsRemote() throws Throwable {
     if (!testMode) {
       config.setUseAiTtsSupport(false);
-      if (documents.getSidebarContent() != null) {
-        documents.getSidebarContent().setAiSupport(config.useAiSupport(), 
+      for (WtSingleDocument document : documents.getDocuments()) {
+        document.getSidebarContent().setAiSupport(config.useAiSupport(), 
             config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
       }
       WtMessageHandler.showMessage(messages.getString("aiMessageServerConnectionError"), parent);
