@@ -493,6 +493,9 @@ public class WtOfficeTools {
         return null;
       }
       charLocale = (Locale) obj;
+    } catch (RuntimeException e) {  //  e.g. no text selection
+      WtMessageHandler.printException(e);
+      return null;
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;
