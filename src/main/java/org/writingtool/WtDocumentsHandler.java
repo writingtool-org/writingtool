@@ -622,11 +622,14 @@ public class WtDocumentsHandler {
    */
   public void updateSidebar() throws Throwable {
     for (WtSingleDocument document : documents) {
-      document.getSidebarContent().toggleBackgroundCheckButton();
-      document.getSidebarContent().resetActivateRulesBox();
-      document.getSidebarContent().resetProfileListBox();
-      document.getSidebarContent().setAiSupport(config.useAiSupport(), config.useAiSupport() 
+      WtSidebarContent sidebarContent = document.getSidebarContent();
+      if (sidebarContent != null) {
+        sidebarContent.toggleBackgroundCheckButton();
+        sidebarContent.resetActivateRulesBox();
+        sidebarContent.resetProfileListBox();
+        sidebarContent.setAiSupport(config.useAiSupport(), config.useAiSupport() 
           || config.useAiImgSupport() || config.useAiTtsSupport());
+      }
     }
   }
   
@@ -1594,8 +1597,11 @@ public class WtDocumentsHandler {
       WtLinguServiceTools.setGrammarAuto(false, xContext);
     }
     for (WtSingleDocument document : documents) {
-      document.getSidebarContent().toggleBackgroundCheckButton();
-      document.getSidebarContent().setCacheStatusColorInactive();
+      WtSidebarContent sidebarContent = document.getSidebarContent();
+      if (sidebarContent != null) {
+        sidebarContent.toggleBackgroundCheckButton();
+        sidebarContent.setCacheStatusColorInactive();
+      }
     }
     updateButtons();
     for (WtSingleDocument document : documents) {
@@ -1990,7 +1996,10 @@ public class WtDocumentsHandler {
           removeRuleError(ruleId);
         }
         for (WtSingleDocument document : documents) {
-          document.getSidebarContent().resetActivateRulesBox();
+          WtSidebarContent sidebarContent = document.getSidebarContent();
+          if (sidebarContent != null) {
+            sidebarContent.resetActivateRulesBox();
+          }
         }
         if (debugMode) {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: deactivateRule: Rule " + (reactivate ? "enabled: " : "disabled: ") 
