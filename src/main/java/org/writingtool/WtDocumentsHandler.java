@@ -228,6 +228,7 @@ public class WtDocumentsHandler {
       debugMode = WtOfficeTools.DEBUG_MODE_MD;
       debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
       noBackgroundCheck = config.noBackgroundCheck();
+      useQueue = !noBackgroundCheck && config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
       WtMessageHandler.writeInitialInformation(config);
       XDesktop desktop = WtOfficeTools.getDesktop(xContext);
       if (desktop != null) {
@@ -324,9 +325,11 @@ public class WtDocumentsHandler {
         updateButtons();
       } else {
         if (textLevelQueue == null && useQueue) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start Text queue!");
           textLevelQueue = new WtTextLevelCheckQueue(this);
         }
         if (aiQueue == null && config.getNumParasToCheck() != 0 && config.useAiSupport() && config.aiAutoCorrect()) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCheckResults: Start AI queue!");
           aiQueue = new WtAiCheckQueue(this);
         }
       }
@@ -1373,15 +1376,19 @@ public class WtDocumentsHandler {
       startTime = System.currentTimeMillis();
     }
     setConfigValues(config, lt);
+    WtMessageHandler.printToLogFile("WtDocumentsHandler: initDocuments: useQueue = " + useQueue + ", isBackgroundCheckOff = " + isBackgroundCheckOff());
     if (useQueue && !isBackgroundCheckOff()) {
       if (textLevelQueue == null) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: initDocuments: Start Text queue!");
         textLevelQueue = new WtTextLevelCheckQueue(this);
+        WtMessageHandler.printToLogFile("WtDocumentsHandler: initDocuments: textLevelQueue started");
       } else {
         textLevelQueue.setReset();
       }
     }
     if (config.useAiSupport() && config.aiAutoCorrect() && !isBackgroundCheckOff()) {
       if (aiQueue == null) {
+        WtMessageHandler.printToLogFile("MultiDocumentsHandler: initDocuments: Start AI queue!");
         aiQueue = new WtAiCheckQueue(this);
       } else {
         aiQueue.setReset();
@@ -1565,6 +1572,7 @@ public class WtDocumentsHandler {
       useQueue = config.getNumParasToCheck() != 0 && config.useTextLevelQueue();
       if (useQueue) {
         if (textLevelQueue == null) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: toggleNoBackgroundCheck: Start Text queue!");
           textLevelQueue = new WtTextLevelCheckQueue(this);
         } else {
           textLevelQueue.setReset();
@@ -1572,6 +1580,7 @@ public class WtDocumentsHandler {
       }
       if (config.useAiSupport() && config.aiAutoCorrect()) {
         if (aiQueue == null) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: toggleNoBackgroundCheck: Start AI queue!");
           aiQueue = new WtAiCheckQueue(this);
         } else {
           aiQueue.setReset();
@@ -2196,7 +2205,8 @@ public class WtDocumentsHandler {
       resetDocument();
       if (useQueue) {
         if (textLevelQueue == null) {
-          textLevelQueue = new WtTextLevelCheckQueue(this);
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: resetGrammarCheckConfiguration: Start Text queue!");
+         textLevelQueue = new WtTextLevelCheckQueue(this);
         }
         textLevelQueue.setReset();
       } else  if (textLevelQueue != null) {
@@ -2222,6 +2232,7 @@ public class WtDocumentsHandler {
       remarkAllParagraphs();
       if (useAiQueue) {
         if (aiQueue == null) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: resetAiCheckConfiguration: Start AI queue!");
           aiQueue = new WtAiCheckQueue(this);
         }
         aiQueue.setReset();

@@ -49,7 +49,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
 
   public WtAiCheckQueue(WtDocumentsHandler multiDocumentsHandler) {
     super(multiDocumentsHandler);
-    WtMessageHandler.printToLogFile("AI Queue started");
+//    WtMessageHandler.printToLogFile("AI Queue started");
   }
   
   /**
