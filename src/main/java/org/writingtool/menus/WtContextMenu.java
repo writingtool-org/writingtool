@@ -82,12 +82,14 @@ public class WtContextMenu implements XContextMenuInterceptor {
   
   public WtContextMenu(WtSingleDocument document, WtConfiguration config) {
     this.document = document;
-    WtMessageHandler.printToLogFile("WtContextMenu: document " + (document == null ? "==" : "!=" ) + " NULL");
     this.config = config;
     isRemote = config.doRemoteCheck();
     try {
       debugMode = WtOfficeTools.DEBUG_MODE_LM;
       debugModeTm = WtOfficeTools.DEBUG_MODE_TM;
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("WtContextMenu: document " + (document == null ? "==" : "!=" ) + " NULL");
+      }
       XModel xModel = UnoRuntime.queryInterface(XModel.class, document.getXComponent());
       if (xModel == null) {
         WtMessageHandler.printToLogFile("WtContextMenu: ContextMenuInterceptor: XModel not found!");
@@ -159,8 +161,8 @@ public class WtContextMenu implements XContextMenuInterceptor {
       }
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtContextMenu: notifyContextMenuExecute: get xContextMenu");
+        WtMessageHandler.printToLogFile("WtContextMenu: document " + (document == null ? "==" : "!=" ) + " NULL");
       }
-      WtMessageHandler.printToLogFile("WtContextMenu: document " + (document == null ? "==" : "!=" ) + " NULL");
       document.setMenuDocId();
       if (document.getDocumentType() == DocumentType.IMPRESS) {
         try {

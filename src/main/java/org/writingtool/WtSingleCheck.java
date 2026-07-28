@@ -1220,6 +1220,9 @@ public class WtSingleCheck {
         position += sentence.length();
         nextSentencePositions.add(position);
       }
+      if (nextSentencePositions.size() == 0) {
+        nextSentencePositions.add(paraText.length());
+      }
       if (nextSentencePositions.get(nextSentencePositions.size() - 1) != paraText.length()) {
         nextSentencePositions.set(nextSentencePositions.size() - 1, paraText.length());
       }
