@@ -57,7 +57,7 @@ import com.sun.star.uno.UnoRuntime;
 public class WtCacheIO implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final boolean DEBUG_MODE = WtOfficeTools.DEBUG_MODE_IO;
+  private static final boolean debugMode = WtOfficeTools.DEBUG_MODE_IO;
 
   private static final long MAX_CACHE_TIME = 365 * 24 * 3600000;      //  Save cache files maximal one year
   private static final String CACHEFILE_MAP = "WtCacheMap";           //  Name of cache map file
@@ -69,12 +69,22 @@ public class WtCacheIO implements Serializable {
   
   private String documentPath = null;
   private AllCaches allCaches;
+  private boolean isSameVersion = false;
+  private boolean isSameAi = false;
   
   WtCacheIO(XComponent xComponent) {
     setDocumentPath(xComponent);
   }
   
   WtCacheIO() {}
+  
+  public boolean isSameVersion() {
+    return isSameVersion;
+  }
+  
+  public boolean isSameAi() {
+    return isSameAi;
+  }
   
   void setDocumentPath(XComponent xComponent) {
     if (xComponent != null) {
@@ -100,7 +110,7 @@ public class WtCacheIO implements Serializable {
         }
         return null;
       }
-      if (DEBUG_MODE) {
+      if (debugMode) {
         WtMessageHandler.printToLogFile("CacheIO: getDocumentPath: file URL: " + url);
       }
       URI uri = new URI(url);
@@ -126,7 +136,7 @@ public class WtCacheIO implements Serializable {
       WtMessageHandler.printToLogFile("CacheIO: getCachePath: cacheDir == null!");
       return null;
     }
-    if (DEBUG_MODE) {
+    if (debugMode) {
       WtMessageHandler.printToLogFile("CacheIO: getCachePath: cacheDir: " + cacheDir.getAbsolutePath());
     }
     CacheFile cacheFile = new CacheFile(cacheDir);
@@ -139,7 +149,7 @@ public class WtCacheIO implements Serializable {
     if (!create) {
       cacheFile.cleanUp(cacheFileName);
     }
-    if (DEBUG_MODE) {
+    if (debugMode) {
       WtMessageHandler.printToLogFile("CacheIO: getCachePath: cacheFilePath: " + cacheFilePath.getAbsolutePath());
     }
     return cacheFilePath.getAbsolutePath();
@@ -156,7 +166,7 @@ public class WtCacheIO implements Serializable {
       out.close();
       fileOut.close();
       WtMessageHandler.printToLogFile("Caches saved to: " + cachePath);
-      if (DEBUG_MODE) {
+      if (debugMode) {
         printCacheInfo();
       }
     } catch (Throwable t) {
@@ -190,7 +200,8 @@ public class WtCacheIO implements Serializable {
         if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
           allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
               mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
-              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion());
+              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), 
+              config.aiUrl(), config.aiModel(), config.aiShowStylisticChanges());
           saveAllCaches(cachePath);
         } else {
           File file = new File( cachePath );
@@ -201,7 +212,7 @@ public class WtCacheIO implements Serializable {
       }
     } catch (Throwable t) {
       WtMessageHandler.printToLogFile("CacheIO: saveCaches: " + t.getMessage());
-      if (DEBUG_MODE) {
+      if (debugMode) {
         WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
     }
@@ -224,17 +235,24 @@ public class WtCacheIO implements Serializable {
         in.close();
         fileIn.close();
         WtMessageHandler.printToLogFile("Caches read from: " + cachePath);
-        if (DEBUG_MODE) {
+        if (debugMode) {
           printCacheInfo();
         }
-        if (runSameRules(config, mDocHandler)) {
-          return true;
-        } else {
-          WtMessageHandler.printToLogFile("Version or active rules have changed: Cache rejected (Cache Version: " 
+        isSameVersion = runSameRules(config, mDocHandler);
+        if (!isSameVersion) {
+          WtMessageHandler.printToLogFile("WtCacheIO: readAllCaches: Version or active rules have changed: Text Cache rejected (Cache Version: " 
                 + allCaches.ltVersion + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
-          return false;
+        }
+        setIsSameAI(config);
+        if (!isSameAi) {
+          WtMessageHandler.printToLogFile("WtCacheIO: readAllCaches: Other AI configuration: AI Cache rejected (Cache AI-Url: " 
+                + allCaches.aiUrl + ", actual AI-Url: " + config.aiUrl() 
+                + "; Cache AI-Model: " + allCaches.aiModel + ", actual AI-Model: " + config.aiModel()
+                + "; Cache AI-ShowStylisticChanges: " + allCaches.aiShowStylisticChanges + ", actual AI-ShowStylisticChanges: " + config.aiShowStylisticChanges()
+                + ")");
         }
       }
+      return true;
     } catch (InvalidClassException e) {
       WtMessageHandler.printToLogFile("Old cache Version: Cache not read");
       return false;
@@ -245,14 +263,33 @@ public class WtCacheIO implements Serializable {
   }
   
   /**
+   *  Test if cache was created by same AI
+   *  Set flag
+   */
+  private void setIsSameAI(WtConfiguration config) {
+    if (allCaches == null || allCaches.docCache == null || allCaches.docCache.toParaMapping.size() != WtDocumentCache.NUMBER_CURSOR_TYPES ) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: No valid cache found: "
+          + "allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
+          + "; allCaches.docCache.toTextMapping.size(): " + (allCaches.docCache.toParaMapping.size()));
+      isSameAi = false;
+      return;
+    }
+    if (!allCaches.aiUrl.equals(config.aiUrl()) || !allCaches.aiModel.equals(config.aiModel()) 
+        || allCaches.aiShowStylisticChanges != config.aiShowStylisticChanges()) {
+      isSameAi = false;
+    } else {
+      isSameAi = true;
+    }
+  }
+  
+  /**
    * Test if cache was created with same rules
    */
   private boolean runSameRules(WtConfiguration config, WtDocumentsHandler mDocHandler) throws Throwable {
     if (allCaches == null || allCaches.docCache == null || allCaches.docCache.toParaMapping.size() != WtDocumentCache.NUMBER_CURSOR_TYPES ) {
-      if (DEBUG_MODE) {
-        WtMessageHandler.printToLogFile("allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
-        + "; allCaches.docCache.toTextMapping.size(): " + (allCaches.docCache.toParaMapping.size()));
-      }
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: No valid cache found: "
+          + "allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
+          + "; allCaches.docCache.toTextMapping.size(): " + (allCaches.docCache.toParaMapping.size()));
       return false;
     }
     if (!allCaches.ltVersion.equals(WtVersionInfo.ltVersion())) {
@@ -260,23 +297,24 @@ public class WtCacheIO implements Serializable {
     }
     if (config.getEnabledRuleIds().size() != allCaches.enabledRuleIds.size() || config.getDisabledRuleIds().size() != allCaches.disabledRuleIds.size() 
           || config.getDisabledCategoryNames().size() != allCaches.disabledCategories.size()) {
-      if (DEBUG_MODE) {
-        WtMessageHandler.printToLogFile("config.getEnabledRuleIds().size() " + config.getEnabledRuleIds().size() 
-            + "; allCaches.enabledRuleIds.size(): " + allCaches.enabledRuleIds.size() 
-            + "\n config.getDisabledRuleIds().size(): " + config.getDisabledRuleIds().size()
-            + "; allCaches.disabledRuleIds.size(): " + allCaches.disabledRuleIds.size() 
-            + "\n config.getDisabledCategoryNames().size(): " + config.getDisabledCategoryNames().size()
-            + "; allCaches.disabledCategories.size(): " + allCaches.disabledCategories.size()); 
-      }
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Not the same rules: "
+          + "config.getEnabledRuleIds().size(): " + config.getEnabledRuleIds().size() 
+          + "; allCaches.enabledRuleIds.size(): " + allCaches.enabledRuleIds.size() 
+          + "\n config.getDisabledRuleIds().size(): " + config.getDisabledRuleIds().size()
+          + "; allCaches.disabledRuleIds.size(): " + allCaches.disabledRuleIds.size() 
+          + "\n config.getDisabledCategoryNames().size(): " + config.getDisabledCategoryNames().size()
+          + "; allCaches.disabledCategories.size(): " + allCaches.disabledCategories.size()); 
       return false;
     }
     for (String ruleId : config.getEnabledRuleIds()) {
       if (!allCaches.enabledRuleIds.contains(ruleId)) {
+        WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Enabled rule Id missing: " + ruleId);
         return false;
       }
     }
     for (String category : config.getDisabledCategoryNames()) {
       if (!allCaches.disabledCategories.contains(category)) {
+        WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Disabled category missing: " + category);
         return false;
       }
     }
@@ -286,10 +324,13 @@ public class WtCacheIO implements Serializable {
       disabledRuleIds.add(ruleId);
     }
     if (disabledRuleIds.size() != allCaches.disabledRuleIds.size()) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Wrong disabledRuleIds.size(): (" + disabledRuleIds.size() + "/" 
+          + allCaches.disabledRuleIds.size() + "), langCode: " + langCode);
       return false;
     }
     for (String ruleId : disabledRuleIds) {
       if (!allCaches.disabledRuleIds.contains(ruleId)) {
+        WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Disabled rule Id missing: " + ruleId);
         return false;
       }
     }
@@ -365,7 +406,7 @@ public class WtCacheIO implements Serializable {
    * print debug information of caches to log file
    */
   private void printCacheInfo() throws Throwable {
-    WtMessageHandler.printToLogFile("CacheIO: saveCaches:");
+    WtMessageHandler.printToLogFile("CacheIO: read/save caches:");
     WtMessageHandler.printToLogFile("Document Cache: Number of paragraphs: " + allCaches.docCache.size());
     WtMessageHandler.printToLogFile("Paragraph Cache(0): Number of paragraphs: " + allCaches.paragraphsCache.get(0).getNumberOfParas() 
         + ", Number of matches: " + allCaches.paragraphsCache.get(0).getNumberOfMatches());
@@ -411,10 +452,14 @@ public class WtCacheIO implements Serializable {
     private final Map<Integer, Map<String, Set<Integer>>> ignoredMatches; //  Map of matches (number of paragraph, number of character) that should be ignored after ignoreOnce was called
     private final Map<Integer, List<LocaleSerialEntry>> spellLocales;     //  Map of locales for ignored matches
     private final String ltVersion;                                       //  LT version
+    private final String aiUrl;
+    private final String aiModel;
+    private final int aiShowStylisticChanges;
     
     AllCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
         Map<String, Set<String>> disabledRulesUI, Set<String> disabledRuleIds, 
-        Set<String> disabledCategories, Set<String> enabledRuleIds, WtIgnoredMatches ignoredMatches, String ltVersion) {
+        Set<String> disabledCategories, Set<String> enabledRuleIds, WtIgnoredMatches ignoredMatches, String ltVersion,
+        String aiUrl, String aiModel, int aiShowStylisticChanges) {
       this.docCache = docCache;
       this.paragraphsCache = paragraphsCache;
       this.aiSuggestionCache = aiSuggestionCache;
@@ -437,6 +482,15 @@ public class WtCacheIO implements Serializable {
       this.enabledRuleIds = new ArrayList<String>();
       for (String ruleID : enabledRuleIds) {
         this.enabledRuleIds.add(ruleID);
+      }
+      if (debugMode) {
+        WtMessageHandler.printToLogFile("WtCacheIO: AllCaches: Set: "
+            + "enabledRuleIds.size: " + enabledRuleIds.size() 
+            + "; this.enabledRuleIds.size(): " + this.enabledRuleIds.size() 
+            + "\n disabledRuleIds.size(): " + disabledRuleIds.size()
+            + "; this.disabledRuleIds.size(): " + this.disabledRuleIds.size() 
+            + "\n disabledCategories.size(): " + disabledCategories.size()
+            + "; this.disabledCategories.size(): " + this.disabledCategories.size()); 
       }
       this.ltVersion = ltVersion;
       Map<Integer, Map<String, Set<Integer>>> clone = new HashMap<>();
@@ -461,6 +515,9 @@ public class WtCacheIO implements Serializable {
         sLocales.put(y, newEntryList);
       }
       this.spellLocales = sLocales;
+      this.aiUrl = aiUrl;
+      this.aiModel = aiModel;
+      this.aiShowStylisticChanges = aiShowStylisticChanges;
     }
     
   }
@@ -512,7 +569,7 @@ public class WtCacheIO implements Serializable {
           }
         }
         cacheMap = new CacheMap();
-        if (DEBUG_MODE) {
+        if (debugMode) {
           WtMessageHandler.printToLogFile("CacheIO: CacheFile: create cacheMap file");
         }
         write(cacheMap);
@@ -527,7 +584,7 @@ public class WtCacheIO implements Serializable {
         FileInputStream fileIn = new FileInputStream(cacheMapFile);
         ObjectInputStream in = new ObjectInputStream(fileIn);
         cacheMap = (CacheMap) in.readObject();
-        if (DEBUG_MODE) {
+        if (debugMode) {
           WtMessageHandler.printToLogFile("CacheIO: CacheFile: read cacheMap file: size=" + cacheMap.size());
         }
         in.close();
@@ -546,7 +603,7 @@ public class WtCacheIO implements Serializable {
       try {
         FileOutputStream fileOut = new FileOutputStream(cacheMapFile);
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
-        if (DEBUG_MODE) {
+        if (debugMode) {
           WtMessageHandler.printToLogFile("CacheIO: CacheFile: write cacheMap file: size=" + cacheMap.size());
         }
         out.writeObject(cacheMap);
@@ -646,7 +703,7 @@ public class WtCacheIO implements Serializable {
        * if create == false: return null if not exist
        */
       public String getOrCreateCacheFile(String docPath, boolean create) throws Throwable {
-        if (DEBUG_MODE) {
+        if (debugMode) {
           WtMessageHandler.printToLogFile("CacheIO: getOrCreateCacheFile: docPath=" + docPath);
           for (String file : cacheNames.keySet()) {
             WtMessageHandler.printToLogFile("cacheNames: docPath=" + file + ", cache=" + cacheNames.get(file));
@@ -702,7 +759,7 @@ public class WtCacheIO implements Serializable {
             File docFile = new File(doc);
             String cacheFileName = cacheMap.get(doc);
             File cacheFile = new File(cacheDir, cacheFileName);
-            if (DEBUG_MODE) {
+            if (debugMode) {
               WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: CacheMap: docPath=" + doc + ", docFile exist: " + (docFile == null ? "null" : docFile.exists()) + 
                   ", cacheFile exist: " + (cacheFile == null ? "null" : cacheFile.exists()));
             }
@@ -718,7 +775,7 @@ public class WtCacheIO implements Serializable {
             }
           }
           if (mapChanged) {
-            if (DEBUG_MODE) {
+            if (debugMode) {
               WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Write CacheMap");
             }
             write(cacheMap);

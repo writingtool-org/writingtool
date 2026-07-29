@@ -1214,6 +1214,7 @@ public class WtDocumentsHandler {
             String oldDocId = documents.get(i).getDocID();
             documents.get(i).setDocID(docID);
             documents.get(i).setLanguage(docLanguage);
+            documents.get(i).readCaches();
             WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Document ID corrected: old: " + oldDocId + ", new: " + docID);
             if (useQueue && textLevelQueue != null) {
               WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Interrupt text level queue for old document ID: " + oldDocId);

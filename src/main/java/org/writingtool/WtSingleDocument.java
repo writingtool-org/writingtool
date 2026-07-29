@@ -754,16 +754,21 @@ public class WtSingleDocument {
       if (numParasToCheck != 0 && docType != DocumentType.CALC) {
         cacheIO = new WtCacheIO(xComponent);
         boolean cacheExist = cacheIO.readAllCaches(config, mDocHandler);
-        if (cacheExist) {
+        if (cacheExist && cacheIO.isSameVersion() || cacheIO.isSameAi()) {
           docCache.put(cacheIO.getDocumentCache());
-          for (int i = 0; i < cacheIO.getParagraphsCache().size(); i++) {
-  //        if (debugMode > 0) {
-            WtMessageHandler.printToLogFile("SingleDocument: readCaches: Copy ResultCache " + i + ": Size: " + cacheIO.getParagraphsCache().get(i).size());
-  //        }
-            paragraphsCache.get(i).replace(cacheIO.getParagraphsCache().get(i));
+          if (cacheIO.isSameVersion()) {
+            for (int i = 0; i < WtOfficeTools.NUMBER_TEXTLEVEL_CACHE; i++) {
+              if (debugMode > 0) {
+                WtMessageHandler.printToLogFile("SingleDocument: readCaches: Copy ResultCache " + i + ": Size: " + cacheIO.getParagraphsCache().get(i).size());
+              }
+              paragraphsCache.get(i).replace(cacheIO.getParagraphsCache().get(i));
+            }
+            permanentIgnoredMatches = new WtIgnoredMatches(cacheIO.getIgnoredMatches());
           }
-          aiSuggestionCache.replace(cacheIO.getAiSuggestionCache());
-          permanentIgnoredMatches = new WtIgnoredMatches(cacheIO.getIgnoredMatches());
+          if (cacheIO.isSameVersion()) {
+            paragraphsCache.get(WtOfficeTools.CACHE_AI).replace(cacheIO.getParagraphsCache().get(WtOfficeTools.CACHE_AI));
+            aiSuggestionCache.replace(cacheIO.getAiSuggestionCache());
+          }
           if (docType == DocumentType.WRITER && mDocHandler != null) {
             mDocHandler.runShapeCheck(docCache.hasUnsupportedText(), 9);
           }
@@ -791,9 +796,9 @@ public class WtSingleDocument {
         WtDocumentCache docCache = new WtDocumentCache(this.docCache);
         List<WtResultCache> paragraphsCache = new ArrayList<WtResultCache>();
         for (int i = 0; i < this.paragraphsCache.size(); i++) {
-//          if (debugMode > 0) {
+          if (debugMode > 0) {
             WtMessageHandler.printToLogFile("SingleDocument: writeCaches: Copy ResultCache " + i + ": Size: " + this.paragraphsCache.get(i).size());
-//          }
+          }
           paragraphsCache.add(new WtResultCache(this.paragraphsCache.get(i)));
         }
         if (cacheIO != null) {
