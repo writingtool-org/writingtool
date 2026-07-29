@@ -60,6 +60,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -84,6 +85,7 @@ import org.writingtool.aisupport.WtAiParagraphChanging;
 import org.writingtool.aisupport.WtAiRemote;
 import org.writingtool.aisupport.WtAiTranslateDocument;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.menus.WtTextContextMenu;
 import org.writingtool.tools.WtGeneralTools;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeDrawTools;
@@ -126,6 +128,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final Container contentPane;
   private JProgressBar checkProgress;
   private final Image ltImage;
+  private final WtAiTextContextMenu textContextMenuInstance;
   
   private final JTabbedPane instructionPanel;
   private final JLabel instructionLabel;
@@ -317,6 +320,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     
     checkProgress.setStringPainted(true);
     checkProgress.setIndeterminate(false);
+    
+    textContextMenuInstance = new WtAiTextContextMenu();
+
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: WtAiDialog called");
@@ -1279,7 +1285,7 @@ public class WtAiDialog extends Thread implements ActionListener {
 //      cons.gridy++;
       contentPane.add(checkProgressPanel, cons);
       
-      WtGeneralTools.installDefaultTextContextMenus(dialog);
+      WtGeneralTools.installDefaultTextContextMenus(dialog, textContextMenuInstance);
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
@@ -2068,5 +2074,17 @@ public class WtAiDialog extends Thread implements ActionListener {
       return new String[0];
     }
   }
+  
+  private class WtAiTextContextMenu extends WtTextContextMenu {
+    private static final long serialVersionUID = 1L;
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      super.actionPerformed(e);
+      setButtonState(true);
+    }
+    
+  }
+
 
 }

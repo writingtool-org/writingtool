@@ -527,12 +527,18 @@ public final class WtGeneralTools {
     }
   }
   
-//Source - https://stackoverflow.com/a/28969818
-//Posted by Kevin Rahe
-//Retrieved 2026-04-08, License - CC BY-SA 3.0
-
   public static void installDefaultTextContextMenus(Container aContainer) throws Throwable {
+    installDefaultTextContextMenus(aContainer, null);
+  }
+
+  public static void installDefaultTextContextMenus(Container aContainer, WtTextContextMenu contextMenu) throws Throwable {
+    //  Original Source - https://stackoverflow.com/a/28969818
+    //  Posted by Kevin Rahe
+    //  Retrieved 2026-04-08, License - CC BY-SA 3.0
     if ( aContainer != null ) {
+      if (contextMenu == null) {
+        contextMenu = WtTextContextMenu.INSTANCE;
+      }
       if ( aContainer instanceof JFrame ) {
         aContainer = ((JFrame)aContainer).getContentPane();
       }
@@ -552,15 +558,15 @@ public final class WtGeneralTools {
              ( lComponents[ lCompNum ] instanceof JViewport ) ||
              ( lComponents[ lCompNum ] instanceof JFrame ) ||
              ( lComponents[ lCompNum ] instanceof JDialog ) ) {
-            installDefaultTextContextMenus( (Container)lComponents[ lCompNum ] );
+            installDefaultTextContextMenus((Container)lComponents[lCompNum], contextMenu);
         }
         else if ( lComponents[ lCompNum ] instanceof JTextComponent ) {
-          ((JTextComponent)lComponents[ lCompNum ]).setComponentPopupMenu( WtTextContextMenu.INSTANCE );
+          ((JTextComponent)lComponents[ lCompNum ]).setComponentPopupMenu(contextMenu);
         }
         else if ( lComponents[ lCompNum ] instanceof JComboBox ) {
           Component lEditorComp = ((JComboBox<?>)lComponents[ lCompNum ]).getEditor().getEditorComponent();
           if ( lEditorComp instanceof JTextComponent ) {
-            ((JTextComponent)lEditorComp).setComponentPopupMenu( WtTextContextMenu.INSTANCE );
+            ((JTextComponent)lEditorComp).setComponentPopupMenu(contextMenu);
           }
         }
       }

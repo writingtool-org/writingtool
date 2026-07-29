@@ -37,7 +37,7 @@ public class WtTextContextMenu extends JPopupMenu implements ActionListener {
   private final JMenuItem itemDelete;
   private final JMenuItem itemSelectAll;
 
-  private WtTextContextMenu() {
+  protected WtTextContextMenu() {
     messages = WtOfficeTools.getMessageBundle();
     itemCut = newItem(messages.getString("textFieldContextMenuCut"), 'T');
     itemCopy = newItem(messages.getString("textFieldContextMenuCopy"), 'C');
