@@ -564,9 +564,12 @@ public final class WtGeneralTools {
           ((JTextComponent)lComponents[ lCompNum ]).setComponentPopupMenu(contextMenu);
         }
         else if ( lComponents[ lCompNum ] instanceof JComboBox ) {
-          Component lEditorComp = ((JComboBox<?>)lComponents[ lCompNum ]).getEditor().getEditorComponent();
-          if ( lEditorComp instanceof JTextComponent ) {
-            ((JTextComponent)lEditorComp).setComponentPopupMenu(contextMenu);
+          ComboBoxEditor lEditor = ((JComboBox<?>)lComponents[ lCompNum ]).getEditor();
+          if ( lEditor != null ) {
+            Component lEditorComp = lEditor.getEditorComponent();
+            if ( lEditorComp instanceof JTextComponent ) {
+              ((JTextComponent)lEditorComp).setComponentPopupMenu(contextMenu);
+            }
           }
         }
       }

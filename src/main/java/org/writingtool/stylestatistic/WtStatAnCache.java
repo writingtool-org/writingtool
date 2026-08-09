@@ -66,7 +66,7 @@ public class WtStatAnCache {
   private final static int MAX_NAME_LENGTH = 80;
   private final static boolean debugMode = false;
   
-  private final Map<Integer, List<AnalyzedSentence>> analyzedParagraphs;
+  private Map<Integer, List<AnalyzedSentence>> analyzedParagraphs;
   private String langCode;
   private List<Heading> headings = new ArrayList<>();
   private List<Paragraph> paragraphs = new ArrayList<>();
@@ -79,13 +79,13 @@ public class WtStatAnCache {
   private WtStatAnConfiguration config;
   
   public WtStatAnCache(WtSingleDocument document, WtStatAnConfiguration conf, WaitDialogThread waitdialog) {
-    this.document = document;
-    analyzedParagraphs = docCache.getAllAnalyzedParagraphs();
     try {
+      this.document = document;
+      docCache = document.getDocumentCache();
+      analyzedParagraphs = docCache.getAllAnalyzedParagraphs();
       langCode = document.getLanguage().getShortCode();
       config = conf;
       lt = document.getMultiDocumentsHandler().getLanguageTool();
-      docCache = document.getDocumentCache();
       
       while (docCache.getHeadingMap() == null) {
         try {
