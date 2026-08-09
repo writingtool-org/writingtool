@@ -74,10 +74,13 @@ public class WtOfficeGraphicTools {
       XText xText = xTextDoc.getText();
 
       // Getting the cursor on the document (current position)
-//      com.sun.star.text.XTextCursor xTextCursor = xText.createTextCursor();
       WtViewCursorTools vCursor = new WtViewCursorTools(xComp);
       XTextCursor xTextCursor = vCursor.getTextCursorBeginn();
-
+      if (xTextCursor == null) {
+        xTextCursor = xText.createTextCursor();
+      }
+//      xTextCursor.setString("\n");
+//      xTextCursor.goRight((short) 1, false);
       // Querying for the interface XTextContent on the GraphicObject
       XTextContent xTextContent = UnoRuntime.queryInterface(XTextContent.class, oGraphic);
 
