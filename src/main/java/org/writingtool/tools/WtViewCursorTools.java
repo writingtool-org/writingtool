@@ -116,7 +116,13 @@ public class WtViewCursorTools {
       if (vCursor == null) {
         return null;
       }
-      XText xViewCursorText = vCursor.getText();
+      XText xViewCursorText = null;
+      try {
+        xViewCursorText = vCursor.getText();
+      } catch (Exception e) {
+        WtMessageHandler.printToLogFile("ViewCursorTools: getTextCursorFromViewCursor: No text selected");
+        return null;
+      }
       if (xViewCursorText == null) {
         return null;
       }

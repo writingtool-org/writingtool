@@ -118,6 +118,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private int imageWidth = 512;
   private int imageHeight = 512;
+  private int imageNumber = 1;
 
   private boolean debugMode = false;
   private boolean debugModeTm = false;
@@ -166,11 +167,12 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JLabel imageLabel;
   private final JTabbedPane imageTabs;
   private final List<JLabel> imageFrames = new ArrayList<>();
-//  private final JLabel imageFrame;
   private final JLabel imageWidthLabel;
   private final JTextField imageWidthValueField;
   private final JLabel imageHeightLabel;
   private final JTextField imageHeightValueField;
+  private final JLabel imageNumberLabel;
+  private final JTextField imageNumberValueField;
   private final JLabel stepLabel;
   private final JSlider stepSlider;
   
@@ -293,6 +295,10 @@ public class WtAiDialog extends Thread implements ActionListener {
     imageHeightValueField = new JTextField("   ", 3);
     imageHeightValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
     imageHeightValueField.setText("" + imageHeight);
+    imageNumberLabel = new JLabel(messages.getString("aiDialogImgNumberLabel") + ":");
+    imageNumberValueField = new JTextField("   ", 3);
+    imageNumberValueField.setMinimumSize(new Dimension(50, 28));  // without this the box is just a few pixels small, but why?
+    imageNumberValueField.setText("" + imageNumber);
     
     changeImage = new JButton (messages.getString("aiDialogImgChangeImageButton"));
     newImage = new JButton (messages.getString("aiDialogImgNewImageButton"));
@@ -684,6 +690,53 @@ public class WtAiDialog extends Thread implements ActionListener {
       });
       
       imageHeightValueField.addKeyListener(new KeyListener() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+            Thread t = new Thread(new Runnable() {
+              public void run() {
+                createImage();
+              }
+            });
+            t.start();
+          }
+        }
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+      });
+      
+      imageNumberValueField.getDocument().addDocumentListener(new DocumentListener() {
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+          changedUpdate(e);
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+          try {
+            int num = Integer.parseInt(imageNumberValueField.getText());
+            if (num < 1 || num > 9) {
+              imageNumberValueField.setForeground(Color.RED);
+            } else {
+              imageNumberValueField.setForeground(null);
+              imageNumber = num;
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+            closeDialog();
+          }
+        }
+      });
+      
+      imageNumberValueField.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
           if(e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -1117,9 +1170,13 @@ public class WtAiDialog extends Thread implements ActionListener {
       weidthHeightPanel.add(imageWidthValueField, cons12);
       cons12.gridx++;
       weidthHeightPanel.add(imageHeightLabel, cons12);
-      cons12.weightx = 1.0f;
       cons12.gridx++;
       weidthHeightPanel.add(imageHeightValueField, cons12);
+      cons12.gridx++;
+      weidthHeightPanel.add(imageNumberLabel, cons12);
+      cons12.weightx = 1.0f;
+      cons12.gridx++;
+      weidthHeightPanel.add(imageNumberValueField, cons12);
 
       //  Define 2. left panel
       JPanel leftPanel2 = new JPanel();
@@ -1496,12 +1553,15 @@ public class WtAiDialog extends Thread implements ActionListener {
       imgInstruction.setEnabled(enabled);
       exclude.setEnabled(enabled);
       imageTabs.setEnabled(enabled);
-      changeImage.setEnabled(noImgInst ? false : enabled);
+      changeImage.setEnabled(noImgInst || imageNumber > 1 ? false : enabled);
       newImage.setEnabled(noImgInst ? false : enabled);
       translateFirst.setEnabled(noImgInst ? false : enabled);
       removeImage.setEnabled(images.isEmpty() ? false : enabled);
       saveImage.setEnabled(images.isEmpty() ? false : enabled);
       insertImage.setEnabled(images.isEmpty() ? false : enabled);
+      for (int i = 0; i < imageFrames.size(); i++) {
+        imageFrames.get(i).setEnabled(enabled);
+      }
       
   //    contentPane.setEnabled(enabled);
       contentPane.revalidate();
@@ -1640,26 +1700,34 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       setAtWorkState(true);
       setButtonState(false);
-      WtAiRemote aiRemote = new WtAiRemote(documents, config);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " 
               + imgInstText + ", exclude: " + excludeText);
       }
       imageWidthValueField.setText("" + imageWidth);
       imageHeightValueField.setText("" + imageHeight);
-      urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageHeight, imageWidth, true);
-      if (urlString != null) {
-        if (debugMode) {
-          WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
+      imageNumberValueField.setText("" + imageNumber);
+      for (int i = 0; i < imageNumber; i++) {
+        if (imageNumber > 1) {
+          seed = randomInteger();
         }
-        images.add(getImageFromUrl(urlString));
-        JLabel imageFrame = new JLabel();
-        imageFrame.setSize(imageWidth, imageWidth);
-        imageFrames.add(imageFrame);
-        imageTabs.addTab(imgInstText, imageFrame);
-        imageTabs.setBackground(null);
-        imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
-        setImageSize();
+        setAtWorkState(true);
+        setButtonState(false);
+        WtAiRemote aiRemote = new WtAiRemote(documents, config);
+        urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageHeight, imageWidth, true);
+        if (urlString != null) {
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
+          }
+          images.add(getImageFromUrl(urlString));
+          JLabel imageFrame = new JLabel();
+          imageFrame.setSize(imageWidth, imageWidth);
+          imageFrames.add(imageFrame);
+          imageTabs.addTab(imgInstText, imageFrame);
+          imageTabs.setBackground(null);
+          imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+          setImageSize();
+        }
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
