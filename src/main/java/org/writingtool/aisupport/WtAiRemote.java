@@ -477,8 +477,6 @@ public class WtAiRemote {
         + "\"size\": \"" + width + "x" + height + "\", "
         + "\"step\": " + step + "}";
     
-    WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: urlParameters: " + urlParameters);
-    
     byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
     
     URL checkUrl;
