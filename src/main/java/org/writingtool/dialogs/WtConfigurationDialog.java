@@ -3021,7 +3021,7 @@ public class WtConfigurationDialog implements ActionListener {
         testButton.setEnabled(false);
         dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         WtAiRemote aiRemote = new WtAiRemote(WritingTool.getDocumentsHandler(), config, true, dialog);
-        String urlString = aiRemote.runImgInstruction("Flower", "", 10, 1, 32, 32, true);
+        String urlString = aiRemote.runImgInstruction("Flower", "", null, 10, 1, 32, 32, true);
         testButton.setEnabled(true);
         dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         if (urlString != null) {

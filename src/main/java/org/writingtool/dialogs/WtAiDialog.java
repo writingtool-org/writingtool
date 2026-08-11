@@ -56,6 +56,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -108,7 +109,9 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private final static float DEFAULT_TEMPERATURE = 0.7f;
   private final static int DEFAULT_STEP = 30;
-  private final static String TEMP_IMAGE_FILE_NAME = "tmpImage.jpg";
+  private final static int TMP_IMG_MAX = 10;
+  private final static String TEMP_IMAGE_FILE_NAME = "tmpImage_";
+  private final static String TEMP_IMAGE_FILE_EXT = ".png";
   private final static String AI_TEMP_INSTRUCTION_FILE_NAME = "WT_AI_Instructions.dat";
   private final static String AI_SYSTEM_INSTRUCTION_FILE_NAME = "WT_AI_System_Instructions.dat";
   private final static int MAX_INSTRUCTIONS = 30;
@@ -180,14 +183,19 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JButton newImage;
   private final JButton translateFirst;
   private final JButton removeImage;
+  private final JButton removeAllImages;
+  private final JButton loadImage;
   private final JButton saveImage;
   private final JButton insertImage;
+
+  private final JCheckBox referenceImage;
   
   private final JTabbedPane mainPanel;
   private final JPanel mainImagePanel;
   private final JPanel mainTextPanel;
 
   private final List<BufferedImage> images = new ArrayList<>();
+  private final List<Boolean> isRefImage = new ArrayList<>();
 
   private WtSingleDocument currentDocument;
   private WtDocumentsHandler documents;
@@ -217,6 +225,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private int step = DEFAULT_STEP;
   private int instructionIndex = 0;
   private File fileToSave = null;
+  private File fileToLoad = null;
   private String urlString;
 
   /**
@@ -304,6 +313,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     newImage = new JButton (messages.getString("aiDialogImgNewImageButton"));
     translateFirst = new JButton (messages.getString("aiDialogImgTranslateFirstButton"));
     removeImage = new JButton (messages.getString("aiDialogImgRemoveButton"));
+    removeAllImages = new JButton (messages.getString("aiDialogImgRemoveAllButton"));
+    loadImage = new JButton (messages.getString("aiDialogImgLoadButton"));
+    referenceImage = new JCheckBox (messages.getString("aiDialogImgAsReferenceButton"));
     saveImage = new JButton (messages.getString("aiDialogImgSaveButton"));
     insertImage = new JButton (messages.getString("aiDialogImgInsertButton"));
     
@@ -829,6 +841,14 @@ public class WtAiDialog extends Thread implements ActionListener {
       removeImage.addActionListener(this);
       removeImage.setActionCommand("removeImage");
       
+      removeAllImages.setFont(dialogFont);
+      removeAllImages.addActionListener(this);
+      removeAllImages.setActionCommand("removeAllImages");
+      
+      loadImage.setFont(dialogFont);
+      loadImage.addActionListener(this);
+      loadImage.setActionCommand("loadImage");
+      
       saveImage.setFont(dialogFont);
       saveImage.addActionListener(this);
       saveImage.setActionCommand("saveImage");
@@ -836,6 +856,21 @@ public class WtAiDialog extends Thread implements ActionListener {
       insertImage.setFont(dialogFont);
       insertImage.addActionListener(this);
       insertImage.setActionCommand("insertImage");
+      
+      referenceImage.setSelected(false);
+      referenceImage.addItemListener(e -> {
+        isRefImage.set(imageTabs.getSelectedIndex(), referenceImage.isSelected());
+      });
+      
+      imageTabs.addChangeListener(new ChangeListener( ) {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          int index = imageTabs.getSelectedIndex();
+          if (index >= 0 && index < isRefImage.size()) {
+            referenceImage.setSelected(isRefImage.get(index));
+          }
+        }
+      });
       
       dialog.addWindowFocusListener(new WindowFocusListener() {
         @Override
@@ -1174,9 +1209,11 @@ public class WtAiDialog extends Thread implements ActionListener {
       weidthHeightPanel.add(imageHeightValueField, cons12);
       cons12.gridx++;
       weidthHeightPanel.add(imageNumberLabel, cons12);
-      cons12.weightx = 1.0f;
       cons12.gridx++;
       weidthHeightPanel.add(imageNumberValueField, cons12);
+      cons12.weightx = 1.0f;
+      cons12.gridx++;
+      weidthHeightPanel.add(referenceImage, cons12);
 
       //  Define 2. left panel
       JPanel leftPanel2 = new JPanel();
@@ -1214,6 +1251,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       rightPanel1.add(changeImage, cons21);
       cons21.gridy++;
       rightPanel1.add(newImage, cons21);
+      cons21.gridy++;
+      rightPanel1.add(loadImage, cons21);
 
       //  Define 2. right panel
       JPanel rightPanel2 = new JPanel();
@@ -1229,6 +1268,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       cons22.gridy++;
       cons22.gridy++;
       rightPanel2.add(removeImage, cons22);
+      cons22.gridy++;
+      rightPanel2.add(removeAllImages, cons22);
       cons22.gridy++;
       rightPanel2.add(saveImage, cons22);
       cons22.gridy++;
@@ -1340,6 +1381,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       contentPane.add(checkProgressPanel, cons);
       
       WtGeneralTools.installDefaultTextContextMenus(dialog, textContextMenuInstance);
+      
+      removeTmpFiles();
 
       if (debugModeTm) {
         long runTime = System.currentTimeMillis() - startTime;
@@ -1553,12 +1596,15 @@ public class WtAiDialog extends Thread implements ActionListener {
       imgInstruction.setEnabled(enabled);
       exclude.setEnabled(enabled);
       imageTabs.setEnabled(enabled);
+      loadImage.setEnabled(enabled);
       changeImage.setEnabled(noImgInst || imageNumber > 1 ? false : enabled);
       newImage.setEnabled(noImgInst ? false : enabled);
       translateFirst.setEnabled(noImgInst ? false : enabled);
       removeImage.setEnabled(images.isEmpty() ? false : enabled);
+      removeAllImages.setEnabled(images.isEmpty() ? false : enabled);
       saveImage.setEnabled(images.isEmpty() ? false : enabled);
       insertImage.setEnabled(images.isEmpty() ? false : enabled);
+      referenceImage.setEnabled(images.isEmpty() ? false : enabled);
       for (int i = 0; i < imageFrames.size(); i++) {
         imageFrames.get(i).setEnabled(enabled);
       }
@@ -1680,6 +1726,29 @@ public class WtAiDialog extends Thread implements ActionListener {
       setButtonState(true);
     }
   }
+  
+  /**
+   * get reference images
+   * @throws Throwable 
+   */
+  
+  private List<String> getReferenceImages() throws Throwable {
+    List<String> refImages = new ArrayList<>();
+    int n = 0;
+    for (int i = 0; i < images.size(); i++) {
+      if (isRefImage.get(i)) {
+        File dir = WtOfficeTools.getCacheDir();
+        File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME + n + TEMP_IMAGE_FILE_EXT);
+        saveImage(tmpFile);
+        n++;
+        refImages.add(tmpFile.getAbsolutePath());
+      }
+    }
+    if (refImages.isEmpty()) {
+      return null;
+    }
+    return refImages;
+  }
 
   /**
    * execute AI request for image
@@ -1707,6 +1776,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageWidthValueField.setText("" + imageWidth);
       imageHeightValueField.setText("" + imageHeight);
       imageNumberValueField.setText("" + imageNumber);
+      List<String> refFiles = getReferenceImages();
       for (int i = 0; i < imageNumber; i++) {
         if (imageNumber > 1) {
           seed = randomInteger();
@@ -1714,16 +1784,21 @@ public class WtAiDialog extends Thread implements ActionListener {
         setAtWorkState(true);
         setButtonState(false);
         WtAiRemote aiRemote = new WtAiRemote(documents, config);
-        urlString = aiRemote.runImgInstruction(imgInstText, excludeText, step, seed, imageHeight, imageWidth, true);
+        urlString = aiRemote.runImgInstruction(imgInstText, excludeText, refFiles, step, seed, imageHeight, imageWidth, true);
         if (urlString != null) {
           if (debugMode) {
             WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
           }
           images.add(getImageFromUrl(urlString));
+          isRefImage.add(false);
           JLabel imageFrame = new JLabel();
           imageFrame.setSize(imageWidth, imageWidth);
           imageFrames.add(imageFrame);
-          imageTabs.addTab(imgInstText, imageFrame);
+          String tabTitle = imgInstText;
+          if (imageNumber > 1) {
+            tabTitle = imgInstText + " (" + (i + 1) + ")";
+          }
+          imageTabs.addTab(tabTitle, imageFrame);
           imageTabs.setBackground(null);
           imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
           setImageSize();
@@ -1809,11 +1884,17 @@ public class WtAiDialog extends Thread implements ActionListener {
         } else if (action.getActionCommand().equals("saveImage")) {
           saveImage();
           setButtonState(true);
+        } else if (action.getActionCommand().equals("loadImage")) {
+          loadImage();
+          setButtonState(true);
         } else if (action.getActionCommand().equals("insertImage")) {
           insertImage();
           setButtonState(true);
         } else if (action.getActionCommand().equals("removeImage")) {
           removeImage();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("removeAllImages")) {
+          removeAllImages();
           setButtonState(true);
         } else {
           Thread t = new Thread(new Runnable() {
@@ -2044,11 +2125,30 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
     }
   }
+  
+  /**
+   * remove tmp files
+   */
+  
+  private void removeTmpFiles() {
+    try {
+      File dir = WtOfficeTools.getCacheDir();
+      for (int i = 0; i < TMP_IMG_MAX; i++) {
+        File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME + i + TEMP_IMAGE_FILE_EXT);
+        if (tmpFile.exists()) {
+          tmpFile.delete();
+        }
+      }
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+  }
 
   /**
    * closes the dialog
    */
   public void closeDialog() {
+    removeTmpFiles();
     dialog.setVisible(false);
     WtAiParagraphChanging.setCloseAiDialog();
     if (debugMode) {
@@ -2068,8 +2168,41 @@ public class WtAiDialog extends Thread implements ActionListener {
     
   }
   
+  private BufferedImage getImageFromFile(File imageFile) {
+    try {
+       return ImageIO.read(imageFile);
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+      return null;
+    }
+    
+  }
+  
   private static int randomInteger() {
     return (int) (Math.random() * Integer.MAX_VALUE);
+  }
+  
+  private void loadImage() throws Throwable {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle(messages.getString("aiDialogImgLoadTitle"));
+    if (fileToLoad != null) {
+      fileChooser.setSelectedFile(fileToLoad);
+    }
+    int userSelection = fileChooser.showOpenDialog(fileChooser);
+     
+    if (userSelection == JFileChooser.APPROVE_OPTION) {
+      fileToLoad = fileChooser.getSelectedFile();
+      images.add(getImageFromFile(fileToLoad));
+      isRefImage.add(true);
+      JLabel imageFrame = new JLabel();
+      imageFrame.setSize(imageWidth, imageWidth);
+      imageFrames.add(imageFrame);
+      String tabTitle = fileToLoad.getName();
+      imageTabs.addTab(tabTitle, imageFrame);
+      imageTabs.setBackground(null);
+      imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+      setImageSize();
+    }
   }
   
   private void saveImage() throws Throwable {
@@ -2110,7 +2243,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       return;
     }
     File dir = WtOfficeTools.getCacheDir();
-    File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME);
+    File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME + "0" + TEMP_IMAGE_FILE_EXT);
     saveImage(tmpFile);
     if (documentType == DocumentType.IMPRESS) {
       WtOfficeGraphicTools.insertGraphicInImpress(tmpFile.getAbsolutePath(), imageHeight, imageWidth,
@@ -2126,9 +2259,19 @@ public class WtAiDialog extends Thread implements ActionListener {
     imageFrames.remove(n);
     imageTabs.remove(n);
     images.remove(n);
+    isRefImage.remove(n);
     if (images.isEmpty()) {
       imageTabs.setBackground(Color.LIGHT_GRAY);
     }
+    setButtonState(true);
+  }
+  
+  private void removeAllImages() throws Throwable {
+    imageFrames.clear();
+    images.clear();
+    isRefImage.clear();
+    imageTabs.removeAll();
+    imageTabs.setBackground(Color.LIGHT_GRAY);
     setButtonState(true);
   }
   
