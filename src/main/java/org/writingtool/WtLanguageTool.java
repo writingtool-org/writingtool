@@ -594,6 +594,9 @@ public class WtLanguageTool {
         }
       } else {
         AnalysedText analysedText = document.getDocumentCache().getOrCreateAnalyzedParagraph(nFPara, lt);
+        if (analysedText == null) {
+          return null;
+        }
         analyzedSentences = analysedText.analyzedSentences;
         sentences = analysedText.sentences;
         text = analysedText.text;
@@ -648,6 +651,9 @@ public class WtLanguageTool {
         }
       } else {
         AnalysedText analysedText = document.getDocumentCache().getOrCreateAnalyzedParagraph(nFPara, lt);
+        if (analysedText == null) {
+          return null;
+        }
         analyzedSentences = analysedText.analyzedSentences;
         sentences = analysedText.sentences;
         text = analysedText.text;
