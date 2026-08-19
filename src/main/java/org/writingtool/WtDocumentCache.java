@@ -2483,7 +2483,9 @@ public class WtDocumentCache implements Serializable {
   }
 
   private List<AnalyzedSentence> createAnalyzedParagraph(int nFPara, String paraText, WtLanguageTool lt) throws Throwable {
-//    List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText.replace("\u00AD", ""));
+    if (lt == null) {
+      return null;
+    }
     List<AnalyzedSentence> analyzedParagraph = lt.analyzeText(paraText);
     putAnalyzedParagraph(nFPara, analyzedParagraph);
     return analyzedParagraph;
@@ -2502,10 +2504,12 @@ public class WtDocumentCache implements Serializable {
       paraText = fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
           getFlatParagraphFootnotes(nFPara), getFlatParagraphDeletedCharacters(nFPara),
           nFPara, hiddenCharacters));
-//      paraText = paraText.replace("\u00AD", "");
       List<AnalyzedSentence> analyzedSentences = getAnalyzedParagraph(nFPara);
       List<String> sentences = new ArrayList<>();
       if (analyzedSentences == null) {
+        if (lt == null) {
+          return null;
+        }
         analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
       }
       int len = 0;
@@ -2515,14 +2519,9 @@ public class WtDocumentCache implements Serializable {
         sentences.add(sentence);
       }
       if (len != paraText.length()) {
-  /*
-        String anSenText = "";
-        for (String txt : sentences) {
-          anSenText += txt;
+        if (lt == null) {
+          return null;
         }
-        MessageHandler.printToLogFile("DocumentCache: getOrCreateAnalyzedParagraph: Different length: (" + len + "/" + paraText.length()
-            + "):\nparaText: '" + paraText + "'\nAnalysed: '" + anSenText + "'");
-  */
         analyzedSentences = createAnalyzedParagraph(nFPara, paraText, lt);
         sentences.clear();
         for (AnalyzedSentence analyzedSentence : analyzedSentences) {
