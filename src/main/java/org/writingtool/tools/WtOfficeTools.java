@@ -1242,6 +1242,10 @@ public class WtOfficeTools {
     return RESOURCES + "." + locale.getLanguage() + ".URLsBundle";
   }
 
+  private static String getWtAiCommands() {
+    return RESOURCES + ".AiCommandsBundle";
+  }
+
   public static ResourceBundle getMessageBundle(Language lang) {
     try {
       java.util.Locale locale = lang == null ? java.util.Locale.getDefault() : lang.getLocaleWithCountryAndVariant();
@@ -1289,6 +1293,20 @@ public class WtOfficeTools {
       locale = java.util.Locale.ENGLISH;
       bundle = ResourceBundle.getBundle(getWtUrlResource(locale), locale);
       return WT_SERVER_URL + "/" + bundle.getString(key);
+    } catch (Throwable t) {
+      WtMessageHandler.showError(t);
+      return null;
+    }
+  }
+  
+  /**
+   * Gets the AI command from AiCommandsBundle (i18n strings)
+   */
+  public static String getAiCommand(String key) {
+    try {
+      ResourceBundle bundle = null;
+      bundle = ResourceBundle.getBundle(getWtAiCommands());
+      return bundle.getString(key);
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       return null;

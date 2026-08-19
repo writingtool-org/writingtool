@@ -73,11 +73,11 @@ public class WtAiRemote {
   public final static int MAX_TEXT_LENGTH = 20000;
   public final static int MAX_OID = 32000;
 
-  public final static String CORRECT_INSTRUCTION = "Output the grammatically and orthographically corrected text without comments";
-  public final static String STYLE_INSTRUCTION = "Output the stylistic reformulated text without comments";
-  public final static String REFORMULATE_INSTRUCTION = "Output the rephrased text without comments";
-  public final static String EXPAND_INSTRUCTION = "Output the expanded text";
-  public final static String SYNONYMS_INSTRUCTION = "List at least 3 and a maximum of 20 synonyms of the following word, without comments";
+  public final static String CORRECT_INSTRUCTION = WtOfficeTools.getAiCommand("CORRECT_INSTRUCTION");
+  public final static String STYLE_INSTRUCTION = WtOfficeTools.getAiCommand("STYLE_INSTRUCTION");
+  public final static String REFORMULATE_INSTRUCTION = WtOfficeTools.getAiCommand("REFORMULATE_INSTRUCTION");
+  public final static String EXPAND_INSTRUCTION = WtOfficeTools.getAiCommand("EXPAND_INSTRUCTION");
+  public final static String SYNONYMS_INSTRUCTION = WtOfficeTools.getAiCommand("SYNONYMS_INSTRUCTION");
   
   public final static float CORRECT_TEMPERATURE = 0.0f;
   public final static float REFORMULATE_TEMPERATURE = 0.4f;
