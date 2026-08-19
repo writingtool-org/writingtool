@@ -169,7 +169,6 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JTextField exclude;
   private final JLabel imageLabel;
   private final JTabbedPane imageTabs;
-  private final List<JLabel> imageFrames = new ArrayList<>();
   private final JLabel imageWidthLabel;
   private final JTextField imageWidthValueField;
   private final JLabel imageHeightLabel;
@@ -194,8 +193,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final JPanel mainImagePanel;
   private final JPanel mainTextPanel;
 
-  private final List<BufferedImage> images = new ArrayList<>();
-  private final List<Boolean> isRefImage = new ArrayList<>();
+  private final List<WtAiImage> images = new ArrayList<>();
 
   private WtSingleDocument currentDocument;
   private WtDocumentsHandler documents;
@@ -859,15 +857,17 @@ public class WtAiDialog extends Thread implements ActionListener {
       
       referenceImage.setSelected(false);
       referenceImage.addItemListener(e -> {
-        isRefImage.set(imageTabs.getSelectedIndex(), referenceImage.isSelected());
+        if (imageTabs.getSelectedIndex() >= 0) {
+          images.get(imageTabs.getSelectedIndex()).isReferenceImage = referenceImage.isSelected();
+        }
       });
       
       imageTabs.addChangeListener(new ChangeListener( ) {
         @Override
         public void stateChanged(ChangeEvent e) {
           int index = imageTabs.getSelectedIndex();
-          if (index >= 0 && index < isRefImage.size()) {
-            referenceImage.setSelected(isRefImage.get(index));
+          if (index >= 0 && index < images.size()) {
+            referenceImage.setSelected(images.get(index).isReferenceImage);
           }
         }
       });
@@ -1605,8 +1605,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       saveImage.setEnabled(images.isEmpty() ? false : enabled);
       insertImage.setEnabled(images.isEmpty() ? false : enabled);
       referenceImage.setEnabled(images.isEmpty() ? false : enabled);
-      for (int i = 0; i < imageFrames.size(); i++) {
-        imageFrames.get(i).setEnabled(enabled);
+      for (int i = 0; i < images.size(); i++) {
+        images.get(i).frame.setEnabled(enabled);
       }
       
   //    contentPane.setEnabled(enabled);
@@ -1736,7 +1736,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     List<String> refImages = new ArrayList<>();
     int n = 0;
     for (int i = 0; i < images.size(); i++) {
-      if (isRefImage.get(i)) {
+      if (images.get(i).isReferenceImage) {
         File dir = WtOfficeTools.getCacheDir();
         File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME + n + TEMP_IMAGE_FILE_EXT);
         saveImage(tmpFile);
@@ -1789,18 +1789,20 @@ public class WtAiDialog extends Thread implements ActionListener {
           if (debugMode) {
             WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
           }
-          images.add(getImageFromUrl(urlString));
-          isRefImage.add(false);
           JLabel imageFrame = new JLabel();
-          imageFrame.setSize(imageWidth, imageWidth);
-          imageFrames.add(imageFrame);
+          imageFrame.setSize(imageWidth, imageHeight);
+          images.add(new WtAiImage(getImageFromUrl(urlString), imageFrame, false));
           String tabTitle = imgInstText;
+          if (tabTitle.length() > 5) {
+            tabTitle = tabTitle.substring(0, 5) + "...";
+          }
           if (imageNumber > 1) {
             tabTitle = imgInstText + " (" + (i + 1) + ")";
           }
           imageTabs.addTab(tabTitle, imageFrame);
           imageTabs.setBackground(null);
           imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+          imageTabs.revalidate();
           setImageSize();
         }
       }
@@ -1817,12 +1819,12 @@ public class WtAiDialog extends Thread implements ActionListener {
  */
   private void setImageSize() {
     try {
-      for (int n = 0; n < imageFrames.size(); n++) {
-        ImageIcon imageIcon = new ImageIcon(images.get(n));
-        float factor = (float)imageHeight / (float)imageWidth;
+      for (int n = 0; n < images.size(); n++) {
+        ImageIcon imageIcon = new ImageIcon(images.get(n).image);
+        float factor = (float)images.get(n).height / (float)images.get(n).width;
         int height;
         int width;
-        JLabel imageFrame = imageFrames.get(n);
+        JLabel imageFrame = images.get(n).frame;
 
         if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
           height = imageFrame.getHeight();
@@ -2175,7 +2177,6 @@ public class WtAiDialog extends Thread implements ActionListener {
       WtMessageHandler.showError(e);
       return null;
     }
-    
   }
   
   private static int randomInteger() {
@@ -2192,15 +2193,22 @@ public class WtAiDialog extends Thread implements ActionListener {
      
     if (userSelection == JFileChooser.APPROVE_OPTION) {
       fileToLoad = fileChooser.getSelectedFile();
-      images.add(getImageFromFile(fileToLoad));
-      isRefImage.add(true);
+      BufferedImage bImage = getImageFromFile(fileToLoad);
       JLabel imageFrame = new JLabel();
-      imageFrame.setSize(imageWidth, imageWidth);
-      imageFrames.add(imageFrame);
+      imageFrame.setSize(bImage.getWidth(), bImage.getHeight());
+      imageHeight = bImage.getHeight();
+      imageHeightValueField.setText("" + imageHeight);
+      imageWidth = bImage.getWidth();
+      imageWidthValueField.setText("" + imageWidth);
+      images.add(new WtAiImage(bImage, imageFrame, true));
       String tabTitle = fileToLoad.getName();
+      if (tabTitle.length() > 5) {
+        tabTitle = tabTitle.substring(0, 5) + "...";
+      }
       imageTabs.addTab(tabTitle, imageFrame);
       imageTabs.setBackground(null);
       imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+      imageTabs.revalidate();
       setImageSize();
     }
   }
@@ -2228,7 +2236,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         return;
       }
       int n = imageTabs.getSelectedIndex();
-      ImageIO.write(images.get(n), extension, file);
+      ImageIO.write(images.get(n).image, extension, file);
     } catch (IOException e) {
       WtMessageHandler.showError(e);
     }
@@ -2256,10 +2264,8 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private void removeImage() throws Throwable {
     int n = imageTabs.getSelectedIndex();
-    imageFrames.remove(n);
     imageTabs.remove(n);
     images.remove(n);
-    isRefImage.remove(n);
     if (images.isEmpty()) {
       imageTabs.setBackground(Color.LIGHT_GRAY);
     }
@@ -2267,9 +2273,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   private void removeAllImages() throws Throwable {
-    imageFrames.clear();
     images.clear();
-    isRefImage.clear();
     imageTabs.removeAll();
     imageTabs.setBackground(Color.LIGHT_GRAY);
     setButtonState(true);
@@ -2302,6 +2306,23 @@ public class WtAiDialog extends Thread implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       super.actionPerformed(e);
       setButtonState(true);
+    }
+    
+  }
+  
+  private class WtAiImage {
+    public final BufferedImage image;
+    public final JLabel frame;
+    public final int height;
+    public final int width;
+    public boolean isReferenceImage;
+    
+    public WtAiImage(BufferedImage image, JLabel frame, boolean isReferenceImage) {
+      this.image = image;
+      this.frame = frame;
+      this.height = image.getHeight();
+      this.width = image.getWidth();
+      this.isReferenceImage = isReferenceImage;
     }
     
   }
