@@ -603,6 +603,10 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
     try (FileInputStream fis = new FileInputStream(tbConfigFile)) {
       WtMessageHandler.printToLogFile("WtProtocolHandler: readConfig: read started");
       XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
+      if (layoutManager == null) {
+        WtMessageHandler.printToLogFile("WtProtocolHandler: readConfig: layoutManager is null");
+        return;
+      }
       Properties props = new Properties();
       props.load(fis);
       //  WT-toolbar

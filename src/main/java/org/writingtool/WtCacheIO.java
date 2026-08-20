@@ -68,6 +68,7 @@ public class WtCacheIO implements Serializable {
   private static final String SPELL_CACHEFILE = "WtSpellCache." + CACHEFILE_EXTENSION;  //  Spell cache name
   
   private String documentPath = null;
+  private String tmpCachePath = null;
   private AllCaches allCaches;
   private boolean isSameVersion = false;
   private boolean isSameAi = false;
@@ -156,6 +157,34 @@ public class WtCacheIO implements Serializable {
   }
   
   /**
+   * make a temporary path for a given cache file
+   */
+  private String getTmpCachePath(String cachePath) throws Throwable {
+    String tmpPath = cachePath.substring(0, cachePath.length() - 4) + ".tmp";
+    tmpCachePath = tmpPath;
+    return tmpPath;
+  }
+
+  /**
+   * make a temporary path for a given cache file
+   */
+  private String changeTmpToCachePath(String cachePath) throws Throwable {
+    String tmpPath = cachePath.substring(0, cachePath.length() - 4) + ".tmp";
+    File tmpFile = new File(tmpPath);
+    File cacheFile = new File(cachePath);
+    if (cacheFile.exists() && !cacheFile.isDirectory()) {
+      cacheFile.delete();
+    }
+    tmpFile.renameTo(cacheFile);
+    tmpCachePath = null;
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("CacheIO: changeTmpToCachePath: changed to: cachePath: " + cachePath + ", tmpPath: " + tmpPath);
+    }
+    return tmpPath;
+  }
+
+  
+  /**
    * save all caches (document cache, all result caches) to cache file
    */
   private void saveAllCaches(String cachePath) throws Throwable {
@@ -166,9 +195,11 @@ public class WtCacheIO implements Serializable {
       out.close();
       fileOut.close();
       WtMessageHandler.printToLogFile("Caches saved to: " + cachePath);
+/*
       if (debugMode) {
         printCacheInfo();
       }
+*/
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown are printed
     }
@@ -196,13 +227,15 @@ public class WtCacheIO implements Serializable {
       WtIgnoredMatches ignoredMatches, WtConfiguration config, WtDocumentsHandler mDocHandler) {
     try {
       String cachePath = getCachePath(true);
-      if (cachePath != null) {
+       if (cachePath != null) {
         if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
+          String tmpCachePath = getTmpCachePath(cachePath);
           allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
               mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
               config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), 
               config.aiUrl(), config.aiModel(), config.aiShowStylisticChanges());
-          saveAllCaches(cachePath);
+          saveAllCaches(tmpCachePath);
+          changeTmpToCachePath(cachePath);
         } else {
           File file = new File( cachePath );
           if (file.exists() && !file.isDirectory()) {
@@ -235,9 +268,11 @@ public class WtCacheIO implements Serializable {
         in.close();
         fileIn.close();
         WtMessageHandler.printToLogFile("Caches read from: " + cachePath);
+/*
         if (debugMode) {
           printCacheInfo();
         }
+*/
         isSameVersion = runSameRules(config, mDocHandler);
         if (!isSameVersion) {
           WtMessageHandler.printToLogFile("WtCacheIO: readAllCaches: Version or active rules have changed: Text Cache rejected (Cache Version: " 
@@ -405,7 +440,7 @@ public class WtCacheIO implements Serializable {
   /**
    * print debug information of caches to log file
    */
-  private void printCacheInfo() throws Throwable {
+  void printCacheInfo() throws Throwable {
     WtMessageHandler.printToLogFile("CacheIO: read/save caches:");
     WtMessageHandler.printToLogFile("Document Cache: Number of paragraphs: " + allCaches.docCache.size());
     WtMessageHandler.printToLogFile("Paragraph Cache(0): Number of paragraphs: " + allCaches.paragraphsCache.get(0).getNumberOfParas() 
@@ -784,9 +819,10 @@ public class WtCacheIO implements Serializable {
           if (cacheFiles != null) {
             for (File cacheFile : cacheFiles) {
               if (!cacheMap.containsValue(cacheFile.getName()) && !cacheFile.getName().equals(CACHEFILE_MAP)
-                  && !cacheFile.getName().equals(SPELL_CACHEFILE)) {
+                  && !cacheFile.getName().equals(SPELL_CACHEFILE) 
+                  && (tmpCachePath == null || !cacheFile.getName().equals(tmpCachePath))) {
                 cacheFile.delete();
-                WtMessageHandler.printToLogFile("Delete cache file: " + cacheFile.getAbsolutePath());
+                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Delete cache file: " + cacheFile.getAbsolutePath());
               }
             }
           }
