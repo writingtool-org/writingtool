@@ -874,6 +874,8 @@ public void previousError() {
               String word = text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
               if (word.contains(" ") || documents.getLinguisticServices().isCorrectSpell(word, 
                              document.getFlatParagraphTools().getLanguageOfWord(nFPara, error.nErrorStart, word.length(), locale))) {
+                i = reverse ? i - 1 : i + 1;
+                run = reverse ? i >= 0 : i < errors.length;
                 continue;
               }
             }
@@ -968,6 +970,8 @@ public void previousError() {
                   if (error.nErrorType == TextMarkupType.SPELLCHECK) {
                     String word = text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
                     if (word.contains(" ")) {
+                      i = reverse ? i - 1 : i + 1;
+                      run = reverse ? i >= 0 : i < allErrors.length;
                       continue;
                     }
                     Locale wordLocale;
@@ -977,6 +981,8 @@ public void previousError() {
                       wordLocale = locale;
                     }
                     if (documents.getLinguisticServices().isCorrectSpell(word, wordLocale)) {
+                      i = reverse ? i - 1 : i + 1;
+                      run = reverse ? i >= 0 : i < allErrors.length;
                       continue;
                     }
                   }
