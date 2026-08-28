@@ -232,12 +232,10 @@ public class WtAiErrorDetection {
                     int[] footnotePos, List<Integer> deletedChars) throws Throwable {
     WtResultCache aiCache =  type == DetectionType.GRAMMAR ? document.getParagraphsCache().get(WtOfficeTools.CACHE_AI) 
                                                             : document.getAiSuggestionCache();
-    CacheEntry cEntry = aiCache.getCacheEntry(nFPara);
     if (debugMode > 0) {
       WtMessageHandler.printToLogFile("WtAiErrorDetection: Para: "+ nFPara + ", Matches: " 
           + (ruleMatches == null ? "null" : ruleMatches.length));
     }
-    boolean isMatch = cEntry != null && cEntry.errorArray.length > 0;
     if (ruleMatches == null || ruleMatches.length == 0) {
       aiCache.put(nFPara, null, new WtProofreadingError[0]);
     } else {
@@ -255,10 +253,14 @@ public class WtAiErrorDetection {
       }
       aiCache.put(nFPara, null, errorList.toArray(new WtProofreadingError[0]));
     }
-    if (isMatch && type == DetectionType.GRAMMAR) {
-      List<Integer> changedParas = new ArrayList<>();
-      changedParas.add(nFPara);
-      document.remarkChangedParagraphs(changedParas, changedParas, false);
+    if (type == DetectionType.GRAMMAR) {
+      CacheEntry cEntry = aiCache.getCacheEntry(nFPara);
+      boolean isMatch = cEntry != null && cEntry.errorArray.length > 0;
+      if (isMatch) {
+        List<Integer> changedParas = new ArrayList<>();
+        changedParas.add(nFPara);
+        document.remarkChangedParagraphs(changedParas, changedParas, false);
+      }
     }
   }
     

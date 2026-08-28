@@ -315,7 +315,7 @@ public class WtAiDetectionRule extends TextLevelRule {
         }
         if (i == sentenceEnds.get(nSentence) - 1) {
           if (nRuleTokens > 0) {
-            int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : sentenceEnds.get(nSentence) - sentenceEnds.get(nSentence - 1);
+//            int nSenTokens = nSentence == 0 ? sentenceEnds.get(nSentence) : sentenceEnds.get(nSentence) - sentenceEnds.get(nSentence - 1);
 //            if (mergeSentences || styleHintAssumed(nRuleTokens, nSenTokens, tmpMatches, paraTokens, resultTokens)) {
             if (mergeSentences) {
               if (showStylisticHints == 2 && !tmpMatches.isEmpty()) {
@@ -608,7 +608,7 @@ public class WtAiDetectionRule extends TextLevelRule {
     }
     return false;
   }
-  
+/*  
   private boolean mergeRuleMatchesOneTime(List<AiRuleMatch> aiMatches, List<WtAiToken> resultTokens) throws Throwable {
     for (int i = 0; i < aiMatches.size(); i++) {
       RuleMatch match1 = aiMatches.get(i).ruleMatch;
@@ -655,7 +655,8 @@ public class WtAiDetectionRule extends TextLevelRule {
     }
     return false;
   }
- 
+*/
+/* 
   private void mergeRuleMatches(List<AiRuleMatch> aiMatches, List<WtAiToken> resultTokens) throws Throwable {
     while (mergeRuleMatchesOneTime(aiMatches, resultTokens));
   }
@@ -670,7 +671,7 @@ public class WtAiDetectionRule extends TextLevelRule {
       }
     }
   }
-  
+*/  
   private boolean containsTokenOrLemma(List<WtAiToken> tokens, int nStart, int nEnd, WtAiToken token) throws Throwable {
     for (int i = nStart; i <= nEnd; i++) {
       if (tokens.get(i).getToken().equals(token.getToken()) || shareLemma(tokens.get(i), token)) {

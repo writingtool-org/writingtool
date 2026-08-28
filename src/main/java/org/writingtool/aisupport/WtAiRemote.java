@@ -669,8 +669,11 @@ public class WtAiRemote {
   private String removeSurroundingBrackets(String out, String org) throws Throwable {
     if (out.startsWith("{") && out.endsWith("}")) {
       if (!org.startsWith("{") || !org.endsWith("}")) {
-        return out.substring(1, out.length() - 1);
+        out = out.substring(1, out.length() - 1);
       }
+    }
+    while (out.startsWith("*") && out.endsWith("*") && (!org.startsWith("*") || !org.endsWith("*"))) {
+      out = out.substring(1, out.length() - 1);
     }
     return out;
   }
