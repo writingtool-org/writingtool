@@ -335,6 +335,12 @@ public class WtAiParagraphChanging extends Thread {
   private void addSynonym(String synonym, String word, List<String> synnonymList) {
     if (synonym != null) {
       synonym = synonym.trim();
+      while (synonym.startsWith("*") && synonym.endsWith("*")) {
+        synonym = synonym.substring(1, synonym.length() - 1);
+      }
+      if (synonym.startsWith("(") && synonym.endsWith(")")) {
+        return;
+      }
       if (!synonym.isEmpty() && !word.equals(synonym) && !synnonymList.contains(synonym)) {
         synnonymList.add(synonym);
       }
