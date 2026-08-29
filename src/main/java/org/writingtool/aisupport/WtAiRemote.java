@@ -488,7 +488,11 @@ public class WtAiRemote {
       return null;
     }
     if (debugMode > 1) {
-      WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: postData: " + urlParameters);
+      if (refImages == null) {
+        WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: postData: " + urlParameters);
+      } else {
+        WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: refImages != null");
+      }
     }
     HttpURLConnection conn;
     try {
@@ -507,6 +511,7 @@ public class WtAiRemote {
         try (InputStream inputStream = conn.getInputStream()) {
           String out = readStream(inputStream, "utf-8");
           if (out == null) {
+            WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: out == null: Return null");
             return null;
           }
           return parseJasonImgOutput(out);
@@ -922,6 +927,9 @@ public class WtAiRemote {
   
   private String parseJasonImgOutput(String text) throws Throwable {
     try {
+      if (debugMode > 1) {
+        WtMessageHandler.printToLogFile("AiRemote: parseJasonImgOutput: text: " + text);
+      }
       JSONObject jsonObject = new JSONObject(text);
       JSONArray data;
       try {
@@ -934,8 +942,7 @@ public class WtAiRemote {
       JSONObject choice = data.getJSONObject(0);
       String url = choice.getString("url");
       if (debugMode > 1) {
-        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + text);
-        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
+         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
       }
       return url;
     } catch (Throwable t) {
