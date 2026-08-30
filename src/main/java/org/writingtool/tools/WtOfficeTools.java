@@ -22,6 +22,7 @@ package org.writingtool.tools;
 
 import java.awt.Image;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
@@ -1242,6 +1244,22 @@ public class WtOfficeTools {
     return RESOURCES + "." + locale.getLanguage() + ".URLsBundle";
   }
 
+  private static String getLocalWtAiCommand(String key) {
+    try {
+      File aiComdFile = new File(getWtConfigDir(), "AiCommandsBundle.properties");
+      if (aiComdFile.exists()) {
+        Properties props = new Properties();
+        try (InputStream is = new FileInputStream(aiComdFile)) {
+          props.load(is);
+          return props.getProperty(key);
+        }
+      }
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+    return null;
+  }
+
   private static String getWtAiCommands() {
     return RESOURCES + ".AiCommandsBundle";
   }
@@ -1305,6 +1323,10 @@ public class WtOfficeTools {
   public static String getAiCommand(String key) {
     try {
       ResourceBundle bundle = null;
+      String cmd = getLocalWtAiCommand(key);
+      if (cmd != null) {
+        return cmd;
+      }
       bundle = ResourceBundle.getBundle(getWtAiCommands());
       return bundle.getString(key);
     } catch (Throwable t) {
