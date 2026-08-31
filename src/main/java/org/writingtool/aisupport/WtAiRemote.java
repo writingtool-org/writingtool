@@ -451,11 +451,6 @@ public class WtAiRemote {
     if (!exclude.isEmpty()) {
       instruction += "|" + exclude;
     }
-/*    
-    if (size != 128 && size != 256 && size != 512) {
-      size = 256;
-    }
-*/
     if (debugMode > 1) {
       WtMessageHandler.printToLogFile("AiRemote: runImgInstruction: Ask AI started! URL: " + url);
     }
@@ -473,7 +468,7 @@ public class WtAiRemote {
     String urlParameters = "{\"model\": \"" + imgModel + "\", " 
         + "\"prompt\": \"" + instruction + "\", "
         + (refImages != null ? "\"ref_images\": [ " + refImages + " ], " : "")
-        + (seed > 0 ? "\"seed\": " + seed + ", " : "")
+        + (seed > 0 && refImages == null ? "\"seed\": " + seed + ", " : "")
         + "\"size\": \"" + width + "x" + height + "\", "
         + "\"step\": " + step + "}";
     

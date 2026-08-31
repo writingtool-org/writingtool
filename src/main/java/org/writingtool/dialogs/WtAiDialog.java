@@ -43,6 +43,8 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -50,6 +52,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
@@ -105,6 +108,7 @@ import com.sun.star.lang.XComponent;
  */
 public class WtAiDialog extends Thread implements ActionListener {
   
+  private final static String AI_DIALOG_FILE_NAME = "WT_AI_Dialog.dat";
   private final static String TRANSLATE_INSTRUCTION = "Print the translation of the following text in English (no comments)";
   
   private final static float DEFAULT_TEMPERATURE = 0.7f;
@@ -282,7 +286,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     help = new JButton (messages.getString("allDialogButtonHelp")); 
     close = new JButton (messages.getString("allDialogButtonClose")); 
     helpImg = new JButton (messages.getString("allDialogButtonHelp")); 
-    closeImg = new JButton (messages.getString("allDialogButtonClose")); 
+    closeImg = new JButton (messages.getString("allDialogButtonClose"));
+    
+    loadPropertiesFromFile();
     
     imgInstructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
     imgInstruction = new JTextField();
@@ -302,9 +308,11 @@ public class WtAiDialog extends Thread implements ActionListener {
     for (int i = 0; i < images.size(); i++) {
       imageTabs.addTab(images.get(i).title, images.get(i).frame);
       imageTabs.setBackground(null);
-      imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+      imageTabs.setSelectedIndex(i);
       imageTabs.revalidate();
       setImageSize();
+      imageHeight = images.get(i).height;
+      imageWidth = images.get(i).width;
     }
 
     imageWidthLabel = new JLabel(messages.getString("aiDialogImgWidthLabel") + ":");
@@ -751,6 +759,7 @@ public class WtAiDialog extends Thread implements ActionListener {
             } else {
               imageNumberValueField.setForeground(null);
               imageNumber = num;
+              changeImage.setEnabled(imageNumber == 1 && !isReferenceImage());
             }
           } catch (Throwable t) {
             WtMessageHandler.showError(t);
@@ -872,6 +881,11 @@ public class WtAiDialog extends Thread implements ActionListener {
       referenceImage.addItemListener(e -> {
         if (imageTabs.getSelectedIndex() >= 0) {
           images.get(imageTabs.getSelectedIndex()).isReferenceImage = referenceImage.isSelected();
+          imageHeight = images.get(imageTabs.getSelectedIndex()).height;
+          imageHeightValueField.setText("" + imageHeight);
+          imageWidth = images.get(imageTabs.getSelectedIndex()).width;
+          imageWidthValueField.setText("" + imageWidth);
+          changeImage.setEnabled(imageNumber == 1 && !isReferenceImage());
         }
       });
       
@@ -881,6 +895,10 @@ public class WtAiDialog extends Thread implements ActionListener {
           int index = imageTabs.getSelectedIndex();
           if (index >= 0 && index < images.size()) {
             referenceImage.setSelected(images.get(index).isReferenceImage);
+            imageHeight = images.get(index).height;
+            imageHeightValueField.setText("" + imageHeight);
+            imageWidth = images.get(index).width;
+            imageWidthValueField.setText("" + imageWidth);
           }
         }
       });
@@ -1566,6 +1584,22 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   /**
+   * Is one image reference Image
+   */
+  private boolean isReferenceImage() {
+    try {
+      for (int i = 0; i < images.size(); i++) {
+        if (images.get(i).isReferenceImage) {
+          return true;
+        }
+      }
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+    return false;
+  }
+  
+  /**
    * Initial button state
    */
   private void setButtonState(boolean enabled) {
@@ -1610,7 +1644,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       exclude.setEnabled(enabled);
       imageTabs.setEnabled(enabled);
       loadImage.setEnabled(enabled);
-      changeImage.setEnabled(noImgInst || imageNumber > 1 ? false : enabled);
+      changeImage.setEnabled(noImgInst || imageNumber > 1 || isReferenceImage() ? false : enabled);
       newImage.setEnabled(noImgInst ? false : enabled);
       translateFirst.setEnabled(noImgInst ? false : enabled);
       removeImage.setEnabled(images.isEmpty() ? false : enabled);
@@ -2163,6 +2197,7 @@ public class WtAiDialog extends Thread implements ActionListener {
    * closes the dialog
    */
   public void closeDialog() {
+    savePropertiesToFile();
     removeTmpFiles();
     dialog.setVisible(false);
     WtAiParagraphChanging.setCloseAiDialog();
@@ -2281,6 +2316,12 @@ public class WtAiDialog extends Thread implements ActionListener {
     images.remove(n);
     if (images.isEmpty()) {
       imageTabs.setBackground(Color.LIGHT_GRAY);
+    } else {
+      int index = imageTabs.getSelectedIndex();
+      imageHeight = images.get(index).height;
+      imageHeightValueField.setText("" + imageHeight);
+      imageWidth = images.get(index).width;
+      imageWidthValueField.setText("" + imageWidth);
     }
     setButtonState(true);
   }
@@ -2342,5 +2383,43 @@ public class WtAiDialog extends Thread implements ActionListener {
     
   }
 
+  private void savePropertiesToFile() {
+    try {
+      Properties properties = new Properties();
+      properties.setProperty("temperature", "" + temperature);
+      properties.setProperty("imageStep", "" + step);
+      properties.setProperty("imageWidth", "" + imageWidth);
+      properties.setProperty("imageHeight", "" + imageHeight);
+      properties.setProperty("imageNumber", "" + imageNumber);
+      properties.setProperty("imageInstruction", imgInstruction.getText());
+      String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
+      File file = new File(dir, AI_DIALOG_FILE_NAME);
+      FileOutputStream out = new FileOutputStream(file);
+      properties.store(out, "AI Dialog Properties");
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+  }
+  
+  private void loadPropertiesFromFile() {
+    try {
+      Properties properties = new Properties();
+      String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
+      File file = new File(dir, AI_DIALOG_FILE_NAME);
+      if (!file.canRead() || !file.isFile()) {
+        return;
+      }
+      FileInputStream in = new FileInputStream(file);
+      properties.load(in);
+      temperature = Integer.parseInt(properties.getProperty("temperature", "" + DEFAULT_TEMPERATURE));
+      step = Integer.parseInt(properties.getProperty("imageStep", "" + DEFAULT_STEP));
+      imageWidth = Integer.parseInt(properties.getProperty("imageWidth", "512"));
+      imageHeight = Integer.parseInt(properties.getProperty("imageHeight", "512"));
+      imageNumber = Integer.parseInt(properties.getProperty("imageNumber", "1"));
+      imgInstruction.setText(properties.getProperty("imageInstruction", ""));
+    } catch (Throwable e) {
+      WtMessageHandler.showError(e);
+    }
+  }
 
 }
