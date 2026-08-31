@@ -288,8 +288,6 @@ public class WtAiDialog extends Thread implements ActionListener {
     helpImg = new JButton (messages.getString("allDialogButtonHelp")); 
     closeImg = new JButton (messages.getString("allDialogButtonClose"));
     
-    loadPropertiesFromFile();
-    
     imgInstructionLabel = new JLabel(messages.getString("aiDialogInstructionLabel") + ":");
     imgInstruction = new JTextField();
     excludeLabel = new JLabel(messages.getString("aiDialogImgExcludeLabel") + ":");
@@ -298,6 +296,9 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (imageTabs == null) {
       imageTabs = new JTabbedPane();
     }
+
+    loadPropertiesFromFile();
+    
     imageTabs.setSize(imageWidth, imageWidth);
     imageTabs.setBackground(Color.LIGHT_GRAY);
     imageTabs.setOpaque(true);
@@ -2411,12 +2412,30 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       FileInputStream in = new FileInputStream(file);
       properties.load(in);
-      temperature = Integer.parseInt(properties.getProperty("temperature", "" + DEFAULT_TEMPERATURE));
-      step = Integer.parseInt(properties.getProperty("imageStep", "" + DEFAULT_STEP));
-      imageWidth = Integer.parseInt(properties.getProperty("imageWidth", "512"));
-      imageHeight = Integer.parseInt(properties.getProperty("imageHeight", "512"));
-      imageNumber = Integer.parseInt(properties.getProperty("imageNumber", "1"));
-      imgInstruction.setText(properties.getProperty("imageInstruction", ""));
+      String temp = properties.getProperty("temperature");
+      if (temp != null && !temp.isEmpty()) {
+        temperature = Float.parseFloat(temp);
+      }
+      temp = properties.getProperty("imageStep");
+      if (temp != null && !temp.isEmpty()) {
+        step = Integer.parseInt(temp);
+      }
+      temp = properties.getProperty("imageWidth");
+      if (temp != null && !temp.isEmpty()) {
+        imageWidth = Integer.parseInt(temp);
+      }
+      temp = properties.getProperty("imageHeight");
+      if (temp != null && !temp.isEmpty()) {
+        imageHeight = Integer.parseInt(temp);
+      }
+      temp = properties.getProperty("imageNumber");
+      if (temp != null && !temp.isEmpty()) {
+        imageNumber = Integer.parseInt(temp);
+      }
+      String imgInst = properties.getProperty("imageInstruction");
+      if (imgInst != null && !imgInst.isEmpty()) {
+        imgInstruction.setText(imgInst);
+      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }

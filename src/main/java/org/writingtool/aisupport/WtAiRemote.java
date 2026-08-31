@@ -66,6 +66,7 @@ public class WtAiRemote {
   private final static int BUFFER_SIZE = 20000;
   private final static int CONNECT_TIMEOUT = 3000;
   private final static int READ_TIMEOUT = 0;
+  private final static int SLEEP_TIME = 100; // thousandth of a second
   private final static int WAIT_TIMEOUT = 1000; //  Hundredth of a second
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
@@ -206,7 +207,7 @@ public class WtAiRemote {
     try {
       while (!results.containsKey(oId)) {
         try {
-          Thread.sleep(100);
+          Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {
           WtMessageHandler.printException(e);
         }
@@ -1044,7 +1045,7 @@ public class WtAiRemote {
     int n = 0;
     while (!isDone && n < WAIT_TIMEOUT) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(SLEEP_TIME);
       } catch (InterruptedException e) {
         WtMessageHandler.printException(e);
       }
@@ -1069,7 +1070,7 @@ public class WtAiRemote {
     int n = 0;
     while (!isDone && n < WAIT_TIMEOUT) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(SLEEP_TIME);
       } catch (InterruptedException e) {
         WtMessageHandler.printException(e);
       }
@@ -1094,7 +1095,7 @@ public class WtAiRemote {
     int n = 0;
     while (!isDone && n < WAIT_TIMEOUT) {
       try {
-        Thread.sleep(10);
+        Thread.sleep(SLEEP_TIME);
       } catch (InterruptedException e) {
         WtMessageHandler.printException(e);
       }
