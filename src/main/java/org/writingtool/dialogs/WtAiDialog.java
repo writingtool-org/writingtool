@@ -2393,6 +2393,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       properties.setProperty("imageHeight", "" + imageHeight);
       properties.setProperty("imageNumber", "" + imageNumber);
       properties.setProperty("imageInstruction", imgInstruction.getText());
+      properties.setProperty("imageFileToSave", fileToSave == null ? "" : fileToSave.getAbsolutePath());
+      properties.setProperty("imageFileToLoad", fileToLoad == null ? "" : fileToLoad.getAbsolutePath());
       String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
       File file = new File(dir, AI_DIALOG_FILE_NAME);
       FileOutputStream out = new FileOutputStream(file);
@@ -2435,6 +2437,14 @@ public class WtAiDialog extends Thread implements ActionListener {
       String imgInst = properties.getProperty("imageInstruction");
       if (imgInst != null && !imgInst.isEmpty()) {
         imgInstruction.setText(imgInst);
+      }
+      String fileToSavePath = properties.getProperty("imageFileToSave");
+      if (fileToSavePath != null && !fileToSavePath.isEmpty()) {
+        fileToSave = new File(fileToSavePath);
+      }
+      String fileToLoadPath = properties.getProperty("imageFileToLoad");
+      if (fileToLoadPath != null && !fileToLoadPath.isEmpty()) {
+        fileToLoad = new File(fileToLoadPath);
       }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
