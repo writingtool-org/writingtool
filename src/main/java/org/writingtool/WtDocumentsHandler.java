@@ -840,6 +840,10 @@ public class WtDocumentsHandler {
         aiQueue.setStop(true);
         aiQueue = null;
       }
+      WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
+      if (aiDialog != null) {
+        aiDialog.closeDialog();
+      } 
       if (shapeChangeCheck != null) {
         shapeChangeCheck.stopLoop();
         shapeChangeCheck = null;
