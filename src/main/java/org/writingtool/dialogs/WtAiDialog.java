@@ -120,8 +120,8 @@ public class WtAiDialog extends Thread implements ActionListener {
   private final static String AI_SYSTEM_INSTRUCTION_FILE_NAME = "WT_AI_System_Instructions.dat";
   private final static int MAX_INSTRUCTIONS = 30;
   private final static int SHIFT1 = 14;
-  private final static int dialogWidth = 700;
-  private final static int dialogHeight = 750;
+  private final static int DEFAULT_DIALOG_WIDTH = 700;
+  private final static int DEFAULT_DIALOG_HEIGHT = 750;
 
   private static JTabbedPane imageTabs = null;
   private static List<WtAiImage> images = null;
@@ -208,6 +208,9 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private int dialogX = -1;
   private int dialogY = -1;
+  private int dialogWidth = DEFAULT_DIALOG_WIDTH;
+  private int dialogHeight = DEFAULT_DIALOG_HEIGHT;
+  
   private List<String> instructionList = new ArrayList<>();
   private List<String> systemInstructionList = new ArrayList<>();
   private String saveText;
@@ -228,6 +231,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private int seed = randomInteger();
   private int step = DEFAULT_STEP;
   private int instructionIndex = 0;
+  private int mainPanelIndex = 0;
   private String urlString;
 
   /**
@@ -311,7 +315,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageTabs.setBackground(null);
       imageTabs.setSelectedIndex(i);
       imageTabs.revalidate();
-      setImageSize();
+      setImagesSize();
       imageHeight = images.get(i).height;
       imageWidth = images.get(i).width;
     }
@@ -926,7 +930,6 @@ public class WtAiDialog extends Thread implements ActionListener {
                   if (debugMode) {
                     WtMessageHandler.printToLogFile("WtAiDialog: Window Focus gained: new docType = " + currentDocument.getDocumentType());
                   }
-//                  mainPanel.setSelectedIndex(0);
                   setText();
                   focusLost = false;
                 } catch (Throwable t) {
@@ -988,7 +991,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       dialog.addComponentListener(new ComponentListener() {
         @Override
         public void componentResized(ComponentEvent e) {
-          setImageSize();
+          setImagesSize();
         }
         @Override
         public void componentMoved(ComponentEvent e) {}
@@ -1365,6 +1368,9 @@ public class WtAiDialog extends Thread implements ActionListener {
       }
       if (config.useAiImgSupport()) {
         mainPanel.add(messages.getString("aiDialogTabImages"), mainImagePanel);
+      }
+      if (mainPanelIndex >= 0 && mainPanelIndex < mainPanel.getTabCount()) {
+        mainPanel.setSelectedIndex(mainPanelIndex);
       }
 /*
       //  Define general button panel
@@ -1847,11 +1853,12 @@ public class WtAiDialog extends Thread implements ActionListener {
             tabTitle = tabTitle + " (" + (i + 1) + ")";
           }
           images.add(new WtAiImage(getImageFromUrl(urlString), tabTitle, imageFrame, false));
+          setImageSize(images.get(images.size() - 1));
           imageTabs.addTab(tabTitle, imageFrame);
           imageTabs.setBackground(null);
           imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
-          imageTabs.revalidate();
-          setImageSize();
+          dialog.revalidate();
+          setImagesSize();
         }
       }
     } catch (Throwable t) {
@@ -1862,38 +1869,57 @@ public class WtAiDialog extends Thread implements ActionListener {
     setButtonState(true);
   }
   
-/**
- * Set the size of the image  
- */
-  private void setImageSize() {
-    try {
-      for (int n = 0; n < images.size(); n++) {
-        ImageIcon imageIcon = new ImageIcon(images.get(n).image);
-        float factor = (float)images.get(n).height / (float)images.get(n).width;
-        int height;
-        int width;
-        JLabel imageFrame = images.get(n).frame;
-
-        if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
-          height = imageFrame.getHeight();
-          width = (int) (imageFrame.getHeight() / factor);
-        } else {
-          height = (int) (imageFrame.getWidth() * factor);
-          width = imageFrame.getWidth();
+  /**
+   * Set the size of all images
+   */
+    private void setImagesSize() {
+      try {
+        for (int n = 0; n < images.size(); n++) {
+          setImageSize(images.get(n));
         }
-        if (debugMode) {
-          WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
-              + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
-              + " imageFrame.getHeight(): " + imageFrame.getHeight());
-        }
-        imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
-        imageFrame.setIcon(imageIcon);
-        imageFrame.setMaximumSize(new Dimension(width, height));
+      } catch (Throwable e) {
+        WtMessageHandler.showError(e);
       }
-    } catch (Throwable e) {
-      WtMessageHandler.showError(e);
     }
-  }
+
+    /**
+     * Set the size of one image  
+     */
+      private void setImageSize(WtAiImage image) {
+        try {
+          ImageIcon imageIcon = new ImageIcon(image.image);
+          float factor = (float)image.height / (float)image.width;
+          int height;
+          int width;
+          JLabel imageFrame = image.frame;
+
+          if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
+            height = imageFrame.getHeight();
+            width = (int) (imageFrame.getHeight() / factor);
+          } else {
+            height = (int) (imageFrame.getWidth() * factor);
+            width = imageFrame.getWidth();
+          }
+          if (height > image.height) {
+            height = image.height;
+            width = (int) (image.height / factor);
+          } else if (width > image.width) {
+            width = image.width;
+            height = (int) (image.width * factor);
+          }
+          
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("CheckDialog: setImageSize: width: " + width + ", heigth: " + height 
+                + " factor: " + factor + " imageFrame.getWidth(): " + imageFrame.getWidth() 
+                + " imageFrame.getHeight(): " + imageFrame.getHeight());
+          }
+          imageIcon.setImage(imageIcon.getImage().getScaledInstance(width, height,Image.SCALE_DEFAULT));
+          imageFrame.setIcon(imageIcon);
+          imageFrame.setMaximumSize(new Dimension(width, height));
+        } catch (Throwable e) {
+          WtMessageHandler.showError(e);
+        }
+      }
 
   /**
    * Actions of buttons
@@ -2254,11 +2280,12 @@ public class WtAiDialog extends Thread implements ActionListener {
         tabTitle = tabTitle.substring(0, 5) + "...";
       }
       images.add(new WtAiImage(bImage, tabTitle, imageFrame, true));
+      setImageSize(images.get(images.size() - 1));
       imageTabs.addTab(tabTitle, imageFrame);
       imageTabs.setBackground(null);
       imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
-      imageTabs.revalidate();
-      setImageSize();
+      dialog.revalidate();
+      setImagesSize();
     }
   }
   
@@ -2354,40 +2381,11 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
-  private class WtAiTextContextMenu extends WtTextContextMenu {
-    private static final long serialVersionUID = 1L;
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      super.actionPerformed(e);
-      setButtonState(true);
-    }
-    
-  }
-  
-  private class WtAiImage {
-    public final BufferedImage image;
-    public final String title;
-    public final JLabel frame;
-    public final int height;
-    public final int width;
-    public boolean isReferenceImage;
-    
-    public WtAiImage(BufferedImage image, String title, JLabel frame, boolean isReferenceImage) {
-      this.image = image;
-      this.title = title;
-      this.frame = frame;
-      this.height = image.getHeight();
-      this.width = image.getWidth();
-      this.isReferenceImage = isReferenceImage;
-    }
-    
-  }
-
   private void savePropertiesToFile() {
     try {
       Properties properties = new Properties();
       properties.setProperty("temperature", "" + temperature);
+      properties.setProperty("seed", "" + seed);
       properties.setProperty("imageStep", "" + step);
       properties.setProperty("imageWidth", "" + imageWidth);
       properties.setProperty("imageHeight", "" + imageHeight);
@@ -2395,6 +2393,13 @@ public class WtAiDialog extends Thread implements ActionListener {
       properties.setProperty("imageInstruction", imgInstruction.getText());
       properties.setProperty("imageFileToSave", fileToSave == null ? "" : fileToSave.getAbsolutePath());
       properties.setProperty("imageFileToLoad", fileToLoad == null ? "" : fileToLoad.getAbsolutePath());
+      properties.setProperty("MainPanelSelectedIndex", "" + mainPanel.getSelectedIndex());
+      Dimension dialogSize = dialog.getSize();
+      properties.setProperty("dialogWidth", "" + dialogSize.width);
+      properties.setProperty("dialogHeight", "" + dialogSize.height);
+      Point dialogLocation = dialog.getLocation();
+      properties.setProperty("dialogLocationX", "" + dialogLocation.x);
+      properties.setProperty("dialogLocationY", "" + dialogLocation.y);
       String dir = WtOfficeTools.getWtConfigDir().getAbsolutePath();
       File file = new File(dir, AI_DIALOG_FILE_NAME);
       FileOutputStream out = new FileOutputStream(file);
@@ -2417,6 +2422,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       String temp = properties.getProperty("temperature");
       if (temp != null && !temp.isEmpty()) {
         temperature = Float.parseFloat(temp);
+      }
+      temp = properties.getProperty("seed");
+      if (temp != null && !temp.isEmpty()) {
+        seed = Integer.parseInt(temp);
       }
       temp = properties.getProperty("imageStep");
       if (temp != null && !temp.isEmpty()) {
@@ -2446,9 +2455,57 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (fileToLoadPath != null && !fileToLoadPath.isEmpty()) {
         fileToLoad = new File(fileToLoadPath);
       }
+      String strMainPanelIndex = properties.getProperty("MainPanelSelectedIndex");
+      if (strMainPanelIndex != null && !strMainPanelIndex.isEmpty()) {
+        mainPanelIndex = Integer.parseInt(strMainPanelIndex);
+      }
+      String strDialogWidth = properties.getProperty("dialogWidth");
+      String strDialogHeight = properties.getProperty("dialogHeight");
+      if (strDialogWidth != null && !strDialogWidth.isEmpty() 
+          && strDialogHeight != null && !strDialogHeight.isEmpty()) {
+        dialogWidth = Integer.parseInt(strDialogWidth);
+        dialogHeight = Integer.parseInt(strDialogHeight);
+      }
+      String dialogLocationX = properties.getProperty("dialogLocationX");
+      String dialogLocationY = properties.getProperty("dialogLocationY");
+      if (dialogLocationX != null && !dialogLocationX.isEmpty() 
+          && dialogLocationY != null && !dialogLocationY.isEmpty()) {
+        dialogX = Integer.parseInt(dialogLocationX);
+        dialogY = Integer.parseInt(dialogLocationY);
+      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
+  }
+
+  private class WtAiTextContextMenu extends WtTextContextMenu {
+    private static final long serialVersionUID = 1L;
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      super.actionPerformed(e);
+      setButtonState(true);
+    }
+    
+  }
+  
+  private class WtAiImage {
+    public final BufferedImage image;
+    public final String title;
+    public final JLabel frame;
+    public final int height;
+    public final int width;
+    public boolean isReferenceImage;
+    
+    public WtAiImage(BufferedImage image, String title, JLabel frame, boolean isReferenceImage) {
+      this.image = image;
+      this.title = title;
+      this.frame = frame;
+      this.height = image.getHeight();
+      this.width = image.getWidth();
+      this.isReferenceImage = isReferenceImage;
+    }
+    
   }
 
 }
