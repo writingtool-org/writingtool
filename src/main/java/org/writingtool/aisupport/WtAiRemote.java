@@ -89,7 +89,7 @@ public class WtAiRemote {
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
   private static boolean isRunning = false;
-  private static Map<Integer, String> results = new HashMap<>();
+  private static Map<Integer, List<String>> results = new HashMap<>();
   private static List<AiEntry> entries = new ArrayList<>();
   private static int lastOid = 0;
   private static boolean hasPrintedInfo = false;
@@ -115,7 +115,7 @@ public class WtAiRemote {
   private final Component parent;
   private final boolean testMode;
   
-  private String outText;
+  private List<String> outText;
   private boolean isDone;
   
   private int oId = 0;
@@ -173,31 +173,33 @@ public class WtAiRemote {
 
   public String runInstruction(String instruction, String text, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
-    return runInstructionGeneral(AiCategory.Text, instruction, text, null, null, temperature, seed, 0, 0, 0, 
+    List<String> result = runInstructionGeneral(AiCategory.Text, instruction, text, null, null, temperature, seed, 0, 0, 0, 0, 
         locale, onlyOneParagraph, preferred);
+    return result == null || result.size() == 0 ? null : result.get(0);
   }
 
-  public String runImgInstruction(String instruction, String exclude, List<String> filenames, int step, int seed, int height, 
-      int width, boolean preferred) throws Throwable {
-    return runInstructionGeneral(AiCategory.Image, instruction, null, exclude, filenames, 0, seed, step, height, width, 
+  public List<String> runImgInstruction(String instruction, String exclude, List<String> filenames, int step, int seed, int num, 
+      int height, int width, boolean preferred) throws Throwable {
+    return runInstructionGeneral(AiCategory.Image, instruction, null, exclude, filenames, 0, seed, step, num, height, width, 
         null, false, preferred);
   }
 
   public String runTtsInstruction(String text, String filename, boolean preferred) throws Throwable {
     List<String> filenames = new ArrayList<>();
     filenames.add(filename);
-    return runInstructionGeneral(AiCategory.Speech, null, text, null, filenames, 0, 0, 0, 0, 0, null, false, preferred);
+    List<String> result = runInstructionGeneral(AiCategory.Speech, null, text, null, filenames, 0, 0, 0, 0, 0, 0, null, false, preferred);
+    return result == null || result.size() == 0 ? null : result.get(0);
   }
   
-  public String runInstructionGeneral(AiCategory category, String instruction, String text, String exclude, List<String> filenames, 
-      float temperature, int seed, int step, int height, int width, 
+  public List<String> runInstructionGeneral(AiCategory category, String instruction, String text, String exclude, List<String> filenames, 
+      float temperature, int seed, int step, int num, int height, int width, 
       Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
     if (oId > 0) {
       throw new RuntimeException("Duplicate OID in WtAiRemote");
     }
     oId = getId();
     AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filenames, temperature, seed, 
-        step, height, width, locale, onlyOneParagraph);
+        step, num, height, width, locale, onlyOneParagraph);
     if (preferred) {
       entries.add(0, entry);
     } else {
@@ -212,7 +214,7 @@ public class WtAiRemote {
           WtMessageHandler.printException(e);
         }
       }
-      String result = results.get(oId);
+      List<String> result = results.get(oId);
       results.remove(oId);
       return result;
     } catch (Throwable t) {
@@ -440,13 +442,14 @@ public class WtAiRemote {
     return Base64.getEncoder().encodeToString(fileBytes);
   }
 
-  private String runImgInstruction_intern(String instruction, String exclude, List<String> filenames, int step, int seed, int height, int width) throws Throwable {
+  private List<String> runImgInstruction_intern(String instruction, String exclude, List<String> filenames, int step, int seed, int n,
+      int height, int width) throws Throwable {
     if (instruction == null || exclude == null) {
       return null;
     }
     instruction = instruction.trim();
     if (instruction.isEmpty()) {
-      return "";
+      return null;
     }
     exclude = exclude.trim();
     if (!exclude.isEmpty()) {
@@ -469,6 +472,7 @@ public class WtAiRemote {
     String urlParameters = "{\"model\": \"" + imgModel + "\", " 
         + "\"prompt\": \"" + instruction + "\", "
         + (refImages != null ? "\"ref_images\": [ " + refImages + " ], " : "")
+        + (n > 1 ? "\"n\": " + n + ", " : "")
         + (seed > 0 && refImages == null ? "\"seed\": " + seed + ", " : "")
         + "\"size\": \"" + width + "x" + height + "\", "
         + "\"step\": " + step + "}";
@@ -921,11 +925,12 @@ public class WtAiRemote {
     return sb.toString();
   }
   
-  private String parseJasonImgOutput(String text) throws Throwable {
+  private List<String> parseJasonImgOutput(String text) throws Throwable {
     try {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("AiRemote: parseJasonImgOutput: text: " + text);
       }
+      List<String> out = new ArrayList<>();
       JSONObject jsonObject = new JSONObject(text);
       JSONArray data;
       try {
@@ -935,12 +940,17 @@ public class WtAiRemote {
         WtMessageHandler.showMessage(error, parent);
         return null;
       }
-      JSONObject choice = data.getJSONObject(0);
-      String url = choice.getString("url");
-      if (debugMode > 1) {
-         WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
+      for (int i = 0; i < data.length(); i++) {
+        JSONObject choice = data.getJSONObject(i);
+        String url = choice.getString("url");
+        out.add(url);
+        if (debugMode > 1) {
+          WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
+       }
       }
-      return url;
+//      JSONObject choice = data.getJSONObject(0);
+//      String url = choice.getString("url");
+      return out;
     } catch (Throwable t) {
       WtMessageHandler.showError(t, parent);
       WtMessageHandler.showMessage(text, parent);
@@ -1027,14 +1037,14 @@ public class WtAiRemote {
     return instruction + " (language - " + langName + ")";
   }
   
-  private String runInstructionText(String instruction, String orgText, float temperature, 
+  private List<String> runInstructionText(String instruction, String orgText, float temperature, 
       int seed, Locale locale, boolean onlyOneParagraph) throws Throwable {
-    outText = null;
+    outText = new ArrayList<>();
     isDone = false;
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          outText = runInstruction_intern(instruction, orgText, temperature, seed, locale, onlyOneParagraph);
+          outText.add(runInstruction_intern(instruction, orgText, temperature, seed, locale, onlyOneParagraph));
           isDone = true;
         } catch (Throwable e) {
           WtMessageHandler.showError(e, parent);
@@ -1053,13 +1063,14 @@ public class WtAiRemote {
     return outText;
   }
   
-  private String runInstructionImage(String instruction, String exclude, List<String> filenames, int step, int seed, int height, int width) throws Throwable {
-    outText = null;
+  private List<String> runInstructionImage(String instruction, String exclude, List<String> filenames, int step, int seed, int num, 
+      int height, int width) throws Throwable {
+    outText = new ArrayList<>();
     isDone = false;
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          outText = runImgInstruction_intern(instruction, exclude, filenames, step, seed, height, width);
+          outText.addAll(runImgInstruction_intern(instruction, exclude, filenames, step, seed, num, height, width));
           isDone = true;
         } catch (Throwable e) {
           WtMessageHandler.showError(e, parent);
@@ -1078,13 +1089,13 @@ public class WtAiRemote {
     return outText;
   }
   
-  private String runInstructionTTS(String text, String filename) throws Throwable {
-    outText = null;
+  private List<String> runInstructionTTS(String text, String filename) throws Throwable {
+    outText = new ArrayList<>();
     isDone = false;
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          outText = runTtsInstruction_intern(text, filename);
+          outText.add(runTtsInstruction_intern(text, filename));
           isDone = true;
         } catch (Throwable e) {
           WtMessageHandler.showError(e, parent);
@@ -1117,11 +1128,11 @@ public class WtAiRemote {
           while (entries.size() > 0) {
             AiEntry entry = entries.get(0);
             entries.remove(0);
-            String result = null;
+            List<String> result = null;
             if (entry.category == AiCategory.Text && config.useAiSupport()) {
               result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
             } else if (entry.category == AiCategory.Image && config.useAiImgSupport()) {
-              result = runInstructionImage(entry.instruction, entry.exclude, entry.filenames, entry.step, entry.seed, entry.height, entry.width);
+              result = runInstructionImage(entry.instruction, entry.exclude, entry.filenames, entry.step, entry.seed, entry.num, entry.height, entry.width);
             } else if (entry.category == AiCategory.Speech && config.useAiTtsSupport()) {
               result = runInstructionTTS(entry.text, entry.filenames.get(0));
             }
@@ -1146,13 +1157,14 @@ public class WtAiRemote {
     public final float temperature;
     public final int seed;
     public final int step;
+    public final int num;
     public final int height;
     public final int width;
     public final Locale locale;
     public final boolean onlyOneParagraph;
     
     AiEntry (AiCategory category, int oId, String instruction, String text, String exclude, List<String> filenames, float temperature, 
-        int seed, int step, int height, int width, Locale locale, boolean onlyOneParagraph) {
+        int seed, int step, int num, int height, int width, Locale locale, boolean onlyOneParagraph) {
       this.category = category;
       this.oId = oId;
       this.instruction = instruction;
@@ -1162,6 +1174,7 @@ public class WtAiRemote {
       this.temperature = temperature;
       this.seed = seed;
       this.step = step;
+      this.num = num;
       this.height = height;
       this.width = width;
       this.locale = locale;

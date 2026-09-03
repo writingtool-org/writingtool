@@ -232,7 +232,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private int step = DEFAULT_STEP;
   private int instructionIndex = 0;
   private int mainPanelIndex = 0;
-  private String urlString;
+  private List<String> urlStrings;
 
   /**
    * the constructor of the class creates all elements of the dialog
@@ -1831,15 +1831,14 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageHeightValueField.setText("" + imageHeight);
       imageNumberValueField.setText("" + imageNumber);
       List<String> refFiles = getReferenceImages();
-      for (int i = 0; i < imageNumber; i++) {
-        if (imageNumber > 1) {
-          seed = randomInteger();
-        }
-        setAtWorkState(true);
-        setButtonState(false);
-        WtAiRemote aiRemote = new WtAiRemote(documents, config);
-        urlString = aiRemote.runImgInstruction(imgInstText, excludeText, refFiles, step, seed, imageHeight, imageWidth, true);
-        if (urlString != null) {
+      setAtWorkState(true);
+      setButtonState(false);
+      WtAiRemote aiRemote = new WtAiRemote(documents, config);
+      urlStrings = aiRemote.runImgInstruction(imgInstText, excludeText, refFiles, step, imageNumber > 1 ? 0 : seed, imageNumber, 
+          imageHeight, imageWidth, true);
+      if (urlStrings != null) {
+        for (int i = 0; i < urlStrings.size(); i++) {
+          String urlString = urlStrings.get(i);
           if (debugMode) {
             WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
           }
@@ -1858,8 +1857,8 @@ public class WtAiDialog extends Thread implements ActionListener {
           imageTabs.setBackground(null);
           imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
           dialog.revalidate();
-          setImagesSize();
         }
+        setImagesSize();
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
@@ -2319,13 +2318,6 @@ public class WtAiDialog extends Thread implements ActionListener {
   }
   
   private void insertImage() throws Throwable {
-    if (urlString == null) {
-      return;
-    }
-    String extension = urlString.substring(urlString.lastIndexOf('.') + 1);
-    if (!extension.equals("png") && !extension.equals("jpg") && !extension.equals("gif")) {
-      return;
-    }
     File dir = WtOfficeTools.getCacheDir();
     File tmpFile = new File(dir, TEMP_IMAGE_FILE_NAME + "0" + TEMP_IMAGE_FILE_EXT);
     saveImage(tmpFile);

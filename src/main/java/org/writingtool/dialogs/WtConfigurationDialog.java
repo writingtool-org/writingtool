@@ -3021,10 +3021,10 @@ public class WtConfigurationDialog implements ActionListener {
         testButton.setEnabled(false);
         dialog.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         WtAiRemote aiRemote = new WtAiRemote(WritingTool.getDocumentsHandler(), config, true, dialog);
-        String urlString = aiRemote.runImgInstruction("Flower", "", null, 10, 1, 32, 32, true);
+        List<String> urlStrings = aiRemote.runImgInstruction("Flower", "", null, 10, 1, 1, 32, 32, true);
         testButton.setEnabled(true);
         dialog.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        if (urlString != null) {
+        if (urlStrings != null && urlStrings.size() > 0) {
           WtOptionPane.showMessageDialog(dialog, messages.getString("optionDialogAiTestMessage"));
         }
       } catch (Throwable e1) {
