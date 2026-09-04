@@ -116,7 +116,7 @@ public class WtAiDetectionRule extends TextLevelRule {
   }
   
   private boolean isIgnoredToken(String paraToken, String resultToken) throws Throwable {
-    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches()) {
+    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches() || resultToken.equals("*")) {
       return QUOTES.matcher(paraToken).matches() || SINGLE_QUOTES.matcher(paraToken).matches();
     }
     if (resultToken.equals("-")) {
