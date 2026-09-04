@@ -355,7 +355,7 @@ public class WtAiDialog extends Thread implements ActionListener {
 
     stepLabel = new JLabel(messages.getString("aiDialogImgStepLabel") + ":");
     
-    stepSlider = new JSlider(0, 100, DEFAULT_STEP);
+    stepSlider = new JSlider(0, 100, step);
     
     checkProgress.setStringPainted(true);
     checkProgress.setIndeterminate(false);
