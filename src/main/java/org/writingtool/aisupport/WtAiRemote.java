@@ -48,7 +48,7 @@ import org.writingtool.WtQuotesDetection;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.config.WtConfiguration;
 import org.writingtool.dialogs.WtAiDialog;
-import org.writingtool.sidebar.WtSidebarContent;
+// import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 
@@ -101,7 +101,7 @@ public class WtAiRemote {
 
   private final WtDocumentsHandler documents;
   private final WtConfiguration config;
-  private final String docID;
+//  private final String docID;
   private final String apiKey;
   private final String model;
   private final String url;
@@ -121,21 +121,13 @@ public class WtAiRemote {
   private int oId = 0;
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
-    this(documents, config, null, false, null);
-  }
-
-  public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, String docID) throws Throwable {
-    this(documents, config, docID, false, null);
+    this(documents, config, false, null);
   }
 
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, boolean testMode, Component parent) throws Throwable {
-    this(documents, config, null, testMode, parent);
-  }
-  
-  public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config, String docID, boolean testMode, Component parent) throws Throwable {
     this.documents = documents;
     this.config = config;
-    this.docID = docID;
+//    this.docID = docID;
     this.testMode = testMode;
     this.parent = parent;
     apiKey = config.aiApiKey();
@@ -386,12 +378,14 @@ public class WtAiRemote {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
             }
+/*
             if (docID != null) {
               WtSidebarContent sidebarContent = documents.getSidebarContent(docID);
               if (sidebarContent != null) {
                 sidebarContent.setTextToAiResultBox(orgText, out, instruction);
               }
             }
+*/
             return out;
           }
         } else {
@@ -971,8 +965,10 @@ public class WtAiRemote {
     if (!testMode) {
       config.setUseAiSupport(false);
       for (WtSingleDocument document : documents.getDocuments()) {
-        document.getSidebarContent().setAiSupport(config.useAiSupport(), 
-            config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+        if (document.getSidebarContent() != null) {
+          document.getSidebarContent().setAiSupport(config.useAiSupport(), 
+              config.useAiSupport() || config.useAiImgSupport() || config.useAiTtsSupport());
+        }
       }
       if (documents.getAiCheckQueue() != null) {
         documents.getAiCheckQueue().setStop(false);

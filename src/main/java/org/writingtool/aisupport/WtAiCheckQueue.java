@@ -34,6 +34,7 @@ import org.writingtool.aisupport.WtAiErrorDetection.DetectionType;
 import org.writingtool.aisupport.WtAiRemote.AiCommand;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.DocumentType;
@@ -201,6 +202,10 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
             }
             WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
             aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
+            WtSidebarContent sidebarContent = multiDocHandler.getSidebarContent(qEntry.docId);
+            if (sidebarContent != null) {
+              sidebarContent.setCursorTextToBox(true);
+            }
             multiDocHandler.setCacheStatusColor(document);
             if (multiDocHandler.useAiSuggestion()) {
               aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
