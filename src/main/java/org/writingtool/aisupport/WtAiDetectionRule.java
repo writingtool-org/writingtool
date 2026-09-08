@@ -116,7 +116,8 @@ public class WtAiDetectionRule extends TextLevelRule {
   }
   
   private boolean isIgnoredToken(String paraToken, String resultToken) throws Throwable {
-    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches() || resultToken.equals("*")) {
+    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches() 
+        || resultToken.equals("*") || resultToken.equals("**")) {
       return QUOTES.matcher(paraToken).matches() || SINGLE_QUOTES.matcher(paraToken).matches();
     }
     if (resultToken.equals("-")) {
@@ -284,6 +285,7 @@ public class WtAiDetectionRule extends TextLevelRule {
             j = resultTokens.size() - 1;
           }
           suggestion = sugStart >= sugEnd ? "" : aiResultText.substring(sugStart, sugEnd);
+          suggestion = correctSuggestion(suggestion, nParaTokenEnd);
           if (!isEndQoute(j, resultTokens) && isCorrectSuggestion(suggestion, singleWordToken)
               && !isMatchException(nParaTokenStart, nParaTokenEnd, nResultTokenStart, nResultTokenEnd, paraTokens, resultTokens)) {
             RuleMatch ruleMatch = new RuleMatch(this, sentence, posStart, posEnd, ruleMessage);
@@ -325,6 +327,7 @@ public class WtAiDetectionRule extends TextLevelRule {
                 int suggestionStart = tmpMatches.get(0).suggestionStart;
                 int suggestionEnd = tmpMatches.get(tmpMatches.size() - 1).suggestionEnd;
                 String suggestion = aiResultText.substring(suggestionStart, suggestionEnd);
+//                suggestion = correctSuggestion(suggestion, paraTokens.size() - 1);
                 ruleMatch.addSuggestedReplacement(suggestion);
                 ruleMatch.setType(Type.Other);
                 matches.add(ruleMatch);
@@ -361,6 +364,7 @@ public class WtAiDetectionRule extends TextLevelRule {
         RuleMatch ruleMatch = new RuleMatch(this, null, paraTokens.get(paraTokens.size() - 1).getStartPos(), 
             paraTokens.get(paraTokens.size() - 1).getEndPos(), ruleMessage);
         String suggestion = resultTokens.get(resultTokens.size() - 2).getToken() + resultTokens.get(resultTokens.size() - 1).getToken();
+        suggestion = correctSuggestion(suggestion, paraTokens.size() - 1);
         ruleMatch.addSuggestedReplacement(suggestion);
         AiRuleMatch tmpAiRuleMatch = new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(resultTokens.size() - 1).getEndPos(),
             paraTokens.size() - 1, paraTokens.size() - 1, resultTokens.size() - 2, resultTokens.size() - 1);
@@ -397,6 +401,7 @@ public class WtAiDetectionRule extends TextLevelRule {
           if (!suggestion.equals(paraTokens.get(paraTokens.size() - 1).getToken())) {
             RuleMatch ruleMatch = new RuleMatch(this, null, paraTokens.get(paraTokens.size() - 1).getStartPos(), 
                 paraTokens.get(paraTokens.size() - 1).getEndPos(), ruleMessage);
+            suggestion = correctSuggestion(suggestion, paraTokens.size() - 1);
             ruleMatch.addSuggestedReplacement(suggestion);
             AiRuleMatch tmpAiRuleMatch = new AiRuleMatch(ruleMatch, resultTokens.get(j - 1).getStartPos(), resultTokens.get(j1 - 1).getEndPos(),
                 paraTokens.size() - 1, paraTokens.size() - 1, j - 1, j1 - 1);
@@ -438,6 +443,7 @@ public class WtAiDetectionRule extends TextLevelRule {
             }
             RuleMatch ruleMatch = new RuleMatch(this, null, startPos, endPos, ruleMessage);
             String suggestion = aiResultText.substring(suggestionStart, suggestionEnd);
+            suggestion = correctSuggestion(suggestion, paraTokens.size() - 1);
             ruleMatch.addSuggestedReplacement(suggestion);
             ruleMatch.setType(Type.Other);
             matches.add(ruleMatch);
@@ -819,6 +825,17 @@ public class WtAiDetectionRule extends TextLevelRule {
       return hasAllChars (second, first, 0);
     }
     return false;
+  }
+  
+  private String correctSuggestion(String suggestion, int nParaTokenEnd) throws Throwable {
+    if (suggestion.isEmpty()) {
+      return suggestion;
+    }
+    if (PUNCTUATION.matcher(suggestion).matches() && isQuote(paraTokens.get(nParaTokenEnd).getToken())) {
+      suggestion += paraTokens.get(nParaTokenEnd).getToken();
+      return suggestion;
+    }
+    return suggestion;
   }
   
   /**
