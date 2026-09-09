@@ -416,6 +416,31 @@ public class WtAiDetectionRule extends TextLevelRule {
         }
       }
       if (tmpMatches.size() > 0) {
+        AiRuleMatch aiRuleMatch = tmpMatches.get(tmpMatches.size() - 1);
+        if (isQuote(resultTokens.get(aiRuleMatch.nResultTokenEnd).getToken())) {
+          RuleMatch ruleMatch = aiRuleMatch.ruleMatch;
+          boolean isSame = true;
+          if (aiRuleMatch.nResultTokenEnd >= aiRuleMatch.nResultTokenStart + 1 
+              && aiRuleMatch.nParaTokenEnd - aiRuleMatch.nParaTokenStart - 1 == aiRuleMatch.nResultTokenEnd - aiRuleMatch.nResultTokenStart) {
+            for (int k = aiRuleMatch.nResultTokenStart; k <= aiRuleMatch.nResultTokenEnd - 1; k++) {
+              if (!resultTokens.get(k).getToken().equals(paraTokens.get(aiRuleMatch.nParaTokenStart + k - aiRuleMatch.nResultTokenStart).getToken())) {
+                isSame = false;
+                break;
+              }
+            }
+          }
+          if (isSame) {
+            tmpMatches.remove(tmpMatches.size() - 1);
+          } else {
+            String suggestion = aiResultText.substring(aiRuleMatch.suggestionStart, aiRuleMatch.suggestionEnd - 1);
+            ruleMatch.setSuggestedReplacement(suggestion);
+            AiRuleMatch tmpAiRuleMatch = new AiRuleMatch(ruleMatch, aiRuleMatch.suggestionStart, aiRuleMatch.suggestionEnd - 1,
+                aiRuleMatch.nParaTokenStart, aiRuleMatch.nParaTokenEnd, aiRuleMatch.nResultTokenStart, aiRuleMatch.nResultTokenEnd - 1);
+            tmpMatches.set(tmpMatches.size() - 1, tmpAiRuleMatch);
+          }
+        }
+      }
+      if (tmpMatches.size() > 0) {
         boolean overSentenceEnd = j < resultTokens.size() && PUNCTUATION.matcher(resultTokens.get(j - 1).getToken()).matches();
         int nSenTokens = nSentence == 0 || sentenceEnds.size() == 1 ? sentenceEnds.get(0) : 
           sentenceEnds.get(sentenceEnds.size() - 1) - sentenceEnds.get(sentenceEnds.size() - 2);

@@ -372,8 +372,14 @@ public class WtAiRemote {
             if (out == null) {
               return null;
             }
-            out = filterOutput (out, org, instruction, onlyOneParagraph);
+            out = filterOutput(out, org, instruction, onlyOneParagraph);
+            if (debugMode > 2) {
+              WtMessageHandler.printToLogFile("AiRemote: runInstruction (after filterOutput): out: " + out);
+            }
             out = changesQuotesToOriginal(out, org, locale);
+            if (debugMode > 2) {
+              WtMessageHandler.printToLogFile("AiRemote: runInstruction (after changesQuotesToOriginal): out: " + out);
+            }
             if (debugModeAiTm) {
               long runTime = System.currentTimeMillis() - startTime;
               WtMessageHandler.printToLogFile("AiRemote: runInstruction: Time to generate Answer: " + runTime);
@@ -714,10 +720,16 @@ public class WtAiRemote {
       String firstPart = parts[0].trim();
       if (parts.length > 1 && (firstPart.endsWith(":") || firstPart.startsWith(inst[0].trim()))) {
         out = parts[1].trim();
+        return removeSurroundingBrackets(out, org);
       } else {
         out = firstPart;
       }
       out = removeSurroundingBrackets(out, org);
+      if (debugMode > 2) {
+        WtMessageHandler.printToLogFile("AiRemote: filterOutput: onlyOneParagraph: out: " + out);
+        WtMessageHandler.printToLogFile("AiRemote: filterOutput: onlyOneParagraph: out.contains(:): " + out.contains(":")
+            + "; org.contains(:): " + org.contains(":") + "; out.trim().startsWith(inst[0].trim()): " + out.trim().startsWith(inst[0].trim()));
+      }
       if (out.contains(":") && (!org.contains(":") || out.trim().startsWith(inst[0].trim()))) {
         parts = out.split(":");
         if (parts.length > 1) {
