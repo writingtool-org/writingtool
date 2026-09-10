@@ -542,22 +542,40 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
-/**
- * set a AI result to the AI result box
- */
-  public void setTextToAiResultBox(String paraText, String resultText, String instruction) {
-    try {
-      if (paraText.equals(paragraphText)) {
-        aiResultText = resultText;
-        setAiLabelText(instruction);
-        setColorOfAiBox(paraText, resultText);
-        aiResultBox.setText(aiResultText);
+  /**
+   * set a AI result to the AI result box
+   */
+    public void setTextToAiResultBox(TextParagraph rPara, WtSingleDocument document) {
+      try {
+        if (rPara.type == tPara.type && rPara.number == tPara.number) {
+          if (isAiSupport && aiResultBox != null) {
+ //           setAiLabelText(detectionType);
+            String aiResultText = reconstructAiTextFromCache(tPara, document);
+            aiResultBox.setText(aiResultText);
+            setColorOfAiBox(paragraphText, aiResultText);
+          }
+        }
+      } catch (Throwable e1) {
+        WtMessageHandler.showError(e1);
       }
-    } catch (Throwable e1) {
-      WtMessageHandler.showError(e1);
     }
-  }
-  
+    
+    /**
+     * set a AI result to the AI result box
+     */
+      public void setTextToAiResultBox(String paraText, String resultText, String instruction) {
+        try {
+          if (paraText.equals(paragraphText)) {
+            aiResultText = resultText;
+            setAiLabelText(instruction);
+            setColorOfAiBox(paraText, resultText);
+            aiResultBox.setText(aiResultText);
+          }
+        } catch (Throwable e1) {
+          WtMessageHandler.showError(e1);
+        }
+      }
+      
   /**
    * Create a button with label and action listener.
    */
@@ -1006,7 +1024,22 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       WtMessageHandler.showError(e1);
     }
   }
-  
+/*  
+  private void setAiLabelText(DetectionType detectionType) {
+    try {
+      if (detectionType == null) {
+        detectionType = DetectionType.GRAMMAR;
+      }
+      if (detectionType == DetectionType.REWRITE) {
+        aiLabelText.setText(messages.getString("aiDialogResultLabelRephrase"));
+      } else {
+        aiLabelText.setText(messages.getString("aiDialogResultLabelGrammar"));
+      }
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
+    }
+  }
+*/
   private void setAiLabelText(String instruction) {
     try {
       if (instruction == null) {

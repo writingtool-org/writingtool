@@ -203,12 +203,18 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
             WtAiErrorDetection aiError = new WtAiErrorDetection(document, multiDocHandler.getConfiguration(), lt);
             aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.GRAMMAR);
             WtSidebarContent sidebarContent = multiDocHandler.getSidebarContent(qEntry.docId);
-            if (sidebarContent != null) {
-              sidebarContent.setCursorTextToBox(true);
-            }
             multiDocHandler.setCacheStatusColor(document);
             if (multiDocHandler.useAiSuggestion()) {
+              document.getAiSuggestionCache().remove(nFPara);
+            }
+            if (sidebarContent != null) {
+              sidebarContent.setTextToAiResultBox(nTPara, document);
+            }
+            if (multiDocHandler.useAiSuggestion()) {
               aiError.addAiRuleMatchesForParagraph(nFPara, DetectionType.REWRITE);
+              if (sidebarContent != null) {
+                sidebarContent.setTextToAiResultBox(nTPara, document);
+              }
             }
             if (!paraText.equals(docCache.getFlatParagraph(nFPara))) {
               addQueueEntry(nTPara, qEntry.docId, true);
