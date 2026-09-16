@@ -116,12 +116,21 @@ public class WtAiDetectionRule extends TextLevelRule {
   }
   
   private boolean isIgnoredToken(String paraToken, String resultToken) throws Throwable {
-    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches() 
-        || resultToken.equals("*") || resultToken.equals("**")) {
+    if (QUOTES.matcher(resultToken).matches() || SINGLE_QUOTES.matcher(resultToken).matches()) {
       return QUOTES.matcher(paraToken).matches() || SINGLE_QUOTES.matcher(paraToken).matches();
     }
     if (resultToken.equals("-")) {
       return paraToken.equals("–");
+    }
+    return false;
+  }
+
+  private boolean isIgnoredResultToken(String paraToken, String resultToken) throws Throwable {
+    if (resultToken.equals("*")) {
+      return !paraToken.equals("*");
+    }
+    if (resultToken.equals("**")) {
+      return !paraToken.equals("**");
     }
     return false;
   }
@@ -170,6 +179,11 @@ public class WtAiDetectionRule extends TextLevelRule {
       for (i = 0; i < paraTokens.size() && j < resultTokens.size(); i++) {
         if (!paraTokens.get(i).getToken().equals(resultTokens.get(j).getToken()) 
             && !isIgnoredToken(paraTokens.get(i).getToken(), resultTokens.get(j).getToken())) {
+          if (isIgnoredResultToken(paraTokens.get(i).getToken(), resultTokens.get(j).getToken())) {
+            i--;
+            j++;
+            continue;
+          }
           if ((i == 0 && ("{".equals(resultTokens.get(j).getToken()) || QUOTES.matcher(resultTokens.get(j).getToken()).matches()))
               && j + 1 < resultTokens.size() && paraTokens.get(i).getToken().equals(resultTokens.get(j + 1).getToken())) {
             j += 2;
@@ -194,6 +208,9 @@ public class WtAiDetectionRule extends TextLevelRule {
               for(int j1 = j + n; j1 >= j; j1--) {
                 if (paraTokens.get(i1).getToken().equals(resultTokens.get(j1).getToken()) 
                     || isIgnoredToken(paraTokens.get(i1).getToken(), resultTokens.get(j1).getToken())) {
+                  if (isIgnoredResultToken(paraTokens.get(i1).getToken(), resultTokens.get(j1).getToken())) {
+                    continue;
+                  }
                   endFound = true;
                   if (i1 - 1 < i) {
                     // suggest to insert some words
