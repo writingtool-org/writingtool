@@ -1068,6 +1068,10 @@ public class WtSingleDocument {
    */
   public QueueEntry getNextAiQueueEntry(TextParagraph nPara) throws Throwable {
     if (!disposed && docCache != null) {
+      if (nPara == null) {
+        WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
+        nPara = vCursor.getViewCursorParagraph();
+      }
       int nFPara = nPara == null ? 0 : nPara.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN ? nPara.number :
                     docCache.getFlatParagraphNumber(nPara);
       for (int i = nFPara; i < docCache.size(); i++) {

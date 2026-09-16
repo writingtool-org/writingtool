@@ -121,6 +121,14 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
     try {
       List<WtSingleDocument> documents = multiDocHandler.getDocuments();
       int nDoc = 0;
+      if (debugMode > 1) {
+        if (nPara == null) {
+          WtMessageHandler.printToLogFile("WtAiCheckQueue: getNextQueueEntry: docId: " + docId + ", nPara: null");
+        } else {
+          WtMessageHandler.printToLogFile("WtAiCheckQueue: getNextQueueEntry: docId: " + docId 
+              + ", nPara.number: " + nPara.number + ", nPara.type: " + nPara.type);
+        }
+      }
       for (int n = 0; n < documents.size(); n++) {
         if ((docId == null || docId.equals(documents.get(n).getDocID())) && !documents.get(n).isDisposed() && documents.get(n).getDocumentType() == DocumentType.WRITER) {
           QueueEntry queueEntry = documents.get(n).getNextAiQueueEntry(nPara);
