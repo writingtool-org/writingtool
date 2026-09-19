@@ -29,6 +29,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -48,6 +50,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -188,10 +191,11 @@ public class WtAiDialog extends Thread implements ActionListener {
   
   private final JButton changeImage;
   private final JButton newImage;
+  private final JButton loadImage;
+  private final JButton clipboardImage;
   private final JButton translateFirst;
   private final JButton removeImage;
   private final JButton removeAllImages;
-  private final JButton loadImage;
   private final JButton saveImage;
   private final JButton insertImage;
 
@@ -339,6 +343,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     removeImage = new JButton (messages.getString("aiDialogImgRemoveButton"));
     removeAllImages = new JButton (messages.getString("aiDialogImgRemoveAllButton"));
     loadImage = new JButton (messages.getString("aiDialogImgLoadButton"));
+    clipboardImage = new JButton (messages.getString("aiDialogImgClipboardButton"));
     referenceImage = new JCheckBox (messages.getString("aiDialogImgAsReferenceButton"));
     saveImage = new JButton (messages.getString("aiDialogImgSaveButton"));
     insertImage = new JButton (messages.getString("aiDialogImgInsertButton"));
@@ -874,6 +879,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       loadImage.addActionListener(this);
       loadImage.setActionCommand("loadImage");
       
+      clipboardImage.setFont(dialogFont);
+      clipboardImage.addActionListener(this);
+      clipboardImage.setActionCommand("clipboardImage");
+      
       saveImage.setFont(dialogFont);
       saveImage.addActionListener(this);
       saveImage.setActionCommand("saveImage");
@@ -1288,6 +1297,8 @@ public class WtAiDialog extends Thread implements ActionListener {
       rightPanel1.add(newImage, cons21);
       cons21.gridy++;
       rightPanel1.add(loadImage, cons21);
+      cons21.gridy++;
+      rightPanel1.add(clipboardImage, cons21);
 
       //  Define 2. right panel
       JPanel rightPanel2 = new JPanel();
@@ -1651,9 +1662,10 @@ public class WtAiDialog extends Thread implements ActionListener {
       exclude.setEnabled(enabled);
       imageTabs.setEnabled(enabled);
       loadImage.setEnabled(enabled);
+      clipboardImage.setEnabled(readImageFromClipboard() == null ? false : enabled);
+      translateFirst.setEnabled(noImgInst || imageNumber > 1 || isReferenceImage() ? false : enabled);
       changeImage.setEnabled(noImgInst || imageNumber > 1 || isReferenceImage() ? false : enabled);
       newImage.setEnabled(noImgInst ? false : enabled);
-      translateFirst.setEnabled(noImgInst ? false : enabled);
       removeImage.setEnabled(images.isEmpty() ? false : enabled);
       removeAllImages.setEnabled(images.isEmpty() ? false : enabled);
       saveImage.setEnabled(images.isEmpty() ? false : enabled);
@@ -1961,6 +1973,9 @@ public class WtAiDialog extends Thread implements ActionListener {
           setButtonState(true);
         } else if (action.getActionCommand().equals("loadImage")) {
           loadImage();
+          setButtonState(true);
+        } else if (action.getActionCommand().equals("clipboardImage")) {
+          clipboardImage();
           setButtonState(true);
         } else if (action.getActionCommand().equals("insertImage")) {
           insertImage();
@@ -2288,6 +2303,29 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
   }
   
+  private void clipboardImage() throws Throwable {
+    BufferedImage bImage = readImageFromClipboard();
+    if (bImage != null) {
+      JLabel imageFrame = new JLabel();
+      imageFrame.setSize(bImage.getWidth(), bImage.getHeight());
+      imageHeight = bImage.getHeight();
+      imageHeightValueField.setText("" + imageHeight);
+      imageWidth = bImage.getWidth();
+      imageWidthValueField.setText("" + imageWidth);
+      String tabTitle = fileToLoad.getName();
+      if (tabTitle.length() > 5) {
+        tabTitle = tabTitle.substring(0, 5) + "...";
+      }
+      images.add(new WtAiImage(bImage, tabTitle, imageFrame, true));
+      setImageSize(images.get(images.size() - 1));
+      imageTabs.addTab(tabTitle, imageFrame);
+      imageTabs.setBackground(null);
+      imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
+      dialog.revalidate();
+      setImagesSize();
+    }
+  }
+  
   private void saveImage() throws Throwable {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle(messages.getString("aiDialogImgSaveTitle"));
@@ -2329,6 +2367,28 @@ public class WtAiDialog extends Thread implements ActionListener {
         currentDocument.getXComponent(), documents.getContext());
     }
   }
+  
+  private BufferedImage readImageFromClipboard() throws Exception {
+    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    // Default
+    if (cb.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+        return (BufferedImage) cb.getData(DataFlavor.imageFlavor);
+    }
+
+    // Fallback: read any image/*-Flavor, as InputStream (e.g. image/png)
+    for (DataFlavor f : cb.getAvailableDataFlavors()) {
+        if ("image".equals(f.getPrimaryType())
+                && InputStream.class.isAssignableFrom(f.getRepresentationClass())) {
+            try (InputStream in = (InputStream) cb.getData(f)) {
+                BufferedImage img = ImageIO.read(in);
+                if (img != null) return img;
+            }
+        }
+    }
+    return null;
+}
+
   
   private void removeImage() throws Throwable {
     int n = imageTabs.getSelectedIndex();
