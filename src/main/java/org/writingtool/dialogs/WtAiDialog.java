@@ -1497,11 +1497,19 @@ public class WtAiDialog extends Thread implements ActionListener {
     dialog.setAutoRequestFocus(true);
     dialog.toFront();
     dialog.setVisible(true);
-    setText();
+    if (config.useAiImgSupport() && currentDocument.getDocumentType() == DocumentType.WRITER) {
+      if (getTextImage() && config.useAiSupport()) {
+        mainPanel.setSelectedIndex(1);
+      } else {
+        mainPanel.setSelectedIndex(0);
+        setText();
+      }
+    }
     setButtonState(true);
   }
   
   public void toFront() throws Throwable {
+    setButtonState(true);
     dialog.setVisible(true);
     dialog.toFront();
   }
@@ -1857,12 +1865,7 @@ public class WtAiDialog extends Thread implements ActionListener {
           JLabel imageFrame = new JLabel();
           imageFrame.setSize(imageWidth, imageHeight);
           String tabTitle = imgInstText;
-          if (tabTitle.length() > 6) {
-            tabTitle = tabTitle.substring(0, 6) + "...";
-          }
-          if (imageNumber > 1) {
-            tabTitle = tabTitle + " (" + (i + 1) + ")";
-          }
+          tabTitle = makeTabTitle(tabTitle);
           images.add(new WtAiImage(getImageFromUrl(urlString), tabTitle, imageFrame, false));
           setImageSize(images.get(images.size() - 1));
           imageTabs.addTab(tabTitle, imageFrame);
@@ -2272,6 +2275,28 @@ public class WtAiDialog extends Thread implements ActionListener {
     return (int) (Math.random() * Integer.MAX_VALUE);
   }
   
+  private boolean tabTitleExists(String title) {
+    for (int i = 0; i < images.size(); i++) {
+      if (images.get(i).title.equals(title)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  private String makeTabTitle(String title) {
+    if (title.length() > 5) {
+      title = title.substring(0, 5) + "...";
+    }
+    int n = 1;
+    String newTitle = title + " (" + n + ")";
+    while (tabTitleExists(newTitle)) {
+      n++;
+      newTitle = title + " (" + n + ")";
+    }
+    return newTitle;
+  }
+  
   private void loadImage() throws Throwable {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setDialogTitle(messages.getString("aiDialogImgLoadTitle"));
@@ -2283,28 +2308,32 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (userSelection == JFileChooser.APPROVE_OPTION) {
       fileToLoad = fileChooser.getSelectedFile();
       BufferedImage bImage = getImageFromFile(fileToLoad);
-      JLabel imageFrame = new JLabel();
-      imageFrame.setSize(bImage.getWidth(), bImage.getHeight());
-      imageHeight = bImage.getHeight();
-      imageHeightValueField.setText("" + imageHeight);
-      imageWidth = bImage.getWidth();
-      imageWidthValueField.setText("" + imageWidth);
       String tabTitle = fileToLoad.getName();
-      if (tabTitle.length() > 5) {
-        tabTitle = tabTitle.substring(0, 5) + "...";
-      }
-      images.add(new WtAiImage(bImage, tabTitle, imageFrame, true));
-      setImageSize(images.get(images.size() - 1));
-      imageTabs.addTab(tabTitle, imageFrame);
-      imageTabs.setBackground(null);
-      imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
-      dialog.revalidate();
-      setImagesSize();
+      addImageToTab(bImage, tabTitle);
     }
   }
   
   private void clipboardImage() throws Throwable {
     BufferedImage bImage = readImageFromClipboard();
+    String tabTitle = "Clipboard";
+    addImageToTab(bImage, tabTitle);
+  }
+  
+  private boolean getTextImage() throws Throwable {
+    BufferedImage bImage = WtOfficeGraphicTools.readSelectedImage(documents.getContext());
+    if (bImage == null) {
+      return false;
+    }
+    String tabTitle = "textImage";
+    addImageToTab(bImage, tabTitle);
+    return true;
+  }
+  
+  private boolean isTextImageSelected() throws Throwable {
+    return WtOfficeGraphicTools.readSelectedImage(documents.getContext()) != null;
+  }
+  
+  private void addImageToTab(BufferedImage bImage, String tabTitle) throws Throwable {
     if (bImage != null) {
       JLabel imageFrame = new JLabel();
       imageFrame.setSize(bImage.getWidth(), bImage.getHeight());
@@ -2312,10 +2341,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageHeightValueField.setText("" + imageHeight);
       imageWidth = bImage.getWidth();
       imageWidthValueField.setText("" + imageWidth);
-      String tabTitle = fileToLoad.getName();
-      if (tabTitle.length() > 5) {
-        tabTitle = tabTitle.substring(0, 5) + "...";
-      }
+      tabTitle = makeTabTitle(tabTitle);
       images.add(new WtAiImage(bImage, tabTitle, imageFrame, true));
       setImageSize(images.get(images.size() - 1));
       imageTabs.addTab(tabTitle, imageFrame);

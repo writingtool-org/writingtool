@@ -24,6 +24,7 @@ import java.util.ResourceBundle;
 
 import org.languagetool.AnalyzedSentence;
 import org.languagetool.AnalyzedTokenReadings;
+import org.writingtool.WritingTool;
 import org.writingtool.WtDocumentCache;
 import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
@@ -69,7 +70,6 @@ public class WtAiParagraphChanging extends Thread {
   private final AiCommand commandId;
   
   private static WtAiResultDialog resultDialog = null;
-  private static WtAiDialog aiDialog = null;
   private WaitDialogThread waitDialog = null;
   private String word;
   
@@ -85,11 +85,11 @@ public class WtAiParagraphChanging extends Thread {
   }
   
   public static WtAiDialog getAiDialog() {
-    return aiDialog;
+    return WritingTool.getDocumentsHandler().getAiDialog();
   }
   
   public static void setCloseAiDialog() {
-    aiDialog = null;
+    WritingTool.getDocumentsHandler().setAiDialog(null);
   }
   
   public static WtAiResultDialog getAiResultDialog() {
@@ -102,16 +102,19 @@ public class WtAiParagraphChanging extends Thread {
   
   private void runAiChangeOnParagraph() {
     try {
-      if (aiDialog != null) {
-        aiDialog.closeDialog();
-      }
       if (resultDialog != null) {
         resultDialog.closeDialog();
       }
       if (commandId == AiCommand.GeneralAi) {
-        waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
-        aiDialog = new WtAiDialog(document, waitDialog, messages);
-        aiDialog.start();
+        WtAiDialog aiDialog = WritingTool.getDocumentsHandler().getAiDialog();
+        if (aiDialog == null) {
+          waitDialog = WtDocumentsHandler.getWaitDialog(WAIT_TITLE, WAIT_MESSAGE);
+          aiDialog = new WtAiDialog(document, waitDialog, messages);
+          WritingTool.getDocumentsHandler().setAiDialog(aiDialog);
+          aiDialog.start();
+        } else {
+          aiDialog.toFront();
+        } 
         return;
       } else if (commandId == AiCommand.SynonymsOfWord) {
         showSynonyms();

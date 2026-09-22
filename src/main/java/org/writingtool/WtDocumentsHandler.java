@@ -162,6 +162,7 @@ public class WtDocumentsHandler {
   private static WtAiTranslateDocument aiTranslate = null;  //  generate translate dialog (AI) (show only one translate panel)
   private static WtStatAnDialog statAnDialog = null;        //  dialog for statistical analysis
   private static WtQuotesChangeDialog quotesChangeDialog = null;  //  dialog to change quotes
+  private static WtAiDialog aiDialog = null;                //  dialog for general AI support (show only one AI panel)
   private static WaitDialogThread waitDialog = null;        //  window for initialization of dialogs
   private WtHelper wtHelper = null;                         //  Helper to check for Impress and Calc documents
   private boolean dialogIsRunning = false;                  //  The dialog was started
@@ -741,9 +742,9 @@ public class WtDocumentsHandler {
       statAnDialog.closeDialog();
       statAnDialog = null;
     }
-    WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
     if (aiDialog != null) {
       aiDialog.closeDialog();
+      aiDialog = null;
     } 
     WtAiResultDialog aiResultDialog = WtAiParagraphChanging.getAiResultDialog();
     if (aiResultDialog != null) {
@@ -840,9 +841,9 @@ public class WtDocumentsHandler {
         aiQueue.setStop(true);
         aiQueue = null;
       }
-      WtAiDialog aiDialog = WtAiParagraphChanging.getAiDialog();
       if (aiDialog != null) {
         aiDialog.closeDialog();
+        aiDialog = null;
       } 
       if (shapeChangeCheck != null) {
         shapeChangeCheck.stopLoop();
@@ -1741,7 +1742,9 @@ public class WtDocumentsHandler {
   public void runAiChangeOnParagraph(AiCommand command) throws Throwable {
     for (WtSingleDocument document : documents) {
       if (menuDocId.equals(document.getDocID())) {
-        closeDialogs();
+        if (command != AiCommand.GeneralAi) {
+          closeDialogs();
+        }
         WtAiParagraphChanging aiChange = new WtAiParagraphChanging(document, config, command);
         aiChange.start();
         return;
@@ -1783,6 +1786,14 @@ public class WtDocumentsHandler {
 
   public void setAiSummaryDialog(WtAiSummaryDialog dialog) {
     aiSummaryDialog = dialog;
+  }
+
+  public WtAiDialog getAiDialog() {
+    return aiDialog;
+  }
+
+  public void setAiDialog(WtAiDialog dialog) {
+    aiDialog = dialog;
   }
 
   public void closeAiSummaryDialog() {

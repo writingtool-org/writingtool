@@ -18,25 +18,31 @@
  */
 package org.writingtool.tools;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+
+import javax.imageio.ImageIO;
 
 import com.sun.star.awt.Point;
 import com.sun.star.awt.Size;
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.container.ElementExistException;
+import com.sun.star.container.XIndexAccess;
 import com.sun.star.container.XNameContainer;
 import com.sun.star.drawing.LineStyle;
 import com.sun.star.drawing.XDrawPage;
 import com.sun.star.drawing.XDrawView;
 import com.sun.star.drawing.XShape;
 import com.sun.star.frame.XController;
+import com.sun.star.frame.XDesktop;
 import com.sun.star.frame.XModel;
 import com.sun.star.graphic.XGraphic;
 import com.sun.star.graphic.XGraphicProvider;
 import com.sun.star.lang.XComponent;
 import com.sun.star.lang.XMultiComponentFactory;
 import com.sun.star.lang.XMultiServiceFactory;
+import com.sun.star.lang.XServiceInfo;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextContent;
 import com.sun.star.text.XTextCursor;
@@ -44,6 +50,7 @@ import com.sun.star.text.XTextDocument;
 import com.sun.star.text.XTextRange;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+import com.sun.star.view.XSelectionSupplier;
 
 /**
  * Some tools to handle graphics in LibreOffice/OpenOffice document context
@@ -176,7 +183,7 @@ public class WtOfficeGraphicTools {
     setLineStyle(imShape, LineStyle.NONE);
             // so no border around the image
     return imShape;
-  }  // end of drawImage()
+  }
 
   private static XShape addShape(XDrawPage slide, String shapeType, 
       int x, int y, int width, int height, XComponent xComponent) throws Throwable { 
@@ -188,7 +195,7 @@ public class WtOfficeGraphicTools {
       WtMessageHandler.printToLogFile("shape == null: not added to slide!");
     }
     return shape;
-  }  // end of addShape()
+  }
   
   private static XShape makeShape(String shapeType, int x, int y, int width, int height, XComponent xComponent) {
     // parameters are in mm units 
@@ -203,7 +210,7 @@ public class WtOfficeGraphicTools {
       WtMessageHandler.showError(e);
     }
     return shape;
-  }  // end of makeShape()
+  }
   
   private static void warnsPosition(XDrawPage slide, int x, int y) throws Throwable {
     // warns if (x, y) is not on the page
@@ -225,7 +232,7 @@ public class WtOfficeGraphicTools {
     } else if (y > slideHeight-1) {
       WtMessageHandler.printToLogFile("y position off bottom of the slide");
     }
-  }  // end of warnsPosition()
+  }
 
   private static Size getSlideSize(XDrawPage xDrawPage) throws Throwable {
     // get size of the given slide page (in mm units)
@@ -265,7 +272,7 @@ public class WtOfficeGraphicTools {
     } catch (Throwable e) {
       WtMessageHandler.printException(e);
     }
-  }  // end of setImage()
+  }
   
   private static Object getBitmap(String fnm, XComponent xComponent) {
     // load the graphic as a bitmap, and return it as a string
@@ -297,7 +304,7 @@ public class WtOfficeGraphicTools {
       WtMessageHandler.showError(e);
       return null;
     }
-  }  // end of getBitmap()
+  }
 
   private static boolean isOpenable(String fnm) throws Throwable {
     // convert a file path to URL format
@@ -315,7 +322,7 @@ public class WtOfficeGraphicTools {
        return false;
      }
      return true;
-  } // end of isOpenable()
+  }
 
   private static String fnmToURL(String fnm) {
     // convert a file path to URL format
@@ -351,10 +358,73 @@ public class WtOfficeGraphicTools {
     cursor.gotoEnd(false);
     XTextRange range = UnoRuntime.queryInterface(XTextRange.class, cursor);
     range.setString(txt);
-  }  // end of addText()
+  }
 
+  /** Returns the selected image, or null if none is selected. */
+  public static BufferedImage readSelectedImage(XComponentContext ctx) throws Exception {
+      Object desktop = ctx.getServiceManager()
+              .createInstanceWithContext("com.sun.star.frame.Desktop", ctx);
+      XDesktop xDesktop = UnoRuntime.queryInterface(XDesktop.class, desktop);
 
+      XModel model = UnoRuntime.queryInterface(XModel.class, xDesktop.getCurrentComponent());
+      if (model == null) return null;
+      XController controller = model.getCurrentController();
+      XSelectionSupplier sel = UnoRuntime.queryInterface(XSelectionSupplier.class, controller);
 
+      XPropertySet graphicProps = findGraphic(sel.getSelection());
+      if (graphicProps == null) return null;
+
+      XGraphic xGraphic = UnoRuntime.queryInterface(XGraphic.class,
+              graphicProps.getPropertyValue("Graphic"));
+      if (xGraphic == null) return null;
+
+      Object gpObj = ctx.getServiceManager()
+              .createInstanceWithContext("com.sun.star.graphic.GraphicProvider", ctx);
+      XGraphicProvider gp = UnoRuntime.queryInterface(XGraphicProvider.class, gpObj);
+
+      File tmp = File.createTempFile("lo-image", ".png");
+      try {
+          String url = tmp.toURI().toString().replaceFirst("^file:/(?!/)", "file:///");
+          PropertyValue[] mediaProps = {
+              createPropertyValue("URL", url),
+              createPropertyValue("MimeType", "image/png")
+          };
+          gp.storeGraphic(xGraphic, mediaProps);
+          return ImageIO.read(tmp);
+      } finally {
+          tmp.delete();
+      }
+  }
+
+  /** Writer: Selection is either the graphic itself or a collection containing the graphic. */
+  private static XPropertySet findGraphic(Object selection) throws Exception {
+      if (selection == null) return null;
+
+      if (isGraphic(selection)) {
+          return UnoRuntime.queryInterface(XPropertySet.class, selection);
+      }
+      XIndexAccess items = UnoRuntime.queryInterface(XIndexAccess.class, selection);
+      if (items != null && items.getCount() > 0) {
+          Object first = items.getByIndex(0);
+          if (isGraphic(first)) {
+              return UnoRuntime.queryInterface(XPropertySet.class, first);
+          }
+      }
+      return null;
+  }
+
+  private static boolean isGraphic(Object o) {
+      XServiceInfo si = UnoRuntime.queryInterface(XServiceInfo.class, o);
+      return si != null && (si.supportsService("com.sun.star.text.TextGraphicObject")      // Writer
+                         || si.supportsService("com.sun.star.drawing.GraphicObjectShape")); // Draw/Impress/Calc
+  }
+
+  private static PropertyValue createPropertyValue(String name, Object value) {
+      PropertyValue p = new PropertyValue();
+      p.Name = name;
+      p.Value = value;
+      return p;
+  }
 
 
 
