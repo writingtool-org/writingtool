@@ -20,8 +20,11 @@ package org.writingtool;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -37,8 +40,8 @@ import com.sun.star.lang.Locale;
  */
 public class WtSuggestionStore {
 
-  private final Map<String, List<String>> lastWords = new HashMap<>();
-  private final Map<String, List<String[]>> lastSuggestions = new HashMap<>();
+  private final Map<String, LinkedHashSet<String>> lastWords = new HashMap<>();
+  private final Map<String, LinkedHashMap<String, String[]>> lastSuggestions = new HashMap<>();
   
   private final int maxWords;
 
@@ -51,7 +54,7 @@ public class WtSuggestionStore {
    */
   public boolean hasWord(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
-    List<String> words = lastWords.get(localeStr);
+    Set<String> words = lastWords.get(localeStr);
     return words != null && words.contains(word);
   }
   
@@ -60,24 +63,27 @@ public class WtSuggestionStore {
    */
   public String[] getSuggestions(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
-    List<String> words = lastWords.get(localeStr);
+    Set<String> words = lastWords.get(localeStr);
     if (words == null || !words.contains(word)) {
 //      WtMessageHandler.printToLogFile("WtSuggestionStore: getSuggestions: " + (words == null ? "Words == null" : "word not found: " + word));
       return null;
     }
-    List<String[]> suggestionList = lastSuggestions.get(localeStr);
-    if (suggestionList == null || suggestionList.size() != words.size()) {
+    LinkedHashMap<String, String[]> suggestionMap = lastSuggestions.get(localeStr);
+    if (suggestionMap == null || suggestionMap.size() != words.size()) {
       WtMessageHandler.printToLogFile("WtSuggestionStore error: Size don't match! Clear store");
       lastWords.clear();
       lastSuggestions.clear();
       return null;
     }
-    int n = words.indexOf(word);
-    String[] suggestions = suggestionList.get(n);
-    words.remove(n);
-    suggestionList.remove(n);
+    String[] suggestions = suggestionMap.remove(word);
+    if (suggestions == null) {
+      lastWords.clear();
+      lastSuggestions.clear();
+      return null;
+    }
+    words.remove(word);
     words.add(word);
-    suggestionList.add(suggestions);
+    suggestionMap.put(word, suggestions);
     return suggestions;
   }
   
@@ -86,29 +92,19 @@ public class WtSuggestionStore {
    */
   public void addSuggestions(String word, Locale locale, String[] suggestions) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
-    List<String> words = lastWords.get(localeStr);
-    List<String[]> suggestionList;
-    if (words == null) {
-      words = new ArrayList<>();
-      suggestionList = new ArrayList<>();
-      lastWords.put(localeStr, words);
-      lastSuggestions.put(localeStr, suggestionList);
-    } else {
-      suggestionList = lastSuggestions.get(localeStr);
-    }
+    Set<String> words = lastWords.computeIfAbsent(localeStr, key -> new LinkedHashSet<>());
+    LinkedHashMap<String, String[]> suggestionMap = lastSuggestions.computeIfAbsent(localeStr, key -> new LinkedHashMap<>());
     if (words.contains(word)) {
-      int n = words.indexOf(word);
-      words.remove(n);
-      suggestionList.remove(n);
+      words.remove(word);
+      suggestionMap.remove(word);
     }
     words.add(word);
-    suggestionList.add(suggestions);
+    suggestionMap.put(word, suggestions);
     while (words.size() > maxWords) {
-      words.remove(0);
-      suggestionList.remove(0);
+      String oldestWord = words.iterator().next();
+      words.remove(oldestWord);
+      suggestionMap.remove(oldestWord);
     }
-    lastWords.put(localeStr, words);
-    lastSuggestions.put(localeStr, suggestionList);
   }
   
   /**
@@ -121,15 +117,22 @@ public class WtSuggestionStore {
     }
     lastWords.clear();
     lastSuggestions.clear();
-    for (String loc : words.keySet()) {
-      if (!words.get(loc).isEmpty()) {
-        List<String> savedLastWords = words.get(loc);
+    for (Map.Entry<String, List<String>> entry : words.entrySet()) {
+      String loc = entry.getKey();
+      List<String> savedLastWords = entry.getValue();
+      if (savedLastWords != null && !savedLastWords.isEmpty()) {
         List<String[]> savedSuggestions = suggestions.get(loc);
-        List<String> lastSavedWords = new ArrayList<>();
-        List<String[]> lastSavedSuggestions = new ArrayList<>();
+        if (savedSuggestions == null) {
+          continue;
+        }
+        LinkedHashSet<String> lastSavedWords = new LinkedHashSet<>();
+        LinkedHashMap<String, String[]> lastSavedSuggestions = new LinkedHashMap<>();
         for (int i = 0; i < savedLastWords.size() && i < maxWords; i++) {
-          lastSavedWords.add(savedLastWords.get(i));
-          lastSavedSuggestions.add(savedSuggestions.get(i));
+          String savedWord = savedLastWords.get(i);
+          if (savedWord != null) {
+            lastSavedWords.add(savedWord);
+            lastSavedSuggestions.put(savedWord, savedSuggestions.get(i));
+          }
         }
         lastWords.put(loc, lastSavedWords);
         lastSuggestions.put(loc, lastSavedSuggestions);
@@ -141,14 +144,22 @@ public class WtSuggestionStore {
    * get the map of last words (depends on locale)
    */
   public Map<String, List<String>> getLastWords() {
-    return lastWords;
+    Map<String, List<String>> result = new HashMap<>();
+    for (Map.Entry<String, LinkedHashSet<String>> entry : lastWords.entrySet()) {
+      result.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+    }
+    return result;
   }
 
   /**
    * get the map of last suggestions (depends on locale)
    */
   public Map<String, List<String[]>> getLastSuggestions() {
-    return lastSuggestions;
+    Map<String, List<String[]>> result = new HashMap<>();
+    for (Map.Entry<String, LinkedHashMap<String, String[]>> entry : lastSuggestions.entrySet()) {
+      result.put(entry.getKey(), new ArrayList<>(entry.getValue().values()));
+    }
+    return result;
   }
   
   /**
