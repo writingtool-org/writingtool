@@ -767,6 +767,9 @@ public void previousError() {
       List<AnalyzedSentence> analyzedSentences = docCache.getAnalyzedParagraph(nPara);
       if (analyzedSentences == null) {
         analyzedSentences = docCache.createAnalyzedParagraph(nPara, lt);
+        if (analyzedSentences == null) {
+          return null;
+        }
       }
       int pos = 0;
       for (AnalyzedSentence analyzedSentence : analyzedSentences) {

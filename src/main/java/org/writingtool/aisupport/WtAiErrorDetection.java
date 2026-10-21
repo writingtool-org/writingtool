@@ -210,6 +210,10 @@ public class WtAiErrorDetection {
       WtMessageHandler.printToLogFile("\nAiErrorDetection: getMatchesByAiRule: result: " + result + "\n");
     }
     List<AnalyzedSentence> analyzedAiResult =  lt.analyzeText(result.replace("\u00AD", ""));
+    if (analyzedAiResult == null) {
+      WtMessageHandler.printToLogFile("AiErrorDetection: getMatchesByAiRule: analyzedAiResult == null");
+      return null;
+    }
     WtAiDetectionRule aiRule = getAiDetectionRule(result, analyzedAiResult, paraText,
         document.getMultiDocumentsHandler().getLinguisticServices(), locale , messages, 
             type == DetectionType.GRAMMAR ? config.aiShowStylisticChanges() : 2);

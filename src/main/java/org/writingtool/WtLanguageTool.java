@@ -497,15 +497,21 @@ public class WtLanguageTool {
    * This Method use local lt for remote checks
    */
   public List<AnalyzedSentence> analyzeText(String text) throws Throwable {
-    if (isRemote) {
-      if (lt == null) {
-        lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+    try {
+      if (isRemote) {
+        if (lt == null) {
+          lt = new JLanguageToolLo(language, motherTongue, null, userConfig);
+        }
+        return lt.analyzeText(text);
+      } else if (isMultiThread) {
+          return mlt.analyzeText(text); 
+      } else {
+        return lt.analyzeText(text); 
       }
-      return lt.analyzeText(text);
-    } else if (isMultiThread) {
-        return mlt.analyzeText(text); 
-    } else {
-      return lt.analyzeText(text); 
+    } catch (RuntimeException e) {
+      WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+      WtMessageHandler.printException(e);
+      return null;
     }
   }
 
@@ -538,6 +544,9 @@ public class WtLanguageTool {
   public List<String> getLemmasOfParagraph(String para, int startPos) throws Throwable {
     List<String> lemmas = new ArrayList<String>();
     List<AnalyzedSentence> sentences = analyzeText(para);
+    if (sentences == null) {
+      return lemmas;
+    }
     int pos = 0;
     for (AnalyzedSentence sentence : sentences) {
       for (AnalyzedTokenReadings token : sentence.getTokens()) {
@@ -601,8 +610,14 @@ public class WtLanguageTool {
         sentences = analysedText.sentences;
         text = analysedText.text;
       }
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
     public List<RuleMatch> check(TextParagraph from, TextParagraph to, ParagraphHandling paraMode, Mode mode, 
@@ -614,8 +629,14 @@ public class WtLanguageTool {
       List<AnalyzedSentence> analyzedSentences = analysedText.analyzedSentences;
       List<String> sentences = analysedText.sentences;
       String text = analysedText.text;
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
     public List<RuleMatch> check(String text, List<AnalyzedSentence> analyzedSentences, 
@@ -626,8 +647,14 @@ public class WtLanguageTool {
       for (AnalyzedSentence analyzedSentence : analyzedSentences) {
         sentences.add(analyzedSentence.getText());
       }
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
   }
@@ -658,8 +685,14 @@ public class WtLanguageTool {
         sentences = analysedText.sentences;
         text = analysedText.text;
       }
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
     public List<RuleMatch> check(TextParagraph from, TextParagraph to, ParagraphHandling paraMode, Mode mode, 
@@ -671,8 +704,14 @@ public class WtLanguageTool {
       List<AnalyzedSentence> analyzedSentences = analysedText.analyzedSentences;
       List<String> sentences = analysedText.sentences;
       String text = analysedText.text;
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
     public List<RuleMatch> check(String text, List<AnalyzedSentence> analyzedSentences, 
@@ -683,8 +722,14 @@ public class WtLanguageTool {
       for (AnalyzedSentence analyzedSentence : analyzedSentences) {
         sentences.add(analyzedSentence.getText());
       }
-      return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
-          Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      try  {
+        return checkInternal(new AnnotatedTextBuilder().addText(text).build(), paraMode, null, mode, 
+            Level.PICKY, toneTags, null, sentences, analyzedSentences).getRuleMatches();
+      } catch (RuntimeException e) {
+        WtMessageHandler.printToLogFile("LT Exception at text: " + text);
+        WtMessageHandler.printException(e);
+        return new ArrayList<>(0);
+      }
     }
 
   }

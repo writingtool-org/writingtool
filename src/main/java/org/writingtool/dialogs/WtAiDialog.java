@@ -2328,11 +2328,11 @@ public class WtAiDialog extends Thread implements ActionListener {
     addImageToTab(bImage, tabTitle);
     return true;
   }
-  
+/*  
   private boolean isTextImageSelected() throws Throwable {
     return WtOfficeGraphicTools.readSelectedImage(documents.getContext()) != null;
   }
-  
+*/  
   private void addImageToTab(BufferedImage bImage, String tabTitle) throws Throwable {
     if (bImage != null) {
       JLabel imageFrame = new JLabel();
