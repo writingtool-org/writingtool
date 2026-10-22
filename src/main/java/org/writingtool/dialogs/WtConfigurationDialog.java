@@ -30,6 +30,7 @@ import org.writingtool.aisupport.WtAiRemote;
 import org.writingtool.config.WtCategoryNode;
 import org.writingtool.config.WtCheckBoxTreeCellRenderer;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.config.WtConfiguration.RenewCache;
 import org.writingtool.config.WtRuleNode;
 import org.writingtool.config.WtSavablePanel;
 import org.writingtool.config.WtTreeListener;
@@ -851,9 +852,11 @@ public class WtConfigurationDialog implements ActionListener {
     cons11.weightx = 0.0f;
     addNgramPanel(cons11, ngramPanel);
     JCheckBox paragraphModeBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogParagraphCheckMode")));
-    JCheckBox saveCacheBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveCacheToFile")));
     JCheckBox saveToolbarBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogSaveToolbarStatus")));
     JCheckBox noBackgroundCheckBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogNoBackgroundCheck")));
+    JLabel renewCacheLabel = new JLabel(WtGeneralTools.getLabel(messages.getString("optionDialogRenewCacheLabel")));
+    JRadioButton[] renewCacheButtons = new JRadioButton[4];
+    ButtonGroup renewCacheGroup = new ButtonGroup();
     JTextField otherServerNameField = new JTextField(config.getServerUrl() ==  null ? "" : config.getServerUrl(), 25);
     otherServerNameField.setMinimumSize(new Dimension(100, 25));
     otherServerNameField.getDocument().addDocumentListener(new DocumentListener() {
@@ -1220,11 +1223,36 @@ public class WtConfigurationDialog implements ActionListener {
       }
       changedOptions.ltRulesChanged = true;
     });
-    saveCacheBox.setSelected(config.saveLoCache() && !config.onlySingleParagraphMode());
-    saveCacheBox.setEnabled(!config.onlySingleParagraphMode());
-    saveCacheBox.addItemListener(e1 -> {
-      config.setSaveLoCache(saveCacheBox.isSelected());
+    
+    renewCacheButtons[0] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogRenewCacheAlways")));
+    renewCacheButtons[0].addActionListener(e -> {
+      config.setRenewCache(RenewCache.ALWAYS);
     });
+    renewCacheButtons[1] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogRenewCacheNever")));
+    renewCacheButtons[1].addActionListener(e -> {
+      config.setRenewCache(RenewCache.NEVER);
+    });
+    renewCacheButtons[2] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogRenewCacheVersion")));
+    renewCacheButtons[2].addActionListener(e -> {
+      config.setRenewCache(RenewCache.NEW_VERSION);
+    });
+    renewCacheButtons[3] = new JRadioButton(WtGeneralTools.getLabel(messages.getString("optionDialogRenewCacheSnapshot")));
+    renewCacheButtons[3].addActionListener(e -> {
+      config.setRenewCache(RenewCache.NEW_SNAPSHOT);
+    });
+    for (int i = 0; i < 4; i++) {
+      renewCacheGroup.add(renewCacheButtons[i]);
+    }
+    if (config.renewCache() == RenewCache.ALWAYS) {
+      renewCacheButtons[0].setSelected(true);
+    } else if (config.renewCache() == RenewCache.NEVER) {
+      renewCacheButtons[1].setSelected(true);
+    } else if (config.renewCache() == RenewCache.NEW_VERSION) {
+      renewCacheButtons[2].setSelected(true);
+    } else {
+      renewCacheButtons[3].setSelected(true);
+    }
+    
     saveToolbarBox.setEnabled(true);
     saveToolbarBox.setSelected(config.saveButtonState());
     saveToolbarBox.addItemListener(e1 -> {
@@ -1236,18 +1264,25 @@ public class WtConfigurationDialog implements ActionListener {
       changedOptions.ltRulesChanged = true;
       changedOptions.aiSettingsChanged = true;
     });
-    cons.insets = new Insets(20, SHIFT1, 0, 0);
+    cons.insets = new Insets(4, SHIFT1, 0, 0);
     cons.gridx = 0;
     cons.gridy++;
     panel.add(paragraphModeBox, cons);
-    cons.gridy++;
-    panel.add(saveCacheBox, cons);
-    cons.insets = new Insets(4, SHIFT1, 0, 0);
-    cons.gridy++;
-    panel.add(saveToolbarBox, cons);
     cons.insets = new Insets(20, SHIFT1, 0, 0);
     cons.gridy++;
+    panel.add(saveToolbarBox, cons);
+    cons.insets = new Insets(4, SHIFT1, 0, 0);
+    cons.gridy++;
     panel.add(noBackgroundCheckBox, cons);
+    cons.insets = new Insets(20, SHIFT1, 0, 0);
+    cons.gridy++;
+    panel.add(renewCacheLabel, cons);
+    cons.insets = new Insets(4, SHIFT2, 0, 0);
+    for (int i = 0; i < 4; i++) {
+      cons.gridy++;
+      panel.add(renewCacheButtons[i], cons);
+    }
+    
     return panel;
   }
   

@@ -39,6 +39,7 @@ import java.util.zip.GZIPOutputStream;
 import org.writingtool.WtDocumentCache.SerialLocale;
 import org.writingtool.WtIgnoredMatches.LocaleEntry;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.config.WtConfiguration.RenewCache;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.LoErrorType;
@@ -232,7 +233,7 @@ public class WtCacheIO implements Serializable {
           String tmpCachePath = getTmpCachePath(cachePath);
           allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
               mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
-              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), 
+              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), WtVersionInfo.ltBuildDate(),
               config.aiUrl(), config.aiModel(), config.aiShowStylisticChanges());
           saveAllCaches(tmpCachePath);
           changeTmpToCachePath(cachePath);
@@ -321,6 +322,13 @@ public class WtCacheIO implements Serializable {
    * Test if cache was created with same rules
    */
   private boolean runSameRules(WtConfiguration config, WtDocumentsHandler mDocHandler) throws Throwable {
+    if (config == null || mDocHandler == null) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: config == null: " + (config == null) + "; mDocHandler == null: " + (mDocHandler == null));
+      return false;
+    }
+    if (config.renewCache() == RenewCache.NEVER) {
+      return true;
+    }
     if (allCaches == null || allCaches.docCache == null || allCaches.docCache.toParaMapping.size() != WtDocumentCache.NUMBER_CURSOR_TYPES ) {
       WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: No valid cache found: "
           + "allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
@@ -328,6 +336,9 @@ public class WtCacheIO implements Serializable {
       return false;
     }
     if (!allCaches.ltVersion.equals(WtVersionInfo.ltVersion())) {
+      return false;
+    }
+    if (config.renewCache() == RenewCache.NEW_SNAPSHOT && !allCaches.ltBuildDate.equals(WtVersionInfo.ltBuildDate())) {
       return false;
     }
     if (config.getEnabledRuleIds().size() != allCaches.enabledRuleIds.size() || config.getDisabledRuleIds().size() != allCaches.disabledRuleIds.size() 
@@ -475,7 +486,7 @@ public class WtCacheIO implements Serializable {
 
   class AllCaches implements Serializable {
 
-    private static final long serialVersionUID = 6L;
+    private static final long serialVersionUID = 7L;
 
     private final WtDocumentCache docCache;                               //  cache of paragraphs
     private final List<WtResultCache> paragraphsCache;                    //  Cache for matches of text rules
@@ -487,13 +498,14 @@ public class WtCacheIO implements Serializable {
     private final Map<Integer, Map<String, Set<Integer>>> ignoredMatches; //  Map of matches (number of paragraph, number of character) that should be ignored after ignoreOnce was called
     private final Map<Integer, List<LocaleSerialEntry>> spellLocales;     //  Map of locales for ignored matches
     private final String ltVersion;                                       //  LT version
+    private final String ltBuildDate;                                     //  LT build date
     private final String aiUrl;
     private final String aiModel;
     private final int aiShowStylisticChanges;
     
     AllCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
         Map<String, Set<String>> disabledRulesUI, Set<String> disabledRuleIds, 
-        Set<String> disabledCategories, Set<String> enabledRuleIds, WtIgnoredMatches ignoredMatches, String ltVersion,
+        Set<String> disabledCategories, Set<String> enabledRuleIds, WtIgnoredMatches ignoredMatches, String ltVersion, String ltBuildDate,
         String aiUrl, String aiModel, int aiShowStylisticChanges) {
       this.docCache = docCache;
       this.paragraphsCache = paragraphsCache;
@@ -528,6 +540,7 @@ public class WtCacheIO implements Serializable {
             + "; this.disabledCategories.size(): " + this.disabledCategories.size()); 
       }
       this.ltVersion = ltVersion;
+      this.ltBuildDate = ltBuildDate;
       Map<Integer, Map<String, Set<Integer>>> clone = new HashMap<>();
       for (int y : ignoredMatches.getFullIMMap().keySet()) {
         Map<String, Set<Integer>> newIdMap = new HashMap<>();

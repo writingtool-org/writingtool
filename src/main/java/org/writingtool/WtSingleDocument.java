@@ -35,6 +35,7 @@ import org.writingtool.WtCacheIO.SpellCache;
 import org.writingtool.WtDocumentCache.TextParagraph;
 import org.writingtool.WtTextLevelCheckQueue.QueueEntry;
 import org.writingtool.config.WtConfiguration;
+import org.writingtool.config.WtConfiguration.RenewCache;
 import org.writingtool.menus.WtMenus;
 import org.writingtool.sidebar.WtSidebarContent;
 import org.writingtool.tools.WtDocumentCursorTools;
@@ -183,7 +184,7 @@ public class WtSingleDocument {
       resetAllResultCache();
       ignoredMatches = new WtIgnoredMatches();
       permanentIgnoredMatches = new WtIgnoredMatches();
-      if (config != null && config.saveLoCache() && !config.noBackgroundCheck() && xComponent != null && !mDocHandler.isTestMode()) {
+      if (config != null && config.renewCache() != RenewCache.ALWAYS && !config.noBackgroundCheck() && xComponent != null && !mDocHandler.isTestMode()) {
         readCaches();
       }
       if (xComponent != null) {
@@ -2387,7 +2388,7 @@ public class WtSingleDocument {
         }
       } else if(event.EventName.equals("OnUnfocus") && !isOnUnload) {
         mDocHandler.getCurrentDocument();
-      } else if(event.EventName.equals("OnSave") && config.saveLoCache()) {
+      } else if(event.EventName.equals("OnSave") && config.renewCache() != RenewCache.ALWAYS) {
           //  save cache before document is saved (xComponent may be null after saving)
         try {
           if (cacheIO != null && xComponent != null) {
@@ -2396,7 +2397,8 @@ public class WtSingleDocument {
         } catch (Throwable t) {
           WtMessageHandler.printException(t);;
         }
-      } else if(event.EventName.equals("OnSaveAs") && config.saveLoCache()) {
+      } else if(event.EventName.equals("OnSaveAs") && config.renewCache() != RenewCache.ALWAYS) {
+          //  save cache before document is saved (xComponent may be null after saving)
         try {
           if (cacheIO != null && xComponent != null) {
             cacheIO.setDocumentPath(xComponent);

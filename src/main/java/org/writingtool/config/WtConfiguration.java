@@ -57,6 +57,13 @@ import org.writingtool.tools.WtVersionInfo;
  */
 public class WtConfiguration {
   
+  public enum RenewCache {
+    ALWAYS,       //  Cache is always renewed (isn't saved)
+    NEVER,        //  Cache is never renewed (no changes to rule settings or WT versions will renew the cache)
+    NEW_VERSION,  //  Cache is renewed for new WT Versions (changes to rule settings will renew the cache, all snapshots are handled as one version)
+    NEW_SNAPSHOT  //  Cache is renewed for new WT Versions and SNAPSHOTS (changes to rule settings will renew the cache)
+  }
+
   public final static short UNDERLINE_WAVE = 10;
   public final static short UNDERLINE_BOLDWAVE = 18;
   public final static short UNDERLINE_BOLD = 12;
@@ -75,7 +82,8 @@ public class WtConfiguration {
   static final int DEFAULT_THEME_SELECTION = WtGeneralTools.THEME_FLATLIGHT;
   static final int DEFAULT_AI_SHOW_STYLISTIC_CHANGES = 0;
 
-  static final boolean DEFAULT_SAVE_LO_CACHE = true;
+  static final RenewCache DEFAULT_RENEW_CACHE = RenewCache.NEW_VERSION;
+
   static final boolean DEFAULT_SAVE_BUTTON_STATE = true;
   static final boolean DEFAULT_DO_RESET = false;
   static final boolean DEFAULT_MULTI_THREAD = false;
@@ -93,6 +101,7 @@ public class WtConfiguration {
   static final boolean DEFAULT_ENABLE_TMP_OFF_RULES = false;
   static final boolean DEFAULT_ENABLE_GOAL_SPECIFIC_RULES = false;
   static final boolean DEFAULT_FILTER_OVERLAPPING_MATCHES = true;
+  static final boolean DEFAULT_CHICAGO_STYLE_ELLIPSES = false;
   static final boolean DEFAULT_USE_AI_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_IMG_SUPPORT = false;
   static final boolean DEFAULT_USE_AI_TTS_SUPPORT = false;
@@ -175,7 +184,8 @@ public class WtConfiguration {
   private static final String ENABLE_TMP_OFF_RULES_KEY = "enableTmpOffRules";
   private static final String ENABLE_GOAL_SPECIFIC_RULES_KEY = "enableGoalSpecificRules";
   private static final String FILTER_OVERLAPPING_MATCHES_KEY = "filterOverlappingMatches";
-  private static final String SAVE_LO_CACHE_KEY = "saveLoCache";
+  private static final String CHICAGO_STYLE_ELLIPSES_KEY = "acceptChicagoStyleEllipses";
+  private static final String RENEW_CACHE_KEY = "renewCache";
   private static final String SAVE_BUTTON_STATE_KEY = "saveButtonState";
   private static final String LT_VERSION_KEY = "ltVersion";
   private static final String AI_URL_KEY = "aiUrl";
@@ -269,8 +279,9 @@ public class WtConfiguration {
   private boolean enableTmpOffRules = DEFAULT_ENABLE_TMP_OFF_RULES;
   private boolean enableGoalSpecificRules = DEFAULT_ENABLE_GOAL_SPECIFIC_RULES;
   private boolean filterOverlappingMatches = DEFAULT_FILTER_OVERLAPPING_MATCHES;
-  private boolean saveLoCache = DEFAULT_SAVE_LO_CACHE;
+  private boolean acceptChicagoStyleEllipses = DEFAULT_CHICAGO_STYLE_ELLIPSES;
   private boolean saveButtonState = DEFAULT_SAVE_BUTTON_STATE;
+  private RenewCache renewCache = DEFAULT_RENEW_CACHE;
   private String externalRuleDirectory;
   private String lookAndFeelName;
   private String currentProfile = null;
@@ -383,7 +394,8 @@ public class WtConfiguration {
     enableTmpOffRules = DEFAULT_ENABLE_TMP_OFF_RULES;
     enableGoalSpecificRules = DEFAULT_ENABLE_GOAL_SPECIFIC_RULES;
     filterOverlappingMatches = DEFAULT_FILTER_OVERLAPPING_MATCHES;
-    saveLoCache = DEFAULT_SAVE_LO_CACHE;
+    acceptChicagoStyleEllipses = DEFAULT_CHICAGO_STYLE_ELLIPSES;
+    renewCache = DEFAULT_RENEW_CACHE;
     saveButtonState = DEFAULT_SAVE_BUTTON_STATE;
     aiUrl = DEFAULT_AI_URL;
     aiApiKey = DEFAULT_AI_APIKEY;
@@ -468,7 +480,8 @@ public class WtConfiguration {
     this.enableTmpOffRules = configuration.enableTmpOffRules;
     this.enableGoalSpecificRules = configuration.enableGoalSpecificRules;
     this.filterOverlappingMatches = configuration.filterOverlappingMatches;
-    this.saveLoCache = configuration.saveLoCache;
+    this.acceptChicagoStyleEllipses = configuration.acceptChicagoStyleEllipses;
+    this.renewCache = configuration.renewCache;
     this.saveButtonState = configuration.saveButtonState;
     this.otherServerUrl = configuration.otherServerUrl;
     this.remoteUsername = configuration.remoteUsername;
@@ -895,12 +908,20 @@ public class WtConfiguration {
     return filterOverlappingMatches;
   }
   
-  public void setSaveLoCache(boolean saveLoCache) {
-    this.saveLoCache = saveLoCache;
+  public void setAcceptChicagoStyleEllipses(boolean acceptChicagoStyleEllipses) {
+    this.acceptChicagoStyleEllipses = acceptChicagoStyleEllipses;
   }
 
-  public boolean saveLoCache() {
-    return saveLoCache;
+  public boolean acceptChicagoStyleEllipses() {
+    return acceptChicagoStyleEllipses;
+  }
+  
+  public void setRenewCache(RenewCache renewCache) {
+    this.renewCache = renewCache;
+  }
+
+  public RenewCache renewCache() {
+    return renewCache;
   }
   
   public void setSaveButtonState(boolean saveButtonState) {
@@ -1635,9 +1656,9 @@ public class WtConfiguration {
 
       logLevel = (String) props.get(LOG_LEVEL_KEY);
       
-      String saveLoCacheString = (String) props.get(SAVE_LO_CACHE_KEY);
-      if (saveLoCacheString != null) {
-        saveLoCache = Boolean.parseBoolean(saveLoCacheString);
+      String renewCacheString = (String) props.get(RENEW_CACHE_KEY);
+      if (renewCacheString != null) {
+        renewCache = RenewCache.valueOf(renewCacheString);
       }
       
       String saveButtonStateString = (String) props.get(SAVE_BUTTON_STATE_KEY);
@@ -1844,6 +1865,11 @@ public class WtConfiguration {
     String filterOverlappingMatchesString = (String) props.get(prefix + FILTER_OVERLAPPING_MATCHES_KEY);
     if (filterOverlappingMatchesString != null) {
       filterOverlappingMatches = Boolean.parseBoolean(filterOverlappingMatchesString);
+    }
+    
+    String acceptChicagoStyleEllipsisString = (String) props.get(prefix + CHICAGO_STYLE_ELLIPSES_KEY);
+    if (acceptChicagoStyleEllipsisString != null) {
+      acceptChicagoStyleEllipses = Boolean.parseBoolean(acceptChicagoStyleEllipsisString);
     }
     
     String aiString = (String) props.get(prefix + AI_URL_KEY);
@@ -2080,8 +2106,8 @@ public class WtConfiguration {
       props.setProperty(DEFINED_PROFILES_KEY, String.join(DELIMITER, definedProfiles));
     }
     
-    if (saveLoCache != DEFAULT_SAVE_LO_CACHE) {
-      props.setProperty(SAVE_LO_CACHE_KEY, Boolean.toString(saveLoCache));
+    if (renewCache != DEFAULT_RENEW_CACHE) {
+      props.setProperty(RENEW_CACHE_KEY, renewCache.name());
     }
     if (saveButtonState != DEFAULT_SAVE_BUTTON_STATE) {
       props.setProperty(SAVE_BUTTON_STATE_KEY, Boolean.toString(saveButtonState));
@@ -2187,6 +2213,7 @@ public class WtConfiguration {
     allProfileKeys.add(ENABLE_TMP_OFF_RULES_KEY);
     allProfileKeys.add(ENABLE_GOAL_SPECIFIC_RULES_KEY);
     allProfileKeys.add(FILTER_OVERLAPPING_MATCHES_KEY);
+    allProfileKeys.add(CHICAGO_STYLE_ELLIPSES_KEY);
     allProfileKeys.add(AI_URL_KEY);
     allProfileKeys.add(AI_APIKEY_KEY);
     allProfileKeys.add(AI_MODEL_KEY);
@@ -2329,6 +2356,9 @@ public class WtConfiguration {
     }
     if (filterOverlappingMatches != DEFAULT_FILTER_OVERLAPPING_MATCHES) {
       props.setProperty(prefix + FILTER_OVERLAPPING_MATCHES_KEY, Boolean.toString(filterOverlappingMatches));
+    }
+    if (acceptChicagoStyleEllipses != DEFAULT_CHICAGO_STYLE_ELLIPSES) {
+      props.setProperty(prefix + CHICAGO_STYLE_ELLIPSES_KEY, Boolean.toString(acceptChicagoStyleEllipses));
     }
     if (switchOff) {
       props.setProperty(prefix + LT_SWITCHED_OFF_KEY, Boolean.toString(switchOff));
