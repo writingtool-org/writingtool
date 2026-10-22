@@ -1148,6 +1148,19 @@ public class WtDocumentsHandler {
   }
 
   /**
+   *  Set configuration Values for all documents
+   */
+  public void setConfigValues(WtConfiguration config) throws Throwable {
+    WtDocumentsHandler.config = config;
+    for (WtSingleDocument document : documents) {
+      if (!document.isDisposed()) {
+        document.setConfigValues(config);
+        document.remarkAllParagraphs();
+      }
+    }
+  }
+
+  /**
    * Get language from locale
    */
   public static Language getLanguage(Locale locale) {

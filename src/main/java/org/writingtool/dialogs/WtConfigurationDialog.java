@@ -1400,6 +1400,17 @@ public class WtConfigurationDialog implements ActionListener {
     cons.gridy++;
     portPanel.add(noCheckGrammarDirectSpeechBox, cons);
     cons.insets = new Insets(0, SHIFT1, 0, 0);
+    
+    JCheckBox acceptChicagoStyleEllipsesBox = new JCheckBox(WtGeneralTools.getLabel(messages.getString("optionDialogAcceptChicagoStyleEllipses")));
+    acceptChicagoStyleEllipsesBox.setSelected(config.acceptChicagoStyleEllipses());
+    acceptChicagoStyleEllipsesBox.addItemListener(e -> {
+      config.setAcceptChicagoStyleEllipses(acceptChicagoStyleEllipsesBox.isSelected());
+      WtMessageHandler.printToLogFile("Accept Chicago Style Ellipses: " + acceptChicagoStyleEllipsesBox.isSelected());
+    });
+    cons.gridy++;
+    portPanel.add(acceptChicagoStyleEllipsesBox, cons);
+
+
   }
   
   private int showRemoteServerHint(Component component, boolean otherServer) throws Throwable {

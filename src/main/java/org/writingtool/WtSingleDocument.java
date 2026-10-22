@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.languagetool.Language;
 import org.writingtool.WtCacheIO.SpellCache;
@@ -94,6 +96,8 @@ public class WtSingleDocument {
    * singleParaCache: used for one paragraph check by default or for special paragraphs like headers, footers, footnotes, etc.
    *  
    */
+  
+  private static final Pattern CHICAGO_STYLE_PATTERN = Pattern.compile("\\.[ \\u00A0\\u202F]\\.[ \\u00A0\\u202F]\\.");
   
   private static int debugMode;                   //  should be 0 except for testing; 1 = low level; 2 = advanced level
   private static boolean debugModeTm;             // time measurement should be false except for testing
@@ -1823,9 +1827,47 @@ public class WtSingleDocument {
   }
   
   /**
+   * Filter Chicago-Style matches (if acceptChicagoStyleEllipses is true)
+   */
+  private WtProofreadingError[] filterChicagoStyleMatches (WtProofreadingError[] unFilteredErrors, int nPara) throws Throwable {
+    if (!config.acceptChicagoStyleEllipses() || nPara < 0 || nPara >= docCache.size() || unFilteredErrors == null || unFilteredErrors.length < 2) {
+      return unFilteredErrors;
+    }
+    String text = docCache.getFlatParagraph(nPara);
+    List<Integer> ellipsisPositions = new ArrayList<>();
+    Matcher matcher = CHICAGO_STYLE_PATTERN.matcher(text);
+    while (matcher.find()) {
+      ellipsisPositions.add(matcher.start());
+    }
+    if (ellipsisPositions.isEmpty()) {
+      return unFilteredErrors;
+    }
+    List<WtProofreadingError> filteredErrors = new ArrayList<>();
+    for (WtProofreadingError error : unFilteredErrors) {
+      boolean filter = false;
+      for (int ellipsisPosition : ellipsisPositions) {
+        int errEnd = error.nErrorStart + error.nErrorLength;
+        if (errEnd > ellipsisPosition && errEnd <= ellipsisPosition + 5) {
+          filter = true;
+          break;
+        }
+      }
+      if (!filter) {
+        filteredErrors.add(error);
+      }
+    }
+    if (debugMode > 2) {
+      WtMessageHandler.printToLogFile("SingleCheck: filterChicagoStyleMatches: unFilteredErrors.length: " + unFilteredErrors.length);
+      WtMessageHandler.printToLogFile("SingleCheck: filterChicagoStyleMatches: filteredErrors.length: " + filteredErrors.size());
+    }
+    return filteredErrors.toArray(new WtProofreadingError[0]);
+  }
+
+  /**
    * Filter ignored errors (from ignore once and spell errors)
    */
   private WtProofreadingError[] filterIgnoredMatches (WtProofreadingError[] unFilteredErrors, int nPara) throws Throwable {
+    unFilteredErrors = filterChicagoStyleMatches(unFilteredErrors, nPara);
     if ((!ignoredMatches.isEmpty() && ignoredMatches.containsParagraph(nPara)) || 
         (!permanentIgnoredMatches.isEmpty() && permanentIgnoredMatches.containsParagraph(nPara))){
       WtProofreadingError lastFilteredError = null;

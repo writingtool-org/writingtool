@@ -107,6 +107,7 @@ public class WtConfigThread extends Thread {
         if (changedOptions.aiSettingsChanged) {
           documents.resetAiCheckConfiguration();
         }
+        documents.setConfigValues(config);
       } else {
         config.removeDisabledRuleIds(WtDocumentsHandler.getDisabledRules(docLanguage.getShortCodeWithCountryAndVariant()));
       }
