@@ -2118,12 +2118,14 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       return;
     }
+    setAtWorkState(false);
+    setButtonState(true);
+    mainPanel.setSelectedComponent(mainImagePanel);
     String parsedText = text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
     parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, orgText);
     imgInstruction.setText(parsedText);
     exclude.setText("");
     createImage();
-    mainPanel.setSelectedComponent(mainImagePanel);
   }
 
   private void writeToParagraph(boolean override) throws Throwable {
