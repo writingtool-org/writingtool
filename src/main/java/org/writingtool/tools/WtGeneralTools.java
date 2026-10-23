@@ -188,15 +188,24 @@ public final class WtGeneralTools {
    * @return Mnemonic of the UI element, or {@code \u0000} in case of no mnemonic set.
    */
   public static char getMnemonic(String label) throws Throwable {
-    int mnemonicPos = label.indexOf('&');
-    while (mnemonicPos != -1 && mnemonicPos == label.indexOf("&&")
-            && mnemonicPos < label.length()) {
-      mnemonicPos = label.indexOf('&', mnemonicPos + 2);
-    }
-    if (mnemonicPos == -1 || mnemonicPos == label.length()) {
+    if (label == null) {
       return '\u0000';
     }
-    return label.charAt(mnemonicPos + 1);
+    int i = 0;
+    while (i < label.length()) {
+      if (label.charAt(i) == '&') {
+        if (i + 1 >= label.length()) {
+          return '\u0000';                // single '&' at end: no Mnemonic
+        }
+        if (label.charAt(i + 1) == '&') {
+          i += 2;                         // '&&' is a literals '&'
+          continue;
+        }
+        return label.charAt(i + 1);       // '&x' -> Mnemonic 'x'
+      }
+      i++;
+    }
+    return '\u0000';
   }
 
   /**

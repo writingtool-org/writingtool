@@ -454,10 +454,14 @@ public class WtCacheIO implements Serializable {
   void printCacheInfo() throws Throwable {
     WtMessageHandler.printToLogFile("CacheIO: read/save caches:");
     WtMessageHandler.printToLogFile("Document Cache: Number of paragraphs: " + allCaches.docCache.size());
-    WtMessageHandler.printToLogFile("Paragraph Cache(0): Number of paragraphs: " + allCaches.paragraphsCache.get(0).getNumberOfParas() 
+    if (allCaches.paragraphsCache.size() > 0 && allCaches.paragraphsCache.get(0) != null) {
+      WtMessageHandler.printToLogFile("Paragraph Cache(0): Number of paragraphs: " + allCaches.paragraphsCache.get(0).getNumberOfParas() 
         + ", Number of matches: " + allCaches.paragraphsCache.get(0).getNumberOfMatches());
-    WtMessageHandler.printToLogFile("Paragraph Cache(1): Number of paragraphs: " + allCaches.paragraphsCache.get(1).getNumberOfParas() 
+    }
+    if (allCaches.paragraphsCache.size() > 1 && allCaches.paragraphsCache.get(1) != null) {
+      WtMessageHandler.printToLogFile("Paragraph Cache(1): Number of paragraphs: " + allCaches.paragraphsCache.get(1).getNumberOfParas() 
         + ", Number of matches: " + allCaches.paragraphsCache.get(1).getNumberOfMatches());
+    }
     for (int n = 0; n < allCaches.docCache.size(); n++) {
       WtMessageHandler.printToLogFile("allCaches.docCache.getFlatParagraphLocale(" + n + "): " 
             + (allCaches.docCache.getFlatParagraphLocale(n) == null ? "null" : WtOfficeTools.localeToString(allCaches.docCache.getFlatParagraphLocale(n))));

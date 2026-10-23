@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class WtAiRemote {
   private final static int CONNECT_TIMEOUT = 3000;
   private final static int READ_TIMEOUT = 0;
   private final static int SLEEP_TIME = 100; // thousandth of a second
-  private final static int WAIT_TIMEOUT = 1000; //  Hundredth of a second
+  private final static int MAX_TIMEOUT = 1200; // 120 seconds
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
@@ -88,9 +89,11 @@ public class WtAiRemote {
   public static enum AiCategory { Text, Image, Speech };
   public static enum AiCommand { CorrectGrammar, ImproveStyle, ReformulateText, ExpandText, SynonymsOfWord, GeneralAi };
   
+  // Queue of the pending AI requests: QUEUE_LOCK guards entries, isRunning and lastOid
+  private static final Object QUEUE_LOCK = new Object();
   private static boolean isRunning = false;
-  private static Map<Integer, List<String>> results = new HashMap<>();
-  private static List<AiEntry> entries = new ArrayList<>();
+  private static final Map<Integer, List<String>> results = Collections.synchronizedMap(new HashMap<>());
+  private static final List<AiEntry> entries = new ArrayList<>();
   private static int lastOid = 0;
   private static boolean hasPrintedInfo = false;
 
@@ -116,7 +119,7 @@ public class WtAiRemote {
   private final boolean testMode;
   
   private List<String> outText;
-  private boolean isDone;
+  private volatile boolean isDone;
   
   private int oId = 0;
   
@@ -156,11 +159,13 @@ public class WtAiRemote {
   }
   
   private int getId() {
-    if (lastOid == MAX_OID) {
-      lastOid = 0;
+    synchronized (QUEUE_LOCK) {
+      if (lastOid == MAX_OID) {
+        lastOid = 0;
+      }
+      lastOid++;
+      return lastOid;
     }
-    lastOid++;
-    return lastOid;
   }
 
   public String runInstruction(String instruction, String text, float temperature, 
@@ -186,25 +191,40 @@ public class WtAiRemote {
   public List<String> runInstructionGeneral(AiCategory category, String instruction, String text, String exclude, List<String> filenames, 
       float temperature, int seed, int step, int num, int height, int width, 
       Locale locale, boolean onlyOneParagraph, boolean preferred) throws Throwable {
+    if (debugMode > 1) {
+      WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: " + category.name() 
+          + ", instruction: " + instruction + ", text: " + text + ", exclude: " + exclude
+          + ", filenames: " + filenames + ", temperature: " + temperature + ", seed: " + seed
+          + ", step: " + step + ", num: " + num + ", height: " + height + ", width: " + width
+          + ", locale: " + locale);
+    }
+
     if (oId > 0) {
       throw new RuntimeException("Duplicate OID in WtAiRemote");
     }
     oId = getId();
     AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filenames, temperature, seed, 
         step, num, height, width, locale, onlyOneParagraph);
-    if (preferred) {
-      entries.add(0, entry);
-    } else {
-      entries.add(entry);
+    synchronized (QUEUE_LOCK) {
+      if (preferred) {
+        entries.add(0, entry);
+      } else {
+        entries.add(entry);
+      }
     }
     wakeRunAiEntries();
     try {
-      while (!results.containsKey(oId)) {
+      int n = 0;
+      while (!results.containsKey(oId) && n < MAX_TIMEOUT) {
+        WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: Waiting for result of OID: " + oId);
         try {
           Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {
           WtMessageHandler.printException(e);
         }
+        n++;
+        // restart the worker if it has ended unexpectedly, otherwise this entry would never be processed
+        wakeRunAiEntries();
       }
       List<String> result = results.get(oId);
       results.remove(oId);
@@ -838,6 +858,9 @@ public class WtAiRemote {
         WtMessageHandler.showMessage(error, parent);
         return null;
       }
+      if (choices == null || choices.length() == 0) {
+        return null;
+      }
       String content;
       JSONObject choice = choices.getJSONObject(0);
       if (aiType == AiType.CHAT) {
@@ -886,14 +909,14 @@ public class WtAiRemote {
   }
   
   private String parseJasonOutputOllama(List<String> textList) throws Throwable {
-    if (debugMode > 2) {
-      WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + textList.get(0));
-    }
     if (textList == null) {
       return null;
     }
     if (textList.isEmpty()) {
       return "";
+    }
+    if (debugMode > 2) {
+      WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + textList.get(0));
     }
     String tmp = textList.get(0).trim();
     if (tmp.isEmpty() || !tmp.endsWith("}") || !tmp.startsWith("{")) {
@@ -923,7 +946,7 @@ public class WtAiRemote {
         content = jsonObject.getString("response");
       }
       if (debugMode > 2) {
-        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: text: " + textList.get(i));
+        WtMessageHandler.printToLogFile("AiRemote: parseJasonOutputOllama: text: " + textList.get(i));
       }
       done = jsonObject.getBoolean("done");
       sb.append(content);
@@ -951,7 +974,7 @@ public class WtAiRemote {
         String url = choice.getString("url");
         out.add(url);
         if (debugMode > 1) {
-          WtMessageHandler.printToLogFile("AiRemote: parseJasonOutput: url: " + url);
+          WtMessageHandler.printToLogFile("AiRemote: parseJasonImgOutput: url: " + url);
        }
       }
 //      JSONObject choice = data.getJSONObject(0);
@@ -1060,14 +1083,7 @@ public class WtAiRemote {
       }
     });
     t.start();
-    int n = 0;
-    while (!isDone && n < WAIT_TIMEOUT) {
-      try {
-        Thread.sleep(SLEEP_TIME);
-      } catch (InterruptedException e) {
-        WtMessageHandler.printException(e);
-      }
-    }
+    waitForThread(t);
     return outText;
   }
   
@@ -1086,14 +1102,7 @@ public class WtAiRemote {
       }
     });
     t.start();
-    int n = 0;
-    while (!isDone && n < WAIT_TIMEOUT) {
-      try {
-        Thread.sleep(SLEEP_TIME);
-      } catch (InterruptedException e) {
-        WtMessageHandler.printException(e);
-      }
-    }
+    waitForThread(t);
     return outText;
   }
   
@@ -1111,43 +1120,79 @@ public class WtAiRemote {
       }
     });
     t.start();
-    int n = 0;
-    while (!isDone && n < WAIT_TIMEOUT) {
+    waitForThread(t);
+    return outText;
+  }
+  
+  /**
+   * Wait until the thread has delivered its result or has ended (e.g. by an exception).
+   * There is deliberately no fixed time limit: local AI models may need minutes for a request.
+   */
+  private void waitForThread(Thread t) {
+    while (!isDone && t.isAlive()) {
       try {
         Thread.sleep(SLEEP_TIME);
       } catch (InterruptedException e) {
         WtMessageHandler.printException(e);
       }
     }
-    return outText;
   }
-  
+
+  /**
+   * Start the worker if it is not running and there is something to do
+   * isRunning is set before the thread is started, so there is never more than one worker
+   */
   private void wakeRunAiEntries() {
-    if (!isRunning) {
-      runAiEntries();
+    synchronized (QUEUE_LOCK) {
+      if (isRunning || entries.isEmpty()) {
+        return;
+      }
+      isRunning = true;
+    }
+    runAiEntries();
+  }
+
+  /**
+   * Get the next entry of the queue; returns null if the queue is empty
+   * The reset of isRunning is done in the same critical section as the test for an empty queue,
+   * so an entry added in the meantime always finds a worker or starts a new one
+   */
+  private AiEntry nextEntry() {
+    synchronized (QUEUE_LOCK) {
+      if (entries.isEmpty()) {
+        isRunning = false;
+        return null;
+      }
+      return entries.remove(0);
     }
   }
-  
+
   private void runAiEntries() {
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          isRunning = true;
-          while (entries.size() > 0) {
-            AiEntry entry = entries.get(0);
-            entries.remove(0);
+          AiEntry entry;
+          while ((entry = nextEntry()) != null) {
             List<String> result = null;
-            if (entry.category == AiCategory.Text && config.useAiSupport()) {
-              result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
-            } else if (entry.category == AiCategory.Image && config.useAiImgSupport()) {
-              result = runInstructionImage(entry.instruction, entry.exclude, entry.filenames, entry.step, entry.seed, entry.num, entry.height, entry.width);
-            } else if (entry.category == AiCategory.Speech && config.useAiTtsSupport()) {
-              result = runInstructionTTS(entry.text, entry.filenames.get(0));
+            try {
+              if (entry.category == AiCategory.Text && config.useAiSupport()) {
+                result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
+              } else if (entry.category == AiCategory.Image && config.useAiImgSupport()) {
+                result = runInstructionImage(entry.instruction, entry.exclude, entry.filenames, entry.step, entry.seed, entry.num, entry.height, entry.width);
+              } else if (entry.category == AiCategory.Speech && config.useAiTtsSupport()) {
+                result = runInstructionTTS(entry.text, entry.filenames.get(0));
+              }
+            } catch (Throwable e) {
+              WtMessageHandler.showError(e, parent);
+            } finally {
+              // always deliver a result (also null), otherwise the caller waits for it forever
+              results.put(entry.oId, result);
             }
-            results.put(entry.oId, result);
           }
-          isRunning = false;
         } catch (Throwable e) {
+          synchronized (QUEUE_LOCK) {
+            isRunning = false;
+          }
           WtMessageHandler.showError(e, parent);
         }
       }

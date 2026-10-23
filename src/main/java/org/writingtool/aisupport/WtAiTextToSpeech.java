@@ -125,8 +125,14 @@ public class WtAiTextToSpeech extends Thread {
         try {
           uri = new URI(url);
           sAudioDir = uri.getPath();
-          int nDir = sAudioDir.lastIndexOf(".");
-          sAudioDir = sAudioDir.substring(0, nDir) + "_audio";
+          if (sAudioDir != null) {
+            // cut the file extension - but only if there is one and the dot is part of the file name (not of a directory)
+            int nDot = sAudioDir.lastIndexOf('.');
+            if (nDot > sAudioDir.lastIndexOf('/')) {
+              sAudioDir = sAudioDir.substring(0, nDot);
+            }
+            sAudioDir += "_audio";
+          }
         } catch (URISyntaxException e) {
         }
       }

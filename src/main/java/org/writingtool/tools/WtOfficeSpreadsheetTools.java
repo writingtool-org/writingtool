@@ -100,7 +100,7 @@ public class WtOfficeSpreadsheetTools {
   }
   
   /**
-   * true if formula is a text
+   * true if s is not a text
    */
   private static boolean isNotTextFormat(String s) throws Throwable {
     s = s.trim();
@@ -109,7 +109,7 @@ public class WtOfficeSpreadsheetTools {
       if (ch0 == '=') {
         return true;
       }
-      if ((Character.isDigit(ch0) || (s.length() > 1 && s.charAt(1) == '-' && Character.isDigit(s.charAt(1)))) && !s.contains(" ")) {
+      if ((Character.isDigit(ch0) || (s.length() > 1 && ch0 == '-' && Character.isDigit(s.charAt(1)))) && !s.contains(" ")) {
         return true;
       }
     }

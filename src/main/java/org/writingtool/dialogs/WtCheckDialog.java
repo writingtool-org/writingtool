@@ -2344,6 +2344,14 @@ public void previousError() {
     }
     
     /**
+     * Character at the position or '\0' if the position is outside of the text
+     * (a text may end with a line break, which must not lead to an exception)
+     */
+    private char charAtOrNul(String text, int pos) {
+      return pos >= 0 && pos < text.length() ? text.charAt(pos) : '\0';
+    }
+
+    /**
      * Formats the tooltip text
      * The text is given by a text string which is formatted into html:
      * \n are formatted to html paragraph breaks
@@ -2358,16 +2366,16 @@ public void previousError() {
         breakIndex = toolTipText.indexOf("\n", breakIndex);
         if (breakIndex >= 0) {
           int nextNonBlank = breakIndex + 1;
-          while (' ' == toolTipText.charAt(nextNonBlank)) {
+          while (' ' == charAtOrNul(toolTipText, nextNonBlank)) {
             nextNonBlank++;
           }
           if (isNum == 0) {
-            if (toolTipText.charAt(nextNonBlank) == '-') {
+            if (charAtOrNul(toolTipText, nextNonBlank) == '-') {
               toolTipText = toolTipText.substring(0, breakIndex) + "</p><ul width=\"" 
                   + toolTipWidth + "\"><li>" + toolTipText.substring(nextNonBlank + 1);
               isNum = 1;
-            } else if (toolTipText.charAt(nextNonBlank) >= '1' && toolTipText.charAt(nextNonBlank) <= '9' 
-                            && toolTipText.charAt(nextNonBlank + 1) == '.') {
+            } else if (charAtOrNul(toolTipText, nextNonBlank) >= '1' && charAtOrNul(toolTipText, nextNonBlank) <= '9' 
+                            && charAtOrNul(toolTipText, nextNonBlank + 1) == '.') {
               toolTipText = toolTipText.substring(0, breakIndex) + "</p><ol width=\"" 
                   + toolTipWidth + "\"><li>" + toolTipText.substring(nextNonBlank + 2);
               isNum = 2;
@@ -2376,7 +2384,7 @@ public void previousError() {
                               + toolTipWidth + "\">" + toolTipText.substring(breakIndex + 1);
             }
           } else if (isNum == 1) {
-            if (toolTipText.charAt(nextNonBlank) == '-') {
+            if (charAtOrNul(toolTipText, nextNonBlank) == '-') {
               toolTipText = toolTipText.substring(0, breakIndex) + "</li><li>" + toolTipText.substring(nextNonBlank + 1);
             } else {
               toolTipText = toolTipText.substring(0, breakIndex) + "</li></ul><p width=\"" 
@@ -2384,8 +2392,8 @@ public void previousError() {
               isNum = 0;
             }
           } else {
-            if (toolTipText.charAt(nextNonBlank) >= '1' && toolTipText.charAt(nextNonBlank) <= '9' 
-                && toolTipText.charAt(nextNonBlank + 1) == '.') {
+            if (charAtOrNul(toolTipText, nextNonBlank) >= '1' && charAtOrNul(toolTipText, nextNonBlank) <= '9' 
+                && charAtOrNul(toolTipText, nextNonBlank + 1) == '.') {
               toolTipText = toolTipText.substring(0, breakIndex) + "</li><li>" + toolTipText.substring(nextNonBlank + 2);
             } else {
               toolTipText = toolTipText.substring(0, breakIndex) + "</li></ol><p width=\"" 

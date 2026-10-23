@@ -1874,6 +1874,8 @@ public class WtAiDialog extends Thread implements ActionListener {
           dialog.revalidate();
         }
         setImagesSize();
+      } else {
+        WtMessageHandler.showMessage("Image creation failed. No image returned from AI service");
       }
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
