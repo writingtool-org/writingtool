@@ -216,7 +216,9 @@ public class WtAiRemote {
     try {
       int n = 0;
       while (!results.containsKey(oId) && n < MAX_TIMEOUT) {
-        WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: Waiting for result of OID: " + oId);
+        if (debugMode > 2) {
+          WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: Waiting for result of OID: " + oId + ", n: " + n);
+        }
         try {
           Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {

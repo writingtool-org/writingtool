@@ -410,6 +410,10 @@ public class WtDocumentsHandler {
    *  Get the current used document
    */
   public WtSingleDocument getCurrentDocument() {
+    return getCurrentDocument(true);
+  }
+  
+  public WtSingleDocument getCurrentDocument(boolean printNotTextDoc) {
     try {
       long startTime = 0;
       if (debugModeTm) {
@@ -475,7 +479,9 @@ public class WtDocumentsHandler {
           }
           return newDocument;
         }
-        WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCurrentDocument: Is document, but not a text document!");
+        if (printNotTextDoc) {
+          WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCurrentDocument: Is document, but not a text document!");
+        }
         isNotTextDocument = true;
       }
     } catch (Throwable t) {
@@ -3059,7 +3065,7 @@ public class WtDocumentsHandler {
           }
           boolean isUnknownDocument = docStat == DocumentStatus.UNKNOWN ? true : false;
           if ((isFirstRun || isUnknownDocument)) {
-            currentDocument = getCurrentDocument();
+            currentDocument = getCurrentDocument(false);
           }
           if (currentDocument != null) {
             if (isFirstRun) {
