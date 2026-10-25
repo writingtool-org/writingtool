@@ -105,10 +105,19 @@ public class WtErrorMenu {
   private Point getCaretPosition(XComponent xComponent) {
     try {
       XVclWindowPeer xPeer = WtOfficeTools.getVclWindowPeer(xComponent);
+      if (xPeer == null) {
+        return null;
+      }
       // Get Accessible-Root of Window
       XAccessible xRootAcc = UnoRuntime.queryInterface(XAccessible.class, xPeer.getProperty("XAccessible"));
+      if (xRootAcc == null) {
+        return null;
+      }
       // Get AccessibleContext of Window
       XAccessibleContext xRootCtx = xRootAcc.getAccessibleContext();
+      if (xRootCtx == null) {
+        return null;
+      }
       // Find Text-Document-Pane and localize the Cursor-Caret
       XAccessibleText xAccText = findAccessibleText(xRootCtx);
       if (xAccText != null) {
@@ -137,6 +146,11 @@ public class WtErrorMenu {
 
   public void openPopupMenu(int nFPara, XComponent xComponent, WtProofreadingError error) {
     try {
+      com.sun.star.awt.Point screenPos = getCaretPosition(xComponent);
+      if (screenPos == null) {
+        WtMessageHandler.printToLogFile("WtErrorMenu: openPopupMenu: screenPos is null");
+        return;
+      }
       XPopupMenu xPopup = WtOfficeTools.getPopupMenu(xContext);
       // insert menu items
       short menuId = 1;
@@ -188,7 +202,6 @@ public class WtErrorMenu {
       });
 
       XVclWindowPeer xPeer = WtOfficeTools.getVclWindowPeer(xComponent);
-      com.sun.star.awt.Point screenPos = getCaretPosition(xComponent);
 //      WtMessageHandler.printToLogFile("Popup will be executed");
       xPopup.execute(xPeer, new Rectangle(screenPos.X, screenPos.Y, 0, 0), (short) 0);
     } catch (Throwable t) {
