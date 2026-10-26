@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -172,8 +173,10 @@ public class WtSingleDocument {
     xComponent = xComp;
     mDocHandler = mDH;
     fixedLanguage = config == null ? null : config.getDefaultLanguage();
-    changedParas = new HashMap<Integer, String>();
-    runningParas = new HashSet<>();
+    // accessed by the LO proofreading thread, the text level queue and the dialog threads
+    // (synchronizedMap, not ConcurrentHashMap: the map may contain null values)
+    changedParas = Collections.synchronizedMap(new HashMap<Integer, String>());
+    runningParas = ConcurrentHashMap.newKeySet();
     List<WtResultCache> paraCache = new ArrayList<>();
     for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
       paraCache.add(new WtResultCache());
@@ -1141,7 +1144,10 @@ public class WtSingleDocument {
   public QueueEntry getQueueEntryForChangedParagraph() {
     try {
       if (!disposed && docCache != null && flatPara != null && !changedParas.isEmpty()) {
-        Set<Integer> nParas = new HashSet<Integer>(changedParas.keySet());
+        Set<Integer> nParas;
+        synchronized (changedParas) {   // iterating a synchronizedMap view needs an explicit lock
+          nParas = new HashSet<Integer>(changedParas.keySet());
+        }
         if (!nParas.isEmpty()) {
           try {
             Thread.sleep(50);
