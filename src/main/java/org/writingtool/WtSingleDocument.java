@@ -1526,6 +1526,11 @@ public class WtSingleDocument {
     }
   }
   
+  private int paraLength(int n) {
+    String p = docCache.getFlatParagraph(n);
+    return p == null ? 0 : p.length();
+  }
+
   /**
    * add all matches in a paragraph to ignore permanent 
    * remove the marks
@@ -1537,46 +1542,40 @@ public class WtSingleDocument {
     }
     WtViewCursorTools viewCursor = new WtViewCursorTools(xComponent);
     XTextCursor tCursor = viewCursor.getTextCursorBeginn();
-    if (tCursor != null) {
-      tCursor.gotoStart(true);
-      int nBegin = tCursor.getString().length();
-      tCursor = viewCursor.getTextCursorEnd();
-      tCursor.gotoStart(true);
-      int rangeLen = tCursor.getString().length() - nBegin;
-      int fromX = -1;
-      int toX = -1;
-      if (rangeLen > 0) {
-        fromX = viewCursor.getViewCursorCharacter();
-        int fromY = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
-        int y = fromY + 1;
-        int len;
-        for (len = docCache.getFlatParagraph(y - 1).length() - fromX; len < rangeLen; y++) {
-          if (debugMode > 1) {
-            WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: y = " + y + ", len = " + len + ", rangeLen = " + rangeLen);
-          }
-          len += docCache.getFlatParagraph(y).length();
-        }
-        y--;
-        len -= docCache.getFlatParagraph(y).length();
-        int toY = y;
-        toX = rangeLen - len;
-        if (debugMode > 1) {
-          WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: fromY = " + fromY + ", toY = " + toY);
-          WtMessageHandler.printToLogFile("SingleDocument: permanentresetIgnoreParagraph: fromX = " + fromX + ", toX= " + toX);
-        }
-        if (fromY == toY) {
-          setPermanentIgnoredMatches(fromX, toX, fromY);
-        } else {
-          setPermanentIgnoredMatches(fromX, docCache.getFlatParagraph(fromY).length(), fromY);
-          for (y = fromY + 1; y < toY; y++) {
-            setPermanentIgnoredMatches(0, docCache.getFlatParagraph(y).length(), y);
-          }
-          setPermanentIgnoredMatches(0, toX, toY);
-        }
-      } else {
-        int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
-        setPermanentIgnoredMatches(0, docCache.getFlatParagraph(y).length(), y);
+    XTextCursor tCursorEnd = viewCursor.getTextCursorEnd();
+    if (tCursor == null || tCursorEnd == null) {
+      return;
+    }
+    tCursor.gotoStart(true);
+    int nBegin = tCursor.getString().length();
+    tCursorEnd.gotoStart(true);
+    int rangeLen = tCursorEnd.getString().length() - nBegin;
+    int fromY = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
+    int nParas = docCache.size();
+    if (fromY < 0 || fromY >= nParas) {
+      return;
+    }
+    if (rangeLen > 0) {
+      int fromX = viewCursor.getViewCursorCharacter();
+      int y = fromY;
+      int len = paraLength(y) - fromX;
+      while (len < rangeLen && y < nParas - 1) {   // stops at the end of the document
+        y++;
+        len += paraLength(y);
       }
+      int toY = y;
+      int toX = Math.min(paraLength(toY), rangeLen - (len - paraLength(toY)));
+      if (fromY == toY) {
+        setPermanentIgnoredMatches(fromX, toX, fromY);
+      } else {
+        setPermanentIgnoredMatches(fromX, docCache.getFlatParagraph(fromY).length(), fromY);
+        for (y = fromY + 1; y < toY; y++) {
+          setPermanentIgnoredMatches(0, docCache.getFlatParagraph(y).length(), y);
+        }
+        setPermanentIgnoredMatches(0, toX, toY);
+      }
+    } else {
+      setPermanentIgnoredMatches(0, paraLength(fromY), fromY);
     }
   }
   
@@ -1586,6 +1585,9 @@ public class WtSingleDocument {
    */
   public void setPermanentIgnoredMatches(int fromX, int toX, int y) throws Throwable {
     WtProofreadingError[] errors = getAllParagraphErrorsFromCache(y);
+    if (errors == null || errors.length == 0) {
+      return;
+    }
     for (WtProofreadingError error : errors) {
       if (error.nErrorStart + error.nErrorLength > fromX && error.nErrorStart < toX) {
         permanentIgnoredMatches.setIgnoredMatch(error.nErrorStart, y, 0, error.aRuleIdentifier, null, getFlatParagraphTools());
