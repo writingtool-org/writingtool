@@ -66,7 +66,6 @@ public class WtStatAnCache {
   private final static int MAX_NAME_LENGTH = 80;
   private final static boolean debugMode = false;
   
-  private Map<Integer, List<AnalyzedSentence>> analyzedParagraphs;
   private String langCode;
   private List<Heading> headings = new ArrayList<>();
   private List<Paragraph> paragraphs = new ArrayList<>();
@@ -82,7 +81,6 @@ public class WtStatAnCache {
     try {
       this.document = document;
       docCache = document.getDocumentCache();
-      analyzedParagraphs = docCache.getAllAnalyzedParagraphs();
       langCode = document.getLanguage().getShortCode();
       config = conf;
       lt = document.getMultiDocumentsHandler().getLanguageTool();
@@ -154,14 +152,14 @@ public class WtStatAnCache {
 
   public List<AnalyzedSentence> getAnalysedParagraph(int n) throws Throwable {
     int nFPara = docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, n));
-    return analyzedParagraphs.get(nFPara);
+    return docCache.getAnalyzedParagraph(nFPara);
   }
 
   public List<List<AnalyzedSentence>> getAnalysedParagraphsfrom(int from, int to) throws Throwable {
     List<List<AnalyzedSentence>> tmpParagraphs = new ArrayList<>();
     for (int i = from; i < to; i++) {
       int nFPara = docCache.getFlatParagraphNumber(new TextParagraph(WtDocumentCache.CURSOR_TYPE_TEXT, i));
-      tmpParagraphs.add(analyzedParagraphs.get(nFPara));
+      tmpParagraphs.add(docCache.getAnalyzedParagraph(nFPara));
     }
     return tmpParagraphs;
   }

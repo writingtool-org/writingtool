@@ -93,7 +93,7 @@ public class WtDocumentCache implements Serializable {
   private final Map<Integer, int[]> fieldPositions = new HashMap<>();               // stores the field positions of the paragraphs (if not empty)
   private List<Integer> sortedTextIds = null;                                           // stores the node index of the paragraphs (since LO 7.5 / else null)
   private Map<Integer, Integer> headingMap;
-  private boolean isReset = false;
+  private volatile boolean isReset = false;   // volatile: polled by isFinished()/isResetRunning() in other threads
   private boolean isDirty = false;
   private int documentElementsCount = -1;
   private int nEndnote = 0;
@@ -180,11 +180,13 @@ public class WtDocumentCache implements Serializable {
    */
   public void refresh(WtSingleDocument document, Locale fixedLocale, Locale docLocale, XComponent xComponent, 
       boolean wait, boolean synchronize, int fromWhere) throws Throwable {
-    if (isReset) {
-      WtMessageHandler.printToLogFile("DocumentCache: refresh (from: " + fromWhere + "): isReset == true: return");
-      return;
+    synchronized (rwLock) {   // check and set have to be one atomic step (two threads must not refresh at the same time)
+      if (isReset) {
+        WtMessageHandler.printToLogFile("DocumentCache: refresh (from: " + fromWhere + "): isReset == true: return");
+        return;
+      }
+      isReset = true;
     }
-    isReset = true;
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("DocumentCache: refresh: Called from: " + fromWhere);
@@ -1187,12 +1189,17 @@ public class WtDocumentCache implements Serializable {
    * Set text level cache to no errors for single paragraph text
    */
   private void setSingleParagraphsCacheToNull(List<WtResultCache> paragraphsCache) throws Throwable {
-    for (int i = 0; i < paragraphs.size(); i++) {
-      if (isSingleParagraph_intern(i)) {
-        for (int n = 1; n < paragraphsCache.size(); n++) {
-          paragraphsCache.get(n).put(i, new WtProofreadingError[0]);
+    rwLock.readLock().lock();
+    try {
+      for (int i = 0; i < paragraphs.size(); i++) {
+        if (isSingleParagraph_intern(i)) {
+          for (int n = 1; n < paragraphsCache.size(); n++) {
+            paragraphsCache.get(n).put(i, new WtProofreadingError[0]);
+          }
         }
       }
+    } finally {
+      rwLock.readLock().unlock();
     }
   }
 
@@ -2224,6 +2231,7 @@ public class WtDocumentCache implements Serializable {
       XComponent xComponent, int fromWhere) throws Throwable {
     WtDocumentCache oldCache = new WtDocumentCache(this);
     refresh(document, fixedLocale, docLocale, xComponent, true, false, fromWhere);
+    ChangedRange range;
     rwLock.readLock().lock();
     try {
       if (paragraphs == null || paragraphs.isEmpty() || oldCache.paragraphs == null || oldCache.paragraphs.isEmpty()) {
@@ -2263,11 +2271,18 @@ public class WtDocumentCache implements Serializable {
       if (to < from) {
         to = from;
       }
-      this.removeAndShiftAnalyzedParagraph(from, to, oldCache.paragraphs.size(), paragraphs.size());
-      return new ChangedRange(from, to, oldCache.paragraphs.size(), paragraphs.size());
+      range = new ChangedRange(from, to, oldCache.paragraphs.size(), paragraphs.size());
     } finally {
       rwLock.readLock().unlock();
     }
+    // the analyzed paragraphs are changed: a read lock is not enough (a lock can not be upgraded: release it first)
+    rwLock.writeLock().lock();
+    try {
+      removeAndShiftAnalyzedParagraph(range.from, range.to, range.oldSize, range.newSize);
+    } finally {
+      rwLock.writeLock().unlock();
+    }
+    return range;
   }
   
   /**
@@ -2384,11 +2399,17 @@ public class WtDocumentCache implements Serializable {
    * Remove all analyzed paragraphs
    */
   public void clearAnalyzedParagraphs() {
-    analyzedParagraphs.clear();
+    rwLock.writeLock().lock();
+    try {
+      analyzedParagraphs.clear();
+    } finally {
+      rwLock.writeLock().unlock();
+    }
   }
   
   /**
    * Get all analyzed paragraphs
+   * NOTE: this is the internal map, it is not thread safe - use getAnalyzedParagraph(int) to read
    */
   public Map<Integer, List<AnalyzedSentence>> getAllAnalyzedParagraphs() {
     return analyzedParagraphs;
@@ -2456,6 +2477,7 @@ public class WtDocumentCache implements Serializable {
   
   /**
    * Remove and shift analyzed paragraphs by a range
+   * NOTE: has to be called with the write lock
    */
   private void removeAndShiftAnalyzedParagraph(int fromParagraph, int toParagraph, int oldSize, int newSize) throws Throwable {
     if (analyzedParagraphs == null || analyzedParagraphs.isEmpty()) {
