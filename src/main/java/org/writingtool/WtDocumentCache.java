@@ -131,7 +131,7 @@ public class WtDocumentCache implements Serializable {
         add(in);
       }
       docType = in.docType;
-      docLocale = getMostUsedLanguage(locales);
+      docLocale = in.docLocale != null ? in.docLocale : getMostUsedLanguage(locales);
     } finally {
       isReset = false;
       in.rwLock.readLock().unlock();
@@ -544,6 +544,9 @@ public class WtDocumentCache implements Serializable {
         tParaBeg = textPara.length() - 1;
       }
       for (int i = footnotes.length - 2; i >= 0; i--) {
+        if (tParaBeg < 0) {
+          return false;
+        }
         flatPara = flatPara.substring(0, footnotes[i + 1]);
         textPara = textPara.substring(0, tParaBeg);
         fPara = flatPara.substring(footnotes[i] + 1);
@@ -1085,17 +1088,20 @@ public class WtDocumentCache implements Serializable {
       WtMessageHandler.printToLogFile("DocumentCache: mapParagraphs: Number of Deleted Chars: " + deletedCharacters.size());
     }
     int notMapped = 0;
+    // node index -> text paragraph (first hit in the order of cursor types and paragraphs, as the linear search before)
+    Map<Integer, TextParagraph> nodeIndexToText = new HashMap<>();
+    for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
+      List<Integer> txtNdIndexes = textSortedTextIds.get(i);
+      for (int j = 0; j < txtNdIndexes.size(); j++) {
+        nodeIndexToText.putIfAbsent(txtNdIndexes.get(j), new TextParagraph(i, j));
+      }
+    }
     for (int n = 0; n < sortedTextIds.size(); n++) {
-      boolean found = false;
-      for (int i = 0; !found && i < NUMBER_CURSOR_TYPES; i++) {
-        List<Integer> txtNdIndexes = textSortedTextIds.get(i);
-        for (int j = 0; !found && j < txtNdIndexes.size(); j++) {
-          if (((int)txtNdIndexes.get(j)) == ((int)sortedTextIds.get(n))) {
-            found = true;
-            toParaMapping.get(i).set(j, n);
-            toTextMapping.add(new TextParagraph(i, j));
-          }
-        }
+      TextParagraph textPara = nodeIndexToText.get(sortedTextIds.get(n));
+      boolean found = textPara != null;
+      if (found) {
+        toParaMapping.get(textPara.type).set(textPara.number, n);
+        toTextMapping.add(new TextParagraph(textPara.type, textPara.number));
       }
       if (!found) {
         toTextMapping.add(new TextParagraph(CURSOR_TYPE_UNKNOWN, -1));
@@ -1323,8 +1329,8 @@ public class WtDocumentCache implements Serializable {
       if (n >= 0 && n < locales.size()) {
         SerialLocale locale = locales.get(n);
         if (!locale.Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL)) {
-          locale.Variant = WtOfficeTools.MULTILINGUAL_LABEL + locale.Variant;
-          locales.set(n, locale);
+          // NOTE: replace the locale - the object may be shared with a copy of the cache
+          locales.set(n, new SerialLocale(locale.Country, locale.Language, WtOfficeTools.MULTILINGUAL_LABEL + locale.Variant));
         }
       }
     } catch (Throwable t) {
@@ -1434,7 +1440,7 @@ public class WtDocumentCache implements Serializable {
     rwLock.readLock().lock();
     try {
       if (n >= 0 && n < toTextMapping.size()) {
-        if (alsoIgnore && locales.get(n).Language.equals(WtOfficeTools.IGNORE_LANGUAGE)) {
+        if (alsoIgnore && n < locales.size() && locales.get(n).Language.equals(WtOfficeTools.IGNORE_LANGUAGE)) {
           return true;
         }
         TextParagraph tPara = toTextMapping.get(n);
@@ -1521,6 +1527,9 @@ public class WtDocumentCache implements Serializable {
     footnotes.addAll(in.footnotes);
     fieldPositions.putAll(in.fieldPositions);
     toTextMapping.addAll(in.toTextMapping);
+    automaticParagraphs.addAll(in.automaticParagraphs);
+    openingQuotes.addAll(in.openingQuotes);
+    closingQuotes.addAll(in.closingQuotes);
     if (in.toParaMapping.size() < NUMBER_CURSOR_TYPES) {
       for (int i = 0; i < NUMBER_CURSOR_TYPES; i++) {
         toParaMapping.add(new ArrayList<Integer>());
@@ -1792,7 +1801,7 @@ public class WtDocumentCache implements Serializable {
   public boolean isEqual(int n, String text, Locale locale) throws Throwable {
     rwLock.readLock().lock();
     try {
-      return ((n < 0 || n >= locales.size() || locales.get(n) == null) ? false
+      return ((n < 0 || n >= locales.size() || n >= paragraphs.size() || locales.get(n) == null || text == null) ? false
         : ((isMultilingualFlatParagraphIntern(n) || locales.get(n).equalsLocale(locale)) && text.equals(paragraphs.get(n))));
     } finally {
       rwLock.readLock().unlock();
@@ -1805,7 +1814,7 @@ public class WtDocumentCache implements Serializable {
   public boolean isEqual(int n, String text, Locale locale, List<Integer> delChars) throws Throwable {
     rwLock.readLock().lock();
     try {
-      if (n < 0 || n >= locales.size() || locales.get(n) == null) {
+      if (n < 0 || n >= locales.size() || n >= paragraphs.size() || n >= deletedCharacters.size() || locales.get(n) == null || text == null) {
         return false;
       }
       if (!isMultilingualFlatParagraphIntern(n) && !locales.get(n).equalsLocale(locale)) {
@@ -2849,9 +2858,9 @@ public class WtDocumentCache implements Serializable {
      */
     public SerialLocale withoutLabel() {
       if (Variant.startsWith(WtOfficeTools.MULTILINGUAL_LABEL)) {
-        return new SerialLocale(Language, Country, Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length()));
+        return new SerialLocale(Country, Language, Variant.substring(WtOfficeTools.MULTILINGUAL_LABEL.length()));
       }
-      return new SerialLocale(Language, Country, Variant);
+      return new SerialLocale(Country, Language, Variant);
     }
 
     /**
