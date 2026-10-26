@@ -222,6 +222,7 @@ public class WtSingleDocument {
     
   public ProofreadingResult getCheckResults(String paraText, Locale locale, ProofreadingResult paRes, 
       PropertyValue[] propertyValues, boolean docReset, WtLanguageTool lt, int nPara, LoErrorType errType) {
+    Integer runningPara = null;   //  paragraph registered in runningParas by this call (null: nothing registered)
     try {
       boolean isIntern = (nPara >= 0);
       boolean isMouseRequest = false;
@@ -399,6 +400,11 @@ public class WtSingleDocument {
       if (debugMode > 1) {
         WtMessageHandler.printToLogFile("Single document: getCheckResults: paraNum = " + paraNum + ", nPara = " + nPara);
       }
+      if (requestAnalysis != null) {
+        //  the request analysis may have registered this paragraph as running (handleChangedPara)
+        //  it must also be released if the check is skipped below
+        runningPara = paraNum;
+      }
       if ((!isIntern && mDocHandler.isBackgroundCheckOff()) || docCache.isAutomaticGenerated(paraNum, true)) {
         if (ltMenus == null && !mDocHandler.isOpenOffice) {
           ltMenus = new WtMenus(xContext, this, config);
@@ -413,6 +419,7 @@ public class WtSingleDocument {
       }
       this.paraNum = paraNum;
       runningParas.add(paraNum);
+      runningPara = paraNum;
       isLastIntern = isIntern;
       boolean textIsChanged = false;
       if (!isIntern && requestAnalysis != null) {
@@ -481,7 +488,10 @@ public class WtSingleDocument {
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
     } finally {
-      runningParas.remove(paraNum);
+      //  NOTE: Don't use the field paraNum here: it is overwritten by other calls and is not changed by an early return
+      if (runningPara != null) {
+        runningParas.remove(runningPara);
+      }
     }
     return paRes;
   }
@@ -1201,11 +1211,15 @@ public class WtSingleDocument {
         docCursor = getDocumentCursorTools();
       }
       List<Integer> changedParas = docCache.getChangedUnsupportedParagraphs(docCursor, paragraphsCache.get(0));
-      if (changedParas != null) { 
+      if (changedParas != null && !changedParas.isEmpty()) {
+        //  NOTE: There are less entries (text level caches) than paragraph caches (the AI cache has no entry)
+        List<Integer> minToCheckParas = mDocHandler.getLanguageTool().getNumMinToCheckParas();
+        if (minToCheckParas == null) {
+          return;
+        }
         for (int i = 0; i < changedParas.size(); i++) {
-          for (int nCache = 0; nCache < paragraphsCache.size(); nCache++) {
-            int nCheck = mDocHandler.getLanguageTool().getNumMinToCheckParas().get(nCache);
-            addQueueEntry(changedParas.get(i), nCache, nCheck, docID, true);
+          for (int nCache = 0; nCache < minToCheckParas.size() && nCache < paragraphsCache.size(); nCache++) {
+            addQueueEntry(changedParas.get(i), nCache, minToCheckParas.get(nCache), docID, true);
           }
         }
       }
@@ -1409,6 +1423,9 @@ public class WtSingleDocument {
     int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     WtProofreadingError error = getErrorFromCache(y, x);
+    if (error == null) {
+      return null;
+    }
 //    WtMessageHandler.printToLogFile("SingleDocument: ignoreOnce: ruleIdentitier = " + error.aRuleIdentifier + "; x = " + x + "; y = " + y);
     setIgnoredMatch (x, y, error.aRuleIdentifier, false);
     return docID;
@@ -1445,6 +1462,9 @@ public class WtSingleDocument {
     int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     WtProofreadingError error = getErrorFromCache(y, x);
+    if (error == null) {
+      return;
+    }
     Locale locale = docCache.getFlatParagraphLocale(y);
     mDocHandler.ignoreRule(error.aRuleIdentifier, locale);
   }
@@ -1472,6 +1492,9 @@ public class WtSingleDocument {
     int y = docCache.getFlatParagraphNumber(viewCursor.getViewCursorParagraph());
     int x = viewCursor.getViewCursorCharacter();
     WtProofreadingError error = getErrorFromCache(y, x);
+    if (error == null) {
+      return null;
+    }
     Locale locale = error.nErrorType == TextMarkupType.SPELLCHECK ? docCache.getFlatParagraphLocale(y) : null;
     int len = error.nErrorType == TextMarkupType.SPELLCHECK ? error.nErrorLength : 0;
     setPermanentIgnoredMatch(error.nErrorStart, y, len, error.aRuleIdentifier, locale, false);
@@ -1720,7 +1743,8 @@ public class WtSingleDocument {
           return errors[i];
         }
       }
-      return errors[0];
+      //  all errors may be filtered out (ignored, direct speech, ...)
+      return errors.length > 0 ? errors[0] : null;
     } else {
       if (debugMode > 0) {
         WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache(nPara = " + nPara + ", nChar = " + nChar + "): No ruleId found!");
@@ -1947,7 +1971,8 @@ public class WtSingleDocument {
             } else {
               if (error1.aSuggestions.length < error2.aSuggestions.length) {
                 error1 = error2;
-              } else if (error2.aSuggestions.length > error1.aSuggestions.length) {
+              } else if (error2.aSuggestions.length < error1.aSuggestions.length) {
+                //  error1 has more suggestions: keep it
               } else {
                 error1 = error2;
               }
