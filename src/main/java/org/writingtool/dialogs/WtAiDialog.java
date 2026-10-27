@@ -1686,10 +1686,10 @@ public class WtAiDialog extends Thread implements ActionListener {
         images.get(i).frame.setEnabled(enabled);
       }
       
-  //    contentPane.setEnabled(enabled);
+//      contentPane.setEnabled(enabled);
       contentPane.revalidate();
       contentPane.repaint();
-      dialog.setEnabled(enabled);
+//      dialog.setEnabled(enabled);
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
     }
