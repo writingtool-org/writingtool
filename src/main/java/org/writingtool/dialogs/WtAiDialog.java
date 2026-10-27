@@ -229,7 +229,10 @@ public class WtAiDialog extends Thread implements ActionListener {
   private String selectedLang;
   private Locale locale;
   private Locale translLocale = null;
+  private static final int IMAGE_CONNECT_TIMEOUT = 10000;
+  private static final int IMAGE_READ_TIMEOUT = 120000;
   private boolean atWork = false;
+  private volatile WtAiRemote activeRemote = null;   // running AI request (can be cancelled when the dialog is closed)
   private boolean focusLost = false;
   private float temperature = DEFAULT_TEMPERATURE;
   private int seed = randomInteger();
@@ -429,7 +432,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       translationText.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 translate();
@@ -465,7 +468,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       directInstruction.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createText();
@@ -525,7 +528,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       stepSlider.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -562,7 +565,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imgInstruction.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -590,7 +593,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       exclude.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -614,7 +617,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       instruction.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             instText = (String) instruction.getEditor().getItem();
             if (instText != null) {
               Thread t = new Thread(new Runnable() {
@@ -684,7 +687,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageWidthValueField.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -733,7 +736,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageHeightValueField.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -781,7 +784,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageNumberValueField.addKeyListener(new KeyListener() {
         @Override
         public void keyPressed(KeyEvent e) {
-          if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+          if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
             Thread t = new Thread(new Runnable() {
               public void run() {
                 createImage();
@@ -1739,6 +1742,7 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
       }
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
+      activeRemote = aiRemote;
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
       }
@@ -1749,6 +1753,9 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (debugMode) {
         WtMessageHandler.printToLogFile("WtAiDialog: createText: output: " + output);
       }
+      if (output == null) {
+        return;   // failed or cancelled; the dialog is released in finally
+      }
       instruction.setSelectedIndex(instructionIndex);
       result.setEnabled(true);
       result.setText(output);
@@ -1757,6 +1764,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       WtMessageHandler.showError(t);
       closeDialog();
     } finally {
+      activeRemote = null;
       setAtWorkState(false);
       setButtonState(true);
     }
@@ -1780,11 +1788,15 @@ public class WtAiDialog extends Thread implements ActionListener {
         translLocale = WtGeneralTools.getLocalForFullName(selectedLang);
         String instruction = WtAiTranslateDocument.TRANSLATE_INSTRUCTION + translLocale.Language + WtAiTranslateDocument.TRANSLATE_INSTRUCTION_POST;
         WtAiRemote aiRemote = new WtAiRemote(documents, config);
+        activeRemote = aiRemote;
         String text = translationText.getText();
         if (debugMode) {
           WtMessageHandler.printToLogFile("WtAiDialog: createText: instruction: " + instText + ", text: " + text);
         }
         String output = aiRemote.runInstruction(instruction, text, temperature, 1, translLocale, true, true);
+        if (output == null) {
+          return;   // failed or cancelled; the dialog is released in finally
+        }
         result.setEnabled(true);
         result.setText(output);
         resultText = output;
@@ -1796,6 +1808,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       WtMessageHandler.showError(t);
       closeDialog();
     } finally {
+      activeRemote = null;
       setAtWorkState(false);
       setButtonState(true);
     }
@@ -1854,6 +1867,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       setAtWorkState(true);
       setButtonState(false);
       WtAiRemote aiRemote = new WtAiRemote(documents, config);
+      activeRemote = aiRemote;
       urlStrings = aiRemote.runImgInstruction(imgInstText, excludeText, refFiles, step, imageNumber > 1 ? 0 : seed, imageNumber, 
           imageHeight, imageWidth, true);
       if (urlStrings != null) {
@@ -1866,7 +1880,11 @@ public class WtAiDialog extends Thread implements ActionListener {
           imageFrame.setSize(imageWidth, imageHeight);
           String tabTitle = imgInstText;
           tabTitle = makeTabTitle(tabTitle);
-          images.add(new WtAiImage(getImageFromUrl(urlString), tabTitle, imageFrame, false));
+          BufferedImage img = getImageFromUrl(urlString);
+          if (img == null) {
+            continue;   // error is already shown
+          }
+          images.add(new WtAiImage(img, tabTitle, imageFrame, false));
           setImageSize(images.get(images.size() - 1));
           imageTabs.addTab(tabTitle, imageFrame);
           imageTabs.setBackground(null);
@@ -1880,9 +1898,11 @@ public class WtAiDialog extends Thread implements ActionListener {
     } catch (Throwable t) {
       WtMessageHandler.showError(t);
       closeDialog();
+    } finally {
+      activeRemote = null;
+      setAtWorkState(false);
+      setButtonState(true);
     }
-    setAtWorkState(false);
-    setButtonState(true);
   }
   
   /**
@@ -1942,6 +1962,10 @@ public class WtAiDialog extends Thread implements ActionListener {
    */
   @Override
   public void actionPerformed(ActionEvent action) {
+    if (atWork && "close".equals(action.getActionCommand())) {
+      closeDialog();   // a running request is cancelled
+      return;
+    }
     if (!atWork) {
       try {
         if (debugMode) {
@@ -2109,17 +2133,23 @@ public class WtAiDialog extends Thread implements ActionListener {
 
   private void createImageAfterTranslation(String text) throws Throwable {
     String orgText = text;
-    if (!locale.Language.equals("en")) {
-      setAtWorkState(true);
-      setButtonState(false);
-      WtAiRemote aiRemote = new WtAiRemote(documents, config);
-      text = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, text, 0, 0, locale, true, true);
+    if (locale != null && locale.Language != null && !locale.Language.equals("en")) {
+      try {
+        setAtWorkState(true);
+        setButtonState(false);
+        WtAiRemote aiRemote = new WtAiRemote(documents, config);
+        activeRemote = aiRemote;
+        text = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, text, 0, 0, locale, true, true);
+      } finally {
+        activeRemote = null;
+        // always release the dialog (otherwise it stays blocked if the translation fails)
+        setAtWorkState(false);
+        setButtonState(true);
+      }
     }
     if (text == null || text.trim().isEmpty()) {
       return;
     }
-    setAtWorkState(false);
-    setButtonState(true);
     mainPanel.setSelectedComponent(mainImagePanel);
     String parsedText = text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
     parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, orgText);
@@ -2245,6 +2275,10 @@ public class WtAiDialog extends Thread implements ActionListener {
    * closes the dialog
    */
   public void closeDialog() {
+    WtAiRemote remote = activeRemote;
+    if (remote != null) {
+      remote.cancel();   // end a running AI request, the dialog must not wait for it
+    }
     savePropertiesToFile();
     removeTmpFiles();
     dialog.setVisible(false);
@@ -2258,7 +2292,12 @@ public class WtAiDialog extends Thread implements ActionListener {
   private BufferedImage getImageFromUrl(String urlString) {
     try {
       URL url = new URL(urlString);
-      return ImageIO.read(url);
+      java.net.URLConnection conn = url.openConnection();
+      conn.setConnectTimeout(IMAGE_CONNECT_TIMEOUT);
+      conn.setReadTimeout(IMAGE_READ_TIMEOUT);
+      try (java.io.InputStream in = conn.getInputStream()) {
+        return ImageIO.read(in);
+      }
     } catch (Throwable e) {
       WtMessageHandler.showError(e);
       return null;

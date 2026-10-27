@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -66,9 +67,13 @@ public class WtAiRemote {
   private final static int REMOTE_TRIALS = 5;
   private final static int BUFFER_SIZE = 20000;
   private final static int CONNECT_TIMEOUT = 3000;
-  private final static int READ_TIMEOUT = 0;
+  //  Read timeouts (time without an answer of the server): local models may need minutes for a request,
+  //  but a server that does not answer must not block the request queue (and the dialogs) forever
+  private final static int READ_TIMEOUT_TEXT = 600000;     // 10 minutes
+  private final static int READ_TIMEOUT_IMAGE = 1200000;    // 20 minutes
+  private final static int READ_TIMEOUT_SPEECH = 1200000;   // 20 minutes
+  private final static int EXTRA_WAIT_TIME = 60000;         // the caller waits one minute longer than the read timeout
   private final static int SLEEP_TIME = 100; // thousandth of a second
-  private final static int MAX_TIMEOUT = 1200; // 120 seconds
   
   private static final ResourceBundle messages = WtOfficeTools.getMessageBundle();
 
@@ -95,6 +100,7 @@ public class WtAiRemote {
   private static final Map<Integer, List<String>> results = Collections.synchronizedMap(new HashMap<>());
   private static final List<AiEntry> entries = new ArrayList<>();
   private static int lastOid = 0;
+  private static volatile AiEntry activeEntry = null;   // entry the worker is working on
   private static boolean hasPrintedInfo = false;
 
   private enum AiType { EDITS, COMPLETIONS, CHAT, GENERATE, RESPONSES }
@@ -122,6 +128,7 @@ public class WtAiRemote {
   private volatile boolean isDone;
   
   private int oId = 0;
+  private volatile AiEntry myEntry = null;      // entry of the running request of this instance
   
   public WtAiRemote(WtDocumentsHandler documents, WtConfiguration config) throws Throwable {
     this(documents, config, false, null);
@@ -202,9 +209,11 @@ public class WtAiRemote {
     if (oId > 0) {
       throw new RuntimeException("Duplicate OID in WtAiRemote");
     }
-    oId = getId();
-    AiEntry entry = new AiEntry(category, oId, instruction, text, exclude, filenames, temperature, seed, 
+    int id = getId();
+    oId = id;
+    AiEntry entry = new AiEntry(category, id, instruction, text, exclude, filenames, temperature, seed, 
         step, num, height, width, locale, onlyOneParagraph);
+    myEntry = entry;
     synchronized (QUEUE_LOCK) {
       if (preferred) {
         entries.add(0, entry);
@@ -214,27 +223,96 @@ public class WtAiRemote {
     }
     wakeRunAiEntries();
     try {
-      int n = 0;
-      while (!results.containsKey(oId) && n < MAX_TIMEOUT) {
+      long deadline = System.currentTimeMillis() + getMaxWaitTime(category);
+      while (!entry.cancelled && !results.containsKey(id) && System.currentTimeMillis() < deadline) {
         if (debugMode > 2) {
-          WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: Waiting for result of OID: " + oId + ", n: " + n);
+          WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: Waiting for result of OID: " + id);
         }
         try {
           Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {
           WtMessageHandler.printException(e);
         }
-        n++;
         // restart the worker if it has ended unexpectedly, otherwise this entry would never be processed
         wakeRunAiEntries();
       }
-      List<String> result = results.get(oId);
-      results.remove(oId);
+      List<String> result = null;
+      boolean finished;
+      synchronized (QUEUE_LOCK) {
+        finished = results.containsKey(id);
+        if (finished) {
+          result = results.remove(id);
+        }
+      }
+      if (!finished) {
+        if (!entry.cancelled) {
+          WtMessageHandler.printToLogFile("AiRemote: runInstructionGeneral: no answer of the AI service in time (OID: " + id + ")");
+        }
+        // cancelled or no answer in time: remove the request from the queue or abort the running one
+        abort(entry);
+      }
       return result;
     } catch (Throwable t) {
       WtMessageHandler.showError(t, parent);
+      abort(entry);
       return null;
+    } finally {
+      myEntry = null;
+      oId = 0;   // the instance can be used for the next request
     }
+  }
+
+  /**
+   * Cancel the request of this instance (waiting in the queue or running)
+   * can be called from any thread, e.g. if a dialog is closed
+   */
+  public void cancel() {
+    AiEntry entry = myEntry;
+    if (entry != null) {
+      abort(entry);
+    }
+  }
+
+  /**
+   * Remove an entry from the queue, drop its result and abort its connection if it is running
+   */
+  private void abort(AiEntry entry) {
+    HttpURLConnection conn;
+    synchronized (QUEUE_LOCK) {
+      entry.cancelled = true;
+      entries.remove(entry);
+      results.remove(entry.oId);
+      conn = entry.conn;
+    }
+    if (conn != null) {
+      conn.disconnect();   // ends a blocked read of the worker immediately
+    }
+  }
+
+  /**
+   * Is the request which is processed by the worker cancelled
+   */
+  private boolean isCancelled() {
+    AiEntry entry = activeEntry;
+    return entry != null && entry.cancelled;
+  }
+
+  private static int getReadTimeout(AiCategory category) {
+    return category == AiCategory.Image ? READ_TIMEOUT_IMAGE : (category == AiCategory.Speech ? READ_TIMEOUT_SPEECH : READ_TIMEOUT_TEXT);
+  }
+
+  private static long getMaxWaitTime(AiCategory category) {
+    return (long) getReadTimeout(category) + EXTRA_WAIT_TIME;
+  }
+
+  private void showNoAnswerMessage(String urlString, int readTimeout) throws Throwable {
+    String msg = "No answer from the AI service within " + (readTimeout / 60000) + " minutes: " + urlString;
+    WtMessageHandler.printToLogFile("AiRemote: " + msg);
+    WtMessageHandler.showMessage(msg, parent);
+  }
+
+  private static class RequestCancelledException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
   }
 /*  
   public String runImgInstruction(String instruction, String exclude, int step, int seed, int size, boolean preferred) throws Throwable {
@@ -370,8 +448,11 @@ public class WtAiRemote {
     while (trials < REMOTE_TRIALS) {
       trials++;
       try {
-        conn = getConnection(postData, checkUrl, apiKey);
+        conn = getConnection(postData, checkUrl, apiKey, READ_TIMEOUT_TEXT);
       } catch (RuntimeException e) {
+        if (isCancelled()) {
+          return null;
+        }
         if (testMode) {
           WtMessageHandler.showError(e, parent);
         } else {
@@ -436,7 +517,16 @@ public class WtAiRemote {
             return null;
           }
         }
+      } catch (SocketTimeoutException e) {
+        // no answer within the read timeout: do not try again, the queue must not be blocked
+        if (!isCancelled()) {
+          showNoAnswerMessage(url, READ_TIMEOUT_TEXT);
+        }
+        return null;
       } catch (ConnectException e) {
+        if (isCancelled()) {
+          return null;
+        }
         if (trials >= REMOTE_TRIALS) {
           if (testMode) {
             WtMessageHandler.showError(e, parent);
@@ -447,6 +537,9 @@ public class WtAiRemote {
           stopAiRemote();
         }
       } catch (Exception e) {
+        if (isCancelled()) {
+          return null;
+        }
         if (trials >= REMOTE_TRIALS) {
           WtMessageHandler.showError(e, parent);
           stopAiRemote();
@@ -518,8 +611,11 @@ public class WtAiRemote {
     }
     HttpURLConnection conn;
     try {
-      conn = getConnection(postData, checkUrl, imgApiKey);
+      conn = getConnection(postData, checkUrl, imgApiKey, READ_TIMEOUT_IMAGE);
     } catch (RuntimeException e) {
+      if (isCancelled()) {
+        return null;
+      }
       if (testMode) {
         WtMessageHandler.showError(e, parent);
       } else {
@@ -558,7 +654,15 @@ public class WtAiRemote {
           return null;
         }
       }
+    } catch (SocketTimeoutException e) {
+      // no answer within the read timeout
+      if (!isCancelled()) {
+        showNoAnswerMessage(imgUrl, READ_TIMEOUT_IMAGE);
+      }
     } catch (ConnectException e) {
+      if (isCancelled()) {
+        return null;
+      }
       if (testMode) {
         WtMessageHandler.showError(e, parent);
       } else {
@@ -567,6 +671,9 @@ public class WtAiRemote {
       }
       stopAiImgRemote();
     } catch (Exception e) {
+      if (isCancelled()) {
+        return null;
+      }
       WtMessageHandler.showError(e, parent);
       stopAiImgRemote();
     } finally {
@@ -602,8 +709,11 @@ public class WtAiRemote {
     }
     HttpURLConnection conn;
     try {
-      conn = getConnection(postData, checkUrl, ttsApiKey);
+      conn = getConnection(postData, checkUrl, ttsApiKey, READ_TIMEOUT_SPEECH);
     } catch (RuntimeException e) {
+      if (isCancelled()) {
+        return null;
+      }
       if (testMode) {
         WtMessageHandler.showError(e, parent);
       } else {
@@ -639,7 +749,15 @@ public class WtAiRemote {
           return null;
         }
       }
+    } catch (SocketTimeoutException e) {
+      // no answer within the read timeout
+      if (!isCancelled()) {
+        showNoAnswerMessage(ttsUrl, READ_TIMEOUT_SPEECH);
+      }
     } catch (ConnectException e) {
+      if (isCancelled()) {
+        return null;
+      }
       if (testMode) {
         WtMessageHandler.showError(e, parent);
       } else {
@@ -648,6 +766,9 @@ public class WtAiRemote {
       }
       stopAiTtsRemote();
     } catch (Exception e) {
+      if (isCancelled()) {
+        return null;
+      }
       WtMessageHandler.showError(e, parent);
       stopAiTtsRemote();
     } finally {
@@ -656,11 +777,15 @@ public class WtAiRemote {
     return null;
   }
   
-  private HttpURLConnection getConnection(byte[] postData, URL url, String apiKey) throws Throwable {
+  private HttpURLConnection getConnection(byte[] postData, URL url, String apiKey, int readTimeout) throws Throwable {
     int trials = 0;
     while (trials < REMOTE_TRIALS) {
       trials++;
       try {
+        AiEntry entry = activeEntry;
+        if (entry != null && entry.cancelled) {
+          throw new RequestCancelledException();
+        }
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setInstanceFollowRedirects(true);
@@ -670,20 +795,29 @@ public class WtAiRemote {
         conn.setRequestProperty("Authorization", "Bearer " + apiKey);
         conn.setRequestProperty("Content-Length", Integer.toString(postData.length));
         int connectTimeout = conn.getConnectTimeout();
-        int readTimeout = conn.getReadTimeout();
+        int defaultReadTimeout = conn.getReadTimeout();
         if (!hasPrintedInfo) {
           WtMessageHandler.printToLogFile("AI-Host: " + url.getHost());
           WtMessageHandler.printToLogFile("connectTimeout: " + connectTimeout);
-          WtMessageHandler.printToLogFile("readTimeout: " + readTimeout);
+          WtMessageHandler.printToLogFile("readTimeout: " + readTimeout + " (default: " + defaultReadTimeout + ")");
           hasPrintedInfo = true;
         }
         conn.setConnectTimeout(CONNECT_TIMEOUT);
-        conn.setReadTimeout(READ_TIMEOUT);
+        conn.setReadTimeout(readTimeout);
+        if (entry != null) {
+          entry.conn = conn;   // abort() can end a blocked read
+          if (entry.cancelled) {
+            conn.disconnect();
+            throw new RequestCancelledException();
+          }
+        }
         
         try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
           wr.write(postData);
         }
         return conn;
+      } catch (RequestCancelledException e) {
+        throw e;
       } catch (Exception e) {
         if (trials >= REMOTE_TRIALS) {
           throw new RuntimeException(e);
@@ -1096,8 +1230,14 @@ public class WtAiRemote {
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
-          outText.addAll(runImgInstruction_intern(instruction, exclude, filenames, step, seed, num, height, width));
-          isDone = true;
+          List<String> images = runImgInstruction_intern(instruction, exclude, filenames, step, seed, num, height, width);
+          if (images != null) {
+            outText.addAll(images);
+            isDone = true;
+          } else {
+            outText = null;   // request failed
+            isDone = true;
+          }
         } catch (Throwable e) {
           WtMessageHandler.showError(e, parent);
         }
@@ -1176,6 +1316,16 @@ public class WtAiRemote {
           AiEntry entry;
           while ((entry = nextEntry()) != null) {
             List<String> result = null;
+            boolean isCancelled;
+            synchronized (QUEUE_LOCK) {
+              isCancelled = entry.cancelled;
+              if (!isCancelled) {
+                activeEntry = entry;
+              }
+            }
+            if (isCancelled) {
+              continue;   // nobody waits for this entry any more
+            }
             try {
               if (entry.category == AiCategory.Text && config.useAiSupport()) {
                 result = runInstructionText(entry.instruction, entry.text, entry.temperature, entry.seed, entry.locale, entry.onlyOneParagraph);
@@ -1188,7 +1338,13 @@ public class WtAiRemote {
               WtMessageHandler.showError(e, parent);
             } finally {
               // always deliver a result (also null), otherwise the caller waits for it forever
-              results.put(entry.oId, result);
+              // (but not for a cancelled entry: the caller has gone and nobody would remove the result)
+              synchronized (QUEUE_LOCK) {
+                activeEntry = null;
+                if (!entry.cancelled) {
+                  results.put(entry.oId, result);
+                }
+              }
             }
           }
         } catch (Throwable e) {
@@ -1217,6 +1373,8 @@ public class WtAiRemote {
     public final int width;
     public final Locale locale;
     public final boolean onlyOneParagraph;
+    public volatile boolean cancelled = false;        // nobody waits for the result any more
+    public volatile HttpURLConnection conn = null;    // connection of the running request
     
     AiEntry (AiCategory category, int oId, String instruction, String text, String exclude, List<String> filenames, float temperature, 
         int seed, int step, int num, int height, int width, Locale locale, boolean onlyOneParagraph) {
