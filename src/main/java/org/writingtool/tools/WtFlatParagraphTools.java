@@ -62,9 +62,10 @@ public class WtFlatParagraphTools {
   
   private static int isBusy = 0;
 
-  private XFlatParagraphIterator xFlatParaIter;
-  private XFlatParagraph lastFlatPara;
-  private XComponent xComponent;
+  //  volatile: setDisposed() is called by another thread (UNO disposing event) than the checks
+  private volatile XFlatParagraphIterator xFlatParaIter;
+  private volatile XFlatParagraph lastFlatPara;
+  private volatile XComponent xComponent;
   
   public WtFlatParagraphTools(XComponent xComponent) {
     debugMode = WtOfficeTools.DEBUG_MODE_FP;
@@ -128,6 +129,18 @@ public class WtFlatParagraphTools {
   }
   
   /**
+   * Renew the iterator; not if the document was disposed in the meantime
+   * (otherwise an iterator of the closing document would be stored again after setDisposed())
+   */
+  private void refreshFlatParagraphIterator() {
+    XComponent component = xComponent;
+    XFlatParagraphIterator iter = getXFlatParagraphIterator(component);
+    if (xComponent != null) {
+      xFlatParaIter = iter;
+    }
+  }
+
+  /**
    * Initialize XFlatParagraphIterator
    * Set the new iterator only if it is not null
    */
@@ -135,7 +148,7 @@ public class WtFlatParagraphTools {
     isBusy++;
     try {
       XFlatParagraphIterator tmpFlatParaIter = getXFlatParagraphIterator(xComponent);
-      if (tmpFlatParaIter != null) {
+      if (tmpFlatParaIter != null && xComponent != null) {
         xFlatParaIter = tmpFlatParaIter;
       }
     } catch (Throwable t) {
@@ -205,7 +218,7 @@ public class WtFlatParagraphTools {
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
-      xFlatParaIter = getXFlatParagraphIterator(xComponent);
+      refreshFlatParagraphIterator();
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
         if (debugMode) {
@@ -283,7 +296,7 @@ public class WtFlatParagraphTools {
         tmpXFlatPara = xFlatParaIter.getParaBefore(tmpXFlatPara);
         pos++;
       }
-      xFlatParaIter = getXFlatParagraphIterator(xComponent);
+      refreshFlatParagraphIterator();
       return pos;
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
@@ -351,7 +364,7 @@ public class WtFlatParagraphTools {
         }
         tmpFlatPara = xFlatParaIter.getParaAfter(tmpFlatPara);
       }
-      xFlatParaIter = getXFlatParagraphIterator(xComponent);
+      refreshFlatParagraphIterator();
       return new FlatParagraphContainer(allParas, locales, footnotePositions, fieldPositions, sortedTextIds, documentElementsCount);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
@@ -919,7 +932,7 @@ public class WtFlatParagraphTools {
       if (debugMode && tmpFlatPara == null) {
         WtMessageHandler.printToLogFile("FlatParagraphTools: markParagraphs: tmpFlatParagraph == null");
       }
-      xFlatParaIter = getXFlatParagraphIterator(xComponent);
+      refreshFlatParagraphIterator();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
@@ -1103,7 +1116,7 @@ public class WtFlatParagraphTools {
     WtOfficeTools.waitForLO();
     isBusy++;
     try {
-      xFlatParaIter = getXFlatParagraphIterator(xComponent);
+      refreshFlatParagraphIterator();
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
         if (debugMode) {

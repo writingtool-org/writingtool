@@ -83,11 +83,12 @@ public class WtDocumentCursorTools {
   
   private boolean isCheckedSortedTextId = false;
   private boolean hasSortedTextId = false;
-  private boolean isDisposed = false;
+  //  volatile: setDisposed() is called by another thread (UNO disposing event) than the checks
+  private volatile boolean isDisposed = false;
 
-  private XParagraphCursor xPCursor;
-  private XTextCursor xTextCursor;
-  private XTextDocument curDoc;
+  private volatile XParagraphCursor xPCursor;
+  private volatile XTextCursor xTextCursor;
+  private volatile XTextDocument curDoc;
   
   public WtDocumentCursorTools(XComponent xComponent) {
     isBusy++;

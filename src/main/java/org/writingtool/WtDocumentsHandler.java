@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.swing.JButton;
@@ -205,7 +206,7 @@ public class WtDocumentsHandler {
     xEventListeners = new ArrayList<>();
     extraRemoteRules = new ArrayList<>();
     documents = new ArrayList<>();
-    disposedIds = new ArrayList<>();
+    disposedIds = new CopyOnWriteArrayList<>();   // changed by the UNO disposing callback and read by the check threads
     WtVersionInfo.init(xContext);
     WtOfficeTools.renameOldLtFiles();     // This has to be deleted in later versions 
     if (WtVersionInfo.ooName == null || WtVersionInfo.ooName.equals("OpenOffice")) {
@@ -762,8 +763,9 @@ public class WtDocumentsHandler {
    *  Set a document as closed
    */
   private void setContextOfClosedDoc(XComponent xComponent) {
-    rwLock.readLock().lock();
     boolean found = false;
+    boolean hasNoContent = false;
+    rwLock.readLock().lock();
     try {
       for (WtSingleDocument document : documents) {
         if (xComponent.equals(document.getXComponent())) {
@@ -786,14 +788,7 @@ public class WtDocumentsHandler {
 //          document.removeDokumentListener(xComponent);
 //          document.setXComponent(xContext, null);
           if (document.getDocumentCache().hasNoContent(false)) {
-            //  The delay seems to be necessary as workaround for a GDK bug (Linux) to stabilizes
-            //  the load of a document from an empty document 
-            WtMessageHandler.printToLogFile("Disposing document has no content: Wait for 1000 milliseconds");
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              WtMessageHandler.printException(e);
-            }
+            hasNoContent = true;
           }
         }
       }
@@ -804,6 +799,17 @@ public class WtDocumentsHandler {
       WtMessageHandler.showError(t);
     } finally {
       rwLock.readLock().unlock();
+    }
+    if (hasNoContent) {
+      //  The delay seems to be necessary as workaround for a GDK bug (Linux) to stabilizes
+      //  the load of a document from an empty document 
+      //  (not inside the lock: other threads must not be blocked while waiting)
+      WtMessageHandler.printToLogFile("Disposing document has no content: Wait for 1000 milliseconds");
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        WtMessageHandler.printException(e);
+      }
     }
   }
   
@@ -1214,13 +1220,14 @@ public class WtDocumentsHandler {
             }
           }
         }
-        for (String id : disposedIds) {
+        //  work on a copy and remove only the handled IDs: IDs added in the meantime by a closing document must not get lost
+        for (String id : new ArrayList<>(disposedIds)) {
           int n = removeDoc(id);
           if (n >= 0 && n < i) {
             i--;
           }
+          disposedIds.remove(id);
         }
-        disposedIds.clear();
         return i;
       }
     }
@@ -1279,8 +1286,9 @@ public class WtDocumentsHandler {
     } finally {
       rwLock.writeLock().unlock();
     }
-    for (String id : disposedIds) {
+    for (String id : new ArrayList<>(disposedIds)) {
       removeDoc(id);
+      disposedIds.remove(id);
     }
     WtMessageHandler.printToLogFile("MultiDocumentsHandler: getNumDoc: Document " + (documents.size() - 1) + " created; docID = " + docID);
     return documents.size() - 1;
