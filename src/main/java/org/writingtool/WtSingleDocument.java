@@ -552,10 +552,10 @@ public class WtSingleDocument {
       if (flatPara != null) {
         flatPara.setDisposed();
       }
-      if (ltMenus != null) {
-        ltMenus.removeListener();
-        ltMenus = null;
-      }
+//      if (ltMenus != null) {
+//        ltMenus.removeListener();
+//        ltMenus = null;
+//      }
     }
   }
   
@@ -2453,9 +2453,10 @@ public class WtSingleDocument {
 
     @Override
     public void documentEventOccured(DocumentEvent event) {
-      if(event.EventName.equals("OnPrepareUnload")) {
+      if(event.EventName.equals("OnUnload")) {
         try {
           isOnUnload = true;
+          dispose(true);
           mDocHandler.prepareUnload(docID);
           writeCaches();
         } catch (Throwable t) {

@@ -765,12 +765,18 @@ public class WtDocumentsHandler {
   private void setContextOfClosedDoc(XComponent xComponent) {
     boolean found = false;
     boolean hasNoContent = false;
+    if (debugMode) {
+      WtMessageHandler.printToLogFile("MultiDocumentsHandler: setContextOfClosedDoc: xComponent=" + xComponent.toString());
+    }
     rwLock.readLock().lock();
     try {
       for (WtSingleDocument document : documents) {
         if (xComponent.equals(document.getXComponent())) {
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("MultiDocumentsHandler: setContextOfClosedDoc: found document with docId=" + document.getDocID());
+          }
           found = true;
-          document.dispose(true);
+//          document.dispose(true);
           disposedIds.add(document.getDocID());
 //          if (documents.size() < 2) {
  /*
@@ -818,9 +824,9 @@ public class WtDocumentsHandler {
    */
   public void prepareUnload(String docId) {
     try {
-      if (debugMode) {
+ //     if (debugMode) {
         WtMessageHandler.printToLogFile("MultiDocumentsHandler: prepareUnload for docId: " + docId);
-      }
+ //     }
       if (documents.size() > 0) {
         if (textLevelQueue != null) {
           textLevelQueue.interruptCheck(docId, false);
