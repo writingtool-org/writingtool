@@ -3070,6 +3070,7 @@ public class WtDocumentsHandler {
     @Override
     public void run() {
       try {
+        boolean hasPrintDisposed = false;
         WtSingleDocument currentDocument = null;
         while (runHelper) {
           Thread.sleep(250);
@@ -3078,9 +3079,13 @@ public class WtDocumentsHandler {
           }
           DocumentStatus docStat = isKnownDocument();
           if (docStat == DocumentStatus.DISPOSED) {
-            WtMessageHandler.printToLogFile("MultiDocumentsHandler: DocumentStatus.DISPOSED");
+            if (!hasPrintDisposed) {
+              WtMessageHandler.printToLogFile("MultiDocumentsHandler: WtHelper: run: document disposed");
+              hasPrintDisposed = true;
+            }
             continue;
           }
+          hasPrintDisposed = false;
           boolean isUnknownDocument = docStat == DocumentStatus.UNKNOWN ? true : false;
           if ((isFirstRun || isUnknownDocument)) {
             currentDocument = getCurrentDocument(false);

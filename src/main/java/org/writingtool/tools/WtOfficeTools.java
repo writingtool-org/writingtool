@@ -327,6 +327,7 @@ public class WtOfficeTools {
     try {
       XDesktop xdesktop = getDesktop(xContext, printException);
       if (xdesktop == null) {
+        WtMessageHandler.printToLogFile("getCurrentComponent: xdesktop is null");
         return null;
       }
       else return xdesktop.getCurrentComponent();

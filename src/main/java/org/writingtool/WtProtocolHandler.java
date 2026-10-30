@@ -504,7 +504,9 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
           && documents.size() > 0 && documents.get(0).getDocumentType() == DocumentType.WRITER) {
         Properties props = new Properties();
         XLayoutManager layoutManager = WtOfficeTools.getLayoutManager(xContext);
-        
+        if (layoutManager == null) {
+          return;
+        }
         Rectangle rect = layoutManager.getCurrentDockingArea();
         //  WT-toolbar
         props.setProperty(WT_TB_ISVISIBLE, Boolean.toString(layoutManager.isElementVisible(WT_TOOLBAR_URL)));
