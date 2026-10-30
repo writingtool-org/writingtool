@@ -776,7 +776,11 @@ public class WtDocumentsHandler {
             WtMessageHandler.printToLogFile("MultiDocumentsHandler: setContextOfClosedDoc: found document with docId=" + document.getDocID());
           }
           found = true;
-//          document.dispose(true);
+          if (!document.isDisposed()) {
+            //  normally done by the OnUnload event: fallback if the event has not been delivered,
+            //  otherwise removeDoc() would never remove the document and the check threads would work on a closed document
+            document.dispose(true);
+          }
           disposedIds.add(document.getDocID());
 //          if (documents.size() < 2) {
  /*

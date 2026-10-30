@@ -27,6 +27,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,7 +73,10 @@ public class WtCacheIO implements Serializable {
   
   private String documentPath = null;
   private String tmpCachePath = null;
-  private AllCaches allCaches;
+  //  Lock for all access to the cache directory (cache files, cache map, spell cache):
+  //  documents are opened (check threads) and closed (event thread) at the same time
+  private static final Object IO_LOCK = new Object();
+  private volatile AllCaches allCaches;
   private boolean isSameVersion = false;
   private boolean isSameAi = false;
   
@@ -167,16 +173,12 @@ public class WtCacheIO implements Serializable {
   }
 
   /**
-   * make a temporary path for a given cache file
+   * replace the cache file by the temporary file
+   * a reader never sees a missing or incomplete cache file
    */
   private String changeTmpToCachePath(String cachePath) throws Throwable {
     String tmpPath = cachePath.substring(0, cachePath.length() - 4) + ".tmp";
-    File tmpFile = new File(tmpPath);
-    File cacheFile = new File(cachePath);
-    if (cacheFile.exists() && !cacheFile.isDirectory()) {
-      cacheFile.delete();
-    }
-    tmpFile.renameTo(cacheFile);
+    moveReplace(new File(tmpPath), new File(cachePath));
     tmpCachePath = null;
     if (debugMode) {
       WtMessageHandler.printToLogFile("CacheIO: changeTmpToCachePath: changed to: cachePath: " + cachePath + ", tmpPath: " + tmpPath);
@@ -184,26 +186,32 @@ public class WtCacheIO implements Serializable {
     return tmpPath;
   }
 
-  
+  /**
+   * move a file and replace the target (atomic if the file system supports it)
+   */
+  private static void moveReplace(File source, File target) throws Throwable {
+    try {
+      Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    } catch (AtomicMoveNotSupportedException e) {
+      Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    }
+  }
+
   /**
    * save all caches (document cache, all result caches) to cache file
    */
-  private void saveAllCaches(String cachePath) throws Throwable {
-    try {
-      GZIPOutputStream fileOut = new GZIPOutputStream(new FileOutputStream(cachePath));
-      ObjectOutputStream out = new ObjectOutputStream(fileOut);
-      out.writeObject(allCaches);
-      out.close();
-      fileOut.close();
-      WtMessageHandler.printToLogFile("Caches saved to: " + cachePath);
-/*
-      if (debugMode) {
-        printCacheInfo();
-      }
-*/
+  private boolean saveAllCaches(String cachePath, AllCaches caches) throws Throwable {
+    try (FileOutputStream fileStream = new FileOutputStream(cachePath);
+        GZIPOutputStream fileOut = new GZIPOutputStream(fileStream);
+        ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
+      out.writeObject(caches);
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown are printed
+      new File(cachePath).delete();           // never replace a valid cache by an incomplete one
+      return false;
     }
+    WtMessageHandler.printToLogFile("Caches saved to: " + cachePath);
+    return true;
   }
   
   /**
@@ -227,20 +235,29 @@ public class WtCacheIO implements Serializable {
   public void saveCaches(WtDocumentCache docCache, List<WtResultCache> paragraphsCache, WtResultCache aiSuggestionCache,
       WtIgnoredMatches ignoredMatches, WtConfiguration config, WtDocumentsHandler mDocHandler) {
     try {
-      String cachePath = getCachePath(true);
-       if (cachePath != null) {
-        if (!ignoredMatches.isEmpty() || exceedsSaveSize(docCache)) {
-          String tmpCachePath = getTmpCachePath(cachePath);
-          allCaches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
-              mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
-              config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), WtVersionInfo.ltBuildDate(),
-              config.aiUrl(), config.aiModel(), config.aiShowStylisticChanges());
-          saveAllCaches(tmpCachePath);
-          changeTmpToCachePath(cachePath);
-        } else {
-          File file = new File( cachePath );
-          if (file.exists() && !file.isDirectory()) {
-            file.delete();
+      //  The caches are collected before the lock is taken (the handler has its own locks)
+      //  and kept in a local variable: the field allCaches is reset by the reading of caches (resetAllCache)
+      boolean doSave = !ignoredMatches.isEmpty() || exceedsSaveSize(docCache);
+      AllCaches caches = null;
+      if (doSave) {
+        caches = new AllCaches(docCache, paragraphsCache, aiSuggestionCache, 
+            mDocHandler.getAllDisabledRules(), config.getDisabledRuleIds(), config.getDisabledCategoryNames(), 
+            config.getEnabledRuleIds(), ignoredMatches, WtVersionInfo.ltVersion(), WtVersionInfo.ltBuildDate(),
+            config.aiUrl(), config.aiModel(), config.aiShowStylisticChanges());
+      }
+      synchronized (IO_LOCK) {
+        String cachePath = getCachePath(true);
+        if (cachePath != null) {
+          if (doSave) {
+            String tmpCachePath = getTmpCachePath(cachePath);
+            if (saveAllCaches(tmpCachePath, caches)) {
+              changeTmpToCachePath(cachePath);
+            }
+          } else {
+            File file = new File( cachePath );
+            if (file.exists() && !file.isDirectory()) {
+              file.delete();
+            }
           }
         }
       }
@@ -257,17 +274,24 @@ public class WtCacheIO implements Serializable {
    */
   public boolean readAllCaches(WtConfiguration config, WtDocumentsHandler mDocHandler) {
     try {
-      String cachePath = getCachePath(false);
-      if (cachePath == null) {
-        return false;
+      String cachePath;
+      boolean fileExists = false;
+      synchronized (IO_LOCK) {
+        cachePath = getCachePath(false);
+        if (cachePath == null) {
+          return false;
+        }
+        File file = new File( cachePath );
+        if (file.exists() && !file.isDirectory()) {
+          fileExists = true;
+          try (FileInputStream fileStream = new FileInputStream(file);
+              GZIPInputStream fileIn = new GZIPInputStream(fileStream);
+              ObjectInputStream in = new ObjectInputStream(fileIn)) {
+            allCaches = (AllCaches) in.readObject();
+          }
+        }
       }
-      File file = new File( cachePath );
-      if (file.exists() && !file.isDirectory()) {
-        GZIPInputStream fileIn = new GZIPInputStream(new FileInputStream(file));
-        ObjectInputStream in = new ObjectInputStream(fileIn);
-        allCaches = (AllCaches) in.readObject();
-        in.close();
-        fileIn.close();
+      if (fileExists) {
         WtMessageHandler.printToLogFile("Caches read from: " + cachePath);
 /*
         if (debugMode) {
@@ -614,7 +638,7 @@ public class WtCacheIO implements Serializable {
 */
     CacheFile(File cacheDir) {
       cacheMapFile = new File(cacheDir, CACHEFILE_MAP);
-      if (cacheMapFile != null) {
+      synchronized (IO_LOCK) {
         if (cacheMapFile.exists() && !cacheMapFile.isDirectory()) {
           if (read()) {
             return;
@@ -632,37 +656,53 @@ public class WtCacheIO implements Serializable {
      * read the cache map from file
      */
     public boolean read() {
-      try {
-        FileInputStream fileIn = new FileInputStream(cacheMapFile);
-        ObjectInputStream in = new ObjectInputStream(fileIn);
-        cacheMap = (CacheMap) in.readObject();
-        if (debugMode) {
-          WtMessageHandler.printToLogFile("CacheIO: CacheFile: read cacheMap file: size=" + cacheMap.size());
-        }
-        in.close();
-        fileIn.close();
-        return true;
-      } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
+      CacheMap map = readMap();
+      if (map == null) {
         return false;
+      }
+      cacheMap = map;
+      return true;
+    }
+
+    /**
+     * read the cache map from file; returns null if the file can not be read
+     */
+    private CacheMap readMap() {
+      synchronized (IO_LOCK) {
+        try (FileInputStream fileIn = new FileInputStream(cacheMapFile);
+            ObjectInputStream in = new ObjectInputStream(fileIn)) {
+          CacheMap map = (CacheMap) in.readObject();
+          if (debugMode) {
+            WtMessageHandler.printToLogFile("CacheIO: CacheFile: read cacheMap file: size=" + map.size());
+          }
+          return map;
+        } catch (Throwable t) {
+          WtMessageHandler.printException(t);     // all Exceptions thrown are printed
+          return null;
+        }
       }
     }
 
     /**
      * write the cache map to file
+     * the map is written to a temporary file which replaces the map file: no reader sees an incomplete map
      */
     public void write(CacheMap cacheMap) {
-      try {
-        FileOutputStream fileOut = new FileOutputStream(cacheMapFile);
-        ObjectOutputStream out = new ObjectOutputStream(fileOut);
-        if (debugMode) {
-          WtMessageHandler.printToLogFile("CacheIO: CacheFile: write cacheMap file: size=" + cacheMap.size());
+      synchronized (IO_LOCK) {
+        File tmpFile = new File(cacheMapFile.getPath() + ".tmp");
+        try {
+          try (FileOutputStream fileOut = new FileOutputStream(tmpFile);
+              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
+            if (debugMode) {
+              WtMessageHandler.printToLogFile("CacheIO: CacheFile: write cacheMap file: size=" + cacheMap.size());
+            }
+            out.writeObject(cacheMap);
+          }
+          moveReplace(tmpFile, cacheMapFile);
+        } catch (Throwable t) {
+          WtMessageHandler.printException(t);     // all Exceptions thrown are printed
+          tmpFile.delete();
         }
-        out.writeObject(cacheMap);
-        out.close();
-        fileOut.close();
-      } catch (Throwable t) {
-        WtMessageHandler.printException(t);     // all Exceptions thrown are printed
       }
     }
     
@@ -671,22 +711,25 @@ public class WtCacheIO implements Serializable {
      * if create == true: create a cache file if it not exists 
      */
     public String getCacheFileName(String docPath, boolean create) throws Throwable {
-      if (cacheMap == null) {
-        return null;
+      synchronized (IO_LOCK) {
+        if (cacheMap == null) {
+          return null;
+        }
+        int orgSize = cacheMap.size();
+        String cacheFileName = cacheMap.getOrCreateCacheFile(docPath, create);
+        if (cacheMap.size() != orgSize) {
+          write(cacheMap);
+        }
+        return cacheFileName;
       }
-      int orgSize = cacheMap.size();
-      String cacheFileName = cacheMap.getOrCreateCacheFile(docPath, create);
-      if (cacheMap.size() != orgSize) {
-        write(cacheMap);
-      }
-      return cacheFileName;
     }
     
    /**
     * remove unused files from cache directory
     */
     public void cleanUp(String curCacheFile) {
-      CacheCleanUp cacheCleanUp = new CacheCleanUp(cacheMap, curCacheFile);
+      CacheCleanUp cacheCleanUp = new CacheCleanUp(curCacheFile);
+      cacheCleanUp.setDaemon(true);   // must not keep LibreOffice from terminating
       cacheCleanUp.start();
     }
     
@@ -786,60 +829,66 @@ public class WtCacheIO implements Serializable {
      */
     private class CacheCleanUp extends Thread implements Serializable {
       private static final long serialVersionUID = 1L;
-      private CacheMap cacheMap;
-      private String currentFile;
+      private final String currentFile;
       
-      CacheCleanUp(CacheMap in, String curFile) {
-        cacheMap = new CacheMap(in);
+      CacheCleanUp(String curFile) {
         currentFile = curFile;
       }
       
       /**
        * run clean up process
+       * the whole process is done under IO_LOCK with the actual cache map (not with a copy made when the thread was started):
+       * so no file of a document that is saved in the meantime is deleted and no entry of the map is lost
        */
       @Override
       public void run() {
         try {
-          long systemTime = System.currentTimeMillis();
-          boolean mapChanged = false;
-          File cacheDir = WtOfficeTools.getCacheDir();
-          List<String> mapedDocs = new ArrayList<String>();
-          for (String doc : cacheMap.keySet()) {
-            mapedDocs.add(doc);
-          }
-          for (String doc : mapedDocs) {
-            File docFile = new File(doc);
-            String cacheFileName = cacheMap.get(doc);
-            File cacheFile = new File(cacheDir, cacheFileName);
-            if (debugMode) {
-              WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: CacheMap: docPath=" + doc + ", docFile exist: " + (docFile == null ? "null" : docFile.exists()) + 
-                  ", cacheFile exist: " + (cacheFile == null ? "null" : cacheFile.exists()));
+          synchronized (IO_LOCK) {
+            CacheMap cacheMap = readMap();
+            if (cacheMap == null) {
+              return;
             }
-            if (docFile == null || !docFile.exists() || cacheFile == null || !cacheFile.exists() 
-                || (systemTime - cacheFile.lastModified() > MAX_CACHE_TIME && !cacheFileName.equals(currentFile))) {
-              cacheMap.remove(doc);
-              mapChanged = true;
-              WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Remove Path from CacheMap: " + doc);
-              if (cacheFile != null && cacheFile.exists()) {
-                cacheFile.delete();
-                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Delete cache file: " + cacheFile.getAbsolutePath());
+            long systemTime = System.currentTimeMillis();
+            boolean mapChanged = false;
+            File cacheDir = WtOfficeTools.getCacheDir();
+            List<String> mapedDocs = new ArrayList<String>();
+            for (String doc : cacheMap.keySet()) {
+              mapedDocs.add(doc);
+            }
+            for (String doc : mapedDocs) {
+              File docFile = new File(doc);
+              String cacheFileName = cacheMap.get(doc);
+              File cacheFile = new File(cacheDir, cacheFileName);
+              if (debugMode) {
+                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: CacheMap: docPath=" + doc + ", docFile exist: " + docFile.exists() + 
+                    ", cacheFile exist: " + cacheFile.exists());
+              }
+              if (!docFile.exists() || !cacheFile.exists() 
+                  || (systemTime - cacheFile.lastModified() > MAX_CACHE_TIME && !cacheFileName.equals(currentFile))) {
+                cacheMap.remove(doc);
+                mapChanged = true;
+                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Remove Path from CacheMap: " + doc);
+                if (cacheFile.exists()) {
+                  cacheFile.delete();
+                  WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Delete cache file: " + cacheFile.getAbsolutePath());
+                }
               }
             }
-          }
-          if (mapChanged) {
-            if (debugMode) {
-              WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Write CacheMap");
+            if (mapChanged) {
+              if (debugMode) {
+                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Write CacheMap");
+              }
+              write(cacheMap);
             }
-            write(cacheMap);
-          }
-          File[] cacheFiles = cacheDir.listFiles();
-          if (cacheFiles != null) {
-            for (File cacheFile : cacheFiles) {
-              if (!cacheMap.containsValue(cacheFile.getName()) && !cacheFile.getName().equals(CACHEFILE_MAP)
-                  && !cacheFile.getName().equals(SPELL_CACHEFILE) 
-                  && (tmpCachePath == null || !cacheFile.getName().equals(tmpCachePath))) {
-                cacheFile.delete();
-                WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Delete cache file: " + cacheFile.getAbsolutePath());
+            //  Nobody writes a cache file while the lock is held: all remaining temporary files are leftovers
+            File[] cacheFiles = cacheDir.listFiles();
+            if (cacheFiles != null) {
+              for (File cacheFile : cacheFiles) {
+                if (!cacheMap.containsValue(cacheFile.getName()) && !cacheFile.getName().equals(CACHEFILE_MAP)
+                    && !cacheFile.getName().equals(SPELL_CACHEFILE)) {
+                  cacheFile.delete();
+                  WtMessageHandler.printToLogFile("CacheIO: CacheCleanUp: Delete cache file: " + cacheFile.getAbsolutePath());
+                }
               }
             }
           }
@@ -870,50 +919,56 @@ public class WtCacheIO implements Serializable {
     }
     
     public void write(Map<String, List<String>> lastWrongWords, Map<String, List<String[]>> lastSuggestions) {
+      File tmpFile = null;
       try {
         this.lastWrongWords.clear();
         this.lastSuggestions.clear();
         this.lastWrongWords.putAll(lastWrongWords);
         this.lastSuggestions.putAll(lastSuggestions);
-        File cacheDir = WtOfficeTools.getCacheDir();
-        File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
-        String cachePath = cacheFilePath.getAbsolutePath();
-        if (cachePath != null) {
-          GZIPOutputStream fileOut = new GZIPOutputStream(new FileOutputStream(cachePath));
-          ObjectOutputStream out = new ObjectOutputStream(fileOut);
-          out.writeObject(this);
-          out.close();
-          fileOut.close();
-          WtMessageHandler.printToLogFile("Spell Cache saved to: " + cachePath);
+        synchronized (IO_LOCK) {
+          File cacheDir = WtOfficeTools.getCacheDir();
+          File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
+          tmpFile = new File(cacheDir, SPELL_CACHEFILE + ".tmp");
+          try (FileOutputStream fileStream = new FileOutputStream(tmpFile);
+              GZIPOutputStream fileOut = new GZIPOutputStream(fileStream);
+              ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
+            out.writeObject(this);
+          }
+          moveReplace(tmpFile, cacheFilePath);
+          WtMessageHandler.printToLogFile("Spell Cache saved to: " + cacheFilePath.getAbsolutePath());
         }
       } catch (Throwable t) {
         WtMessageHandler.printException(t);     // all Exceptions thrown are printed
+        if (tmpFile != null) {
+          tmpFile.delete();
+        }
       }
     }
     
     public boolean read() {
       try {
-        File cacheDir = WtOfficeTools.getCacheDir();
-        File cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
-        String cachePath = cacheFilePath.getAbsolutePath();
-        if (cachePath == null) {
-          return false;
-        }
-        File file = new File(cachePath);
-        if (file.exists() && !file.isDirectory()) {
-          GZIPInputStream fileIn = new GZIPInputStream(new FileInputStream(file));
-          ObjectInputStream in = new ObjectInputStream(fileIn);
-          boolean out = putAll((SpellCache) in.readObject());
-          in.close();
-          fileIn.close();
-          WtMessageHandler.printToLogFile("Spell Cache read from: " + cachePath);
-          if (out) {
-            return true;
-          } else {
-            WtMessageHandler.printToLogFile("Version has changed: Spell Cache rejected (Cache Version: " 
-                  + version + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
+        SpellCache sc;
+        File cacheFilePath;
+        synchronized (IO_LOCK) {
+          File cacheDir = WtOfficeTools.getCacheDir();
+          cacheFilePath = new File(cacheDir, SPELL_CACHEFILE);
+          if (!cacheFilePath.exists() || cacheFilePath.isDirectory()) {
             return false;
           }
+          try (FileInputStream fileStream = new FileInputStream(cacheFilePath);
+              GZIPInputStream fileIn = new GZIPInputStream(fileStream);
+              ObjectInputStream in = new ObjectInputStream(fileIn)) {
+            sc = (SpellCache) in.readObject();
+          }
+        }
+        boolean out = putAll(sc);
+        WtMessageHandler.printToLogFile("Spell Cache read from: " + cacheFilePath.getAbsolutePath());
+        if (out) {
+          return true;
+        } else {
+          WtMessageHandler.printToLogFile("Version has changed: Spell Cache rejected (Cache Version: " 
+                + version + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
+          return false;
         }
       } catch (InvalidClassException e) {
         WtMessageHandler.printToLogFile("Old cache Version: Spell Cache not read");

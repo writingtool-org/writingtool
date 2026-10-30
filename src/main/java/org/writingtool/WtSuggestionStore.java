@@ -49,7 +49,7 @@ public class WtSuggestionStore {
   /**
    * Is a word in store
    */
-  public boolean hasWord(String word, Locale locale) throws Throwable {
+  public synchronized boolean hasWord(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     return words != null && words.contains(word);
@@ -58,7 +58,7 @@ public class WtSuggestionStore {
   /**
    * get the suggestions of a word as an array of strings
    */
-  public String[] getSuggestions(String word, Locale locale) throws Throwable {
+  public synchronized String[] getSuggestions(String word, Locale locale) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     if (words == null || !words.contains(word)) {
@@ -84,7 +84,7 @@ public class WtSuggestionStore {
   /**
    * add the suggestions of word as array of strings
    */
-  public void addSuggestions(String word, Locale locale, String[] suggestions) throws Throwable {
+  public synchronized void addSuggestions(String word, Locale locale, String[] suggestions) throws Throwable {
     String localeStr = WtOfficeTools.localeToString(locale);
     List<String> words = lastWords.get(localeStr);
     List<String[]> suggestionList;
@@ -115,7 +115,7 @@ public class WtSuggestionStore {
    * Set the full store of words of suggestions
    * The store is cleared before
    */
-  public void setFullStore(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) throws Throwable {
+  public synchronized void setFullStore(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) throws Throwable {
     if (words == null || suggestions == null || words.size() != suggestions.size()) {
       return;
     }
@@ -138,23 +138,40 @@ public class WtSuggestionStore {
   }
   
   /**
-   * get the map of last words (depends on locale)
+   * get a copy of the map of last words (depends on locale)
+   * a copy (also of the inner lists): the store is changed by the spell checker threads at the same time
    */
-  public Map<String, List<String>> getLastWords() {
-    return lastWords;
+  public synchronized Map<String, List<String>> getLastWords() {
+    Map<String, List<String>> copy = new HashMap<>();
+    for (Map.Entry<String, List<String>> e : lastWords.entrySet()) {
+      copy.put(e.getKey(), new ArrayList<>(e.getValue()));
+    }
+    return copy;
   }
 
   /**
-   * get the map of last suggestions (depends on locale)
+   * get a copy of the map of last suggestions (depends on locale)
    */
-  public Map<String, List<String[]>> getLastSuggestions() {
-    return lastSuggestions;
+  public synchronized Map<String, List<String[]>> getLastSuggestions() {
+    Map<String, List<String[]>> copy = new HashMap<>();
+    for (Map.Entry<String, List<String[]>> e : lastSuggestions.entrySet()) {
+      copy.put(e.getKey(), new ArrayList<>(e.getValue()));
+    }
+    return copy;
   }
   
   /**
+   * copy words and suggestions at the same moment (consistent state) into the given maps
+   */
+  public synchronized void copyStore(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) {
+    words.putAll(getLastWords());
+    suggestions.putAll(getLastSuggestions());
+  }
+
+  /**
    * clear the whole store
    */
-  public void clear() {
+  public synchronized void clear() {
     lastWords.clear();
     lastSuggestions.clear();
   }

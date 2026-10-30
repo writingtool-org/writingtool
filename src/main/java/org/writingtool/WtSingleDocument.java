@@ -823,7 +823,10 @@ public class WtSingleDocument {
           WtMessageHandler.printToLogFile("SingleDocument: writeCaches: Save Caches ...");
           cacheIO.saveCaches(docCache, paragraphsCache, aiSuggestionCache, permanentIgnoredMatches, config, mDocHandler);
           SpellCache sc = cacheIO.new SpellCache();
-          sc.write(WtSpellChecker.getWrongWords(), WtSpellChecker.getSuggestions());
+          Map<String, List<String>> wrongWords = new HashMap<>();
+          Map<String, List<String[]>> suggestions = new HashMap<>();
+          WtSpellChecker.getStoreCopy(wrongWords, suggestions);
+          sc.write(wrongWords, suggestions);
         } else {
           WtMessageHandler.printToLogFile("SingleDocument: writeCaches: cacheIO == null: Can't save cache");
         }

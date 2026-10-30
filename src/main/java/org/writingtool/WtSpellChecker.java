@@ -456,6 +456,13 @@ public class WtSpellChecker extends WeakBase implements XServiceInfo,
     return WtDocumentsHandler.getServiceDisplayName(locale);
   }
   
+  /**
+   * get a consistent copy of the stored wrong words and their suggestions
+   */
+  public static void getStoreCopy(Map<String, List<String>> words, Map<String, List<String[]>> suggestions) throws Throwable {
+    lastWrongWords.copyStore(words, suggestions);
+  }
+
   public static Map<String, List<String>> getWrongWords() throws Throwable {
     return lastWrongWords.getLastWords();
   }
