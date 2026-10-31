@@ -136,6 +136,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
   @Override
   public ContextMenuInterceptorAction notifyContextMenuExecute(ContextMenuExecuteEvent aEvent) {
     try {
+//      WtMessageHandler.printToLogFile("WtContextMenu: notifyContextMenuExecute: get xContextMenu");
       if (isRunning) {
         WtMessageHandler.printToLogFile("WtContextMenu: notifyContextMenuExecute: is running: no change in Menu");
         return ContextMenuInterceptorAction.IGNORED;
@@ -317,7 +318,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
           }
         }
       }
-
+/*
       //  Workaround for LO 24.x
       WtProofreadingError error = document.getErrorAndChangeRange(aEvent, true);
       if (error != null) {
@@ -325,7 +326,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
         isRunning = false;
         return ContextMenuInterceptorAction.EXECUTE_MODIFIED;
       }
-      
+*/      
       //  Add LT Options Item for context menu without grammar error
       XPropertySet xSeparator = UnoRuntime.queryInterface(XPropertySet.class,
           xMenuElementFactory.createInstance("com.sun.star.ui.ActionTriggerSeparator"));

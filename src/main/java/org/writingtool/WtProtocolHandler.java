@@ -214,7 +214,7 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
               WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
             }
             makeProfileList(statusListener, url);
-          } else if (path.equals(WT_PROFILES)){
+          } else if (path.equals(WT_ACTIVATE_RULES)){
             if (debugMode) {
               WtMessageHandler.printToLogFile("WtProtocolHandler: add StatusListener: URL.Path: " + path);
             }

@@ -1913,6 +1913,7 @@ public class WtDocumentsHandler {
         config.setCurrentProfile(profile);
         config.addProfiles(saveProfiles);
         config.saveConfiguration(getCurrentDocument().getLanguage());
+        setConfigValues(config);
         resetGrammarCheckConfiguration();
         resetAiResultCaches();
       }

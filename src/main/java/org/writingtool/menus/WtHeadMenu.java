@@ -295,6 +295,7 @@ public class WtHeadMenu implements XMenuListener {
         config.setCurrentProfile(profile);
         config.addProfiles(saveProfiles);
         config.saveConfiguration(document.getLanguage());
+        document.getMultiDocumentsHandler().setConfigValues(config);
         document.getMultiDocumentsHandler().resetAiResultCaches();
         document.getMultiDocumentsHandler().resetGrammarCheckConfiguration();
       } catch (IOException e) {
