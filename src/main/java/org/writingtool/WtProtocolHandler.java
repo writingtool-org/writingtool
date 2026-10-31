@@ -93,6 +93,8 @@ public class WtProtocolHandler extends WeakBase implements XDispatchProvider, XD
   public static final String WT_PROFILES = "profiles";
   public static final String WT_PROFILE = "profileChangeTo_";
   public static final String WT_NONE = "noAction";
+  public static final String WT_ENABLE_WT = "enableWt";
+  public static final String WT_WRITE_ANALYZED_PARAGRAPHS = "writeAnalyzedParagraphs";
   public static final String WT_AI_MARK_ERRORS = "aiAddErrorMarks";
   public static final String WT_AI_CORRECT_ERRORS = "aiCorrectErrors";
   public static final String WT_AI_BETTER_STYLE = "aiBetterStyle";

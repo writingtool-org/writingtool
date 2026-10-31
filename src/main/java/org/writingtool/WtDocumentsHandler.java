@@ -2317,23 +2317,23 @@ public class WtDocumentsHandler {
       if (debugMode) {
         WtMessageHandler.printToLogFile("Trigger event: " + sEvent);
       }
-      if ("noAction".equals(sEvent)) {  //  special dummy action
+      if (WtProtocolHandler.WT_NONE.equals(sEvent)) {  //  special dummy action
         return;
       }
      
       WtSingleDocument currentDocument = getCurrentDocument();
-      if ("enableWt".equals(sEvent)) {  //  enable WT spell and grammar checker
+      if (WtProtocolHandler.WT_ENABLE_WT.equals(sEvent)) {  //  enable WT spell and grammar checker
         checkLOWtConfig(currentDocument, false);
         return;
       }
-      if (!"about".equals(sEvent) && !"configure".equals(sEvent)) {
+      if (!WtProtocolHandler.WT_ABOUT.equals(sEvent) && !WtProtocolHandler.WT_OPTIONS.equals(sEvent)) {
         checkLOWtConfig(currentDocument, true);
       }
       if (getCurrentDocument() == null) {
         WtMessageHandler.printToLogFile("Current document is null: return! Event: " + sEvent);
         return;
       }
-      if (noSpellService && !"configure".equals(sEvent) && !"about".equals(sEvent)) {
+      if (noSpellService && !WtProtocolHandler.WT_OPTIONS.equals(sEvent) && !WtProtocolHandler.WT_ABOUT.equals(sEvent)) {
         return;
       }
       long startTime = 0;
@@ -2344,61 +2344,61 @@ public class WtDocumentsHandler {
         WtMessageHandler.printToLogFile("Test for document language failed: Can't trigger event: " + sEvent);
         return;
       }
-      if ("configure".equals(sEvent)) {
+      if (WtProtocolHandler.WT_OPTIONS.equals(sEvent)) {
         closeDialogs();
         runOptionsDialog();
-      } else if ("about".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_ABOUT.equals(sEvent)) {
         closeDialogs();
         if (!isJavaLookAndFeelSet()) {
           setJavaLookAndFeel();
         }
         AboutDialogThread aboutThread = new AboutDialogThread(messages, xContext);
         aboutThread.start();
-      } else if ("moreInfo".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_MORE_INFO.equals(sEvent)) {
         moreInfo();
-      } else if ("backgroundCheckOn".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_BACKGROUND_CHECK_ON.equals(sEvent)) {
         if (toggleNoBackgroundCheck(BackgroundCheck.ON)) {
           resetCheck();
         }
-      } else if ("backgroundCheckOff".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_BACKGROUND_CHECK_OFF.equals(sEvent)) {
         if (toggleNoBackgroundCheck(BackgroundCheck.OFF)) {
           resetCheck();
         }
-      } else if ("toggleNoBackgroundCheck".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_TOGGLE_BACKGROUND_CHECK.equals(sEvent)) {
         if (toggleNoBackgroundCheck(BackgroundCheck.TOGGLE)) {
           resetCheck();
         }
-      } else if ("ignoreOnce".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_IGNORE_ONCE.equals(sEvent)) {
         ignoreOnce();
-      } else if ("ignoreAll".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_IGNORE_ALL.equals(sEvent)) {
         ignoreAll();
-      } else if ("ignorePermanent".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_IGNORE_PERMANENT.equals(sEvent)) {
         ignorePermanent();
-      } else if ("permanentIgnoreParagraph".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_PERMANENT_IGNORE_PARAGRAPH.equals(sEvent)) {
         permanentIgnoreParagraph();
-      } else if ("resetIgnorePermanent".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_RESET_IGNORE_PERMANENT.equals(sEvent)) {
         resetIgnorePermanent();
-      } else if ("deactivateRule".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_DEACTIVATE_RULE.equals(sEvent)) {
         deactivateRule();
-      } else if (sEvent.startsWith("aiReplaceWord_")) {
-        String suggestion = sEvent.substring(14);
+      } else if (sEvent.startsWith(WtProtocolHandler.WT_AI_REPLACE_WORD)) {
+        String suggestion = sEvent.substring(WtProtocolHandler.WT_AI_REPLACE_WORD.length());
         this.aiReplaceError(suggestion);
-      } else if (sEvent.startsWith("activateRule_")) {
-        String ruleId = sEvent.substring(13);
+      } else if (sEvent.startsWith(WtProtocolHandler.WT_ACTIVATE_RULE)) {
+        String ruleId = sEvent.substring(WtProtocolHandler.WT_ACTIVATE_RULE.length());
         activateRule(ruleId);
-      } else if (sEvent.startsWith("profileChangeTo_")) {
-        String profile = sEvent.substring(16);
+      } else if (sEvent.startsWith(WtProtocolHandler.WT_PROFILE)) {
+        String profile = sEvent.substring(WtProtocolHandler.WT_PROFILE.length());
         changeProfile(profile);
-      } else if (sEvent.startsWith("addToDictionary_")) {
-        String[] sArray = sEvent.substring(16).split(":");
+      } else if (sEvent.startsWith(WtProtocolHandler.WT_ADD_TO_DICTIONARY)) {
+        String[] sArray = sEvent.substring(WtProtocolHandler.WT_ADD_TO_DICTIONARY.length()).split(":");
         WtDictionary.addWordToDictionary(sArray[0], sArray[1].replace(WtOfficeTools.SOFT_HYPHEN, ""), xContext);;
-      } else if ("renewMarkups".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_RENEW_MARKUPS.equals(sEvent)) {
         renewMarkups();
-      } else if ("refreshAllMarkups".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_REFRESH_MARKUPS.equals(sEvent)) {
         remarkAllParagraphs();
-      } else if ("checkDialog".equals(sEvent) || "checkAgainDialog".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_CHECKDIALOG.equals(sEvent) || WtProtocolHandler.WT_CHECKAGAINDIALOG.equals(sEvent)) {
         if (useOrginalCheckDialog) {
-          if ("checkDialog".equals(sEvent) ) {
+          if (WtProtocolHandler.WT_CHECKDIALOG.equals(sEvent) ) {
             WtOfficeTools.dispatchCmd(".uno:SpellingAndGrammarDialog", xContext);
           } else {
             WtOfficeTools.dispatchCmd(".uno:RecheckDocument", xContext);
@@ -2414,7 +2414,7 @@ public class WtDocumentsHandler {
         }
         setLtDialogIsRunning(true);
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage);
-        if ("checkAgainDialog".equals(sEvent)) {
+        if (WtProtocolHandler.WT_CHECKAGAINDIALOG.equals(sEvent)) {
           WtSingleDocument document = getCurrentDocument();
           if (document != null) {
             XComponent currentComponent = document.getXComponent();
@@ -2435,7 +2435,7 @@ public class WtDocumentsHandler {
           WtMessageHandler.printToLogFile("MultiDocumentsHandler: trigger: Start Spell And Grammar Check Dialog");
         }
         checkDialog.start();
-      } else if ("nextError".equals(sEvent) || "previousError".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_NEXT_ERROR.equals(sEvent) || WtProtocolHandler.WT_PREVIOUS_ERROR.equals(sEvent)) {
         if (isBackgroundCheckOff()) {
           WtMessageHandler.showMessage(messages.getString("messageDialogSwitchOffMessage"));
           return;
@@ -2445,12 +2445,12 @@ public class WtDocumentsHandler {
           return;
         }
         WtCheckDialog checkDialog = new WtCheckDialog(xContext, this, docLanguage);
-        if ("nextError".equals(sEvent)) {
+        if (WtProtocolHandler.WT_NEXT_ERROR.equals(sEvent)) {
           checkDialog.nextError();
         } else {
           checkDialog.previousError();
         }
-      } else if ("refreshCheck".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_REFRESH_CHECK.equals(sEvent)) {
         if (ltDialog != null) {
           ltDialog.closeDialog();
         } 
@@ -2463,37 +2463,37 @@ public class WtDocumentsHandler {
         resetAllResultCaches();
         WtSpellChecker.resetSpellCache();
         resetDocument();
-      } else if ("statisticalAnalyses".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_STATISTICAL_ANALYSES.equals(sEvent)) {
         closeDialogs();
         statAnDialog = new WtStatAnDialog(getCurrentDocument());
         statAnDialog.start();
-      } else if ("changeQuotes".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_CHANGE_QUOTES.equals(sEvent)) {
         runChangeQuotes();
-      } else if ("offStatisticalAnalyses".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_OFF_STATISTICAL_ANALYSES.equals(sEvent)) {
         //  statistical analysis id not supported for this language --> do nothing
-      } else if ("writeAnalyzedParagraphs".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_WRITE_ANALYZED_PARAGRAPHS.equals(sEvent)) {
         new WtAnalyzedParagraphsCache(this); 
-      } else if ("aiAddErrorMarks".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_MARK_ERRORS.equals(sEvent)) {
         aiAddErrorMarks();
-      } else if ("aiGeneralCommand".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_GENERAL.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.GeneralAi);
-      } else if ("aiCorrectErrors".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_CORRECT_ERRORS.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.CorrectGrammar);
-      } else if ("aiBetterStyle".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_BETTER_STYLE.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.ImproveStyle);
-      } else if ("aiReformulateText".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_REFORMULATE_TEXT.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.ReformulateText);
-      } else if ("aiAdvanceText".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_EXPAND_TEXT.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.ExpandText);
-      } else if ("aiSynonymsOfWord".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_SYNONYMS_OF_WORD.equals(sEvent)) {
         runAiChangeOnParagraph(AiCommand.SynonymsOfWord);
-      } else if ("aiTranslateText".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_TRANSLATE_TEXT.equals(sEvent)) {
         runAiTranslateText();
-      } else if ("aiTextToSpeech".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_TEXT_TO_SPEECH.equals(sEvent)) {
         runAiTextToSpeech();
-      } else if ("aiSummary".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_AI_SUMMARY.equals(sEvent)) {
         runAiSummaryDialog();
-      } else if ("remoteHint".equals(sEvent)) {
+      } else if (WtProtocolHandler.WT_REMOTE_HINT.equals(sEvent)) {
         if (getConfiguration().useOtherServer()) {
           WtMessageHandler.showMessage(MessageFormat.format(messages.getString("remoteInfoOtherServer"), 
               getConfiguration().getServerUrl()));
