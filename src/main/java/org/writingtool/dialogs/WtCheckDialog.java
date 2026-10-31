@@ -45,6 +45,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -660,6 +663,7 @@ public void previousError() {
     WtSingleDocument document = null;
     List<WtProofreadingError[]> errors = new ArrayList<>();
     while (nWait < TEST_LOOPS) {
+      errors = new ArrayList<>();      //  the list is built new in every round (otherwise the entries of the rounds before are included)
       document = documents.getCurrentDocument();
       if (document != null) {
         noNull = true;
@@ -698,9 +702,14 @@ public void previousError() {
       }
       nWait++;
     }
-    for (int cacheNum = 0; cacheNum < lt.getNumMinToCheckParas().size(); cacheNum++) {
-      if (lt.isSortedRuleForIndex(cacheNum)) {
-        document.addQueueEntry(nFPara, cacheNum, lt.getNumMinToCheckParas().get(cacheNum), document.getDocID(), false);
+    if (document == null) {
+      return null;
+    }
+    if (lt != null) {
+      for (int cacheNum = 0; cacheNum < lt.getNumMinToCheckParas().size(); cacheNum++) {
+        if (lt.isSortedRuleForIndex(cacheNum)) {
+          document.addQueueEntry(nFPara, cacheNum, lt.getNumMinToCheckParas().get(cacheNum), document.getDocID(), false);
+        }
       }
     }
     mergeSpellingErrors(errors);
@@ -997,7 +1006,8 @@ public void previousError() {
                     for (String suggestion : error.aSuggestions) {
                       suggestionList.add(suggestion);
                     }
-                    String[] suggestions = documents.getLinguisticServices().getSpellAlternatives(text, locale);
+                    String[] suggestions = documents.getLinguisticServices().getSpellAlternatives(
+                        text.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength), locale);
                     if (suggestions != null) {
                       for (String suggestion : suggestions) {
                         if (!suggestionList.contains(suggestion)) {
@@ -1230,10 +1240,10 @@ public void previousError() {
     private int lastY = -1;
     private int lastPara = -1;
     private boolean isSpellError = false;
-    private boolean focusLost = false;
+    private volatile boolean focusLost = false;
     private boolean blockSentenceError = true;
-    private boolean isDisposed = false;
-    private boolean atWork = false;
+    private volatile boolean isDisposed = false;
+    private volatile boolean atWork = false;
     private boolean uncheckedParasLeft = false;
 
     private String wrongWord;
@@ -1401,9 +1411,20 @@ public void previousError() {
           @Override
           public void keyPressed(KeyEvent e) {
             try {
-              if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+              if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
                 setAtWorkButtonState();
-                changeText();
+                //  not in the event thread: the change of the text and the search of the next error can last a long time
+                Thread worker = new Thread(new Runnable() {
+                  public void run() {
+                    try {
+                      changeText();
+                    } catch (Throwable ex) {
+                      WtMessageHandler.showError(ex);
+                      closeDialog();
+                    }
+                  }
+                });
+                worker.start();
               }
             } catch (Throwable t) {
               WtMessageHandler.showError(t);
@@ -1453,9 +1474,20 @@ public void previousError() {
           @Override
           public void keyPressed(KeyEvent e) {
             try {
-              if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+              if(e.getKeyCode() == KeyEvent.VK_ENTER && !atWork) {
                 setAtWorkButtonState();
-                changeText();
+                //  not in the event thread: the change of the text and the search of the next error can last a long time
+                Thread worker = new Thread(new Runnable() {
+                  public void run() {
+                    try {
+                      changeText();
+                    } catch (Throwable ex) {
+                      WtMessageHandler.showError(ex);
+                      closeDialog();
+                    }
+                  }
+                });
+                worker.start();
               }
             } catch (Throwable t) {
               WtMessageHandler.showError(t);
@@ -2439,7 +2471,7 @@ public void previousError() {
         help.setEnabled(false);
         options.setEnabled(false);
         undo.setEnabled(false);
-        close.setEnabled(false);
+        close.setEnabled(true);
         language.setEnabled(false);
         changeLanguage.setEnabled(false);
         activateRule.setEnabled(false);
@@ -2451,7 +2483,7 @@ public void previousError() {
         errorDescription.setForeground(Color.RED);
         contentPane.revalidate();
         contentPane.repaint();
-        dialog.setEnabled(false);
+        //  the window itself stays enabled (all elements are disabled above): otherwise the close button can't be used
         atWork = work;
       } catch (Throwable e) {
         WtMessageHandler.showError(e);
@@ -2942,6 +2974,10 @@ public void previousError() {
      */
     @Override
     public void actionPerformed(ActionEvent action) {
+      if (atWork && "close".equals(action.getActionCommand())) {
+        closeDialog();     //  the dialog can be closed while a check is running (isDisposed ends the check)
+        return;
+      }
       if (!atWork) {
         try {
           if (debugMode) {
@@ -3012,6 +3048,7 @@ public void previousError() {
         isDisposed = true;
         removeMarkups();
         dialog.setVisible(false);
+        javax.swing.SwingUtilities.invokeLater(() -> dialog.dispose());    //  release the native window
         if (debugMode) {
           WtMessageHandler.printToLogFile("CheckDialog: closeDialog: Close Spell And Grammar Check Dialog");
         }
@@ -3198,7 +3235,7 @@ public void previousError() {
         }
         changeTextOfParagraph(y, firstChange, lastEqual - firstChange, replace, currentDocument, viewCursor);
         addSingleChangeUndo(firstChange, y, word, replace);
-      } else if (suggestions.getComponentCount() > 0) {
+      } else if (suggestions.getComponentCount() > 0 && error != null && suggestions.getSelectedValue() != null) {
         if (orgText.length() >= error.nErrorStart + error.nErrorLength) {
           word = orgText.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
           replace = suggestions.getSelectedValue();
@@ -3207,6 +3244,7 @@ public void previousError() {
         }
       } else {
         WtMessageHandler.printToLogFile("CheckDialog: changeText: No text selected to change");
+        gotoNextError();      //  release the dialog (it was set to 'at work' by the caller)
         return;
       }
       if (debugMode) {
@@ -3221,6 +3259,10 @@ public void previousError() {
      * @throws Throwable 
      */
     private void changeAll() throws Throwable {
+      if (error == null || suggestions.getSelectedValue() == null) {
+        gotoNextError();      //  nothing to change: release the dialog
+        return;
+      }
       if (suggestions.getComponentCount() > 0) {
         removeMarkups();
         String orgText = sentenceIncludeError.getText();
@@ -3240,6 +3282,10 @@ public void previousError() {
      * @throws Throwable 
      */
     private void autoCorrect() throws Throwable {
+      if (error == null || suggestions.getSelectedValue() == null) {
+        gotoNextError();      //  nothing to change: release the dialog
+        return;
+      }
       if (suggestions.getComponentCount() > 0) {
         String orgText = sentenceIncludeError.getText();
         String word = orgText.substring(error.nErrorStart, error.nErrorStart + error.nErrorLength);
@@ -3302,15 +3348,16 @@ public void previousError() {
       String aCorrTmpFile = aCorrUri.getPath() + "/" + ACORR_PREFIX + locale.Language + "-" + locale.Country + "_tmp" + ACORR_SUFFIX;
       WtMessageHandler.printToLogFile("AutoCorrect path: " + aCorrFile);
       String tmpDir = aCorrUri.getPath() + "/tmp";
-      unzipACorr(tmpDir, aCorrFile);
-      addWordPairToCorFile(tmpDir, word, replace);
-      zipACorr(tmpDir, aCorrTmpFile);
-      File tmpDr = new File(tmpDir); 
-      deleteFullDirectory(tmpDr);
-      File file = new File(aCorrFile);
-      File newFile = new File(aCorrTmpFile);
-      file.delete();
-      newFile.renameTo(file);
+      try {
+        unzipACorr(tmpDir, aCorrFile);
+        addWordPairToCorFile(tmpDir, word, replace);
+        zipACorr(tmpDir, aCorrTmpFile);
+        //  the AutoCorrect file is replaced in one step: it is never lost if the replacement fails
+        Files.move(new File(aCorrTmpFile).toPath(), new File(aCorrFile).toPath(), StandardCopyOption.REPLACE_EXISTING);
+      } finally {
+        deleteFullDirectory(new File(tmpDir));
+        new File(aCorrTmpFile).delete();
+      }
     }
     
     boolean deleteFullDirectory(File directory) throws Throwable {
@@ -3346,11 +3393,15 @@ public void previousError() {
       if (!destDir.mkdir()) {
         throw new IOException("Failed to create directory " + destDirPath);
       }
+      String destCanonical = destDir.getCanonicalPath() + File.separator;
       byte[] buffer = new byte[1024];
       try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath))) {
         ZipEntry zipEntry = zis.getNextEntry();
         while (zipEntry != null) {
           File newFile = new File(destDir, zipEntry.getName());
+          if (!newFile.getCanonicalPath().startsWith(destCanonical)) {
+            throw new IOException("Zip entry is outside of the target directory: " + zipEntry.getName());
+          }
           if (zipEntry.isDirectory()) {
             if (!newFile.isDirectory() && !newFile.mkdirs()) {
               throw new IOException("Failed to create directory " + newFile);
@@ -3362,57 +3413,55 @@ public void previousError() {
               throw new IOException("Failed to create directory " + parent);
             }
             // write file content
-            FileOutputStream fos = new FileOutputStream(newFile);
-            int len;
-            while ((len = zis.read(buffer)) > 0) {
-              fos.write(buffer, 0, len);
+            try (FileOutputStream fos = new FileOutputStream(newFile)) {
+              int len;
+              while ((len = zis.read(buffer)) > 0) {
+                fos.write(buffer, 0, len);
+              }
             }
-            fos.close();
           }
           zipEntry = zis.getNextEntry();
         }
-        zis.closeEntry();
-        zis.close();
       }
     }
     
+    /**
+     * escape a text for the use in an XML attribute
+     */
+    private String escapeXmlAttribute(String text) {
+      return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;");
+    }
+
     private void addWordPairToCorFile(String dirPath, String word, String replace) throws Throwable {
       String fileName = "DocumentList.xml";
-      String tmpFileName = "DocumentList_tmp.xml";
+      final String endTag = "</block-list:block-list>";
       File file = new File(dirPath, fileName);
-      File newFile = new File(dirPath, tmpFileName);
-      FileInputStream fis = new FileInputStream(file);
-      FileOutputStream fos = new FileOutputStream(newFile);
-      byte[] buffer = new byte[1024];
-      int len;
-      long maxReadLen = file.length() - 24;
-      while (maxReadLen > 0 && (len = fis.read(buffer)) > 0) {
-        if (len > maxReadLen) {
-          len = (int) maxReadLen;
-        }
-        fos.write(buffer, 0, len);
-        maxReadLen -= len;
+      String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+      //  the new entry is inserted before the closing tag (independent of white spaces behind the tag)
+      int endPos = content.lastIndexOf(endTag);
+      if (endPos < 0) {
+        throw new IOException("Unexpected format of AutoCorrect file: " + file.getAbsolutePath());
       }
-      fis.close();
-      String str = "<block-list:block block-list:abbreviated-name=\"" + word + "\" block-list:name=\"" + replace + "\"/></block-list:block-list>";
-      buffer = str.getBytes();
-      len = buffer.length;
-      fos.write(buffer, 0, len);
-      fos.close();
-      file.delete();
-      newFile.renameTo(file);
+      String entry = "<block-list:block block-list:abbreviated-name=\"" + escapeXmlAttribute(word) 
+          + "\" block-list:name=\"" + escapeXmlAttribute(replace) + "\"/>";
+      String newContent = content.substring(0, endPos) + entry + content.substring(endPos);
+      File newFile = new File(dirPath, "DocumentList_tmp.xml");
+      Files.write(newFile.toPath(), newContent.getBytes(StandardCharsets.UTF_8));
+      Files.move(newFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     private void zipACorr(String sourceDirPath, String zipFilePath) throws Throwable {
-      FileOutputStream fos = new FileOutputStream(zipFilePath);
-      ZipOutputStream zipOut = new ZipOutputStream(fos);
       File dirToZip = new File(sourceDirPath);
       File[] children = dirToZip.listFiles();
-      for (File childFile : children) {
-        zipFileRec(childFile, childFile.getName(), zipOut);
+      if (children == null) {
+        throw new IOException("Can't read directory " + sourceDirPath);
       }
-      zipOut.close();
-      fos.close();
+      try (FileOutputStream fos = new FileOutputStream(zipFilePath);
+          ZipOutputStream zipOut = new ZipOutputStream(fos)) {
+        for (File childFile : children) {
+          zipFileRec(childFile, childFile.getName(), zipOut);
+        }
+      }
     }
     
     private void zipFileRec(File fileToZip, String fileName, ZipOutputStream zipOut) throws Throwable {
@@ -3428,20 +3477,23 @@ public void previousError() {
           zipOut.closeEntry();
         }
         File[] children = fileToZip.listFiles();
-        for (File childFile : children) {
-          zipFileRec(childFile, fileName + "/" + childFile.getName(), zipOut);
+        if (children != null) {
+          for (File childFile : children) {
+            zipFileRec(childFile, fileName + "/" + childFile.getName(), zipOut);
+          }
         }
         return;
       }
-      FileInputStream fis = new FileInputStream(fileToZip);
-      ZipEntry zipEntry = new ZipEntry(fileName);
-      zipOut.putNextEntry(zipEntry);
-      byte[] bytes = new byte[1024];
-      int length;
-      while ((length = fis.read(bytes)) >= 0) {
+      try (FileInputStream fis = new FileInputStream(fileToZip)) {
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
           zipOut.write(bytes, 0, length);
+        }
+        zipOut.closeEntry();
       }
-      fis.close();
     }
     
     /**

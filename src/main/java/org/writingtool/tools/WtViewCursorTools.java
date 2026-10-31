@@ -60,7 +60,8 @@ import com.sun.star.uno.UnoRuntime;
  */
 public class WtViewCursorTools {
   
-  private static int isBusy = 0;
+  //  atomic: the counter is changed by many threads (a lost update would leave the tools busy forever)
+  private static final java.util.concurrent.atomic.AtomicInteger isBusy = new java.util.concurrent.atomic.AtomicInteger();
 
   private XComponent xComponent;
 
@@ -81,7 +82,7 @@ public class WtViewCursorTools {
    */
   @Nullable
   public XTextViewCursor getViewCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XModel xModel = UnoRuntime.queryInterface(XModel.class, xComponent);
       if (xModel == null) {
@@ -101,7 +102,7 @@ public class WtViewCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -110,7 +111,7 @@ public class WtViewCursorTools {
    * support text, tables, frames, shapes, end- and footnotes, header, footers
    */
   private XTextCursor getTextCursorFromViewCursor(boolean getEnd) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor == null) {
@@ -237,7 +238,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return null;
   }
@@ -263,7 +264,7 @@ public class WtViewCursorTools {
    * Returns null if method fails
    */
   public XParagraphCursor getParagraphCursorFromViewCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextCursor xTextCursor = getTextCursorFromViewCursor(false);
       if (xTextCursor == null) {
@@ -275,7 +276,7 @@ public class WtViewCursorTools {
       //       return: null 
       return null;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -284,7 +285,7 @@ public class WtViewCursorTools {
    * Returns null if it fails
    */
   public String getViewCursorParagraphText() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xParagraphCursor = getParagraphCursorFromViewCursor();
       if (xParagraphCursor == null) {
@@ -297,7 +298,7 @@ public class WtViewCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;                          // Return null value as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -339,7 +340,7 @@ public class WtViewCursorTools {
    * Change view cursor selection
    */
   public void setViewCursorSelection(short from, short length) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xParagraphCursor = getParagraphCursorFromViewCursor();
       if (xParagraphCursor == null) {
@@ -355,7 +356,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -363,7 +364,7 @@ public class WtViewCursorTools {
    * Replace a part of Paragraph under ViewCursor 
    */
   public void setViewCursorParagraphText(int nStart, int nLength, String replace) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xParagraphCursor = getParagraphCursorFromViewCursor();
       if (xParagraphCursor == null) {
@@ -378,7 +379,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -409,7 +410,7 @@ public class WtViewCursorTools {
 
 /*
   public void insertText(String text, boolean override) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (text != null && xComponent != null) {
         XTextDocument curDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
@@ -430,7 +431,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -483,7 +484,7 @@ public class WtViewCursorTools {
    * get the paragraph under the view cursor
    */
   public TextParagraph getViewCursorParagraph() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor == null) {
@@ -708,7 +709,7 @@ public class WtViewCursorTools {
     // Note: exception is thrown if graphic element is selected
     //       return: unknown text paragraph
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return new TextParagraph(WtDocumentCache.CURSOR_TYPE_UNKNOWN, -1);
   }
@@ -718,7 +719,7 @@ public class WtViewCursorTools {
    * Returns a negative value if it fails
    */
   public int getViewCursorCharacter() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xParagraphCursor = getParagraphCursorFromViewCursor();
       if (xParagraphCursor == null) {
@@ -731,7 +732,7 @@ public class WtViewCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return -2;             // Return negative value as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -740,7 +741,7 @@ public class WtViewCursorTools {
    * Returns null if fails
    */
   String getViewCursorSelectedArea() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor == null) {
@@ -777,7 +778,7 @@ public class WtViewCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;             // Return negative value as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -812,7 +813,7 @@ public class WtViewCursorTools {
    * set the view cursor to header or footer paragraph
    */
   public void setViewCursorToHeaderFooter(int xChar, int numPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -848,7 +849,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -856,7 +857,7 @@ public class WtViewCursorTools {
    * Returns the Index Access to all tables of a document
    */
   public XIndexAccess getIndexAccessOfAllTables() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextDocument curDoc = getTextDocument();
       if (curDoc == null) {
@@ -870,7 +871,7 @@ public class WtViewCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -878,7 +879,7 @@ public class WtViewCursorTools {
    * Set the cursor to a paragraph inside a cell of a table
    */
   public void setViewCursorToParagraphOfTable(int xChar, int numPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -904,7 +905,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -912,7 +913,7 @@ public class WtViewCursorTools {
    * Set the cursor to a paragraph of footnote
    */
   public void setViewCursorToParagraphOfFootnote(int xChar, int numPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -943,7 +944,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -951,7 +952,7 @@ public class WtViewCursorTools {
    * Set the cursor to a paragraph of endnote
    */
   public void setViewCursorToParagraphOfEndnote(int xChar, int numPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -980,7 +981,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -988,7 +989,7 @@ public class WtViewCursorTools {
    * Set the cursor to a paragraph of shape
    */
   public void setViewCursorToParagraphOfShape(int xChar, int numPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -1028,7 +1029,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions XWordCursorthrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1036,7 +1037,7 @@ public class WtViewCursorTools {
    * Set the view cursor to paragraph paraNum 
    */
   public void setDocumentTextViewCursor(int xChar, int paraNum)  {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       if (vCursor != null) {
@@ -1060,7 +1061,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1068,7 +1069,7 @@ public class WtViewCursorTools {
    * Set view cursor to paragraph paraNum 
    */
   public void setTextViewCursor(int xChar, TextParagraph yPara)  {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (yPara.type == WtDocumentCache.CURSOR_TYPE_TEXT) {
         setDocumentTextViewCursor(xChar, yPara.number);
@@ -1086,7 +1087,7 @@ public class WtViewCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1095,7 +1096,7 @@ public class WtViewCursorTools {
    * Returns null if method fails
    */
   public String getWordFromViewCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextCursor xTextCursor = getTextCursorFromViewCursor(false);
       if (xTextCursor == null) {
@@ -1114,7 +1115,7 @@ public class WtViewCursorTools {
       //       return: null 
       return null;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1122,7 +1123,7 @@ public class WtViewCursorTools {
    * Selects the word under the view cursor
    */
   public void selectWordFromViewCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       XTextCursor xTextCursor = getTextCursorFromViewCursor(false);
@@ -1139,7 +1140,7 @@ public class WtViewCursorTools {
       vCursor.gotoRange(xWordCursor.getStart(), true);
     } catch (Throwable t) {
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1147,7 +1148,7 @@ public class WtViewCursorTools {
    * Selects the paragraph under the view cursor
    */
   public void selectParagraphFromViewCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XTextViewCursor vCursor = getViewCursor();
       XParagraphCursor xPCursor = this.getParagraphCursorFromViewCursor();
@@ -1160,7 +1161,7 @@ public class WtViewCursorTools {
       vCursor.gotoRange(xPCursor.getStart(), true);
     } catch (Throwable t) {
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1169,14 +1170,14 @@ public class WtViewCursorTools {
    *  true: If a cursor tool in one or more threads is active
    */
   public static boolean isBusy() {
-    return isBusy > 0;
+    return isBusy.get() > 0;
   }
   
   /**
    *  Reset the busy flag
    */
   public static void reset() {
-    isBusy = 0;
+    isBusy.set(0);
   }
   
 

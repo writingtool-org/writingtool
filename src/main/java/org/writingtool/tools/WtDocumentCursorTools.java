@@ -79,7 +79,8 @@ public class WtDocumentCursorTools {
       "FooterTextFirst" 
   };
 
-  private static int isBusy = 0;
+  //  atomic: the counter is changed by many threads (a lost update would leave the tools busy forever)
+  private static final java.util.concurrent.atomic.AtomicInteger isBusy = new java.util.concurrent.atomic.AtomicInteger();
   
   private boolean isCheckedSortedTextId = false;
   private boolean hasSortedTextId = false;
@@ -91,7 +92,7 @@ public class WtDocumentCursorTools {
   private volatile XTextDocument curDoc;
   
   public WtDocumentCursorTools(XComponent xComponent) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (!isDisposed) {
         curDoc = UnoRuntime.queryInterface(XTextDocument.class, xComponent);
@@ -102,7 +103,7 @@ public class WtDocumentCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -126,7 +127,7 @@ public class WtDocumentCursorTools {
    */
   @Nullable
   public XTextCursor getCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (curDoc == null) {
         return null;
@@ -146,7 +147,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -156,7 +157,7 @@ public class WtDocumentCursorTools {
    */
   @Nullable
   private XParagraphCursor createParagraphCursor() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (xTextCursor == null) {
         return null;
@@ -166,7 +167,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -193,7 +194,7 @@ public class WtDocumentCursorTools {
    * Returns 0 if it fails
    */
   public int getNumberOfAllTextParagraphs() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (xPCursor == null) {
         return 0;
@@ -206,7 +207,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;              // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -292,7 +293,7 @@ public class WtDocumentCursorTools {
   @Nullable
   public
   DocumentText getAllTextParagraphs(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> allParas = new ArrayList<>();
       Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
@@ -347,7 +348,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -569,7 +570,7 @@ public class WtDocumentCursorTools {
    * NOTE: Is currently not used 
    */
   public DocumentText getTextOfAllFrames(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
@@ -603,7 +604,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -612,7 +613,7 @@ public class WtDocumentCursorTools {
    * NOTE: Is currently not used 
    */
   public int getNumberOfAllFrames() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       if (curDoc != null) {
@@ -633,7 +634,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -641,7 +642,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all text shapes of a document
    */
   public DocumentText getTextOfAllShapes(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
@@ -675,7 +676,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -683,7 +684,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all text shapes of a document
    */
   public List<String> getTextOfShapes(List<Integer> nPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       XDrawPageSupplier xDrawPageSupplier = UnoRuntime.queryInterface(XDrawPageSupplier.class, curDoc);
@@ -720,7 +721,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -728,7 +729,7 @@ public class WtDocumentCursorTools {
    * Returns the number of all paragraphs of all text shapes of a document
    */
   public int getNumberOfAllShapes() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       if (curDoc != null) {
@@ -760,7 +761,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -788,7 +789,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all cells of all tables of a document
    */
   public DocumentText getTextOfAllTables(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
@@ -816,7 +817,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -825,7 +826,7 @@ public class WtDocumentCursorTools {
    * Note: nPara stores the numbers of textparagraphs
    */
   public List<String> getTextOfTables(List<Integer> nPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       XIndexAccess xTables = getIndexAccessOfAllTables();
@@ -854,7 +855,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -862,7 +863,7 @@ public class WtDocumentCursorTools {
    * Returns the number of paragraphs of all cells of all tables of a document
    */
   public int getNumberOfAllTables() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       XIndexAccess xTables = getIndexAccessOfAllTables();
@@ -886,7 +887,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -894,7 +895,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all footnotes of a document
    */
   public DocumentText getTextOfAllFootnotes(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     List<String> sText = new ArrayList<String>();
     Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
     List<Integer> sortedTextIds = null;
@@ -923,7 +924,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -931,7 +932,7 @@ public class WtDocumentCursorTools {
    * Returns the number of paragraphs of all footnotes of a document
    */
   public int getNumberOfAllFootnotes() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       if (curDoc != null) {
@@ -956,7 +957,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -964,7 +965,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of all endnotes of a document
    */
   public DocumentText getTextOfAllEndnotes(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     List<String> sText = new ArrayList<String>();
     Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
     List<Integer> sortedTextIds = null;
@@ -993,7 +994,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1001,7 +1002,7 @@ public class WtDocumentCursorTools {
    * Returns number of paragraphs of all endnotes of a document
    */
   public int getNumberOfAllEndnotes() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       if (curDoc != null) {
@@ -1026,7 +1027,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1068,7 +1069,7 @@ public class WtDocumentCursorTools {
    * Returns all paragraphs of headers and footers of a document
    */
   public DocumentText getTextOfAllHeadersAndFooters(boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<String> sText = new ArrayList<String>();
       Map<Integer, Integer> headingNumbers = new HashMap<Integer, Integer>();
@@ -1107,7 +1108,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1115,7 +1116,7 @@ public class WtDocumentCursorTools {
    * Returns the number of paragraphs of headers and footers of a document
    */
   public int getNumberOfAllHeadersAndFooters() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       int num = 0;
       List<XPropertySet> xPagePropertySets = getPagePropertySets();
@@ -1148,7 +1149,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return 0;           // Return 0 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1156,7 +1157,7 @@ public class WtDocumentCursorTools {
    * get the paragraph cursor
    */
   public XParagraphCursor getParagraphCursor(TextParagraph textPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (textPara == null) {
         return null;
@@ -1315,7 +1316,7 @@ public class WtDocumentCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return null;
   }
@@ -1324,7 +1325,7 @@ public class WtDocumentCursorTools {
    * remove marks of text paragraph
    */
   public void removeMarks(List<TextParagraph> textParas) throws Throwable {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (textParas == null) {
         return;
@@ -1569,7 +1570,7 @@ public class WtDocumentCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1577,7 +1578,7 @@ public class WtDocumentCursorTools {
    * get positions of deleted characters from a text paragraph
    */
   public List<Integer> getDeletedCharactersOfTextParagraph(TextParagraph textPara, boolean withDeleted) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (!withDeleted || textPara == null) {
         return new ArrayList<Integer>();
@@ -1593,7 +1594,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
       return null;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1601,7 +1602,7 @@ public class WtDocumentCursorTools {
    * is protected character at position in paragraph
    */
   public boolean isProtectedCharacter(TextParagraph textPara, short x) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (textPara == null) {
         return false;
@@ -1623,7 +1624,7 @@ public class WtDocumentCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught and printed to log file
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return false;
   }
@@ -1633,7 +1634,7 @@ public class WtDocumentCursorTools {
    * delete characters between nStart and nStart + nLength, insert replace at nStart
    */
   public String getTextOfParagraph(TextParagraph tPara) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xPCursor = getParagraphCursor(tPara);
       if (xPCursor == null) {
@@ -1646,7 +1647,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1655,7 +1656,7 @@ public class WtDocumentCursorTools {
    * delete characters between nStart and nStart + nLength, insert replace at nStart
    */
   public boolean changeTextOfParagraph(TextParagraph tPara, int nStart, int nLength, String replace) throws RuntimeException {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xPCursor = getParagraphCursor(tPara);
       if (xPCursor == null) {
@@ -1672,7 +1673,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return false;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1683,7 +1684,7 @@ public class WtDocumentCursorTools {
    */
   public boolean changeTextOfParagraphCorrected(TextParagraph tPara, int nStart, int nLength, String replace,
       int[] textFieldPositions) throws RuntimeException {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XParagraphCursor xPCursor = getParagraphCursor(tPara);
       if (xPCursor == null) {
@@ -1703,7 +1704,7 @@ public class WtDocumentCursorTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return false;
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -1778,7 +1779,7 @@ public class WtDocumentCursorTools {
    * replace all text fields, footnotes and endnotes of a paragraph by zero space character
    */
   public String getFlatParagraph(TextParagraph tPara, String textPragraph, boolean hasFootnote, boolean hasTextField) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       List<Integer> fieldPos = null;
       
@@ -1865,7 +1866,7 @@ public class WtDocumentCursorTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
 
     return textPragraph;
@@ -1943,7 +1944,7 @@ public class WtDocumentCursorTools {
    * get the paragraph from a range
    */
   public TextParagraph getParagraphFromRange(XTextRange xRange) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XText xRangeText = xRange.getText();
       XTextDocument curDoc = getTextDocument();
@@ -2161,7 +2162,7 @@ public class WtDocumentCursorTools {
     // Note: exception is thrown if graphic element is selected
     //       return: unknown text paragraph
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return new TextParagraph(WtDocumentCache.CURSOR_TYPE_UNKNOWN, -1);
   }
@@ -2171,14 +2172,14 @@ public class WtDocumentCursorTools {
    *  true: If a cursor tool in one or more threads is active
    */
   public static boolean isBusy() {
-    return isBusy > 0;
+    return isBusy.get() > 0;
   }
   
   /**
    *  Reset the busy flag
    */
   public static void reset() {
-    isBusy = 0;
+    isBusy.set(0);
   }
   
   /**

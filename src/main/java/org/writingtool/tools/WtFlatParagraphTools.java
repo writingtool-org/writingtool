@@ -60,7 +60,8 @@ public class WtFlatParagraphTools {
   
   private static boolean debugMode; //  should be false except for testing
   
-  private static int isBusy = 0;
+  //  atomic: the counter is changed by many threads (a lost update would leave the tools busy forever)
+  private static final java.util.concurrent.atomic.AtomicInteger isBusy = new java.util.concurrent.atomic.AtomicInteger();
 
   //  volatile: setDisposed() is called by another thread (UNO disposing event) than the checks
   private volatile XFlatParagraphIterator xFlatParaIter;
@@ -109,7 +110,7 @@ public class WtFlatParagraphTools {
    */
   @Nullable
   private XFlatParagraphIterator getXFlatParagraphIterator(XComponent xComponent) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (xComponent == null) {
         return null;
@@ -124,7 +125,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -145,7 +146,7 @@ public class WtFlatParagraphTools {
    * Set the new iterator only if it is not null
    */
   public void init() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraphIterator tmpFlatParaIter = getXFlatParagraphIterator(xComponent);
       if (tmpFlatParaIter != null && xComponent != null) {
@@ -154,7 +155,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -165,7 +166,7 @@ public class WtFlatParagraphTools {
    */
   @Nullable
   private XFlatParagraph getCurrentFlatParagraph() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (xFlatParaIter == null) {
         if (debugMode) {
@@ -185,7 +186,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
     
@@ -216,7 +217,7 @@ public class WtFlatParagraphTools {
       return null;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       refreshFlatParagraphIterator();
       XFlatParagraph xFlatPara = getLastFlatParagraph();
@@ -249,7 +250,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;             // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -258,7 +259,7 @@ public class WtFlatParagraphTools {
    * return null if it fails
    */
   public String getCurrentParaText() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getCurrentFlatParagraph();
       if (xFlatPara == null) {
@@ -272,7 +273,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return new String("");
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -281,7 +282,7 @@ public class WtFlatParagraphTools {
    * Returns -1 if it fails
    */
   public int getCurNumFlatParagraph() {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getCurrentFlatParagraph();
       if (xFlatPara == null) {
@@ -302,7 +303,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return -1;           // Return -1 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -316,7 +317,7 @@ public class WtFlatParagraphTools {
       return null;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -370,7 +371,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -384,7 +385,7 @@ public class WtFlatParagraphTools {
       return null;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -415,7 +416,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return null;           // Return null as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -464,7 +465,7 @@ public class WtFlatParagraphTools {
    */
   public static Locale getPrimaryParagraphLanguage(XFlatParagraph flatPara, int start, int len, Locale fixedLocale, 
       Locale lastLocale, boolean onlyPrimary) throws Throwable {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (fixedLocale != null) {
         return fixedLocale;
@@ -533,7 +534,7 @@ public class WtFlatParagraphTools {
         return getSaveLocale(biggestLocal.Language, biggestLocal.Country, WtOfficeTools.MULTILINGUAL_LABEL + biggestLocal.Variant);
       }
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -542,7 +543,7 @@ public class WtFlatParagraphTools {
    * @throws Throwable 
    */
   public Locale getPrimaryLanguageOfPartOfParagraph(int nPara, int start, int len, Locale lastLocale) throws Throwable {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph flatPara = getFlatParagraphAt(nPara);
       if (flatPara == null) {
@@ -550,7 +551,7 @@ public class WtFlatParagraphTools {
       }
       return getPrimaryParagraphLanguage(flatPara, start, len, null, lastLocale, true);
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -561,7 +562,7 @@ public class WtFlatParagraphTools {
   public Locale getLanguageOfWord(int nPara, int start, int len, Locale paragraphLocale) throws Throwable {
     try {
       XFlatParagraph flatPara = getFlatParagraphAt(nPara);
-      isBusy++;
+      isBusy.incrementAndGet();
       if (flatPara == null || start + len > flatPara.getText().length()) {
         return paragraphLocale;
       }
@@ -571,7 +572,7 @@ public class WtFlatParagraphTools {
       }
       return getSaveLocale(locale.Language, locale.Country, locale.Variant);
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -584,7 +585,7 @@ public class WtFlatParagraphTools {
       return -1;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -610,7 +611,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return -1;             // Return -1 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
 
@@ -761,7 +762,7 @@ public class WtFlatParagraphTools {
       return;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -812,7 +813,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -824,7 +825,7 @@ public class WtFlatParagraphTools {
       return;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -846,7 +847,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -858,7 +859,7 @@ public class WtFlatParagraphTools {
       return null;
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     List<Boolean> isChecked = new ArrayList<>();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
@@ -884,7 +885,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
     return isChecked;
   }
@@ -896,7 +897,7 @@ public class WtFlatParagraphTools {
    */
 
   public void markParagraphs(Map<Integer, List<SentenceErrors>> changedParas) throws Throwable {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (changedParas == null || changedParas.isEmpty()) {
         return;
@@ -936,7 +937,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -944,7 +945,7 @@ public class WtFlatParagraphTools {
    * add marks to existing marks of current paragraph
    */
   public void markCurrentParagraph(List<SentenceErrors> errorList) {
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       if (errorList == null || errorList.size() == 0) {
         return;
@@ -960,7 +961,7 @@ public class WtFlatParagraphTools {
     } catch (Throwable t) {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
     
@@ -1114,7 +1115,7 @@ public class WtFlatParagraphTools {
       throw new RuntimeException("Text is null");
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       refreshFlatParagraphIterator();
       XFlatParagraph xFlatPara = getLastFlatParagraph();
@@ -1151,7 +1152,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return false;             // Return -1 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1167,7 +1168,7 @@ public class WtFlatParagraphTools {
       throw new RuntimeException("Locale is null");
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -1203,7 +1204,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return;             // Return -1 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1222,7 +1223,7 @@ public class WtFlatParagraphTools {
       throw new RuntimeException("Locale is null");
     }
     WtOfficeTools.waitForLO();
-    isBusy++;
+    isBusy.incrementAndGet();
     try {
       XFlatParagraph xFlatPara = getLastFlatParagraph();
       if (xFlatPara == null) {
@@ -1258,7 +1259,7 @@ public class WtFlatParagraphTools {
       WtMessageHandler.printException(t);     // all Exceptions thrown by UnoRuntime.queryInterface are caught
       return;             // Return -1 as method failed
     } finally {
-      isBusy--;
+      isBusy.decrementAndGet();
     }
   }
   
@@ -1267,14 +1268,14 @@ public class WtFlatParagraphTools {
    *  true: If a cursor tool in one or more threads is active
    */
   public static boolean isBusy() {
-    return isBusy > 0;
+    return isBusy.get() > 0;
   }
   
   /**
    *  Reset the busy flag
    */
   public static void reset() {
-    isBusy = 0;
+    isBusy.set(0);
   }
   
   public static class FlatParagraphContainer {
