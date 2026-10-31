@@ -193,6 +193,8 @@ public class WtSingleDocument {
       permanentIgnoredMatches = new WtIgnoredMatches();
       if (config != null && config.renewCache() != RenewCache.ALWAYS && !config.noBackgroundCheck() && xComponent != null && !mDocHandler.isTestMode()) {
         readCaches();
+      } else if (config != null && config.renewCache() == RenewCache.ALWAYS) {
+        WtMessageHandler.printToLogFile("WtSingleDocument: RenewCache.ALWAYS: Don't read cache");
       }
       if (xComponent != null) {
         setFlatParagraphTools();

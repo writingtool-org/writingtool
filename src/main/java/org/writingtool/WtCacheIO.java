@@ -72,7 +72,6 @@ public class WtCacheIO implements Serializable {
   private static final String SPELL_CACHEFILE = "WtSpellCache." + CACHEFILE_EXTENSION;  //  Spell cache name
   
   private String documentPath = null;
-  private String tmpCachePath = null;
   //  Lock for all access to the cache directory (cache files, cache map, spell cache):
   //  documents are opened (check threads) and closed (event thread) at the same time
   private static final Object IO_LOCK = new Object();
@@ -168,7 +167,6 @@ public class WtCacheIO implements Serializable {
    */
   private String getTmpCachePath(String cachePath) throws Throwable {
     String tmpPath = cachePath.substring(0, cachePath.length() - 4) + ".tmp";
-    tmpCachePath = tmpPath;
     return tmpPath;
   }
 
@@ -179,7 +177,6 @@ public class WtCacheIO implements Serializable {
   private String changeTmpToCachePath(String cachePath) throws Throwable {
     String tmpPath = cachePath.substring(0, cachePath.length() - 4) + ".tmp";
     moveReplace(new File(tmpPath), new File(cachePath));
-    tmpCachePath = null;
     if (debugMode) {
       WtMessageHandler.printToLogFile("CacheIO: changeTmpToCachePath: changed to: cachePath: " + cachePath + ", tmpPath: " + tmpPath);
     }
@@ -351,18 +348,23 @@ public class WtCacheIO implements Serializable {
       return false;
     }
     if (config.renewCache() == RenewCache.NEVER) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: RenewCache.NEVER: Cache not renewed");
       return true;
     }
     if (allCaches == null || allCaches.docCache == null || allCaches.docCache.toParaMapping.size() != WtDocumentCache.NUMBER_CURSOR_TYPES ) {
-      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: No valid cache found: "
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: No valid cache found: Cache renewed: "
           + "allCaches == null: " + (allCaches == null) + "; allCaches.docCache == null: " + (allCaches.docCache == null)
           + "; allCaches.docCache.toTextMapping.size(): " + (allCaches.docCache.toParaMapping.size()));
       return false;
     }
     if (!allCaches.ltVersion.equals(WtVersionInfo.ltVersion())) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: Version has changed: Cache renewed (Cache Version: " 
+          + allCaches.ltVersion + ", actual LT Version: " + WtVersionInfo.ltVersion() + ")");
       return false;
     }
     if (config.renewCache() == RenewCache.NEW_SNAPSHOT && !allCaches.ltBuildDate.equals(WtVersionInfo.ltBuildDate())) {
+      WtMessageHandler.printToLogFile("WtCacheIO: runSameRules: RenewCache.NEW_SNAPSHOT: Build date has changed: Cache renewed (Cache Build Date: " 
+          + allCaches.ltBuildDate + ", actual LT Build Date: " + WtVersionInfo.ltBuildDate() + ")");
       return false;
     }
     if (config.getEnabledRuleIds().size() != allCaches.enabledRuleIds.size() || config.getDisabledRuleIds().size() != allCaches.disabledRuleIds.size() 
@@ -744,19 +746,19 @@ public class WtCacheIO implements Serializable {
       CacheMap() {
         cacheNames = new HashMap<>();
       }
-      
+/*      
       CacheMap(CacheMap in) {
         cacheNames = new HashMap<>();
         cacheNames.putAll(in.getCacheNames());
       }
-
+*/
       /**
        * get the cache map that contains the mapping from document paths to cache file names 
-       */
+       *//*
       private Map<String, String> getCacheNames() {
         return cacheNames;
       }
-
+*/
       /**
        * get the size of the cache map
        */
