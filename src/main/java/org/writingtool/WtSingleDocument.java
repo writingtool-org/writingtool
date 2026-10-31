@@ -1742,7 +1742,6 @@ public class WtSingleDocument {
       for (int i = 0; i < tmpErrors.size(); i++) {
         errors[i] = tmpErrors.get(i);
       }
-      Arrays.sort(errors, new WtErrorPositionComparator());
       if (debugMode > 0) {
         for (int i = 0; i < errors.length; i++) {
           WtMessageHandler.printToLogFile("SingleDocument: getErrorFromCache: Error[" + i + "]: ruleID: " + errors[i].aRuleIdentifier + ", Start = " + errors[i].nErrorStart + ", Length = " + errors[i].nErrorLength);
@@ -1751,6 +1750,7 @@ public class WtSingleDocument {
       errors = filterIgnoredMatches(errors, nPara);
       errors = docCache.filterDirectSpeech(errors, nPara, config);
       errors = filterOverlappingErrors(errors, config.filterOverlappingMatches());
+      Arrays.sort(errors, new WtErrorPositionComparator());
       for (int i = 0; i < errors.length; i++) {
         if (nChar >= errors[i].nErrorStart && nChar < errors[i].nErrorStart + errors[i].nErrorLength) {
           return errors[i];
@@ -1821,12 +1821,12 @@ public class WtSingleDocument {
         }
       }
     }
-    Arrays.sort(errorArray, new WtErrorPositionComparator());
     errorArray = filterIgnoredMatches(errorArray, nPara);
     errorArray = docCache.filterDirectSpeech (errorArray, nPara, config);
     if (!ignoreOverlap) {
       errorArray = filterOverlappingErrors(errorArray, config.filterOverlappingMatches());
     }
+    Arrays.sort(errorArray, new WtErrorPositionComparator());
     return errorArray;
   }
   
