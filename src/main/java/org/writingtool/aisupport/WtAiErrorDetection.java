@@ -153,8 +153,8 @@ public class WtAiErrorDetection {
         footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
     List<AnalyzedSentence> analyzedSentences;
     if (nFPara < 0) {
-      paraText = WtDocumentCache.fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
-          footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
+//      paraText = WtDocumentCache.fixLinebreak(WtSingleCheck.removeFootnotes(paraText, 
+//          footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap()));
 //      analyzedSentences =  lt.analyzeText(paraText.replace("\u00AD", ""));
       analyzedSentences =  lt.analyzeText(paraText);
     } else {

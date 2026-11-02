@@ -1674,7 +1674,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageTabs.setEnabled(enabled);
       loadImage.setEnabled(enabled);
       clipboardImage.setEnabled(readImageFromClipboard() == null ? false : enabled);
-      translateFirst.setEnabled(noImgInst || imageNumber > 1 || isReferenceImage() ? false : enabled);
+      translateFirst.setEnabled(noImgInst ? false : enabled);
       changeImage.setEnabled(noImgInst || imageNumber > 1 || isReferenceImage() ? false : enabled);
       newImage.setEnabled(noImgInst ? false : enabled);
       removeImage.setEnabled(images.isEmpty() ? false : enabled);

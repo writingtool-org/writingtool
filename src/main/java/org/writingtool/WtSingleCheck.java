@@ -1108,7 +1108,7 @@ public class WtSingleCheck {
     }
     List<Integer> hiddenCharacterList = hiddenCharacters.get(nPara);
     int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
-    for (int i :allChars) {
+    for (int i : allChars) {
       if (i <= pError.nErrorStart) {
         pError.nErrorStart++;
       } else if (i < pError.nErrorStart + pError.nErrorLength) {
@@ -1117,6 +1117,30 @@ public class WtSingleCheck {
     }
     return pError;
   }
+
+  /**
+   * get the original WtProofreadingError from corrected WtProofReadingError 
+   * footnotes before is the sum of all footnotes before the checked paragraph
+   */
+  public static WtProofreadingError[] reconstructRuleMatchesWithFootnotes(WtProofreadingError pErrors[], int[] footnotes, List<Integer> deletedChars,
+      int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {
+    if (footnotes == null) {
+      return pErrors;
+    }
+    List<Integer> hiddenCharacterList = hiddenCharacters.get(nPara);
+    int[] allChars = mergeFootnotesEtc(footnotes, deletedChars, hiddenCharacterList);
+    for (WtProofreadingError pError : pErrors) {
+      for (int j = allChars.length - 1; j >= 0; j--) {
+        if (allChars[j] <= pError.nErrorStart) {
+          pError.nErrorStart--;
+        } else if (allChars[j] < pError.nErrorStart + pError.nErrorLength) {
+          pError.nErrorLength--;
+        }
+      }
+    }
+    return pErrors;
+  }
+
 /*
   public static WtProofreadingError correctRuleMatchWithFootnotes(WtProofreadingError pError, int[] footnotes, List<Integer> deletedChars,
       int nPara, Map<Integer, List<Integer>> hiddenCharacters) throws Throwable {

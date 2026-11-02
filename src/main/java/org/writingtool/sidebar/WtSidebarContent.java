@@ -75,6 +75,7 @@ import org.writingtool.WtDocumentsHandler;
 import org.writingtool.WtLanguageTool;
 import org.writingtool.WtProofreadingError;
 import org.writingtool.WtProtocolHandler;
+import org.writingtool.WtSingleCheck;
 import org.writingtool.WtSingleDocument;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
@@ -517,17 +518,40 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     try {
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
-      String pText = vCursor.getViewCursorParagraphText();
+      tPara = vCursor.getViewCursorParagraph();
+      WtSingleDocument document = documents.getCurrentDocument();
+      if (document == null || tPara == null) {
+        return;
+      }
+      WtDocumentCache docCache = document.getDocumentCache();
+      String pText;
+      int nFPara = 0;
+      int[] footnotePos = null;
+      List<Integer> deletedChars = null;
+      if (docCache != null) {
+        pText = docCache.getTextParagraph(tPara);
+        nFPara = docCache.getFlatParagraphNumber(tPara);
+        footnotePos = docCache.getTextParagraphFootnotes(tPara);
+        deletedChars = docCache.getTextParagraphDeletedCharacters(tPara);
+        pText = WtSingleCheck.removeFootnotes(pText, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
+      } else {
+        pText = vCursor.getViewCursorParagraphText();
+      }
 //      WtMessageHandler.printToLogFile("vCursor Text: " + pText);
       if (pText == null || (!force && pText.equals(paragraphText))) {
         return;
       }
       boolean isSameText = pText.equals(paragraphText);
       paragraphText = pText;
-      tPara = vCursor.getViewCursorParagraph();
-      WtSingleDocument document = documents.getCurrentDocument();
       WtProofreadingError[] errors = getErrorsOfParagraph(tPara, document);
-      String formatedText = formatText(paragraphText, errors);
+      String formatedText;
+      if (docCache != null) {
+        WtProofreadingError[] rErrors = WtSingleCheck.reconstructRuleMatchesWithFootnotes(errors, footnotePos, deletedChars, 
+            nFPara, docCache.getHiddenCharactersMap());
+        formatedText = formatText(paragraphText, rErrors);
+      } else {
+        formatedText = formatText(paragraphText, errors);
+      }
       if (formatedText == null) {
         formatedText = "";
       }
@@ -1091,6 +1115,9 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
           sPara = sPara.substring(0, error.nErrorStart) + error.aSuggestions[0] + sEnd;
         }
       }
+      int[] footnotePos = docCache.getTextParagraphFootnotes(tPara);
+      List<Integer> deletedChars = docCache.getTextParagraphDeletedCharacters(tPara);
+      sPara = WtSingleCheck.removeFootnotes(sPara, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
       return sPara;
     } else {
       setAiLabelText("");
