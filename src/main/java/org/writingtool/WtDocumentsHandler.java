@@ -450,25 +450,21 @@ public class WtDocumentsHandler {
             WtMessageHandler.printToLogFile("MultiDocumentsHandler: getCurrentDocument: Error: Document (ID: " + docID + ") has no XComponent -> Internal space will not be deleted when document disposes");
             xComponent = null;
           }
-          if (config == null) {
-            if (docLanguage == null) {
-              Locale loc;
-              if (prefix.equals("I")) {
-                loc = WtOfficeDrawTools.getDocumentLocale(xComponent);
-              } else if (prefix.equals("C")) {
-                loc = WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
-              } else {
-                loc = WtOfficeTools.getDefaultLocale(xContext);
-              }
-              docLanguage = getLanguage(loc);
-              if (docLanguage == null) {
-                //  language is not supported --> use default for configuration
-                loc = new Locale("en","US","");
-                docLanguage = getLanguage(loc);
-              }
-            }
-            config = getConfiguration();
+          Locale loc;
+          if (prefix.equals("I")) {
+            loc = WtOfficeDrawTools.getDocumentLocale(xComponent);
+          } else if (prefix.equals("C")) {
+            loc = WtOfficeSpreadsheetTools.getDocumentLocale(xComponent);
+          } else {
+            loc = WtOfficeTools.getDefaultLocale(xContext);
           }
+          docLanguage = getLanguage(loc);
+          if (docLanguage == null) {
+            //  language is not supported --> use default for configuration
+            loc = new Locale("en","US","");
+            docLanguage = getLanguage(loc);
+          }
+          config = getConfiguration(docLanguage);
           WtSingleDocument newDocument = new WtSingleDocument(xContext, config, docID, xComponent, this, docLanguage);
           documents.add(newDocument);
           WtMessageHandler.printToLogFile("Document " + (documents.size() - 1) + " created; docID = " + docID);

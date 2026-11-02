@@ -281,6 +281,11 @@ public class WtTextLevelCheckQueue {
         }
         Locale locale = nStart.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN && nStart.number >= 0 ? 
                 docCache.getFlatParagraphLocale(nStart.number) : docCache.getTextParagraphLocale(nStart);
+        if (locale == null && nStart.type != WtDocumentCache.CURSOR_TYPE_UNKNOWN && docCache.getFlatParagraphNumber(nStart) < 0) {
+          document.refreshDocumentCache();
+          locale = nStart.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN && nStart.number >= 0 ? 
+              docCache.getFlatParagraphLocale(nStart.number) : docCache.getTextParagraphLocale(nStart);
+        }
         if (locale != null && WtDocumentsHandler.hasLocale(locale)) {
           return WtDocumentsHandler.getLanguage(locale);
         }

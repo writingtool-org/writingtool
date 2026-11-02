@@ -738,6 +738,15 @@ public class WtSingleDocument {
   }
   
   /**
+   *  refresh document cache of the document
+   * @throws Throwable 
+   */
+  void refreshDocumentCache() throws Throwable {
+    docCache.refresh(this, WtLinguisticServices.getLocale(fixedLanguage), 
+        WtLinguisticServices.getLocale(docLanguage),xComponent, true, false, 6);
+  }
+  
+  /**
    *  set last changed paragraphs
    */
   void setLastChangedParas(List<Integer> lastChangedParas) {
