@@ -95,7 +95,8 @@ public class WtTextLevelCheckQueue {
     QueueEntry queueEntry = new QueueEntry(nStart, nEnd, nCache, nCheck, docId, overrideRunning);
     if (!textRuleQueue.isEmpty()) {
       if (!overrideRunning && lastStart != null && nStart.type == lastStart.type && nStart.number >= lastStart.number 
-          && nEnd.number <= lastEnd.number && nCache == lastCache && lastDocId != null && docId.equals(lastDocId)) {
+          && lastEnd != null && nEnd.number <= lastEnd.number 
+          && nCache == lastCache && lastDocId != null && docId.equals(lastDocId)) {
         return;
       }
       synchronized(textRuleQueue) {
