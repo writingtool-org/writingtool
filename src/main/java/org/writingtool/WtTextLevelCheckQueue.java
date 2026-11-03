@@ -285,6 +285,8 @@ public class WtTextLevelCheckQueue {
           document.refreshDocumentCache();
           locale = nStart.type == WtDocumentCache.CURSOR_TYPE_UNKNOWN && nStart.number >= 0 ? 
               docCache.getFlatParagraphLocale(nStart.number) : docCache.getTextParagraphLocale(nStart);
+//          WtMessageHandler.printToLogFile(nameOfQueue() + ": getLanguage: return null: locale = null, nFpara = -1");
+          docCache.getTextParagraph(nStart);
         }
         if (locale != null && WtDocumentsHandler.hasLocale(locale)) {
           return WtDocumentsHandler.getLanguage(locale);

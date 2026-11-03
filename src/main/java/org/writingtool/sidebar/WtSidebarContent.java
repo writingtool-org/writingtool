@@ -521,6 +521,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       tPara = vCursor.getViewCursorParagraph();
       WtSingleDocument document = documents.getCurrentDocument();
       if (document == null || tPara == null) {
+        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: " 
+            + (document == null ? "document == null" : "tPara == null"));
         return;
       }
       WtDocumentCache docCache = document.getDocumentCache();
@@ -537,10 +539,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       } else {
         pText = vCursor.getViewCursorParagraphText();
       }
-//      WtMessageHandler.printToLogFile("vCursor Text: " + pText);
       if (pText == null || (!force && pText.equals(paragraphText))) {
+//        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: pText " + (pText == null ? "= null" : "equals paragraphText"));
+//        WtMessageHandler.printToLogFile(docCache.getTextParagraphInfo(tPara));
         return;
       }
+//      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: pText: " + pText);
       boolean isSameText = pText.equals(paragraphText);
       paragraphText = pText;
       WtProofreadingError[] errors = getErrorsOfParagraph(tPara, document);
