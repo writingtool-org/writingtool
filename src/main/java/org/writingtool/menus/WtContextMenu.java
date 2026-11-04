@@ -216,6 +216,7 @@ public class WtContextMenu implements XContextMenuInterceptor {
 
       //  Add LT Options Item if a Grammar or Spell error was detected
       XMultiServiceFactory xMenuElementFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class, xContextMenu);
+      boolean isSpellError = false;
       for (int i = 0; i < count; i++) {
         Any a = (Any) xContextMenu.getByIndex(i);
         XPropertySet props = (XPropertySet) a.getObject();
@@ -225,7 +226,6 @@ public class WtContextMenu implements XContextMenuInterceptor {
         }
         if (str != null && IGNORE_ONCE_URL.equals(str)) {
           int n;
-          boolean isSpellError = false;
           for (n = i + 1; n < count; n++) {
             a = (Any) xContextMenu.getByIndex(n);
             XPropertySet tmpProps = (XPropertySet) a.getObject();
