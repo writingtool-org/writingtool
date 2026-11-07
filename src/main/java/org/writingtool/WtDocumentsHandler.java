@@ -604,10 +604,29 @@ public class WtDocumentsHandler {
    * set cache status color in sidebar
    */
   public void setCacheStatusColor(WtSingleDocument document) throws Throwable {
-    WtSidebarContent sidebarContent = getSidebarContent(document.getDocID());
-    if (sidebarContent != null) {
-      sidebarContent.setCacheStatusColor(document);
+    if (document == null) {
+      document = getCurrentDocument();
     }
+    if (document != null) {
+      WtSidebarContent sidebarContent = document.getSidebarContent();
+      if (sidebarContent != null) {
+        sidebarContent.setCacheStatusColor(document);
+      }
+    } else {
+      WtMessageHandler.printToLogFile("MultiDocumentsHandler: setCacheStatusColor: Error: document is null");
+    }
+  }
+  
+  /**
+   * set cache status color in sidebar
+   */
+  public int getNumberOfQueueEntries(boolean fromAiQueue) throws Throwable {
+    if (fromAiQueue && aiQueue != null) {
+      return aiQueue.numberOfCurrentEntries();
+    } else if (!fromAiQueue && textLevelQueue != null) {
+      return textLevelQueue.numberOfCurrentEntries();
+    }
+    return 0;
   }
   
   /**

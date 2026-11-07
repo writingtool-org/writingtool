@@ -101,7 +101,11 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private static final String TEXT_CACHE_LABEL = messages.getString("allDialogCacheLabel");
   private static final String AI_CACHE_LABEL = messages.getString("allDialogAiCacheLabel");
+  private static final String TEXT_QUEUE_LABEL = messages.getString("allDialogQueueLabel");
+  private static final String AI_QUEUE_LABEL = messages.getString("allDialogAiQueueLabel");
+  private static final Color DEFAULT_BACKGROUND_COLOR = SystemColor.control;
   private static final Color CACHE_INACTIVE_COLOR = Color.gray;
+  private static final Color QUEUE_INACTIVE_COLOR = DEFAULT_BACKGROUND_COLOR;
   
   private final static String WAIT_TEXT = ">>> Please wait <<<";
   private final static String OPENING_FORMAT_SIGN = "[";
@@ -175,6 +179,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow buttonAiTranslateTextWindow;  //  the window of button for AI translate text
   private XWindow buttonAiTextToSpeechWindow;   //  the window of button for AI text to speech
   private XWindow cacheAiStatusWindow;          //  the window of AI cache status
+  private XWindow queueAiStatusWindow;          //  the window of AI queue status
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
   private XTextComponent paragraphBox;          //  Box to show paragraph text
@@ -346,7 +351,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       // Add text field
       props = new TreeMap<>();
       props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
-      props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+      props.put("BackgroundColor", DEFAULT_BACKGROUND_COLOR.getRGB() & ~0xFF000000);
       props.put("Autocomplete", false);
       props.put("HideInactiveSelection", true);
       props.put("MultiLine", true);
@@ -399,7 +404,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       // Add text field
       props = new TreeMap<>();
       props.put("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
-      props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+      props.put("BackgroundColor", DEFAULT_BACKGROUND_COLOR.getRGB() & ~0xFF000000);
       props.put("Autocomplete", false);
       props.put("HideInactiveSelection", true);
       props.put("MultiLine", true);
@@ -444,7 +449,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       // Add cache status Button container
       int cacheStatusTop = containerSize.Height - CONTAINER_MARGIN_BOTTOM - STATUS_CONTAINER_HEIGHT;
       props = new TreeMap<>();
-      props.put("BackgroundColor", SystemColor.control.getRGB() & ~0xFF000000);
+      props.put("BackgroundColor", DEFAULT_BACKGROUND_COLOR.getRGB() & ~0xFF000000);
       XControl xStatusContainer = createControlContainer(xMCF, context, 
           new Rectangle(CONTAINER_MARGIN_LEFT, cacheStatusTop, BUTTON_CONTAINER_WIDTH, BUTTON_CONTAINER_HEIGHT), props);
       XControlContainer statusContainer = UnoRuntime.queryInterface(XControlContainer.class, xStatusContainer);
@@ -452,15 +457,25 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       cacheStatusContainerWindow = UnoRuntime.queryInterface(XWindow.class, xStatusContainer);
       cacheStatusContainerWindow.setPosSize(CONTAINER_MARGIN_LEFT, cacheStatusTop, BUTTON_CONTAINER_WIDTH, STATUS_CONTAINER_HEIGHT, PosSize.POSSIZE);
       //  Add cache size label
-      xCacheSizeLabel = new ArrayList<>(WtOfficeTools.NUMBER_CACHE);
-      for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
+      xCacheSizeLabel = new ArrayList<>(WtOfficeTools.NUMBER_CACHE + 2);
+      for (int i = 0; i < WtOfficeTools.NUMBER_CACHE + 2; i++) {
         props = new TreeMap<>();
-        props.put("TextColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
-        props.put("BackgroundColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
-        if (i == WtOfficeTools.CACHE_AI) {
-          props.put("HelpText", AI_CACHE_LABEL);
+        if (i == WtOfficeTools.CACHE_AI || i == WtOfficeTools.CACHE_AI + 2) {
+          props.put("TextColor", QUEUE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+          props.put("BackgroundColor", QUEUE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+          if (i == WtOfficeTools.CACHE_AI) {
+            props.put("HelpText", AI_QUEUE_LABEL + ": 0");
+          } else {
+            props.put("HelpText", TEXT_QUEUE_LABEL + ": 0");
+          }
         } else {
-          props.put("HelpText", TEXT_CACHE_LABEL + "(" + i + ")");
+          props.put("TextColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+          props.put("BackgroundColor", CACHE_INACTIVE_COLOR.getRGB() & ~0xFF000000);
+          if (i == WtOfficeTools.CACHE_AI) {
+            props.put("HelpText", AI_CACHE_LABEL);
+          } else {
+            props.put("HelpText", TEXT_CACHE_LABEL + "(" + i + ")");
+          }
         }
         XControl xControl = createLabel(xMCF, context, "██", 
             new Rectangle(BUTTON_MARGIN_LEFT + i * (CACHE_STATUS_BETWEEN + CACHE_STATUS_WIDTH), 
@@ -468,9 +483,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
         xCacheSizeLabel.add(xControl);
         statusContainer.addControl("cacheLabel" + i, xCacheSizeLabel.get(i));
       }
-      cacheAiStatusWindow = UnoRuntime.queryInterface(XWindow.class, xCacheSizeLabel.get(WtOfficeTools.CACHE_AI));
+      cacheAiStatusWindow = UnoRuntime.queryInterface(XWindow.class, xCacheSizeLabel.get(WtOfficeTools.CACHE_AI + 1));
       cacheAiStatusWindow.setVisible(isAiSupport);
+      queueAiStatusWindow = UnoRuntime.queryInterface(XWindow.class, xCacheSizeLabel.get(WtOfficeTools.CACHE_AI + 2));
+      queueAiStatusWindow.setVisible(isAiSupport);
       setTextToBox();
+      setCacheStatusColorInactive();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
@@ -977,6 +995,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     aiResultBoxWindow.setVisible(isAiSupport);
     overrideButtonWindow.setVisible(isAiSupport);
     cacheAiStatusWindow.setVisible(isAiSupport);
+    queueAiStatusWindow.setVisible(isAiSupport);
     setProfileListToListBox();
     setActivateRulesListToListBox();
   }
@@ -1135,11 +1154,15 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    * grey
    */
   public void setCacheStatusColorInactive() throws Throwable {
-    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
-      if (i != WtOfficeTools.CACHE_AI) {
+    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE + 2; i++) {
+      if (i < WtOfficeTools.CACHE_AI) {
         setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), CACHE_INACTIVE_COLOR, TEXT_CACHE_LABEL + "(" + i + ")");
-      } else {
+      } else if (i == WtOfficeTools.CACHE_AI + 1) {
         setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), CACHE_INACTIVE_COLOR, AI_CACHE_LABEL);
+      } else if (i == WtOfficeTools.CACHE_AI){
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), QUEUE_INACTIVE_COLOR, TEXT_QUEUE_LABEL + ": " + 0);
+      } else {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), QUEUE_INACTIVE_COLOR, AI_QUEUE_LABEL + ": " + 0);
       }
     }
   }
@@ -1169,25 +1192,39 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
     }
     int pSize = 0;
-    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE; i++) {
+    for (int i = 0; i < WtOfficeTools.NUMBER_CACHE + 2; i++) {
       int size = 100;
-      if (isAiSupport || i != WtOfficeTools.CACHE_AI) {
+      if (i < WtOfficeTools.CACHE_AI || (isAiSupport && i == WtOfficeTools.CACHE_AI + 1)) {
         if (fullSize != 0 && (fullSize != 1 || docCache.getFlatParagraph(0).length() > 0)) {
-          if (lt.isSortedRuleForIndex(i) || i == WtOfficeTools.CACHE_AI) {
-            pSize = (document.getParagraphsCache().get(i).size() + nAuto);
-            if (i > 0 && i != WtOfficeTools.CACHE_AI) {
+          if ((i < WtOfficeTools.CACHE_AI && lt.isSortedRuleForIndex(i)) || i == WtOfficeTools.CACHE_AI + 1) {
+            if (i == WtOfficeTools.CACHE_AI + 1) {
+              pSize = (document.getParagraphsCache().get(i - 1).size() + nAuto);
+            } else {
+              pSize = (document.getParagraphsCache().get(i).size() + nAuto);
+            }
+            if (i > 0 && i < WtOfficeTools.CACHE_AI) {
               pSize += nSingle;
             }
             size = getCacheStatusSize(pSize, fullSize);
           }
         }
-        if (i != WtOfficeTools.CACHE_AI) {
-          setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
-              TEXT_CACHE_LABEL + "(" + i + "): " + size + "%");
-        } else {
-          setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
-              AI_CACHE_LABEL + ": " + size + "%");
-        }
+      } else if (i == WtOfficeTools.CACHE_AI) {
+        size = getNumberQueueEntrys(false);
+      } else if (isAiSupport && i == WtOfficeTools.CACHE_AI + 2) {
+        size = getNumberQueueEntrys(true);
+      }
+      if (i < WtOfficeTools.CACHE_AI) {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
+            TEXT_CACHE_LABEL + "(" + i + "): " + size + "%");
+      } else if (isAiSupport && i == WtOfficeTools.CACHE_AI + 1) {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getCacheStatusColor(size), 
+            AI_CACHE_LABEL + ": " + size + "%");
+      } else if (i == WtOfficeTools.CACHE_AI){
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getQueueStatusColor(size), 
+            TEXT_QUEUE_LABEL + ": " + size);
+      } else if (isAiSupport && i == WtOfficeTools.CACHE_AI + 2) {
+        setCacheStatusColorAndTooltip(xCacheSizeLabel.get(i), getQueueStatusColor(size), 
+            AI_QUEUE_LABEL + ": " + size);
       }
     }
   } 
@@ -1204,6 +1241,38 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       size = 100;
     }
     return size;
+  }
+
+  /**
+   * get color (blue to white) of queue status from entry size
+   * 0 white
+   * 100 blue
+   */
+  public static Color getQueueStatusColor(int size) throws Throwable {
+//    WtMessageHandler.printToLogFile("WtSidebarContent: getQueueStatusColor: size = " + size);
+    int rt = 160;
+    int gr = 200;
+    if (size < 0) {
+      size = 0;
+    } else if (size > 100) {
+      size = 100;
+    }
+    if (size == 0) {
+      return QUEUE_INACTIVE_COLOR;
+    } else {
+      int r = (int) (rt - (size * rt) / 100.);
+      int g = (int) (gr - (size * gr) / 100.);
+      int b = 255;
+//      WtMessageHandler.printToLogFile("WtSidebarContent: getQueueStatusColor: Color(r/g/b)=" + r + "/" + g + "/" + b);
+      return new Color(r, g, b);
+    }
+  }
+
+  /**
+   * get number queue entrys 
+   */
+  public int getNumberQueueEntrys(boolean isAiQueue) throws Throwable {
+    return documents.getNumberOfQueueEntries(isAiQueue);
   }
 
   /**
