@@ -187,6 +187,7 @@ public class WtDocumentCache implements Serializable {
       }
       isReset = true;
     }
+    rwLock.writeLock().lock();
     try {
       if (debugMode) {
         WtMessageHandler.printToLogFile("DocumentCache: refresh: Called from: " + fromWhere);
@@ -203,6 +204,7 @@ public class WtDocumentCache implements Serializable {
       setSingleParagraphsCacheToNull(document.getParagraphsCache());
     } finally {
       isReset = false;
+      rwLock.writeLock().unlock();
     }
   }
 
@@ -1658,6 +1660,23 @@ public class WtDocumentCache implements Serializable {
   }
 
   /**
+   * get Info about Text Paragraph
+   */
+  public String getTextParagraphInfo(TextParagraph textParagraph) throws Throwable {
+    rwLock.readLock().lock();
+    try {
+      return "textParagraph (type/number): " + textParagraph.type + "/" + textParagraph.number
+          + ", toParaMapping.size: " + toParaMapping.size()  + "Number of Cursor Types: " + NUMBER_CURSOR_TYPES
+          + ", toParaMapping(typ).size: " + toParaMapping.get(textParagraph.type).size()
+          + "\nFlatNumber: " + getFlatParagraphNumber(textParagraph)
+          + "\ntoTextMapping.size: " + toTextMapping.size()
+          + "\nparagraphs.size: " + paragraphs.size();
+    } finally {
+      rwLock.readLock().unlock();
+    }
+  }
+
+ /**
    * get Locale of Text Paragraph by Index
    */
   public Locale getTextParagraphLocale(TextParagraph textParagraph) throws Throwable {
