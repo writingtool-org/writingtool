@@ -1249,7 +1249,7 @@ public class WtDocumentCache implements Serializable {
         return false;
       }
     }
-    return paragraphs == null ? false : true;
+    return paragraphs.isEmpty() ? false : true;
   }
 
   /**

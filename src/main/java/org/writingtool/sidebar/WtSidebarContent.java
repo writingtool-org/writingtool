@@ -488,7 +488,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       queueAiStatusWindow = UnoRuntime.queryInterface(XWindow.class, xCacheSizeLabel.get(WtOfficeTools.CACHE_AI + 2));
       queueAiStatusWindow.setVisible(isAiSupport);
       setTextToBox();
-      setCacheStatusColorInactive();
+//      setCacheStatusColorInactive();
     } catch (Throwable t) {
       WtMessageHandler.printException(t);
     }
@@ -534,29 +534,36 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
 
   public void setCursorTextToBox(boolean force) {
     try {
+//      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: force: " + force);
       XComponent xComponent = WtOfficeTools.getCurrentComponent(xContext);
       WtViewCursorTools vCursor = new WtViewCursorTools(xComponent);
-      tPara = vCursor.getViewCursorParagraph();
       WtSingleDocument document = documents.getCurrentDocument();
-      if (document == null || tPara == null) {
-        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: " 
-            + (document == null ? "document == null" : "tPara == null"));
+      if (document == null) {
+        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: document == null");
         return;
       }
       WtDocumentCache docCache = document.getDocumentCache();
+      
       String pText;
       int nFPara = 0;
       int[] footnotePos = null;
       List<Integer> deletedChars = null;
-      if (docCache != null) {
-        pText = docCache.getTextParagraph(tPara);
-        nFPara = docCache.getFlatParagraphNumber(tPara);
-        footnotePos = docCache.getTextParagraphFootnotes(tPara);
-        deletedChars = docCache.getTextParagraphDeletedCharacters(tPara);
-        pText = WtSingleCheck.removeFootnotes(pText, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
-      } else {
-        pText = vCursor.getViewCursorParagraphText();
+      if (docCache == null || docCache.isResetRunning()) {
+//        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: docCache " + (docCache == null ? "= null" : "is reset"));
+        return;
       }
+//      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: get tPara");
+      tPara = vCursor.getViewCursorParagraph();
+      if (tPara == null) {
+        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: tPara == null");
+        return;
+      }
+//      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: tPara: (" + tPara.type + "/" + tPara.number + ")");
+      pText = docCache.getTextParagraph(tPara);
+      nFPara = docCache.getFlatParagraphNumber(tPara);
+      footnotePos = docCache.getTextParagraphFootnotes(tPara);
+      deletedChars = docCache.getTextParagraphDeletedCharacters(tPara);
+      pText = WtSingleCheck.removeFootnotes(pText, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
       if (pText == null || (!force && pText.equals(paragraphText))) {
 //        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: pText " + (pText == null ? "= null" : "equals paragraphText"));
 //        WtMessageHandler.printToLogFile(docCache.getTextParagraphInfo(tPara));
@@ -567,19 +574,17 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       paragraphText = pText;
       WtProofreadingError[] errors = getErrorsOfParagraph(tPara, document);
       String formatedText;
-      if (docCache != null) {
-        WtProofreadingError[] rErrors = WtSingleCheck.reconstructRuleMatchesWithFootnotes(errors, footnotePos, deletedChars, 
-            nFPara, docCache.getHiddenCharactersMap());
-        formatedText = formatText(paragraphText, rErrors);
-      } else {
-        formatedText = formatText(paragraphText, errors);
-      }
+      WtProofreadingError[] rErrors = WtSingleCheck.reconstructRuleMatchesWithFootnotes(errors, footnotePos, deletedChars, 
+          nFPara, docCache.getHiddenCharactersMap());
+      formatedText = formatText(paragraphText, rErrors);
       if (formatedText == null) {
         formatedText = "";
       }
+//      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: setText: " + formatedText);
       paragraphBox.setText(formatedText);
       if (isAiSupport && aiResultBox != null && !isSameText) {
         String aiResultText = reconstructAiTextFromCache(tPara, document);
+//        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: aiResultBox: " + aiResultText);
         aiResultBox.setText(aiResultText);
         setColorOfAiBox(paragraphText, aiResultText);
       }
