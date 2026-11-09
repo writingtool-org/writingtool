@@ -133,7 +133,7 @@ public class WtProofreadingError implements Serializable {
 
   /**
    * Define equal WtProofreadingError entries
-   *//*
+   */
   @Override
   public boolean equals(Object o) {
     if (o == null || !(o instanceof WtProofreadingError)) {
@@ -149,12 +149,16 @@ public class WtProofreadingError implements Serializable {
         && bDefaultRule == e.bDefaultRule && bPunctuationRule == e.bPunctuationRule && bStyleRule == e.bStyleRule
         && ((aRuleIdentifier == null && e.aRuleIdentifier == null) || aRuleIdentifier.equals(e.aRuleIdentifier))
         && ((aShortComment == null && e.aShortComment == null) || aShortComment.equals(e.aShortComment)) 
-        && ((aFullComment == null && e.aFullComment == null) || aFullComment.equals(e.aFullComment)) ) {
+        && ((aFullComment == null && e.aFullComment == null) || aFullComment.equals(e.aFullComment))
+        && ((category == null && e.category == null) || category.equals(e.category)) 
+        && ((aSuggestions == null && e.aSuggestions == null) || (aSuggestions != null && e.aSuggestions != null 
+        && aSuggestions.length == e.aSuggestions.length))
+        ) {
       return true;
     }
     return false;
   }
-*/
+
   /**
    * Define equal WtProofreadingError entries (only ID and Position)
    */

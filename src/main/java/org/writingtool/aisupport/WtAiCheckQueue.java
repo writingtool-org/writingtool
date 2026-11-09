@@ -90,7 +90,7 @@ public class WtAiCheckQueue extends WtTextLevelCheckQueue {
                     + ", nTPara = (" + nTPara.number + "/" + nTPara.type + "), docId = " + docId);
               }
               textRuleQueue.remove(i);
-              break;
+//              break;
             }
           }
         }
