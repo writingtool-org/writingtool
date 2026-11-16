@@ -65,10 +65,7 @@ public class WtAboutDialog {
 
   public void show(XComponentContext xContext) {
     try {
-      
-//      WtUpdate wtUpdate = new WtUpdate();
-//      boolean newUpdate = wtUpdate.isNewVersion(WtVersionInfo.wtVersion);
-      
+
       String aboutText = WtGeneralTools.getLabel(messages.getString("aboutDialogTitle"));
       
       dialog.setName(aboutText);
@@ -76,20 +73,7 @@ public class WtAboutDialog {
       dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
       Image ltImage = WtOfficeTools.getWtImage();
       ((Frame) dialog.getOwner()).setIconImage(ltImage);
-/*  
-      ImageIcon icon = WtOfficeTools.getLtImageIcon(true);
-      JLabel headerLabel = new JLabel(icon);
-      JTextPane headerText = new JTextPane();
-      headerText.setBackground(new Color(0, 0, 0, 0));
-      headerText.setBorder(BorderFactory.createEmptyBorder());
-      headerText.setContentType("text/html");
-      headerText.setEditable(false);
-      headerText.setOpaque(false);
-      headerText.setText(WtOfficeTools.getFormatedWtHeader(messages));
-      JPanel headerPanel = new JPanel();
-      headerPanel.add(headerLabel);
-      headerPanel.add(headerText);
-*/  
+
       ImageIcon icon = WtOfficeTools.getWtBannerIcon();
       JLabel headerLabel = new JLabel(icon);
       JPanel headerPanel = new JPanel();
@@ -111,19 +95,7 @@ public class WtAboutDialog {
       techPane.setEditable(false);
       techPane.setOpaque(false);
       techPane.setText(WtOfficeTools.getFormatedHtmlVersionInformation());
-/*
-      JTextPane upDatePane = null;
-      if (newUpdate) {
-        upDatePane = new JTextPane();
-        upDatePane.setBackground(new Color(0, 0, 0, 0));
-        upDatePane.setBorder(BorderFactory.createEmptyBorder());
-        upDatePane.setContentType("text/html");
-        upDatePane.setEditable(false);
-        upDatePane.setOpaque(false);
-        upDatePane.setText(WtOfficeTools.getFormatedNewVersionInformation(wtUpdate.getLastVersionFilename(), wtUpdate.getLastVersionUrl()));
-        WtGeneralTools.addHyperlinkListener(upDatePane);
-      }
-*/
+
       JTextPane aboutPane = new JTextPane();
       aboutPane.setBackground(new Color(0, 0, 0, 0));
       aboutPane.setBorder(BorderFactory.createEmptyBorder());
@@ -234,11 +206,7 @@ public class WtAboutDialog {
       panel.add(headerPanel);
       panel.add(licensePane);
       panel.add(versionButtonPanel);
-/*
-      if (newUpdate) {
-        panel.add(upDatePane);
-      }
-*/
+
       panel.add(techPane);
       panel.add(aboutPane);
       panel.add(scrollPane);

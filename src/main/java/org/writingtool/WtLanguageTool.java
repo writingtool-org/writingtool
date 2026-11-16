@@ -48,6 +48,7 @@ import org.writingtool.config.WtConfiguration;
 import org.writingtool.remote.WtRemoteLanguageTool;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
+import org.writingtool.tools.WtVersionInfo;
 import org.writingtool.tools.WtOfficeTools.RemoteCheck;
 
 /**
@@ -115,6 +116,9 @@ public class WtLanguageTool {
 //      }
       mlt = null;
       rlt = null;
+    }
+    if (!isRemote) {
+      WtVersionInfo.setLtServerInformation(null);
     }
     File ngramDirectory = config.getNgramDirectory();
     if (ngramDirectory != null) {

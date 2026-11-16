@@ -45,6 +45,7 @@ import org.writingtool.config.WtConfiguration;
 import org.writingtool.tools.WtMessageHandler;
 import org.writingtool.tools.WtOfficeTools;
 import org.writingtool.tools.WtOfficeTools.RemoteCheck;
+import org.writingtool.tools.WtVersionInfo;
 
 /**
  * Class to run LanguageTool in LO to use a remote server
@@ -78,6 +79,7 @@ public class WtRemoteLanguageTool {
   private final String apiKey;
 //  private JLanguageTool lt = null;
 
+  private RemoteServer remoteServer = null;
   private int maxTextLength = MAX_LIMIT;
   private boolean remoteRun;
   
@@ -102,7 +104,7 @@ public class WtRemoteLanguageTool {
       if (!isPremium) {
         maxTextLength = remoteLanguageTool.getMaxTextLength();
       }
-      WtMessageHandler.printToLogFile("Server Url: " + serverBaseUrl);
+      WtMessageHandler.printToLogFile("\nServer Url: " + serverBaseUrl);
       WtMessageHandler.printToLogFile("Server Limit text length: " + maxTextLength);
       remoteRun = true;
     } catch (Throwable t) {
@@ -205,6 +207,11 @@ public class WtRemoteLanguageTool {
         WtMessageHandler.printException(t);
         remoteRun = false;
         return null;
+      }
+      if (remoteServer == null && remoteResult != null) {
+        remoteServer = new RemoteServer(remoteResult.getRemoteServer());
+        WtVersionInfo.setLtServerInformation(remoteServer);
+        WtMessageHandler.printToLogFile("Remote Server: " + WtVersionInfo.getLtServerInformation());
       }
       ruleMatches.addAll(toRuleMatches(text, remoteResult.getMatches(), nStart));
     }

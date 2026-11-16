@@ -1402,9 +1402,20 @@ public class WtOfficeTools {
   }
 
   /**
-   * get HTML formated version information
+   * get HTML formated version information (only local)
    */
   public static String getFormatedHtmlVersionInformation() {
+    if (WtVersionInfo.ltServerVersion() == null) {
+      return getFormatedHtmlVersionInformationOnlyLocal();
+    } else {
+      return getFormatedHtmlVersionInformationWithRemote();
+    }
+  }
+
+    /**
+     * get HTML formated version information (only local)
+     */
+    public static String getFormatedHtmlVersionInformationOnlyLocal() {
     return String.format("<html>"
         + "<p>WritingTool %s (%s)<br>"
         + "based on LanguageTool %s (%s, %s)<br>"
@@ -1418,6 +1429,42 @@ public class WtOfficeTools {
          WtVersionInfo.ltVersion(),
          WtVersionInfo.ltBuildDate(),
          WtVersionInfo.ltShortGitId(),
+         System.getProperty("os.name"),
+         System.getProperty("os.version"),
+         System.getProperty("os.arch"),
+         WtVersionInfo.ooName,
+         WtVersionInfo.ooVersion,
+         WtVersionInfo.ooExtension,
+         WtVersionInfo.ooVendor,
+         WtVersionInfo.ooLocale,
+         WtVersionInfo.javaVersion,
+         WtVersionInfo.javaVendor,
+         Runtime.getRuntime().maxMemory()/1024/1024,
+         Runtime.getRuntime().totalMemory()/1024/1024,
+         Runtime.getRuntime().freeMemory()/1024/1024);
+  }
+
+  /**
+   * get HTML formated version information (with remote)
+   */
+  public static String getFormatedHtmlVersionInformationWithRemote() {
+    return String.format("<html>"
+        + "<p>WritingTool %s (%s)<br>"
+        + "based on LanguageTool %s (%s, %s)<br>"
+        + "Remote server: %s %s (%s)<br>"
+        + "OS: %s %s (%s)<br>"
+        + "%s %s%s (%s), %s<br>"
+        + "Java version: %s (%s)<br>"
+        + "Java max/total/free memory: %sMB, %sMB, %sMB</p>"
+        + "</html>", 
+         WtVersionInfo.wtVersion,
+         WtVersionInfo.wtBuildDate,
+         WtVersionInfo.ltVersion(),
+         WtVersionInfo.ltBuildDate(),
+         WtVersionInfo.ltShortGitId(),
+         WtVersionInfo.ltServerName(),
+         WtVersionInfo.ltServerVersion(),
+         WtVersionInfo.ltServerBuildDate(),
          System.getProperty("os.name"),
          System.getProperty("os.version"),
          System.getProperty("os.arch"),

@@ -29,6 +29,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 import org.languagetool.JLanguageTool;
+import org.writingtool.remote.RemoteServer;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.container.XNameAccess;
@@ -48,6 +49,9 @@ public class WtVersionInfo {
   public static String ltName;
   public static String ltVersion;
   public static String ltBuildDate;
+  public static String ltServerName;
+  public static String ltServerVersion;
+  public static String ltServerBuildDate;
   public static String ltShortGitId;
   public static String ooName;
   public static String ooVersion;
@@ -118,6 +122,52 @@ public class WtVersionInfo {
       txt += " - " + ltBuildDate() + ", " + ltShortGitId();
     }
     return txt;
+  }
+
+  /**
+   * Set information about remote LanguageTool
+   */
+  public static void setLtServerInformation (RemoteServer remoteServer) {
+    if (remoteServer != null) {
+      ltServerName = remoteServer.getSoftware();
+      ltServerVersion = remoteServer.getVersion();
+      ltServerBuildDate = remoteServer.getBuildDate().orElse(null);
+    } else {
+      ltServerName = null;
+      ltServerVersion = null;
+      ltServerBuildDate = null;
+    }
+  }
+
+  /**
+   * get LanguageTool server name
+   */
+  public static String ltServerName() {
+    return ltServerName;
+  }
+
+  /**
+   * get LanguageTool server version
+   */
+  public static String ltServerVersion() {
+    return ltServerVersion;
+  }
+
+  /**
+   * get LanguageTool server build date
+   */
+  public static String ltServerBuildDate() {
+    return ltServerBuildDate;
+  }
+
+  public static String getLtServerInformation() {
+    if (ltServerName != null) {
+      String txt = ltServerName + " " + ltServerVersion
+          + (ltServerBuildDate != null ? " (" + ltServerBuildDate + ")": "");
+      return txt;
+    } else {
+      return "";
+    }
   }
 
   /**

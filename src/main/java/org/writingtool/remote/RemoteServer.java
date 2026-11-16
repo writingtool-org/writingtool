@@ -37,6 +37,12 @@ public class RemoteServer {
     this.buildDate = buildDate;
   }
 
+  RemoteServer(RemoteServer remoteServer) {
+    this.software = Objects.requireNonNull(remoteServer.software);
+    this.version = Objects.requireNonNull(remoteServer.version);
+    this.buildDate = remoteServer.buildDate;
+  }
+
   /**
    * @return the software running on the server, usually {@code LanguageTool}
    */
