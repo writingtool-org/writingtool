@@ -1846,6 +1846,8 @@ public class WtAiDialog extends Thread implements ActionListener {
         closeDialog();
         return;
       }
+      setAtWorkState(true);
+      setButtonState(true);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiDialog: execute image: start AI request");
       }
@@ -1854,8 +1856,6 @@ public class WtAiDialog extends Thread implements ActionListener {
       if (excludeText == null) {
         excludeText = "";
       }
-      setAtWorkState(true);
-      setButtonState(false);
       if (debugMode) {
         WtMessageHandler.printToLogFile("AiParagraphChanging: runInstruction: instruction: " 
               + imgInstText + ", exclude: " + excludeText);
