@@ -291,6 +291,7 @@ public class WtDocumentCache implements Serializable {
             "WARNING: DocumentCache: refresh: flatPara == null - ParagraphCache not initialised");
         return;
       }
+      WtOfficeTools.waitForLO();
       paragraphContainer = flatPara.getAllFlatParagraphs(fixedLocale);
       if (paragraphContainer == null) {
         WtMessageHandler.printToLogFile(
