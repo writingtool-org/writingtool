@@ -156,9 +156,7 @@ public class WtTextLevelCheckQueue {
    */
   public int numberOfCurrentEntries() {
     if (queueRuns) {
-      synchronized(textRuleQueue) {
-        return textRuleQueue.size() + 1;
-      }
+      return textRuleQueue.size() + 1;
     } else {
       return 0;
     }

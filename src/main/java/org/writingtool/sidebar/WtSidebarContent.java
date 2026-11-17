@@ -1183,10 +1183,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
    */
   public void setCacheStatusColor(WtSingleDocument document) throws Throwable {
     if (document == null) {
+      WtMessageHandler.printToLogFile("WtSidebarContent: setCacheStatusColor: Error: document is null");
       return;
     }
     WtDocumentCache docCache = document.getDocumentCache();
     if (docCache == null) {
+      WtMessageHandler.printToLogFile("WtSidebarContent: setCacheStatusColor: Error: docCache is null");
       return;
     }
     WtLanguageTool lt = documents.getLanguageTool();
