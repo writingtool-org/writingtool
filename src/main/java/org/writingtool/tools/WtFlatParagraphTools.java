@@ -543,9 +543,9 @@ public class WtFlatParagraphTools {
    * @throws Throwable 
    */
   public Locale getPrimaryLanguageOfPartOfParagraph(int nPara, int start, int len, Locale lastLocale) throws Throwable {
+    XFlatParagraph flatPara = getFlatParagraphAt(nPara);
     isBusy.incrementAndGet();
     try {
-      XFlatParagraph flatPara = getFlatParagraphAt(nPara);
       if (flatPara == null) {
         return lastLocale;
       }
