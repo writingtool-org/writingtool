@@ -151,8 +151,9 @@ public class WtProofreadingError implements Serializable {
         && ((aShortComment == null && e.aShortComment == null) || aShortComment.equals(e.aShortComment)) 
         && ((aFullComment == null && e.aFullComment == null) || aFullComment.equals(e.aFullComment))
         && ((category == null && e.category == null) || category.equals(e.category)) 
-        && ((aSuggestions == null && e.aSuggestions == null) || (aSuggestions != null && e.aSuggestions != null 
-        && aSuggestions.length == e.aSuggestions.length))
+//        && ((aSuggestions == null && e.aSuggestions == null) || (aSuggestions != null && e.aSuggestions != null 
+//        && aSuggestions.length == e.aSuggestions.length))
+        //  suggestions are not compared because they should be updated by AI
         ) {
       return true;
     }
