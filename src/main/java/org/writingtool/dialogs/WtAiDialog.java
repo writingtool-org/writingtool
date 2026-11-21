@@ -2123,16 +2123,18 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       text = instructionPanel.getSelectedIndex() == 0 ? paragraph.getText() : directInstruction.getText();
     }
-    createImageAfterTranslation(text);
+    createImageAfterTranslation(text, null);
   }
 
   private void translateTextBeforeCreateImage() throws Throwable {
     String text = imgInstruction.getText();
-    createImageAfterTranslation(text);
+    String ExclText = exclude.getText();
+    createImageAfterTranslation(text, ExclText);
   }
 
-  private void createImageAfterTranslation(String text) throws Throwable {
+  private void createImageAfterTranslation(String text, String exclText) throws Throwable {
     String orgText = text;
+    String orgExcl= exclText;
     if (locale != null && locale.Language != null && !locale.Language.equals("en")) {
       try {
         setAtWorkState(true);
@@ -2140,6 +2142,9 @@ public class WtAiDialog extends Thread implements ActionListener {
         WtAiRemote aiRemote = new WtAiRemote(documents, config);
         activeRemote = aiRemote;
         text = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, text, 0, 0, locale, true, true);
+        if (exclText != null && !exclText.trim().isEmpty()) {
+          exclText = aiRemote.runInstruction(TRANSLATE_INSTRUCTION, exclText, 0, 0, locale, true, true);
+        }
       } finally {
         activeRemote = null;
         // always release the dialog (otherwise it stays blocked if the translation fails)
@@ -2150,11 +2155,18 @@ public class WtAiDialog extends Thread implements ActionListener {
     if (text == null || text.trim().isEmpty()) {
       return;
     }
+    setButtonState(true);
     mainPanel.setSelectedComponent(mainImagePanel);
     String parsedText = text.replace("\n", " ").replace("\r", " ").replace("\t", " ");
     parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, orgText);
     imgInstruction.setText(parsedText);
-    exclude.setText("");
+    imgInstText = parsedText;
+    if (exclText != null && !exclText.trim().isEmpty()) {
+      parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, exclText);
+      exclude.setText(parsedText);
+    } else {
+      exclude.setText("");
+    }
     createImage();
   }
 

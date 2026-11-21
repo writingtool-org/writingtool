@@ -582,6 +582,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
 //      WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: setText: " + formatedText);
       paragraphBox.setText(formatedText);
+      setColorOfTextBox(rErrors);
       if (isAiSupport && aiResultBox != null && !isSameText) {
         String aiResultText = reconstructAiTextFromCache(tPara, document);
 //        WtMessageHandler.printToLogFile("WtSidebarContent: setCursorTextToBox: aiResultBox: " + aiResultText);
@@ -1064,6 +1065,19 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
     }
   }
   
+  private void setColorOfTextBox(WtProofreadingError[] errors) {
+    try {
+      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xAiBox.getModel());
+      if (errors == null || errors.length == 0) {
+        props.setPropertyValue("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
+      } else {
+        props.setPropertyValue("TextColor", Color.BLUE.getRGB() & ~0xFF000000);
+      }
+    } catch (Throwable e1) {
+      WtMessageHandler.showError(e1);
+    }
+  }
+
   private void setColorOfAiBox(String sPara, String sAiResult) {
     try {
       XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xAiBox.getModel());
@@ -1076,22 +1090,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       WtMessageHandler.showError(e1);
     }
   }
-/*  
-  private void setAiLabelText(DetectionType detectionType) {
-    try {
-      if (detectionType == null) {
-        detectionType = DetectionType.GRAMMAR;
-      }
-      if (detectionType == DetectionType.REWRITE) {
-        aiLabelText.setText(messages.getString("aiDialogResultLabelRephrase"));
-      } else {
-        aiLabelText.setText(messages.getString("aiDialogResultLabelGrammar"));
-      }
-    } catch (Throwable e1) {
-      WtMessageHandler.showError(e1);
-    }
-  }
-*/
+
   private void setAiLabelText(String instruction) {
     try {
       if (instruction == null) {
