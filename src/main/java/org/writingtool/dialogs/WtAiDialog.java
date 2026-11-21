@@ -21,6 +21,7 @@ package org.writingtool.dialogs;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -39,6 +40,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowListener;
@@ -67,14 +70,18 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -306,6 +313,26 @@ public class WtAiDialog extends Thread implements ActionListener {
     imageLabel = new JLabel(messages.getString("aiDialogImgImageLabel") + ":");
     if (imageTabs == null) {
       imageTabs = new JTabbedPane();
+      imageTabs.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
+
+        @Override
+        public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+
+        private void maybeShowPopup(MouseEvent e) {
+            if (!e.isPopupTrigger()) return;
+
+            int index = imageTabs.indexAtLocation(e.getX(), e.getY());
+            if (index < 0) return; // no click on a tab
+
+            imageTabs.setSelectedIndex(index);
+            if (e.getButton() == MouseEvent.BUTTON3) {
+              JPopupMenu popup = new WtAiImageTabPopupMenu();
+              popup.show(imageTabs, e.getX(), e.getY());
+            }
+        }
+      });
     }
 
     loadPropertiesFromFile();
@@ -319,6 +346,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     }
     for (int i = 0; i < images.size(); i++) {
       imageTabs.addTab(images.get(i).title, images.get(i).frame);
+      imageTabs.setTabComponentAt(imageTabs.getTabCount() - 1, new ClosableTabComponent(imageTabs));
       imageTabs.setBackground(null);
       imageTabs.setSelectedIndex(i);
       imageTabs.revalidate();
@@ -1877,7 +1905,9 @@ public class WtAiDialog extends Thread implements ActionListener {
             WtMessageHandler.printToLogFile("AiParagraphChanging: runAiChangeOnParagraph: url: " + urlString);
           }
           JLabel imageFrame = new JLabel();
+          imageFrame.setComponentPopupMenu(new WtAiImagePopupMenu());
           imageFrame.setSize(imageWidth, imageHeight);
+          imageFrame.setComponentPopupMenu(new WtAiImagePopupMenu());
           String tabTitle = imgInstText;
           tabTitle = makeTabTitle(tabTitle);
           BufferedImage img = getImageFromUrl(urlString);
@@ -1887,6 +1917,7 @@ public class WtAiDialog extends Thread implements ActionListener {
           images.add(new WtAiImage(img, tabTitle, imageFrame, false));
           setImageSize(images.get(images.size() - 1));
           imageTabs.addTab(tabTitle, imageFrame);
+          imageTabs.setTabComponentAt(imageTabs.getTabCount() - 1, new ClosableTabComponent(imageTabs));
           imageTabs.setBackground(null);
           imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
           dialog.revalidate();
@@ -1928,6 +1959,7 @@ public class WtAiDialog extends Thread implements ActionListener {
           int height;
           int width;
           JLabel imageFrame = image.frame;
+          imageFrame.setComponentPopupMenu(new WtAiImagePopupMenu());
 
           if (imageFrame.getHeight() < imageFrame.getWidth() * factor) {
             height = imageFrame.getHeight();
@@ -2391,6 +2423,7 @@ public class WtAiDialog extends Thread implements ActionListener {
   private void addImageToTab(BufferedImage bImage, String tabTitle) throws Throwable {
     if (bImage != null) {
       JLabel imageFrame = new JLabel();
+      imageFrame.setComponentPopupMenu(new WtAiImagePopupMenu());
       imageFrame.setSize(bImage.getWidth(), bImage.getHeight());
       imageHeight = bImage.getHeight();
       imageHeightValueField.setText("" + imageHeight);
@@ -2400,6 +2433,7 @@ public class WtAiDialog extends Thread implements ActionListener {
       images.add(new WtAiImage(bImage, tabTitle, imageFrame, true));
       setImageSize(images.get(images.size() - 1));
       imageTabs.addTab(tabTitle, imageFrame);
+      imageTabs.setTabComponentAt(imageTabs.getTabCount() - 1, new ClosableTabComponent(imageTabs));
       imageTabs.setBackground(null);
       imageTabs.setSelectedIndex(imageTabs.getTabCount() - 1);
       dialog.revalidate();
@@ -2468,11 +2502,16 @@ public class WtAiDialog extends Thread implements ActionListener {
         }
     }
     return null;
-}
+  }
 
-  
   private void removeImage() throws Throwable {
-    int n = imageTabs.getSelectedIndex();
+    removeImage(-1);
+  }
+  
+  private void removeImage(int n) throws Throwable {
+    if (n < 0) {
+      n = imageTabs.getSelectedIndex();
+    }
     imageTabs.remove(n);
     images.remove(n);
     if (images.isEmpty()) {
@@ -2485,6 +2524,26 @@ public class WtAiDialog extends Thread implements ActionListener {
       imageWidthValueField.setText("" + imageWidth);
     }
     setButtonState(true);
+  }
+  
+  private void removeLeftImages() throws Throwable {
+    removeImages(0, imageTabs.getSelectedIndex() - 1, -1);  
+  }
+
+  private void removeRightImages() throws Throwable {
+    removeImages(imageTabs.getSelectedIndex() + 1, imageTabs.getTabCount() - 1, -1);  
+  }
+
+  private void removeOtherImages() throws Throwable {
+    removeImages(0, imageTabs.getTabCount() - 1, imageTabs.getSelectedIndex());  
+  }
+
+  private void removeImages(int from, int to, int without) throws Throwable {
+    for (int i = to; i >= from; i--) {
+      if (i != without) {
+        removeImage(i);
+      }
+    }
   }
   
   private void removeAllImages() throws Throwable {
@@ -2637,6 +2696,221 @@ public class WtAiDialog extends Thread implements ActionListener {
       this.height = image.getHeight();
       this.width = image.getWidth();
       this.isReferenceImage = isReferenceImage;
+    }
+  }
+  
+  private class ClosableTabComponent extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+
+    public ClosableTabComponent(JTabbedPane pane) {
+        super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        setOpaque(false);
+
+        // Always retrieve the title live from the TabbedPane
+        JLabel label = new JLabel() {
+          @Override
+          public String getText() {
+              int i = pane.indexOfTabComponent(ClosableTabComponent.this);
+              return i >= 0 ? pane.getTitleAt(i) : null;
+          }
+        };
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 6));
+        add(label);
+
+        JButton close = new JButton("×");
+        close.setFont(close.getFont().deriveFont(Font.BOLD, 14f));
+        close.setMargin(new Insets(0, 4, 0, 4));
+        close.setBorderPainted(false);
+        close.setContentAreaFilled(false);
+        close.setFocusable(false);
+        close.setToolTipText(messages.getString("aiDialogImgCloseTabButton"));
+        close.addMouseListener(new MouseAdapter() {
+          @Override public void mouseEntered(MouseEvent e) {
+              close.setForeground(Color.RED);
+          }
+          @Override public void mouseExited(MouseEvent e) {
+              close.setForeground(UIManager.getColor("Button.foreground"));
+          }
+        });
+        close.addActionListener(e -> {
+            int i = pane.indexOfTabComponent(this);
+            if (i >= 0) {
+              try {
+                removeImage(i);
+              } catch (Throwable e1) {
+                WtMessageHandler.showError(e1);
+              }
+            }
+        });
+        add(close);
+
+        // Forward mouse events from the label to the TabbedPane;
+        // otherwise, the tab will not be selected when the title is clicked
+        MouseAdapter forward = new MouseAdapter() {
+          private void redispatch(MouseEvent e) {
+              pane.dispatchEvent(SwingUtilities.convertMouseEvent(label, e, pane));
+          }
+          @Override public void mousePressed(MouseEvent e)  { redispatch(e); }
+          @Override public void mouseReleased(MouseEvent e) { redispatch(e); }
+          @Override public void mouseClicked(MouseEvent e)  { redispatch(e); }
+        };
+        label.addMouseListener(forward);
+    }
+  }
+  
+  private class WtAiImageTabPopupMenu extends JPopupMenu {
+    private static final long serialVersionUID = 1L;
+    
+    public WtAiImageTabPopupMenu() {
+      JMenuItem removeImageItem = new JMenuItem(messages.getString("aiDialogImgRemoveButton"));
+      removeImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeImage();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(removeImageItem);
+      
+      JMenuItem insertImageItem = new JMenuItem(messages.getString("aiDialogImgRemoveOtherButton"));
+      insertImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeOtherImages();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(insertImageItem);
+      
+      JMenuItem saveImageItem = new JMenuItem(messages.getString("aiDialogImgRemoveLeftButton"));
+      saveImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeLeftImages();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(saveImageItem);
+      
+      JMenuItem referenceImageItem = new JMenuItem(messages.getString("aiDialogImgRemoveRightButton"));
+      referenceImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeRightImages();
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(referenceImageItem);
+      
+      JMenuItem removeAllImagesItem = new JMenuItem(messages.getString("aiDialogImgRemoveAllButton"));
+      removeAllImagesItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeAllImages();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(removeAllImagesItem);
+    }
+    
+  }
+
+  private class WtAiImagePopupMenu extends JPopupMenu {
+    private static final long serialVersionUID = 1L;
+    
+    public WtAiImagePopupMenu() {
+      JMenuItem insertImageItem = new JMenuItem(messages.getString("aiDialogImgInsertButton"));
+      insertImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            insertImage();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(insertImageItem);
+      
+      JMenuItem saveImageItem = new JMenuItem(messages.getString("aiDialogImgSaveButton"));
+      saveImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            saveImage();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(saveImageItem);
+      
+      JMenuItem referenceImageItem = new JMenuItem(messages.getString("aiDialogImgAsReferenceButton"));
+      referenceImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            if (referenceImage.isSelected()) {
+              referenceImage.setSelected(false);
+            } else {
+              referenceImage.setSelected(true);
+            }
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(referenceImageItem);
+      
+      JMenuItem removeImageItem = new JMenuItem(messages.getString("aiDialogImgRemoveButton"));
+      removeImageItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeImage();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(removeImageItem);
+      
+      JMenuItem removeAllImagesItem = new JMenuItem(messages.getString("aiDialogImgRemoveAllButton"));
+      removeAllImagesItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            removeAllImages();
+            setButtonState(true);
+          } catch (Throwable t) {
+            WtMessageHandler.showError(t);
+          }
+        }
+      });
+      add(removeAllImagesItem);
     }
     
   }
