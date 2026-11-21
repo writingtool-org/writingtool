@@ -2162,7 +2162,7 @@ public class WtAiDialog extends Thread implements ActionListener {
     imgInstruction.setText(parsedText);
     imgInstText = parsedText;
     if (exclText != null && !exclText.trim().isEmpty()) {
-      parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, exclText);
+      parsedText = WtAiRemote.removeSurroundingQuotes(parsedText, orgExcl);
       exclude.setText(parsedText);
     } else {
       exclude.setText("");

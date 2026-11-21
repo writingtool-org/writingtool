@@ -182,7 +182,8 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   private XWindow queueAiStatusWindow;          //  the window of AI queue status
   private XMultiComponentFactory xMCF;          //  The component factory
   private XControlContainer controlContainer;   //  The container of the controls
-  private XTextComponent paragraphBox;          //  Box to show paragraph text
+  private XTextComponent paragraphBox;          //  Text component of box to show paragraph text
+  private XControl xParagraphBox;               //  Box to show paragraph text
   private XControl xAiBox;                      //  Box to show AI result text
   private XTextComponent aiResultBox;           //  Text component of box to show AI result text
   private XFixedText aiLabelText;               //  Text of Label for AI result text
@@ -363,7 +364,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int paraBoxWidth = containerSize.Width - CONTAINER_MARGIN_LEFT - CONTAINER_MARGIN_RIGHT;
       int paraBoxHeight = isAiSupport ? containerHeight : containerSize.Height - CONTAINER_MARGIN_TOP - CONTAINER_MARGIN_BOTTOM;
       
-      XControl xParagraphBox = createTextfield(xMCF, context, "", 
+      xParagraphBox = createTextfield(xMCF, context, "", 
           new Rectangle(paraBoxX, paraBoxY, paraBoxWidth, paraBoxHeight), props, null);
       paragraphBox = UnoRuntime.queryInterface(XTextComponent.class, xParagraphBox);
              
@@ -1067,7 +1068,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
   
   private void setColorOfTextBox(WtProofreadingError[] errors) {
     try {
-      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xAiBox.getModel());
+      XPropertySet props = UnoRuntime.queryInterface(XPropertySet.class, xParagraphBox.getModel());
       if (errors == null || errors.length == 0) {
         props.setPropertyValue("TextColor", SystemColor.textInactiveText.getRGB() & ~0xFF000000);
       } else {
