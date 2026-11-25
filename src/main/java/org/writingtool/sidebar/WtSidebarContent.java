@@ -1127,6 +1127,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       return "";
     }
     WtProofreadingError[] pErrors = document.getAiSuggestionCache().getSafeMatches(nFPara);
+    boolean isSuggestion = false;
     if (pErrors == null) {
       pErrors = document.getParagraphsCache().get(WtOfficeTools.CACHE_AI).getSafeMatches(nFPara);
       if (pErrors != null) {
@@ -1134,6 +1135,7 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       }
     } else {
       setAiLabelText(WtAiRemote.REFORMULATE_INSTRUCTION);
+      isSuggestion = true;
     }
     if(pErrors != null) {
       for (int i = pErrors.length - 1; i >= 0; i--) {
@@ -1146,6 +1148,12 @@ public class WtSidebarContent extends ComponentBase implements XToolPanel, XSide
       int[] footnotePos = docCache.getTextParagraphFootnotes(tPara);
       List<Integer> deletedChars = docCache.getTextParagraphDeletedCharacters(tPara);
       sPara = WtSingleCheck.removeFootnotes(sPara, footnotePos, deletedChars, nFPara, docCache.getHiddenCharactersMap());
+      if (!isSuggestion && pErrors.length > 0) {
+        String formatedText = formatText(sPara, pErrors);
+        if (formatedText != null) {
+          return formatedText;
+        }
+      }
       return sPara;
     } else {
       setAiLabelText("");
